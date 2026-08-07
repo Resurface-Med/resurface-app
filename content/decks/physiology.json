@@ -1,0 +1,1572 @@
+{
+  "deck": "Physiology",
+  "categories": [
+    "Membrane Physiology",
+    "Membrane Potentials & Action Potentials",
+    "Muscle Physiology",
+    "Nervous System",
+    "Hormone Signalling"
+  ],
+  "questions": [
+    {
+      "id": 191,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The cell membrane is best described as a:",
+      "opts": [
+        "Rigid phospholipid wall",
+        "Fluid mosaic with proteins",
+        "Single cholesterol layer",
+        "DNA-protein matrix",
+        "Pure protein structure"
+      ],
+      "ans": 1,
+      "exp": "Singer-Nicolson fluid mosaic model: phospholipid bilayer with proteins floating freely and asymmetrically.",
+      "optExp": [
+        "Membranes are fluid, not rigid.",
+        null,
+        "Cholesterol is embedded but not the main structure.",
+        "DNA is nuclear.",
+        "Lipids form the structural framework."
+      ]
+    },
+    {
+      "id": 192,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Which of the following molecules crosses the lipid bilayer most easily by simple diffusion?",
+      "opts": [
+        "Glucose molecule",
+        "Na⁺ ion",
+        "Water molecule",
+        "O₂ small nonpolar molecule",
+        "Amino acid"
+      ],
+      "ans": 3,
+      "exp": "Small, nonpolar molecules like O₂, CO₂, and N₂ diffuse easily through the bilayer. Water uses aquaporins.",
+      "optExp": [
+        "Glucose uses facilitated diffusion.",
+        "Na⁺ requires channels/pumps.",
+        "Water uses aquaporins primarily.",
+        null,
+        "Amino acids use transporters."
+      ]
+    },
+    {
+      "id": 193,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The Na⁺/K⁺-ATPase pumps:",
+      "opts": [
+        "3 Na⁺ in, 2 K⁺ out",
+        "3 Na⁺ out, 2 K⁺ in",
+        "2 Na⁺ in, 3 K⁺ out",
+        "1 Na⁺ out, 1 K⁺ in",
+        "3 Ca²⁺ out, 2 Na⁺ in"
+      ],
+      "ans": 1,
+      "exp": "Na⁺/K⁺-ATPase pumps 3 Na⁺ OUT and 2 K⁺ IN per ATP, maintaining electrochemical gradient and resting membrane potential.",
+      "optExp": [
+        "Reversed direction.",
+        null,
+        "Reversed stoichiometry.",
+        "Stoichiometry wrong.",
+        "This is the Na⁺/Ca²⁺ exchanger pattern."
+      ]
+    },
+    {
+      "id": 194,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Facilitated diffusion differs from active transport in that it:",
+      "opts": [
+        "Requires ATP energy to move substances across membrane",
+        "Moves substances against the concentration gradient",
+        "Does not require ATP energy and moves down concentration gradient",
+        "Uses channel proteins and moves against gradient",
+        "Requires hydrolysis of GTP molecules"
+      ],
+      "ans": 2,
+      "exp": "Facilitated diffusion moves down the electrochemical gradient via channels or carriers; no ATP needed.",
+      "optExp": [
+        "Active transport requires ATP.",
+        "Against gradient = active transport.",
+        null,
+        "Uses channels/carriers, not pumps.",
+        "Not water-specific."
+      ]
+    },
+    {
+      "id": 195,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Osmosis is the movement of:",
+      "opts": [
+        "Movement of solutes from low to high concentration",
+        "Movement of solutes across the cell membrane",
+        "Movement of water across a semipermeable membrane toward higher solute concentration",
+        "Movement of ions through ion channels",
+        "Movement of glucose via carrier proteins"
+      ],
+      "ans": 2,
+      "exp": "Osmosis = movement of water across a semipermeable membrane from low to high solute concentration (high to low water concentration).",
+      "optExp": [
+        "Solutes don't move uphill in osmosis.",
+        "Phrased imprecisely; missing membrane.",
+        null,
+        "That is ion diffusion.",
+        "Carrier-mediated transport, not osmosis."
+      ]
+    },
+    {
+      "id": 196,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "GLUT4 transports glucose into:",
+      "opts": [
+        "All cells in the body equally",
+        "Muscle and adipose tissue cells",
+        "Erythrocytes only",
+        "Neurons only",
+        "Liver cells only"
+      ],
+      "ans": 1,
+      "exp": "GLUT4 is insulin-dependent and is the main glucose transporter in skeletal muscle and adipose tissue.",
+      "optExp": [
+        "GLUT family is tissue-specific.",
+        null,
+        "GLUT1 is the RBC transporter.",
+        "GLUT3 is for neurons.",
+        "GLUT2 is for liver/β-cells."
+      ]
+    },
+    {
+      "id": 197,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Tight junctions function to:",
+      "opts": [
+        "Anchoring cells to the extracellular matrix",
+        "Preventing paracellular transport between adjacent cells",
+        "Allowing ion passage between epithelial cells",
+        "Aiding muscle contraction",
+        "Binding cells to fibroblasts"
+      ],
+      "ans": 1,
+      "exp": "Tight junctions seal cells together apically, blocking paracellular flow (e.g. blood-brain barrier, intestinal lining).",
+      "optExp": [
+        "Hemidesmosomes anchor to ECM.",
+        null,
+        "Gap junctions allow ion passage.",
+        "Not the role of tight junctions.",
+        "Not their function."
+      ]
+    },
+    {
+      "id": 198,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Cholesterol in the cell membrane:",
+      "opts": [
+        "Increases membrane fluidity at all temperatures",
+        "Decreases membrane fluidity at all temperatures",
+        "Modulates membrane fluidity based on temperature",
+        "Acts as a receptor protein on the membrane",
+        "Forms ion channels in the membrane"
+      ],
+      "ans": 2,
+      "exp": "Cholesterol stabilises membrane fluidity: it prevents tight packing at low temperatures and excessive fluidity at high temperatures.",
+      "optExp": [
+        "Cholesterol does not universally increase fluidity.",
+        "Cholesterol does not universally decrease fluidity.",
+        null,
+        "Not a receptor function.",
+        "Cholesterol does not form channels."
+      ]
+    },
+    {
+      "id": 199,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The resting membrane potential of a neuron is approximately:",
+      "opts": [
+        "+40 mV",
+        "+20 mV",
+        "−40 mV",
+        "−70 mV",
+        "−100 mV"
+      ],
+      "ans": 3,
+      "exp": "Resting Vm is around −70 mV, established by Na⁺/K⁺-ATPase and K⁺ leak channels.",
+      "optExp": [
+        "+40 mV is the peak of the AP.",
+        "0 mV is the reversal point.",
+        "−40 mV is closer to threshold.",
+        null,
+        "Too hyperpolarised for resting."
+      ]
+    },
+    {
+      "id": 200,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Depolarisation during a neuronal action potential is due to:",
+      "opts": [
+        "Na⁺ influx through voltage-gated channels",
+        "K⁺ efflux through voltage-gated channels",
+        "Cl⁻ influx through voltage-gated channels",
+        "Ca²⁺ efflux through voltage-gated channels",
+        "Na⁺/K⁺-ATPase pump activation"
+      ],
+      "ans": 0,
+      "exp": "At threshold (~−55 mV), voltage-gated Na⁺ channels open, Na⁺ rushes in, depolarising to +40 mV.",
+      "optExp": [
+        null,
+        "K⁺ efflux causes repolarisation.",
+        "Cl⁻ influx hyperpolarises.",
+        "Ca²⁺ is more relevant in cardiac.",
+        "Pump restores gradients but doesn't cause depolarisation."
+      ]
+    },
+    {
+      "id": 201,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Repolarisation of the neuronal action potential is mainly due to:",
+      "opts": [
+        "K⁺ efflux through voltage-gated potassium channels",
+        "Na⁺ influx through voltage-gated sodium channels",
+        "Cl⁻ influx through voltage-gated chloride channels",
+        "Ca²⁺ influx through voltage-gated calcium channels",
+        "Inactivation of Na⁺/K⁺-ATPase pumps"
+      ],
+      "ans": 0,
+      "exp": "Voltage-gated K⁺ channels open, K⁺ flows out, restoring negative membrane potential.",
+      "optExp": [
+        null,
+        "Na⁺ influx is depolarisation.",
+        "Cl⁻ influx is hyperpolarisation in some contexts.",
+        "Ca²⁺ is for cardiac plateau.",
+        "Pumps maintain but don't cause repolarisation."
+      ]
+    },
+    {
+      "id": 202,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Hyperpolarisation after the AP is caused by:",
+      "opts": [
+        "K⁺ channels remaining open longer than needed",
+        "Na⁺ channels remaining open longer than needed",
+        "Cl⁻ exit from the cell",
+        "Ca²⁺ release from sarcoplasmic reticulum",
+        "Na⁺/K⁺-ATPase pump inactivation"
+      ],
+      "ans": 0,
+      "exp": "K⁺ channels close slowly, leading to brief K⁺ efflux beyond resting Vm — the after-hyperpolarisation.",
+      "optExp": [
+        null,
+        "Na⁺ channels inactivate after depolarisation.",
+        "Cl⁻ flow is not the AHP mechanism.",
+        "Ca²⁺ release is more cardiac.",
+        "Pump activity stabilises Vm."
+      ]
+    },
+    {
+      "id": 203,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Saltatory conduction occurs in:",
+      "opts": [
+        "Myelinated axons with nodes of Ranvier",
+        "Unmyelinated axons",
+        "Smooth muscle tissue",
+        "Cardiac muscle tissue",
+        "Neuronal cell bodies only"
+      ],
+      "ans": 0,
+      "exp": "In myelinated axons, ion channels concentrate at Nodes of Ranvier; APs 'jump' node-to-node, greatly speeding conduction.",
+      "optExp": [
+        null,
+        "Unmyelinated have continuous slow conduction.",
+        "Smooth muscle uses different signalling.",
+        "Cardiac uses gap junctions.",
+        "Cell bodies don't propagate APs in this manner."
+      ]
+    },
+    {
+      "id": 204,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The absolute refractory period prevents:",
+      "opts": [
+        "Initiating another action potential regardless of stimulus strength",
+        "Opening of voltage-gated Na⁺ channels",
+        "Opening of voltage-gated K⁺ channels",
+        "Reaching threshold potential",
+        "Release of calcium from intracellular stores"
+      ],
+      "ans": 1,
+      "exp": "During absolute refractory period, Na⁺ channels are inactivated and cannot reopen — no new AP can occur.",
+      "optExp": [
+        "Na⁺ channels are inactivated specifically.",
+        null,
+        "K⁺ channels still function.",
+        "Threshold can be reached, but no AP fires due to Na⁺ channel state.",
+        "Calcium dynamics are separate."
+      ]
+    },
+    {
+      "id": 205,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Which phase of the cardiac action potential is due to L-type Ca²⁺ channel opening?",
+      "opts": [
+        "Phase 0 depolarisation",
+        "Phase 1 early repolarisation",
+        "Phase 2 plateau phase",
+        "Phase 3 repolarisation",
+        "Phase 4 resting membrane potential"
+      ],
+      "ans": 2,
+      "exp": "Phase 2 (plateau) is sustained by Ca²⁺ influx through L-type channels, balanced by K⁺ efflux — unique to cardiac cells.",
+      "optExp": [
+        "Phase 0 = Na⁺ influx.",
+        "Phase 1 = transient K⁺ efflux.",
+        null,
+        "Phase 3 = K⁺ efflux repolarisation.",
+        "Phase 4 = resting potential."
+      ]
+    },
+    {
+      "id": 206,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Larger-diameter axons conduct action potentials:",
+      "opts": [
+        "Slower than small-diameter axons",
+        "Faster due to lower resistance",
+        "At the same speed as small axons",
+        "Only in cold environmental conditions",
+        "Only in retrograde direction"
+      ],
+      "ans": 1,
+      "exp": "Larger diameter = lower axoplasmic resistance = faster local current spread → faster conduction.",
+      "optExp": [
+        "Inverse of correct.",
+        null,
+        "Diameter matters significantly.",
+        "Temperature affects but not diameter principle.",
+        "Direction is not diameter-dependent."
+      ]
+    },
+    {
+      "id": 207,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Temporal summation refers to:",
+      "opts": [
+        "Multiple neurons firing simultaneously",
+        "One neuron firing rapidly repeatedly",
+        "Backwards action potential conduction",
+        "Action potentials in muscle",
+        "Synaptic vesicle pooling"
+      ],
+      "ans": 1,
+      "exp": "Temporal summation = one presynaptic neuron fires repeatedly in quick succession, summing EPSPs to reach threshold.",
+      "optExp": [
+        "That is spatial summation.",
+        null,
+        "Backwards conduction is retrograde.",
+        "Not muscle-specific.",
+        "Not summation per se."
+      ]
+    },
+    {
+      "id": 208,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Hyperkalaemia (high extracellular K⁺) typically causes:",
+      "opts": [
+        "Less negative Vm with increased excitability",
+        "Hyperpolarise and prevent AP firing",
+        "No change in membrane potential",
+        "Repolarisation failure of Na⁺",
+        "Total loss of all conduction"
+      ],
+      "ans": 0,
+      "exp": "High extracellular K⁺ depolarises the resting membrane (less negative), initially increasing excitability but eventually inactivating Na⁺ channels.",
+      "optExp": [
+        null,
+        "Hyperpolarisation is from hypokalaemia.",
+        "Definite effect.",
+        "Initial inactivation; this is too specific.",
+        "Eventually but not initially."
+      ]
+    },
+    {
+      "id": 209,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "In skeletal muscle, calcium binds to which thin filament protein to initiate contraction?",
+      "opts": [
+        "Myosin head",
+        "Tropomyosin protein",
+        "Troponin C protein",
+        "Actin filament",
+        "Titin protein"
+      ],
+      "ans": 2,
+      "exp": "Ca²⁺ binds troponin C, causing tropomyosin to shift and expose actin binding sites for myosin.",
+      "optExp": [
+        "Myosin is the thick filament motor.",
+        "Tropomyosin moves AFTER Ca²⁺-troponin binding.",
+        null,
+        "Actin is the binding partner, not Ca²⁺ binder.",
+        "Titin is structural."
+      ]
+    },
+    {
+      "id": 210,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The power stroke in skeletal muscle contraction occurs when:",
+      "opts": [
+        "Myosin releases ADP and Pi pulling actin",
+        "ATP binds to myosin head",
+        "Calcium is pumped back into SR",
+        "Tropomyosin covers actin binding sites",
+        "Sarcolemma becomes depolarised"
+      ],
+      "ans": 0,
+      "exp": "After ATP hydrolysis, the cocked myosin head releases ADP + Pi and pivots, dragging actin toward the M-line.",
+      "optExp": [
+        null,
+        "ATP binding causes detachment.",
+        "Ca²⁺ pumping happens during relaxation.",
+        "Tropomyosin masking is the resting state.",
+        "Depolarisation initiates but isn't the stroke."
+      ]
+    },
+    {
+      "id": 211,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "In skeletal muscle, what stores calcium for release during contraction?",
+      "opts": [
+        "Sarcoplasmic reticulum stores calcium",
+        "Mitochondria store calcium",
+        "Lysosomes store calcium",
+        "Nucleus stores calcium",
+        "Golgi apparatus stores calcium"
+      ],
+      "ans": 0,
+      "exp": "The sarcoplasmic reticulum stores Ca²⁺, releasing it via ryanodine receptors when T-tubules depolarise.",
+      "optExp": [
+        null,
+        "Mitochondria buffer Ca²⁺ but don't trigger release.",
+        "Lysosomes degrade material.",
+        "Nucleus stores DNA.",
+        "Golgi packages proteins."
+      ]
+    },
+    {
+      "id": 212,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "What causes detachment of myosin from actin during the cross-bridge cycle?",
+      "opts": [
+        "ATP binding to myosin",
+        "Calcium release",
+        "Power stroke",
+        "Tropomyosin movement",
+        "Action potential arrival"
+      ],
+      "ans": 0,
+      "exp": "ATP binding to the myosin head reduces affinity for actin → myosin releases. ATP is then hydrolysed for re-cocking.",
+      "optExp": [
+        null,
+        "Calcium initiates contraction, not detachment.",
+        "Power stroke is the contraction phase.",
+        "Tropomyosin exposure allows binding.",
+        "AP triggers Ca²⁺ release, not detachment."
+      ]
+    },
+    {
+      "id": 213,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "In rigor mortis, muscles stay contracted because:",
+      "opts": [
+        "ATP depletion prevents myosin detachment",
+        "High calcium release occurs",
+        "Tropomyosin permanently moves aside",
+        "Excess troponin C production",
+        "Sarcolemma membrane collapses"
+      ],
+      "ans": 0,
+      "exp": "Without ATP after death, myosin heads remain bound to actin — rigor. Eventually proteolysis releases the muscle.",
+      "optExp": [
+        null,
+        "Calcium is one factor but not the chief reason.",
+        "Tropomyosin doesn't permanently move.",
+        "Troponin is not in excess.",
+        "Sarcolemma is not the cause."
+      ]
+    },
+    {
+      "id": 214,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Type I (slow oxidative) muscle fibres are characterised by:",
+      "opts": [
+        "High glycolytic capacity, fatigue quickly",
+        "High mitochondria, fatigue-resistant, dark",
+        "Pale colour, fast contraction speed",
+        "No myoglobin protein present",
+        "Anaerobic ATP metabolism only"
+      ],
+      "ans": 1,
+      "exp": "Type I fibres are slow, oxidative, rich in mitochondria/myoglobin, dark in colour, and fatigue-resistant — endurance.",
+      "optExp": [
+        "That describes Type IIB.",
+        null,
+        "Type I are slow.",
+        "Type I have lots of myoglobin.",
+        "Type I use aerobic metabolism."
+      ]
+    },
+    {
+      "id": 215,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Type IIB (fast glycolytic) muscle fibres are:",
+      "opts": [
+        "Fast, pale, low mitochondria, fatigues quickly",
+        "Slow, dark, fatigue-resistant fibres",
+        "Found only in cardiac muscle",
+        "Found only in tongue",
+        "Not found in adult muscle"
+      ],
+      "ans": 0,
+      "exp": "Type IIB fibres are fast-twitch, glycolytic, low in mitochondria/myoglobin (pale), and fatigue quickly — power/sprinting.",
+      "optExp": [
+        null,
+        "That is Type I.",
+        "Cardiac is its own type.",
+        "Not tongue-specific.",
+        "Present throughout life."
+      ]
+    },
+    {
+      "id": 216,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "What is the role of T-tubules in skeletal muscle?",
+      "opts": [
+        "Store calcium ions released",
+        "Conduct action potential into fibre",
+        "Synthesise ATP for contraction",
+        "Generate the muscle force",
+        "Anchor sarcomeres in place"
+      ],
+      "ans": 1,
+      "exp": "T-tubules are sarcolemma invaginations that conduct APs deep into the muscle fibre to trigger Ca²⁺ release from SR.",
+      "optExp": [
+        "SR stores calcium.",
+        null,
+        "Mitochondria make ATP.",
+        "Actin/myosin generate force.",
+        "Z-discs anchor sarcomeres."
+      ]
+    },
+    {
+      "id": 217,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Cardiac muscle differs from skeletal muscle in that it:",
+      "opts": [
+        "Is voluntary contraction type",
+        "Has multiple peripheral cell nuclei",
+        "Has intercalated discs with junctions",
+        "Lacks striations completely",
+        "Lacks troponin protein entirely"
+      ],
+      "ans": 2,
+      "exp": "Cardiac myocytes are connected by intercalated discs containing desmosomes and gap junctions, enabling rapid coordinated contraction.",
+      "optExp": [
+        "Cardiac is involuntary.",
+        "Skeletal has multiple peripheral nuclei; cardiac usually 1-2 central.",
+        null,
+        "Cardiac IS striated.",
+        "Cardiac HAS troponin (used as MI marker)."
+      ]
+    },
+    {
+      "id": 218,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Smooth muscle contraction differs from skeletal in that:",
+      "opts": [
+        "Calcium binds calmodulin to activate MLCK",
+        "Uses sarcomeres for contraction",
+        "Is striated like skeletal muscle",
+        "Is voluntary contraction type",
+        "Uses only calcium from SR"
+      ],
+      "ans": 0,
+      "exp": "In smooth muscle, Ca²⁺ binds calmodulin → activates MLCK → phosphorylates myosin light chain → contraction. No troponin/sarcomeres.",
+      "optExp": [
+        null,
+        "Smooth muscle has no sarcomeres.",
+        "Smooth muscle is NOT striated.",
+        "Smooth muscle is involuntary.",
+        "Uses Ca²⁺ from extracellular and SR."
+      ]
+    },
+    {
+      "id": 219,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Which neuroglial cell myelinates axons in the CNS?",
+      "opts": [
+        "Schwann cell in PNS",
+        "Oligodendrocyte in CNS",
+        "Astrocyte in CNS",
+        "Microglia in CNS",
+        "Ependymal cell in CNS"
+      ],
+      "ans": 1,
+      "exp": "Oligodendrocytes myelinate multiple CNS axons. Schwann cells myelinate ONE PNS axon segment each.",
+      "optExp": [
+        "Schwann cells are PNS.",
+        null,
+        "Astrocytes provide structural/metabolic support.",
+        "Microglia are CNS immune cells.",
+        "Ependymal cells line ventricles."
+      ]
+    },
+    {
+      "id": 220,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Schwann cells:",
+      "opts": [
+        "Myelinate multiple axons",
+        "Myelinate one axon segment",
+        "Function as immune cells",
+        "Line the ventricles",
+        "Form blood-brain barrier"
+      ],
+      "ans": 1,
+      "exp": "Each Schwann cell wraps one segment of a single PNS axon to form myelin.",
+      "optExp": [
+        "Oligodendrocytes do CNS multi-axon myelination.",
+        null,
+        "Microglia are immune.",
+        "Ependymal cells line ventricles.",
+        "Astrocytes contribute to BBB."
+      ]
+    },
+    {
+      "id": 221,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Astrocytes contribute to the blood-brain barrier by:",
+      "opts": [
+        "Phagocytose pathogens directly",
+        "Wrap endfeet around capillaries",
+        "Produce cerebrospinal fluid",
+        "Myelinate axons in the CNS",
+        "Produce neurotransmitters"
+      ],
+      "ans": 1,
+      "exp": "Astrocytic endfeet surround capillary endothelium, signalling them to form tight junctions and contributing to BBB integrity.",
+      "optExp": [
+        "Microglia phagocytose.",
+        null,
+        "CSF is from choroid plexus (ependymal).",
+        "That is oligodendrocyte/Schwann.",
+        "Some neurotransmitter uptake, but not main BBB role."
+      ]
+    },
+    {
+      "id": 222,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Which neuron type is most common in motor pathways?",
+      "opts": [
+        "Bipolar neurons",
+        "Pseudounipolar neurons",
+        "Multipolar neurons",
+        "Anaxonic neurons",
+        "Unipolar neurons"
+      ],
+      "ans": 2,
+      "exp": "Multipolar neurons (one axon + many dendrites) are most common — typical of motor neurons and CNS neurons.",
+      "optExp": [
+        "Bipolar are mainly in special senses (retina, olfactory).",
+        "Pseudounipolar are PNS sensory.",
+        null,
+        "Anaxonic are rare CNS interneurons.",
+        "Pure unipolar are rare in vertebrates."
+      ]
+    },
+    {
+      "id": 223,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Pseudounipolar neurons are typically found:",
+      "opts": [
+        "Found in dorsal root ganglia",
+        "Found in the cerebellum",
+        "Found in the retina",
+        "Found as motor neurons in the spinal cord",
+        "Found in autonomic ganglia"
+      ],
+      "ans": 0,
+      "exp": "Pseudounipolar neurons are characteristic of PNS sensory neurons (dorsal root ganglia, cranial sensory ganglia).",
+      "optExp": [
+        null,
+        "Cerebellar cells are multipolar.",
+        "Retina has bipolar cells.",
+        "Motor neurons are multipolar.",
+        "Autonomic ganglia have multipolar postganglionic neurons."
+      ]
+    },
+    {
+      "id": 224,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "What is the primary ion responsible for neurotransmitter release at the synaptic terminal?",
+      "opts": [
+        "Sodium ion (Na⁺)",
+        "Potassium ion (K⁺)",
+        "Calcium ion (Ca²⁺)",
+        "Chloride ion (Cl⁻)",
+        "Magnesium ion (Mg²⁺)"
+      ],
+      "ans": 2,
+      "exp": "AP arrival opens voltage-gated Ca²⁺ channels at the presynaptic terminal; Ca²⁺ triggers vesicle fusion via SNARE.",
+      "optExp": [
+        "Na⁺ depolarises the membrane but doesn't trigger release.",
+        "K⁺ repolarises.",
+        null,
+        "Cl⁻ is mainly inhibitory neurotransmission.",
+        "Mg²⁺ blocks NMDA receptors at rest."
+      ]
+    },
+    {
+      "id": 225,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Postganglionic sympathetic neurons release which neurotransmitter (with exception of sweat glands)?",
+      "opts": [
+        "Acetylcholine",
+        "Noradrenaline",
+        "Dopamine",
+        "Serotonin",
+        "GABA"
+      ],
+      "ans": 1,
+      "exp": "Postganglionic sympathetic neurons release noradrenaline onto adrenergic receptors. Exception: sweat glands use ACh.",
+      "optExp": [
+        "ACh is preganglionic (and PNS postganglionic).",
+        null,
+        "Dopamine is in CNS dopaminergic pathways.",
+        "Serotonin is in raphe nuclei mainly.",
+        "GABA is CNS inhibitory."
+      ]
+    },
+    {
+      "id": 226,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Preganglionic neurons of both sympathetic and parasympathetic systems release:",
+      "opts": [
+        "Noradrenaline",
+        "Acetylcholine",
+        "Dopamine",
+        "Glutamate",
+        "Histamine"
+      ],
+      "ans": 1,
+      "exp": "All autonomic preganglionic neurons release ACh onto nicotinic receptors on postganglionic neurons.",
+      "optExp": [
+        "Postganglionic sympathetic releases noradrenaline.",
+        null,
+        "Not the autonomic transmitter.",
+        "Not in autonomic preganglionic.",
+        "Histamine is in mast cells/some CNS pathways."
+      ]
+    },
+    {
+      "id": 227,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Postganglionic parasympathetic neurons release ACh onto:",
+      "opts": [
+        "Nicotinic receptors",
+        "Muscarinic receptors",
+        "Adrenergic receptors",
+        "NMDA receptors",
+        "GABA receptors"
+      ],
+      "ans": 1,
+      "exp": "PNS postganglionic neurons release ACh onto muscarinic receptors on target tissues (e.g. M2 on heart, M3 on smooth muscle/glands).",
+      "optExp": [
+        "Nicotinic is preganglionic.",
+        null,
+        "Adrenergic is sympathetic postganglionic.",
+        "Glutamatergic in CNS.",
+        "Inhibitory CNS receptor."
+      ]
+    },
+    {
+      "id": 228,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Microglia are best described as:",
+      "opts": [
+        "Myelinating cells of the CNS",
+        "CNS resident immune cells",
+        "Cells that produce cerebrospinal fluid",
+        "Sensory cells in the nervous system",
+        "Cells that produce extracellular matrix"
+      ],
+      "ans": 1,
+      "exp": "Microglia are the CNS's resident macrophages, performing phagocytosis and releasing cytokines.",
+      "optExp": [
+        "Oligodendrocytes myelinate CNS.",
+        null,
+        "Ependymal/choroid plexus make CSF.",
+        "Not sensory.",
+        "ECM is from connective tissue cells."
+      ]
+    },
+    {
+      "id": 229,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Endocrine signalling involves:",
+      "opts": [
+        "Cells signal themselves",
+        "Local diffusion to neighbouring cells",
+        "Hormones travel in the bloodstream",
+        "Direct cell-to-cell contact via gap junctions",
+        "Synaptic signal transmission"
+      ],
+      "ans": 2,
+      "exp": "Endocrine = hormones travel via the blood to act on distal target tissues (e.g. insulin, thyroxine).",
+      "optExp": [
+        "That is autocrine.",
+        "That is paracrine.",
+        null,
+        "That is juxtacrine.",
+        "Synaptic is neuronal."
+      ]
+    },
+    {
+      "id": 230,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Paracrine signalling means:",
+      "opts": [
+        "A cell signals itself",
+        "A cell signals nearby cells",
+        "Hormones travel in the blood",
+        "Signals travel through gap junctions",
+        "Intracellular receptor signalling"
+      ],
+      "ans": 1,
+      "exp": "Paracrine signalling acts on neighbouring cells via local diffusion (e.g. growth factors, prostaglandins).",
+      "optExp": [
+        "That is autocrine.",
+        null,
+        "That is endocrine.",
+        "Juxtacrine relies on direct contact.",
+        "That is intracrine."
+      ]
+    },
+    {
+      "id": 231,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Autocrine signalling means:",
+      "opts": [
+        "A cell signals itself",
+        "A cell signals neighbouring cells",
+        "Hormones travel in the blood",
+        "Direct cell-to-cell contact occurs",
+        "Synaptic transmission occurs"
+      ],
+      "ans": 0,
+      "exp": "Autocrine = the cell secretes a signal that acts on receptors on its own membrane (e.g. T cells with IL-2).",
+      "optExp": [
+        null,
+        "That is paracrine.",
+        "That is endocrine.",
+        "That is juxtacrine.",
+        "That is synaptic."
+      ]
+    },
+    {
+      "id": 232,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Which receptor type is the insulin receptor?",
+      "opts": [
+        "G protein-coupled receptor",
+        "Ligand-gated ion channel",
+        "Receptor tyrosine kinase",
+        "Nuclear receptor",
+        "Voltage-gated ion channel"
+      ],
+      "ans": 2,
+      "exp": "Insulin binds an RTK; subunit autophosphorylation triggers IRS, PI3K, MAPK cascades.",
+      "optExp": [
+        "Glucagon is the GPCR; insulin is not.",
+        "ACh nicotinic is a ligand-gated channel.",
+        null,
+        "Steroids use nuclear receptors.",
+        "Voltage-gated channels are not hormone receptors."
+      ]
+    },
+    {
+      "id": 233,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Steroid hormones (e.g. cortisol, oestrogen) typically bind:",
+      "opts": [
+        "G protein-coupled receptors",
+        "Receptor tyrosine kinases",
+        "Ligand-gated ion channels",
+        "Nuclear receptors",
+        "Voltage-gated ion channels"
+      ],
+      "ans": 3,
+      "exp": "Steroid hormones are lipid-soluble; they cross the membrane and bind nuclear receptors that act as transcription factors.",
+      "optExp": [
+        "Peptide hormones use GPCRs.",
+        "Insulin uses RTK.",
+        "Ionotropic for fast neurotransmission.",
+        null,
+        "Voltage-gated for excitable cells."
+      ]
+    },
+    {
+      "id": 234,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Adrenergic receptors β1 are coupled to:",
+      "opts": [
+        "Gs protein coupling → increased cAMP",
+        "Gi protein coupling → decreased cAMP",
+        "Gq protein coupling → IP3/DAG pathway",
+        "Tyrosine kinase activation",
+        "Nuclear receptor activation"
+      ],
+      "ans": 0,
+      "exp": "β1 receptors (heart) couple to Gs, increasing cAMP → ↑ heart rate, contractility.",
+      "optExp": [
+        null,
+        "α2 couples to Gi.",
+        "α1 couples to Gq.",
+        "Not adrenergic.",
+        "Not adrenergic."
+      ]
+    },
+    {
+      "id": 235,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "α1 adrenergic receptor activation causes:",
+      "opts": [
+        "Bronchodilation",
+        "Vasoconstriction",
+        "Decreased heart rate",
+        "Increased lipolysis",
+        "Pupil constriction"
+      ],
+      "ans": 1,
+      "exp": "α1 on vascular smooth muscle activates Gq → PLC → IP3/DAG → Ca²⁺ release → vasoconstriction.",
+      "optExp": [
+        "β2 mediates bronchodilation.",
+        null,
+        "M2 mediates ↓HR.",
+        "β3 mediates lipolysis.",
+        "M3 mediates miosis."
+      ]
+    },
+    {
+      "id": 236,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "β2 adrenergic receptors are most associated with:",
+      "opts": [
+        "Increase cardiac contractility",
+        "Cause bronchodilation",
+        "Cause vasoconstriction",
+        "Cause pupil constriction",
+        "Increase sweat secretion"
+      ],
+      "ans": 1,
+      "exp": "β2 (Gs) on bronchial and skeletal muscle vascular smooth muscle causes bronchodilation and vasodilation.",
+      "optExp": [
+        "β1 = cardiac.",
+        null,
+        "α1 = vasoconstriction.",
+        "M3 = miosis.",
+        "Sweat is muscarinic (sympathetic ACh exception)."
+      ]
+    },
+    {
+      "id": 237,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "M2 muscarinic receptors are located in:",
+      "opts": [
+        "Lung smooth muscle",
+        "Heart, where they decrease heart rate",
+        "Sweat glands",
+        "Skeletal muscle",
+        "Vascular smooth muscle"
+      ],
+      "ans": 1,
+      "exp": "M2 in the heart couples to Gi → ↓ cAMP → slower SA node firing and reduced contractility (vagal effect).",
+      "optExp": [
+        "M3 is in lung smooth muscle.",
+        null,
+        "Sweat glands use M3.",
+        "Skeletal muscle uses nicotinic.",
+        "M3 affects vascular endothelium for NO release."
+      ]
+    },
+    {
+      "id": 238,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "M3 receptors (smooth muscle, glands) couple to:",
+      "opts": [
+        "Couple to Gs protein",
+        "Couple to Gi protein",
+        "Couple to Gq protein",
+        "Couple to tyrosine kinase",
+        "Couple to nuclear receptor"
+      ],
+      "ans": 2,
+      "exp": "M3 couples to Gq → PLC → IP3 → Ca²⁺ release → smooth muscle contraction and glandular secretion.",
+      "optExp": [
+        "Gs raises cAMP (β receptors).",
+        "Gi lowers cAMP (M2, α2).",
+        null,
+        "Not RTK.",
+        "Not nuclear."
+      ]
+    },
+    {
+      "id": 412,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "At resting potential, K⁺ tends to:",
+      "opts": [
+        "Be actively pumped inward",
+        "Leak outward down its concentration gradient",
+        "Remain stationary inside the cell",
+        "Be actively pumped outward",
+        "Bind to the Na⁺/K⁺-ATPase pump protein"
+      ],
+      "ans": 1,
+      "exp": "K⁺ leak channels allow K⁺ to flow out down its gradient, contributing to the negative resting Vm.",
+      "optExp": [
+        "K⁺ concentration is higher inside.",
+        null,
+        "Ions always move.",
+        "Pumped IN, not out.",
+        "Pumps move K⁺ in."
+      ]
+    },
+    {
+      "id": 413,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The functional unit of striated muscle is the:",
+      "opts": [
+        "Sarcolemma membrane",
+        "Sarcomere from Z-line to Z-line",
+        "Single myofibril",
+        "Endomysium connective tissue",
+        "Bundle of muscle fibers"
+      ],
+      "ans": 1,
+      "exp": "A sarcomere extends from one Z-disc to the next and contains the actin/myosin filaments that produce contraction.",
+      "optExp": [
+        "Sarcolemma is the membrane.",
+        null,
+        "Myofibrils are bundles of sarcomeres.",
+        "Endomysium surrounds fibres.",
+        "Fasciculus is a bundle of fibres."
+      ]
+    },
+    {
+      "id": 414,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The cerebellum primarily controls:",
+      "opts": [
+        "Sound and hearing processing",
+        "Coordination and motor control",
+        "Vision and light processing",
+        "Emotional regulation",
+        "Memory storage"
+      ],
+      "ans": 1,
+      "exp": "The cerebellum coordinates movement, balance, and fine motor control. Dysfunction causes ataxia, dysmetria, dysarthria.",
+      "optExp": [
+        "Hearing is temporal lobe.",
+        null,
+        "Vision is occipital.",
+        "Emotion involves limbic system.",
+        "Memory involves hippocampus."
+      ]
+    },
+    {
+      "id": 415,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Which structure controls vital functions like breathing and heart rate?",
+      "opts": [
+        "Cerebellum",
+        "Cerebrum",
+        "Hypothalamus",
+        "Medulla oblongata",
+        "Thalamus"
+      ],
+      "ans": 3,
+      "exp": "The medulla houses cardiac, respiratory, and vasomotor centres essential for survival.",
+      "optExp": [
+        "Cerebellum is coordination.",
+        "Cerebrum is higher cognition.",
+        "Hypothalamus regulates homeostasis (temp, hunger, hormones).",
+        null,
+        "Thalamus is sensory relay."
+      ]
+    },
+    {
+      "id": 416,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Sympathetic preganglionic neurons originate from:",
+      "opts": [
+        "Brainstem nuclei",
+        "Thoracolumbar spinal cord segments T1–L2",
+        "Sacral spinal cord segments S2–S4",
+        "Cranial nerve nuclei",
+        "Adrenal medulla"
+      ],
+      "ans": 1,
+      "exp": "SNS preganglionics arise from T1-L2 (thoracolumbar outflow), synapsing in paravertebral chain ganglia.",
+      "optExp": [
+        "PNS uses cranial nuclei (III, VII, IX, X).",
+        null,
+        "PNS uses S2-S4.",
+        "Brainstem is PNS.",
+        "Adrenal medulla is a target, not origin."
+      ]
+    },
+    {
+      "id": 417,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Parasympathetic outflow comes from:",
+      "opts": [
+        "Cranial nerves and sacral spinal cord segments S2–S4",
+        "Thoracolumbar spinal cord segments T1–L2",
+        "Cervical spinal cord segments C1–C8",
+        "Adrenal medulla",
+        "Sympathetic chain ganglia"
+      ],
+      "ans": 0,
+      "exp": "PNS = craniosacral: CN III, VII, IX, X and sacral S2-S4. SNS = thoracolumbar (T1-L2).",
+      "optExp": [
+        null,
+        "That is SNS.",
+        "No PNS comes from cervical only.",
+        "Adrenal medulla is SNS target.",
+        "Not the parasympathetic source."
+      ]
+    },
+    {
+      "id": 418,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "cAMP is the second messenger downstream of:",
+      "opts": [
+        "Gs and Gi protein coupling",
+        "Gq protein coupling",
+        "Receptor tyrosine kinases",
+        "Nuclear receptor activation",
+        "Ligand-gated ion channels"
+      ],
+      "ans": 0,
+      "exp": "Gs activates adenylyl cyclase → ↑ cAMP; Gi inhibits AC → ↓ cAMP. Gq → IP3/DAG.",
+      "optExp": [
+        null,
+        "Gq → PLC → IP3/DAG.",
+        "RTKs use various cascades.",
+        "Nuclear receptors alter transcription.",
+        "LGICs gate ions, not second messengers."
+      ]
+    },
+    {
+      "id": 419,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "IP3 (inositol trisphosphate) acts to:",
+      "opts": [
+        "Opens endoplasmic reticulum calcium channels",
+        "Activates adenylate cyclase enzyme",
+        "Opens sodium channels in the plasma membrane",
+        "Directly phosphorylates target proteins",
+        "Cleaves membrane proteins"
+      ],
+      "ans": 0,
+      "exp": "IP3 binds receptors on the ER/SR, releasing stored Ca²⁺ into the cytoplasm.",
+      "optExp": [
+        null,
+        "That is Gs/Gαs.",
+        "Different pathway.",
+        "PKC does that.",
+        "Not its function."
+      ]
+    },
+    {
+      "id": 471,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Phagocytosis is:",
+      "opts": [
+        "Cell ingestion of small particles by endocytosis",
+        "Cell ingestion of large particles by endocytosis",
+        "Receptor-mediated endocytosis of specific ligands",
+        "Exocytosis of intracellular vesicles",
+        "Passive diffusion across the cell membrane"
+      ],
+      "ans": 1,
+      "exp": "Phagocytosis = engulfment of large particles (>0.5 μm) such as bacteria or apoptotic cells, mainly by neutrophils/macrophages.",
+      "optExp": [
+        "That is pinocytosis.",
+        null,
+        "RME is for specific molecules.",
+        "Exocytosis is outward.",
+        "Not passive."
+      ]
+    },
+    {
+      "id": 472,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Aquaporins are:",
+      "opts": [
+        "Sodium channel proteins",
+        "Water channel proteins",
+        "ATP synthase proteins",
+        "Glucose transporter proteins",
+        "Calcium pump proteins"
+      ],
+      "ans": 1,
+      "exp": "Aquaporins are integral membrane proteins forming pores selective for water (e.g. AQP1 in red cells, AQP2 in renal collecting duct).",
+      "optExp": [
+        "Different channels.",
+        null,
+        "ATP synthase is for energy.",
+        "GLUT transporters.",
+        "SERCA/PMCA."
+      ]
+    },
+    {
+      "id": 473,
+      "cat": "Membrane Potentials & Action Potentials",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The Nernst equation calculates:",
+      "opts": [
+        "Membrane capacitance value",
+        "Equilibrium potential for an ion",
+        "Buffer capacity calculation",
+        "Renal clearance rate",
+        "Cardiac output measurement"
+      ],
+      "ans": 1,
+      "exp": "Nernst equation gives the equilibrium potential (E_ion) for a single ion across a membrane based on its concentration gradient.",
+      "optExp": [
+        "Capacitance is a separate property.",
+        null,
+        "Buffer chemistry is separate.",
+        "Pharmacokinetic measure.",
+        "Haemodynamic measure."
+      ]
+    },
+    {
+      "id": 474,
+      "cat": "Muscle Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "In cardiac excitation-contraction coupling, Ca²⁺ entry through L-type channels triggers further Ca²⁺ release via:",
+      "opts": [
+        "Voltage sensor DHPR-RyR1 coupling mechanism",
+        "Calcium-induced calcium release through RyR2 channels",
+        "Sodium influx mechanism",
+        "Chloride efflux mechanism",
+        "Direct ATP binding to contractile proteins"
+      ],
+      "ans": 1,
+      "exp": "In cardiac muscle, Ca²⁺ entering via L-type channels triggers RyR2 on the SR to release stored Ca²⁺ (CICR). Skeletal muscle uses mechanical DHPR-RyR1 coupling.",
+      "optExp": [
+        "That is skeletal muscle.",
+        null,
+        "Different ion.",
+        "Different ion.",
+        "Not direct."
+      ]
+    },
+    {
+      "id": 475,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Glutamate is the main:",
+      "opts": [
+        "Main inhibitory neurotransmitter in the CNS",
+        "Main excitatory neurotransmitter in the CNS",
+        "Primary monoamine neurotransmitter",
+        "Acetylcholine structural analogue",
+        "Central peptide hormone"
+      ],
+      "ans": 1,
+      "exp": "Glutamate is the principal excitatory CNS neurotransmitter, acting on AMPA, NMDA, kainate receptors.",
+      "optExp": [
+        "GABA/glycine are inhibitory.",
+        null,
+        "Monoamines are dopamine, NE, serotonin.",
+        "ACh is separate.",
+        "Not a peptide."
+      ]
+    },
+    {
+      "id": 476,
+      "cat": "Nervous System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "GABA is:",
+      "opts": [
+        "Excitatory monoamine neurotransmitter",
+        "Main inhibitory neurotransmitter in the CNS",
+        "Peptide hormone in the brain",
+        "Amino acid-derived hormone",
+        "Adrenergic agonist compound"
+      ],
+      "ans": 1,
+      "exp": "GABA (γ-aminobutyric acid) is the primary inhibitory CNS neurotransmitter, acting on GABA-A (ionotropic) and GABA-B (metabotropic) receptors.",
+      "optExp": [
+        "Glutamate is excitatory.",
+        null,
+        "GABA is amino acid-derived, not a peptide hormone.",
+        "Not a circulating hormone.",
+        "Not adrenergic."
+      ]
+    },
+    {
+      "id": 477,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Cortisol acts via which receptor type?",
+      "opts": [
+        "G-protein coupled receptor",
+        "Receptor tyrosine kinase",
+        "Intracellular nuclear receptor",
+        "Ligand-gated ion channel",
+        "Voltage-gated ion channel"
+      ],
+      "ans": 2,
+      "exp": "Cortisol is lipid-soluble; it crosses the membrane and binds glucocorticoid receptors that alter gene transcription.",
+      "optExp": [
+        "Adrenergic etc.",
+        "Insulin etc.",
+        null,
+        "Nicotinic etc.",
+        "Not a receptor type."
+      ]
+    },
+    {
+      "id": 501,
+      "cat": "Membrane Physiology",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "The Na/K-ATPase belongs to which class of transporters?",
+      "opts": [
+        "Uniporter",
+        "Symporter",
+        "Antiporter",
+        "Channel protein",
+        "Pore-forming protein"
+      ],
+      "ans": 2,
+      "exp": "Na/K-ATPase is a primary active antiporter (exchanger) — moves Na⁺ out and K⁺ in against gradients using ATP.",
+      "optExp": [
+        "Uniporter moves one ion.",
+        "Symporter moves two same direction.",
+        null,
+        "Not a passive channel.",
+        "Not a pore."
+      ]
+    },
+    {
+      "id": 502,
+      "cat": "Hormone Signalling",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Physiology",
+      "q": "Thyroid hormones (T3/T4) bind:",
+      "opts": [
+        "G-protein-coupled receptor",
+        "Receptor tyrosine kinase",
+        "Nuclear receptor",
+        "Ligand-gated ion channel",
+        "Voltage-gated ion channel"
+      ],
+      "ans": 2,
+      "exp": "T3 (and T4 → T3 in cells) binds nuclear thyroid hormone receptors, modifying gene transcription — slow but long-lasting effects.",
+      "optExp": [
+        "Not GPCR.",
+        "Not RTK.",
+        null,
+        "Not LGIC.",
+        "Not voltage-gated."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,658 @@
+{
+  "deck": "Embryology",
+  "categories": [
+    "Embryology: Early Development",
+    "Embryology: Trilaminar Disc",
+    "Embryology: Fetal Period"
+  ],
+  "questions": [
+    {
+      "id": 360,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Fertilisation typically occurs in the:",
+      "opts": [
+        "In the cervix",
+        "In the uterine cavity",
+        "In the ovary",
+        "In the fallopian tube",
+        "In the vagina"
+      ],
+      "ans": 3,
+      "exp": "Sperm meets the ovum in the ampulla (lateral 1/3) of the fallopian tube within 24 hours of ovulation.",
+      "optExp": [
+        "Cervix is the gateway, not site of fertilisation.",
+        "Implantation occurs there.",
+        "Ovulation occurs from ovary.",
+        null,
+        "Sperm pass through, not the site."
+      ]
+    },
+    {
+      "id": 361,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Implantation of the blastocyst typically occurs:",
+      "opts": [
+        "In the cervix on day 3",
+        "In the uterine fundus on days 6–7",
+        "In the fallopian tube on day 1",
+        "In the ovary on day 8",
+        "In the cervix on day 14"
+      ],
+      "ans": 1,
+      "exp": "The blastocyst implants in the uterine endometrium (usually fundus) around day 6-7 post-fertilisation.",
+      "optExp": [
+        "Cervix is incorrect site/time.",
+        null,
+        "Tubal implantation = ectopic pregnancy.",
+        "Ovarian = rare ectopic.",
+        "Too late."
+      ]
+    },
+    {
+      "id": 362,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "During week 2, the inner cell mass forms:",
+      "opts": [
+        "Cytotrophoblast layer",
+        "Epiblast and hypoblast",
+        "Endoderm and mesoderm",
+        "Neural tube",
+        "Notochord"
+      ],
+      "ans": 1,
+      "exp": "Week 2 = bilaminar disc: the inner cell mass forms epiblast (dorsal) and hypoblast (ventral).",
+      "optExp": [
+        "Trophoblast differentiates separately.",
+        null,
+        "Endoderm/mesoderm form in week 3.",
+        "Neural tube is week 3-4.",
+        "Notochord forms in week 3."
+      ]
+    },
+    {
+      "id": 363,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "In week 2, the trophoblast differentiates into:",
+      "opts": [
+        "Epiblast and hypoblast",
+        "Cytotrophoblast and syncytiotrophoblast",
+        "Hypoblast only",
+        "Notochord",
+        "Somites"
+      ],
+      "ans": 1,
+      "exp": "Trophoblast → cytotrophoblast (inner, mitotic) + syncytiotrophoblast (outer, invasive, hormone-producing).",
+      "optExp": [
+        "That's the embryoblast.",
+        null,
+        "Germ layers in week 3.",
+        "Mesodermal structures in week 3-4.",
+        "Cavities form in week 2 but are separate."
+      ]
+    },
+    {
+      "id": 364,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "hCG is produced by:",
+      "opts": [
+        "Cytotrophoblast cells",
+        "Syncytiotrophoblast cells",
+        "Corpus luteum cells",
+        "Fetal liver cells",
+        "Embryoblast cells"
+      ],
+      "ans": 1,
+      "exp": "Syncytiotrophoblast produces hCG, which maintains the corpus luteum to sustain progesterone in early pregnancy.",
+      "optExp": [
+        "Cytotrophoblast is the proliferative inner layer.",
+        null,
+        "Corpus luteum makes progesterone in response to hCG.",
+        "Fetal liver makes AFP.",
+        "Embryoblast becomes the embryo."
+      ]
+    },
+    {
+      "id": 365,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Gastrulation occurs during which week of development?",
+      "opts": [
+        "Week 1",
+        "Week 2",
+        "Week 3",
+        "Week 4",
+        "Week 5"
+      ],
+      "ans": 2,
+      "exp": "Gastrulation occurs in week 3, forming the three germ layers from the epiblast via the primitive streak.",
+      "optExp": [
+        "Week 1 is fertilisation/cleavage.",
+        "Week 2 is bilaminar disc.",
+        null,
+        "Week 4 is organogenesis.",
+        "Week 5+ is later organogenesis."
+      ]
+    },
+    {
+      "id": 366,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The first visible sign of gastrulation is:",
+      "opts": [
+        "Notochord formation",
+        "Neural groove formation",
+        "Primitive streak formation",
+        "Amniotic cavity formation",
+        "Yolk sac formation"
+      ],
+      "ans": 2,
+      "exp": "The primitive streak appears on the dorsal epiblast, marking the start of gastrulation and the body's craniocaudal axis.",
+      "optExp": [
+        "Notochord forms after streak.",
+        "Neural groove is later.",
+        null,
+        "Amniotic cavity forms in week 2.",
+        "Yolk sac forms in week 2."
+      ]
+    },
+    {
+      "id": 367,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "During gastrulation, epiblast cells that migrate through the primitive streak and DISPLACE hypoblast become:",
+      "opts": [
+        "Ectoderm",
+        "Mesoderm",
+        "Endoderm",
+        "Notochord",
+        "Amnion"
+      ],
+      "ans": 2,
+      "exp": "First migrating epiblast cells push hypoblast aside and form endoderm; later migrants form mesoderm; remaining epiblast = ectoderm.",
+      "optExp": [
+        "Ectoderm stays in the epiblast.",
+        "Mesoderm forms between layers.",
+        null,
+        "Notochord forms from specific mesoderm.",
+        "Amnion is from epiblast originally."
+      ]
+    },
+    {
+      "id": 368,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Which germ layer gives rise to the nervous system?",
+      "opts": [
+        "Endoderm",
+        "Mesoderm",
+        "Ectoderm",
+        "Trophoblast",
+        "Hypoblast"
+      ],
+      "ans": 2,
+      "exp": "Neural tube derived from ectoderm forms the CNS; neural crest cells form much of PNS.",
+      "optExp": [
+        "Gut tube and derivatives.",
+        "Connective tissue, muscle, heart, etc.",
+        null,
+        "Forms placenta.",
+        "Replaced during gastrulation."
+      ]
+    },
+    {
+      "id": 369,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Which germ layer gives rise to the gut epithelium, liver, and pancreas?",
+      "opts": [
+        "Ectoderm",
+        "Mesoderm",
+        "Endoderm",
+        "Notochord",
+        "Neural crest"
+      ],
+      "ans": 2,
+      "exp": "Endoderm forms the lining of the GI tract, respiratory tract, and parenchyma of liver/pancreas.",
+      "optExp": [
+        "Ectoderm forms epidermis and CNS.",
+        "Mesoderm forms muscle, bone, kidneys, cardiovascular.",
+        null,
+        "Notochord induces neural tube.",
+        "Neural crest forms PNS, melanocytes, etc."
+      ]
+    },
+    {
+      "id": 370,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The notochord:",
+      "opts": [
+        "Becomes the spinal cord",
+        "Induces neural tube formation",
+        "Forms the heart",
+        "Forms the gut",
+        "Forms the limbs"
+      ],
+      "ans": 1,
+      "exp": "The notochord is a mesodermal structure that induces overlying ectoderm to form the neural plate; persists as nucleus pulposus in adult.",
+      "optExp": [
+        "Spinal cord forms from neural tube.",
+        null,
+        "Heart from cardiogenic mesoderm.",
+        "Gut from endoderm.",
+        "Limbs from limb bud mesoderm."
+      ]
+    },
+    {
+      "id": 371,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The Sonic Hedgehog (SHH) pathway primarily controls:",
+      "opts": [
+        "Apoptosis during development",
+        "Body axis formation",
+        "Cytokinesis and cell division",
+        "Embryonic implantation",
+        "Placental development"
+      ],
+      "ans": 1,
+      "exp": "SHH signalling regulates left-right asymmetry, limb patterning (digit number), ventral CNS, and many other developmental processes.",
+      "optExp": [
+        "SHH is not primarily an apoptosis pathway.",
+        null,
+        "Not its main role.",
+        "SHH not directly involved in implantation.",
+        "Trophoblast handles placental formation."
+      ]
+    },
+    {
+      "id": 372,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The Notch signalling pathway controls:",
+      "opts": [
+        "Primary body axis formation",
+        "Cell fate determination and differentiation",
+        "Embryonic implantation",
+        "Placental development",
+        "Gastrulation movements"
+      ],
+      "ans": 1,
+      "exp": "Notch signalling determines cell fate via direct cell-cell contact (NICD cleavage activates target genes). Mutations cause cancer or developmental defects.",
+      "optExp": [
+        "SHH governs axis.",
+        null,
+        "Not Notch's role.",
+        "Trophoblast handles placentation.",
+        "Driven by other pathways."
+      ]
+    },
+    {
+      "id": 373,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Organogenesis primarily occurs during:",
+      "opts": [
+        "Weeks 1–2 of pregnancy",
+        "Week 3 of pregnancy",
+        "Weeks 4–8 of pregnancy",
+        "Weeks 12–16 of pregnancy",
+        "During the third trimester"
+      ],
+      "ans": 2,
+      "exp": "Most organs form between weeks 4-8 (embryonic period). The fetal period (week 9-birth) is for growth and maturation.",
+      "optExp": [
+        "Early cleavage and bilaminar disc.",
+        "Gastrulation.",
+        null,
+        "Fetal period.",
+        "Growth phase, not organogenesis."
+      ]
+    },
+    {
+      "id": 374,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "During the fetal period (week 9 onwards):",
+      "opts": [
+        "Organs first form and differentiate",
+        "Organs grow and mature in function",
+        "Implantation of the blastocyst occurs",
+        "Gastrulation and germ layer formation occurs",
+        "The bilaminar disc is formed"
+      ],
+      "ans": 1,
+      "exp": "Fetal period is mostly growth and functional maturation of organs that formed earlier.",
+      "optExp": [
+        "Organs form in embryonic period.",
+        null,
+        "Implantation is week 1.",
+        "Gastrulation is week 3.",
+        "Bilaminar disc is week 2."
+      ]
+    },
+    {
+      "id": 375,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Neural tube closes around which day post-fertilisation?",
+      "opts": [
+        "Around day 7 post-fertilisation",
+        "Around day 14 post-fertilisation",
+        "Around days 21–28 post-fertilisation",
+        "Around day 60 post-fertilisation",
+        "Around week 12 post-fertilisation"
+      ],
+      "ans": 2,
+      "exp": "Neural tube closure begins ~day 22 and completes by day 28. Failure → neural tube defects (spina bifida, anencephaly).",
+      "optExp": [
+        "Implantation timeline.",
+        "Gastrulation completing.",
+        null,
+        "Far later in development.",
+        "Far later."
+      ]
+    },
+    {
+      "id": 376,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Folate supplementation in pregnancy reduces risk of:",
+      "opts": [
+        "Risk of cleft palate",
+        "Risk of neural tube defects",
+        "Risk of trisomy 21",
+        "Risk of congenital cardiac defects",
+        "Risk of limb malformations"
+      ],
+      "ans": 1,
+      "exp": "Folate supplementation prior to conception and in early pregnancy significantly reduces neural tube defects.",
+      "optExp": [
+        "Some weak association but not primary.",
+        null,
+        "Down syndrome is chromosomal nondisjunction.",
+        "Folate not strongly protective for cardiac.",
+        "Limb defects unrelated."
+      ]
+    },
+    {
+      "id": 443,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "A morula consists of approximately:",
+      "opts": [
+        "2 cells in total",
+        "8 cells in total",
+        "16-32 compact cells",
+        "64-100 cells in total",
+        "200-500 cells in total"
+      ],
+      "ans": 2,
+      "exp": "After cleavage, the embryo forms a solid ball of 16-32 cells called the morula, before cavitating into a blastocyst.",
+      "optExp": [
+        "Too early.",
+        "Approaching morula stage.",
+        null,
+        "Blastocyst is ~100 cells.",
+        "Far later."
+      ]
+    },
+    {
+      "id": 444,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The blastocyst consists of:",
+      "opts": [
+        "Trophoblast and inner cell mass",
+        "Single layer of endoderm only",
+        "Single epithelial cell layer only",
+        "Yolk sac tissue only",
+        "Trilaminar germ disc only"
+      ],
+      "ans": 0,
+      "exp": "Blastocyst = trophoblast (outer, → placenta) + inner cell mass/embryoblast (→ embryo) around a fluid-filled blastocoel.",
+      "optExp": [
+        null,
+        "Endoderm forms in week 3.",
+        "Multiple layers.",
+        "Yolk sac forms in week 2.",
+        "Trilaminar disc is week 3."
+      ]
+    },
+    {
+      "id": 445,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Somites are derived from:",
+      "opts": [
+        "Paraxial mesoderm",
+        "Lateral plate mesoderm",
+        "Endoderm layer",
+        "Ectoderm layer",
+        "Neural crest"
+      ],
+      "ans": 0,
+      "exp": "Paraxial mesoderm segments into somites, giving rise to vertebrae (sclerotome), skeletal muscle (myotome), and dermis (dermatome).",
+      "optExp": [
+        null,
+        "Lateral plate → body wall, limbs.",
+        "Endoderm → gut.",
+        "Ectoderm → skin/CNS.",
+        "Neural crest → PNS, melanocytes."
+      ]
+    },
+    {
+      "id": 446,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Surfactant production by Type II pneumocytes begins around:",
+      "opts": [
+        "Week 5 of gestation",
+        "Week 12 of gestation",
+        "Week 24-28 of gestation",
+        "Week 36-38 of gestation",
+        "After delivery only"
+      ],
+      "ans": 2,
+      "exp": "Surfactant production starts around week 24-28 but is adequate by ~35 weeks. Premature birth → respiratory distress.",
+      "optExp": [
+        "Far too early.",
+        "Too early.",
+        null,
+        "Functional well before this.",
+        "Begins in utero."
+      ]
+    },
+    {
+      "id": 447,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The foramen ovale shunts blood from:",
+      "opts": [
+        "Shunts blood from left atrium to right atrium",
+        "Shunts blood from right atrium to left atrium, bypassing the lungs",
+        "Shunts blood from left ventricle to right ventricle",
+        "Connects pulmonary artery to ascending aorta",
+        "Connects umbilical vein to inferior vena cava"
+      ],
+      "ans": 1,
+      "exp": "In utero, the foramen ovale shunts oxygenated blood from RA to LA, bypassing non-functional lungs.",
+      "optExp": [
+        "Reverse direction.",
+        null,
+        "No ventricle-ventricle shunt.",
+        "That is the ductus arteriosus.",
+        "That is the ductus venosus."
+      ]
+    },
+    {
+      "id": 448,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The ductus arteriosus connects:",
+      "opts": [
+        "Connects right atrium to left atrium",
+        "Connects pulmonary artery to descending aorta",
+        "Connects umbilical vein to inferior vena cava",
+        "Connects ascending aorta to superior vena cava",
+        "Connects hepatic vein to cardiac circulation"
+      ],
+      "ans": 1,
+      "exp": "Ductus arteriosus shunts blood from the pulmonary trunk to the descending aorta, bypassing the fetal lungs.",
+      "optExp": [
+        "That is foramen ovale.",
+        null,
+        "That is ductus venosus.",
+        "Different vessels.",
+        "Not anatomically correct."
+      ]
+    },
+    {
+      "id": 485,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The mesoderm gives rise to all EXCEPT:",
+      "opts": [
+        "Heart and blood vessels",
+        "Skeletal muscle and bone",
+        "Kidneys and gonads",
+        "Gut epithelium and intestinal lining",
+        "Dermis of skin"
+      ],
+      "ans": 3,
+      "exp": "Gut epithelium is endoderm-derived. Mesoderm gives rise to muscle, bone, cardiovascular, urogenital, dermis.",
+      "optExp": [
+        "Cardiogenic mesoderm.",
+        "Paraxial mesoderm.",
+        "Intermediate mesoderm.",
+        null,
+        "Dermis from somitic mesoderm."
+      ]
+    },
+    {
+      "id": 486,
+      "cat": "Embryology: Trilaminar Disc",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "Neural crest cells derive from and give rise to all EXCEPT:",
+      "opts": [
+        "Melanocytes",
+        "Schwann cells",
+        "Adrenal medulla",
+        "Most of cardiac septum",
+        "Liver hepatocytes"
+      ],
+      "ans": 4,
+      "exp": "Liver hepatocytes are endoderm-derived. Neural crest contributes to melanocytes, PNS, adrenal medulla, parts of heart, etc.",
+      "optExp": [
+        "Neural crest derivative.",
+        "Neural crest derivative.",
+        "Neural crest derivative.",
+        "Neural crest contribution.",
+        null
+      ]
+    },
+    {
+      "id": 491,
+      "cat": "Embryology: Fetal Period",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The teratogenic period of greatest risk is generally:",
+      "opts": [
+        "Week 1 post-conception",
+        "Weeks 3–8 during organogenesis",
+        "Weeks 20–30 of gestation",
+        "Last trimester of pregnancy",
+        "Pre-conception period"
+      ],
+      "ans": 1,
+      "exp": "Most teratogens cause major malformations during weeks 3-8 (organogenesis). Before week 3 = all-or-none. After week 8 = mainly growth/functional defects.",
+      "optExp": [
+        "Pre-implantation: all-or-none.",
+        null,
+        "Mainly functional/growth effects.",
+        "Mainly functional effects.",
+        "No embryo yet."
+      ]
+    },
+    {
+      "id": 505,
+      "cat": "Embryology: Early Development",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Embryology",
+      "q": "The syncytiotrophoblast is responsible for:",
+      "opts": [
+        "Forms the embryonic disc",
+        "Invades endometrium and produces hCG",
+        "Forms the bilaminar disc",
+        "Produces fetal blood cells",
+        "Forms hyaline cartilage"
+      ],
+      "ans": 1,
+      "exp": "Syncytiotrophoblast erodes maternal tissue to embed the blastocyst and secretes hCG to maintain corpus luteum.",
+      "optExp": [
+        "Inner cell mass becomes the embryo.",
+        null,
+        "Embryoblast forms the disc.",
+        "Liver makes fetal blood later.",
+        "Unrelated to trophoblast."
+      ]
+    }
+  ]
+}

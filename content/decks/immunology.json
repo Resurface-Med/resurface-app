@@ -1,0 +1,1138 @@
+{
+  "deck": "Immunology",
+  "categories": [
+    "Innate Immunity",
+    "Adaptive Immunity",
+    "Immune System Overview"
+  ],
+  "questions": [
+    {
+      "id": 239,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Which is NOT a feature of innate immunity?",
+      "opts": [
+        "Rapid response occurring within minutes to hours",
+        "Non-specific response to pathogens",
+        "Uses pattern recognition receptors",
+        "Memory response upon re-exposure to antigen",
+        "Physical barriers including skin and mucus"
+      ],
+      "ans": 3,
+      "exp": "Memory is a hallmark of ADAPTIVE immunity, not innate. Innate is rapid but non-specific and has no memory.",
+      "optExp": [
+        "Innate is rapid.",
+        "Innate is non-specific.",
+        "PRRs are innate.",
+        null,
+        "Skin/mucus are innate barriers."
+      ]
+    },
+    {
+      "id": 240,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Which innate immune cell is the FIRST to be recruited to a site of bacterial infection?",
+      "opts": [
+        "Macrophage",
+        "Dendritic cell",
+        "Neutrophil",
+        "B cell",
+        "CD8+ T cell"
+      ],
+      "ans": 2,
+      "exp": "Neutrophils are the first to arrive at acute bacterial infections via margination, rolling, adhesion, diapedesis.",
+      "optExp": [
+        "Macrophages are tissue-resident and early but neutrophils swarm rapidly from blood.",
+        "DCs sample antigen and migrate to lymph nodes.",
+        null,
+        "B cells are adaptive.",
+        "CD8+ T cells are adaptive."
+      ]
+    },
+    {
+      "id": 241,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Which innate immune cell is primarily responsible for early antiviral defence and killing virus-infected cells?",
+      "opts": [
+        "Macrophage",
+        "Natural killer cell",
+        "Neutrophil",
+        "Mast cell",
+        "B cell"
+      ],
+      "ans": 1,
+      "exp": "NK cells recognise infected/transformed cells lacking MHC I and kill them via perforin/granzymes — innate antiviral.",
+      "optExp": [
+        "Macrophages are tissue-resident phagocytes, but NK cells lead early antiviral killing.",
+        null,
+        "Neutrophils are antibacterial.",
+        "Mast cells mediate allergic responses.",
+        "B cells produce antibodies (adaptive)."
+      ]
+    },
+    {
+      "id": 242,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Mast cells release histamine, causing:",
+      "opts": [
+        "Cause bronchoconstriction",
+        "Cause vasoconstriction",
+        "Cause vasodilation and increased vascular permeability",
+        "Cause hypotension",
+        "Reduce immune response"
+      ],
+      "ans": 2,
+      "exp": "Histamine causes vasodilation (redness, warmth) and increased vascular permeability (oedema) — the cardinal signs of acute inflammation.",
+      "optExp": [
+        "Bronchoconstriction is one effect but not the main here.",
+        "Histamine VASODILATES, not constricts.",
+        null,
+        "Hypotension can occur but not the defining inflammatory effect.",
+        "Histamine triggers, not reduces, immune response."
+      ]
+    },
+    {
+      "id": 243,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Lysozyme (in tears, saliva) is most effective against:",
+      "opts": [
+        "Gram-positive bacteria",
+        "Gram-negative bacteria",
+        "Viruses",
+        "Fungi",
+        "Parasites"
+      ],
+      "ans": 0,
+      "exp": "Lysozyme cleaves bonds in peptidoglycan, abundant in Gram-positive cell walls.",
+      "optExp": [
+        null,
+        "Gram-negative have thinner peptidoglycan and outer membrane (less affected).",
+        "Viruses lack peptidoglycan.",
+        "Fungi have chitin.",
+        "Parasites have protective coatings."
+      ]
+    },
+    {
+      "id": 244,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "The complement system's three pathways converge on activation of:",
+      "opts": [
+        "C1",
+        "C3",
+        "C5",
+        "C9",
+        "Factor B"
+      ],
+      "ans": 1,
+      "exp": "All three pathways (classical, lectin, alternative) generate C3 convertase, which splits C3 into C3a and C3b.",
+      "optExp": [
+        "C1 is only in classical.",
+        null,
+        "C5 is downstream of C3.",
+        "C9 is in MAC formation.",
+        "Factor B is alternative-specific."
+      ]
+    },
+    {
+      "id": 245,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "The classical complement pathway is activated by:",
+      "opts": [
+        "Mannose on pathogen surfaces",
+        "Antibody-antigen complexes",
+        "Spontaneous C3 hydrolysis",
+        "Lectins bound to pathogenic mannose",
+        "T cell receptors"
+      ],
+      "ans": 1,
+      "exp": "C1q binds the Fc region of antibody (IgG or IgM) bound to antigen, initiating the cascade.",
+      "optExp": [
+        "That is lectin pathway.",
+        null,
+        "That is alternative pathway.",
+        "Lectins drive lectin pathway, not classical.",
+        "TCRs are adaptive."
+      ]
+    },
+    {
+      "id": 246,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "The alternative complement pathway is activated by:",
+      "opts": [
+        "Antibody binding to pathogens",
+        "Spontaneous C3 hydrolysis and pathogen surfaces",
+        "Mannose binding lectin recognition",
+        "T cell help signals",
+        "B cell receptor engagement"
+      ],
+      "ans": 1,
+      "exp": "C3 spontaneously hydrolyses; the resulting C3b can attach to bacterial surfaces (especially LPS), amplifying complement.",
+      "optExp": [
+        "That is classical.",
+        null,
+        "That is lectin.",
+        "T cells are adaptive.",
+        "BCRs are adaptive."
+      ]
+    },
+    {
+      "id": 247,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Membrane attack complex (MAC) consists of:",
+      "opts": [
+        "C5b, C6, C7, C8, and C9 proteins",
+        "C1, C2, C3, and C4 proteins",
+        "C3a and C3b fragments",
+        "C1q, C1r, and C1s proteins",
+        "Factor B and D proteins"
+      ],
+      "ans": 0,
+      "exp": "MAC = C5b + C6 + C7 + C8 + (multiple) C9, forming a pore that lyses pathogens (especially Gram-negative bacteria).",
+      "optExp": [
+        null,
+        "These are upstream cascade components.",
+        "These are cleavage products, not the MAC.",
+        "That is the C1 complex.",
+        "Alternative pathway initiator components."
+      ]
+    },
+    {
+      "id": 248,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "C3b functions as a(n):",
+      "opts": [
+        "Opsonin that tags pathogens for phagocytosis",
+        "Anaphylatoxin that triggers mast cell degranulation",
+        "Chemotactic factor that attracts immune cells",
+        "Membrane pore component",
+        "Antibody-like recognition molecule"
+      ],
+      "ans": 0,
+      "exp": "C3b binds pathogen surfaces, marking them for phagocyte recognition (opsonisation).",
+      "optExp": [
+        null,
+        "C3a is the anaphylatoxin.",
+        "C5a is the main chemotactic factor.",
+        "C5b-9 forms the membrane pore.",
+        "Complement is not antibody."
+      ]
+    },
+    {
+      "id": 249,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "C5a primarily functions as a:",
+      "opts": [
+        "Potent chemotactic anaphylatoxin",
+        "Membrane pore-forming component",
+        "Opsonin for enhanced phagocytosis",
+        "Antibody enhancer",
+        "Cytokine receptor antagonist"
+      ],
+      "ans": 0,
+      "exp": "C5a is a potent chemotactic factor and anaphylatoxin, recruiting neutrophils to the site of infection.",
+      "optExp": [
+        null,
+        "MAC is the membrane pore.",
+        "C3b is opsonin.",
+        "Not an antibody.",
+        "Not a receptor."
+      ]
+    },
+    {
+      "id": 250,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Toll-like receptors (TLRs) are an example of:",
+      "opts": [
+        "Adaptive antigen recognition receptor",
+        "Pattern recognition receptor",
+        "Cytokine recognition receptor",
+        "Chemotactic factor receptor",
+        "T cell receptor subtype"
+      ],
+      "ans": 1,
+      "exp": "TLRs recognise pathogen-associated molecular patterns (PAMPs) — defining feature of innate PRR-mediated recognition.",
+      "optExp": [
+        "TLRs are innate, not adaptive.",
+        null,
+        "Not cytokine receptors.",
+        "Not chemotactic.",
+        "TCRs are clonal adaptive receptors."
+      ]
+    },
+    {
+      "id": 251,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "C4 deficiency is most associated with:",
+      "opts": [
+        "Systemic lupus erythematosus",
+        "Recurrent meningococcal infections",
+        "Sickle cell anemia",
+        "Hereditary angioedema",
+        "Anaphylaxis reactions"
+      ],
+      "ans": 0,
+      "exp": "C4 deficiency impairs immune complex clearance and is strongly associated with SLE (~90% develop the disease).",
+      "optExp": [
+        null,
+        "C5-9 deficiency → Neisseria infections.",
+        "Sickle cell is haemoglobinopathy.",
+        "C1 inhibitor deficiency → hereditary angioedema.",
+        "Not complement deficiency-related."
+      ]
+    },
+    {
+      "id": 252,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Defensins and cathelicidins are:",
+      "opts": [
+        "Antibody proteins",
+        "Antimicrobial peptides",
+        "Cytokine proteins",
+        "Complement proteins",
+        "Histamine molecules"
+      ],
+      "ans": 1,
+      "exp": "Defensins/cathelicidins are AMPs secreted by neutrophils and epithelial cells, disrupting microbial membranes.",
+      "optExp": [
+        "Antibody isotypes are IgG/A/M/E/D.",
+        null,
+        "Cytokines are signalling, not membrane-disrupting.",
+        "Complement is a different system.",
+        "Not histamine-related."
+      ]
+    },
+    {
+      "id": 253,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Diapedesis refers to:",
+      "opts": [
+        "Rolling on endothelium",
+        "Adhesion to endothelium",
+        "Migration of leukocytes through vessel walls into tissue",
+        "Antigen presentation by dendritic cells",
+        "Antibody isotype switching"
+      ],
+      "ans": 2,
+      "exp": "Diapedesis is the leukocyte step of squeezing through endothelial junctions to enter tissues.",
+      "optExp": [
+        "Rolling is step 2.",
+        "Adhesion is step 3.",
+        null,
+        "That is APC function.",
+        "Class switching is in B cells."
+      ]
+    },
+    {
+      "id": 254,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Which immunoglobulin is the primary antibody of mucosal immunity (gut, respiratory tract)?",
+      "opts": [
+        "IgG",
+        "IgM",
+        "IgA",
+        "IgE",
+        "IgD"
+      ],
+      "ans": 2,
+      "exp": "IgA is secreted onto mucosal surfaces (gut, airways, breast milk) and protects against pathogens entering through these routes.",
+      "optExp": [
+        "IgG is the main serum antibody.",
+        "IgM is the first responder.",
+        null,
+        "IgE mediates allergy/parasites.",
+        "IgD is on B cell receptors."
+      ]
+    },
+    {
+      "id": 255,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Which immunoglobulin crosses the placenta to provide passive immunity to the fetus?",
+      "opts": [
+        "IgA",
+        "IgM",
+        "IgG",
+        "IgE",
+        "IgD"
+      ],
+      "ans": 2,
+      "exp": "IgG is the only immunoglobulin that crosses the placenta via FcRn receptors, giving newborns passive immunity.",
+      "optExp": [
+        "IgA does not cross significantly.",
+        "IgM is too large (pentamer).",
+        null,
+        "IgE does not cross placenta.",
+        "IgD does not cross."
+      ]
+    },
+    {
+      "id": 256,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "The first antibody produced in a primary immune response is:",
+      "opts": [
+        "IgG",
+        "IgM",
+        "IgA",
+        "IgE",
+        "IgD"
+      ],
+      "ans": 1,
+      "exp": "IgM is the first antibody produced in response to a new antigen (primary response).",
+      "optExp": [
+        "IgG dominates the secondary response.",
+        null,
+        "IgA is mucosal.",
+        "IgE for allergies.",
+        "IgD is BCR."
+      ]
+    },
+    {
+      "id": 257,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "IgE is most associated with:",
+      "opts": [
+        "Bacterial opsonisation and complement fixation",
+        "Type I hypersensitivity and parasitic infections",
+        "Transplacental transfer to the fetus",
+        "Mucosal immunity and secretory transport",
+        "B cell receptor complex formation"
+      ],
+      "ans": 1,
+      "exp": "IgE binds mast cells and eosinophils. Crosslinking by allergen/antigen triggers degranulation — allergic and antiparasitic responses.",
+      "optExp": [
+        "IgG opsonises.",
+        null,
+        "IgG crosses placenta.",
+        "IgA is mucosal.",
+        "IgD is BCR."
+      ]
+    },
+    {
+      "id": 258,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "MHC class I molecules:",
+      "opts": [
+        "Found only on antigen-presenting cells",
+        "Found on all nucleated cells",
+        "Present endogenous antigens to CD4+ T cells",
+        "Absent in viral infections",
+        "Bind to antibodies directly"
+      ],
+      "ans": 1,
+      "exp": "MHC I is on all nucleated cells, presenting intracellular (endogenous) antigens to CD8+ cytotoxic T cells.",
+      "optExp": [
+        "MHC II is more APC-restricted.",
+        null,
+        "That is MHC II.",
+        "MHC I downregulation occurs in some viral infections, but they are normally present.",
+        "MHC binds peptides, not antibodies."
+      ]
+    },
+    {
+      "id": 259,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "MHC class II molecules:",
+      "opts": [
+        "Present endogenous antigens to CD8+ T cells",
+        "Found on all nucleated cells",
+        "Restricted to antigen-presenting cells",
+        "Bind antibodies in immune complexes",
+        "Activate CD8+ cytotoxic T cells"
+      ],
+      "ans": 2,
+      "exp": "MHC II is on APCs (DCs, macrophages, B cells) and presents extracellular antigens to CD4+ helper T cells.",
+      "optExp": [
+        "That is MHC I.",
+        "MHC II is restricted to APCs.",
+        null,
+        "MHC binds peptides.",
+        "MHC I activates CD8+ T cells."
+      ]
+    },
+    {
+      "id": 260,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "T cells develop and mature in the:",
+      "opts": [
+        "Bone marrow",
+        "Thymus",
+        "Spleen",
+        "Lymph nodes",
+        "Peyer's patches"
+      ],
+      "ans": 1,
+      "exp": "T cells originate in bone marrow but migrate to the thymus where positive and negative selection occur.",
+      "optExp": [
+        "B cells mature there.",
+        null,
+        "Spleen filters blood antigens.",
+        "LNs are sites of activation, not maturation.",
+        "Peyer's patches are gut-associated lymphoid tissue."
+      ]
+    },
+    {
+      "id": 261,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Positive selection of T cells occurs in:",
+      "opts": [
+        "Thymic medulla",
+        "Thymic cortex",
+        "Bone marrow",
+        "Spleen",
+        "Lymph nodes"
+      ],
+      "ans": 1,
+      "exp": "In the thymic cortex, T cells that can bind self-MHC survive ('positive selection'); those that can't undergo death by neglect.",
+      "optExp": [
+        "Negative selection occurs in medulla.",
+        null,
+        "B cells select in bone marrow.",
+        "Spleen filters blood.",
+        "Not the site of T cell selection."
+      ]
+    },
+    {
+      "id": 262,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Negative selection of T cells eliminates:",
+      "opts": [
+        "Self-reactive T cells that bind strongly to self-antigens",
+        "T cells failing to recognize self-MHC molecules",
+        "All immature T cells regardless of specificity",
+        "B cells accidentally located in the thymus",
+        "Macrophages within the thymic tissue"
+      ],
+      "ans": 0,
+      "exp": "In the thymic medulla, T cells with high affinity for self-antigens are deleted, preventing autoimmunity.",
+      "optExp": [
+        null,
+        "That happens via positive selection failure (death by neglect).",
+        "Only ~2% survive selection but not all are deleted.",
+        "B cells select in bone marrow.",
+        "Macrophages don't undergo this selection."
+      ]
+    },
+    {
+      "id": 263,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "CD4+ T cells differentiate into all EXCEPT:",
+      "opts": [
+        "TH1 cells",
+        "TH2 cells",
+        "TH17 cells",
+        "Regulatory T cells (Treg)",
+        "CD8+ cytotoxic T cells"
+      ],
+      "ans": 4,
+      "exp": "CD4+ helper T cells differentiate into TH1, TH2, TH17, Treg, etc. CD8+ cytotoxic is a separate lineage.",
+      "optExp": [
+        "TH1 fights intracellular pathogens.",
+        "TH2 fights parasites/allergies.",
+        "TH17 fights extracellular bacteria/fungi.",
+        "Treg suppresses immune response.",
+        null
+      ]
+    },
+    {
+      "id": 264,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "The variable region of an antibody:",
+      "opts": [
+        "Determines antigen specificity and binding",
+        "Responsible for effector functions via Fc region",
+        "Activates complement via classical pathway",
+        "Enables transplacental crossing",
+        "Shows structural similarity across all antibody types"
+      ],
+      "ans": 0,
+      "exp": "The variable regions of light and heavy chains form the antigen-binding paratope, giving each antibody its specificity.",
+      "optExp": [
+        null,
+        "Fc is the constant (stem) region.",
+        "Fc activates complement.",
+        "Fc crosses placenta.",
+        "Variable regions vary; constant is shared by isotype."
+      ]
+    },
+    {
+      "id": 265,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Class switching of antibodies occurs in:",
+      "opts": [
+        "Bone marrow plasma cells only",
+        "T cells in secondary lymphoid organs",
+        "Activated B cells in germinal centres",
+        "Tissue macrophages",
+        "Thymic dendritic cells"
+      ],
+      "ans": 2,
+      "exp": "Activated B cells undergo class switch recombination from IgM/IgD to IgG, IgA, or IgE, driven by cytokines and CD40-CD40L.",
+      "optExp": [
+        "Plasma cells already produced antibody — switching happens before.",
+        "T cells don't make antibodies.",
+        null,
+        "Macrophages don't make antibodies.",
+        "DCs don't make antibodies."
+      ]
+    },
+    {
+      "id": 266,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Memory cells provide:",
+      "opts": [
+        "Faster and stronger immune response on re-exposure",
+        "Innate barrier function against pathogens",
+        "Immediate phagocytosis of antigens",
+        "Vasodilation and increased vascular permeability",
+        "Direct activation of the complement cascade"
+      ],
+      "ans": 0,
+      "exp": "Memory B and T cells persist after infection and mount a faster, larger response on re-encounter — basis of vaccination.",
+      "optExp": [
+        null,
+        "Innate barriers are skin/mucus.",
+        "Phagocytosis is by neutrophils/macrophages.",
+        "Vasodilation is from histamine.",
+        "Complement is innate."
+      ]
+    },
+    {
+      "id": 267,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Plasma cells are derived from:",
+      "opts": [
+        "Activated B cells",
+        "Activated T cells",
+        "Natural killer cells",
+        "Dendritic cells",
+        "Eosinophils"
+      ],
+      "ans": 0,
+      "exp": "Activated B cells differentiate into plasma cells, which are dedicated antibody factories.",
+      "optExp": [
+        null,
+        "T cells don't differentiate into plasma cells.",
+        "NK cells are innate.",
+        "DCs are APCs.",
+        "Eosinophils combat parasites."
+      ]
+    },
+    {
+      "id": 268,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Hypersensitivity Type I (allergic) is mediated by:",
+      "opts": [
+        "IgG and IgM antibodies against cell antigens",
+        "IgE antibodies bound to mast cells and basophils",
+        "Immune complex deposition in tissues",
+        "T cell-mediated delayed response",
+        "Complement system deficiency"
+      ],
+      "ans": 1,
+      "exp": "Type I: IgE binds mast cells; allergen crosslinks IgE, triggering rapid degranulation (anaphylaxis, asthma).",
+      "optExp": [
+        "That is Type II.",
+        null,
+        "That is Type III.",
+        "That is Type IV.",
+        "Complement deficiency is a different disorder."
+      ]
+    },
+    {
+      "id": 269,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Type II hypersensitivity (cytotoxic) is exemplified by:",
+      "opts": [
+        "Anaphylaxis",
+        "Autoimmune hemolytic anemia",
+        "Serum sickness",
+        "Tuberculin skin test",
+        "Allergic rhinitis"
+      ],
+      "ans": 1,
+      "exp": "Type II: antibodies bind cells, activating complement or ADCC (e.g. AIHA, Goodpasture's, transfusion reactions).",
+      "optExp": [
+        "That is Type I.",
+        null,
+        "That is Type III.",
+        "That is Type IV.",
+        "That is Type I."
+      ]
+    },
+    {
+      "id": 270,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Type III hypersensitivity involves:",
+      "opts": [
+        "IgE antibodies and mast cell degranulation",
+        "Immune complex deposition in blood vessels and tissues",
+        "T cell-mediated cellular response",
+        "Complement system deficiency",
+        "NK cell activation"
+      ],
+      "ans": 1,
+      "exp": "Type III: antigen-antibody complexes deposit in vessels/tissues, activating complement (e.g. SLE, serum sickness, post-strep GN).",
+      "optExp": [
+        "That is Type I.",
+        null,
+        "That is Type IV.",
+        "Different mechanism.",
+        "Not the mechanism."
+      ]
+    },
+    {
+      "id": 271,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Type IV hypersensitivity is mediated by:",
+      "opts": [
+        "IgE antibodies",
+        "IgG antibodies",
+        "Immune complexes",
+        "T cells",
+        "Natural killer cells"
+      ],
+      "ans": 3,
+      "exp": "Type IV (delayed) is T-cell mediated — TB skin test, contact dermatitis, granuloma formation.",
+      "optExp": [
+        "IgE → Type I.",
+        "IgG against cells → Type II.",
+        "ICs → Type III.",
+        null,
+        "NK cells are not the main mediator."
+      ]
+    },
+    {
+      "id": 272,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "A patient develops urticaria and bronchospasm minutes after a bee sting. This is which type of hypersensitivity?",
+      "opts": [
+        "Type I",
+        "Type II",
+        "Type III",
+        "Type IV",
+        "Type V"
+      ],
+      "ans": 0,
+      "exp": "Rapid IgE-mediated mast cell degranulation = Type I (anaphylaxis).",
+      "optExp": [
+        null,
+        "Type II involves antibody against cells.",
+        "Type III is immune complex.",
+        "Type IV is delayed cellular.",
+        "No standard 'Type V' in this scheme."
+      ]
+    },
+    {
+      "id": 420,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Eosinophils are especially important against:",
+      "opts": [
+        "Bacterial infection response",
+        "Parasitic and allergic responses",
+        "Viral infection response only",
+        "Fungal infection response only",
+        "Tumor cell elimination only"
+      ],
+      "ans": 1,
+      "exp": "Eosinophils release major basic protein and ECP, killing helminths. They also contribute to allergic inflammation.",
+      "optExp": [
+        "Neutrophils are anti-bacterial.",
+        null,
+        "NK cells and T cells fight viruses.",
+        "Neutrophils handle most fungi.",
+        "NK cells primarily fight tumours."
+      ]
+    },
+    {
+      "id": 421,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Basophils release:",
+      "opts": [
+        "Secretion of immunoglobulin G",
+        "Release of histamine and heparin",
+        "Production of surfactant proteins",
+        "Activation of complement proteins",
+        "Secretion of mucus"
+      ],
+      "ans": 1,
+      "exp": "Basophils (and mast cells) release histamine and heparin granules in allergic responses.",
+      "optExp": [
+        "B cells make IgG.",
+        null,
+        "Type II pneumocytes make surfactant.",
+        "Liver makes complement.",
+        "Goblet cells make mucus."
+      ]
+    },
+    {
+      "id": 422,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Cytotoxic T cells (CD8+) recognise antigen presented on:",
+      "opts": [
+        "MHC class II molecules",
+        "MHC class I molecules",
+        "Both MHC class I and II equally",
+        "Antibodies on the cell surface",
+        "Toll-like receptors"
+      ],
+      "ans": 1,
+      "exp": "CD8+ T cells recognise endogenous peptides on MHC I expressed by virtually all nucleated cells.",
+      "optExp": [
+        "CD4+ recognises MHC II.",
+        null,
+        "CD8+ is MHC I restricted.",
+        "TCR recognises MHC-peptide, not antibody.",
+        "TLRs are innate."
+      ]
+    },
+    {
+      "id": 423,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "B cell receptor (BCR) is essentially a membrane-bound form of:",
+      "opts": [
+        "T cell receptor",
+        "Membrane-bound antibody",
+        "Complement protein",
+        "Cytokine signaling molecule",
+        "MHC molecule"
+      ],
+      "ans": 1,
+      "exp": "BCR is a membrane-anchored immunoglobulin (initially IgM/IgD), with similar antigen-binding specificity as secreted antibodies.",
+      "optExp": [
+        "TCR is a different receptor on T cells.",
+        null,
+        "Complement is a separate cascade.",
+        "Cytokines are signalling molecules.",
+        "MHC presents antigens."
+      ]
+    },
+    {
+      "id": 424,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Vaccination provides which type of immunity?",
+      "opts": [
+        "Passive natural immunity",
+        "Passive artificial immunity",
+        "Active artificial immunity",
+        "Active natural immunity",
+        "Innate immunity"
+      ],
+      "ans": 2,
+      "exp": "Vaccination = active artificial immunity — the immune system mounts its own response to a controlled antigen exposure, creating memory.",
+      "optExp": [
+        "Passive natural = maternal antibodies.",
+        "Passive artificial = giving antibodies (IVIG).",
+        null,
+        "Active natural = natural infection.",
+        "Innate is non-specific, no memory."
+      ]
+    },
+    {
+      "id": 425,
+      "cat": "Immune System Overview",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Passive immunity from breast milk is mediated mainly by:",
+      "opts": [
+        "IgG antibodies",
+        "IgM antibodies",
+        "IgA antibodies",
+        "IgE antibodies",
+        "IgD antibodies"
+      ],
+      "ans": 2,
+      "exp": "Secretory IgA in colostrum and breast milk provides mucosal protection to the infant's gut.",
+      "optExp": [
+        "IgG crosses placenta but not main in milk.",
+        "IgM is too large.",
+        null,
+        "IgE is for allergy.",
+        "IgD is BCR."
+      ]
+    },
+    {
+      "id": 464,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "A patient with recurrent Neisseria meningitidis infections likely has a deficiency in:",
+      "opts": [
+        "C1 inhibitor deficiency",
+        "C3 complement deficiency",
+        "Late complement component deficiency (C5–C9)",
+        "IgG antibody deficiency",
+        "CD4+ T cell deficiency"
+      ],
+      "ans": 2,
+      "exp": "Recurrent Neisseria infections suggest MAC (C5-C9) deficiency — MAC is critical for lysing Gram-negative organisms.",
+      "optExp": [
+        "C1 inhibitor deficiency → hereditary angioedema.",
+        "C3 deficiency causes severe pyogenic infections, not specifically Neisseria.",
+        null,
+        "IgG deficiency causes recurrent encapsulated bacteria.",
+        "CD4+ deficiency causes opportunistic infections."
+      ]
+    },
+    {
+      "id": 478,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Affinity maturation of antibodies occurs via:",
+      "opts": [
+        "Somatic hypermutation in germinal centres",
+        "Immunoglobulin class switching mechanism",
+        "Allelic exclusion process",
+        "V(D)J recombination during B cell development",
+        "Phagocytosis of pathogens by B cells"
+      ],
+      "ans": 0,
+      "exp": "Somatic hypermutation in germinal centres of lymph nodes selects B cells with higher antibody affinity for repeated exposure.",
+      "optExp": [
+        null,
+        "Different process.",
+        "Allelic exclusion is for one allele expression.",
+        "V(D)J creates initial diversity but not affinity maturation per se.",
+        "Not the mechanism."
+      ]
+    },
+    {
+      "id": 482,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Interferons are mainly important against:",
+      "opts": [
+        "Bacteria",
+        "Viruses",
+        "Fungi",
+        "Parasites",
+        "Self cells"
+      ],
+      "ans": 1,
+      "exp": "Type I interferons (α, β) are key antiviral cytokines, inducing antiviral state in neighbouring cells.",
+      "optExp": [
+        "Different cytokine profile.",
+        null,
+        "Different mechanisms.",
+        "Different mechanisms.",
+        "Not their target."
+      ]
+    },
+    {
+      "id": 483,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "T regulatory cells (Tregs) function to:",
+      "opts": [
+        "Kill virally infected cells",
+        "Suppress immune response and maintain tolerance",
+        "Produce antibody molecules",
+        "Engulf pathogens via phagocytosis",
+        "Activate complement cascade"
+      ],
+      "ans": 1,
+      "exp": "Tregs (CD4+CD25+FOXP3+) dampen immune responses and prevent autoimmunity.",
+      "optExp": [
+        "CD8+ T cells do this.",
+        null,
+        "B cells/plasma cells.",
+        "Neutrophils/macrophages.",
+        "Complement is innate."
+      ]
+    },
+    {
+      "id": 497,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "The most abundant white blood cell in healthy adults is:",
+      "opts": [
+        "Neutrophil",
+        "Lymphocyte",
+        "Monocyte",
+        "Eosinophil",
+        "Basophil"
+      ],
+      "ans": 0,
+      "exp": "Neutrophils make up 50-70% of circulating WBCs; lymphocytes ~20-40%; monocytes ~2-10%; eosinophils ~1-4%; basophils <1%.",
+      "optExp": [
+        null,
+        "Second most common.",
+        "Smaller proportion.",
+        "Smaller proportion.",
+        "Rarest."
+      ]
+    },
+    {
+      "id": 498,
+      "cat": "Adaptive Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Pentameric structure with 10 antigen-binding sites is a feature of:",
+      "opts": [
+        "IgG",
+        "IgA dimer",
+        "IgM with pentameric structure",
+        "IgD",
+        "IgE"
+      ],
+      "ans": 2,
+      "exp": "Serum IgM is a pentamer (5 monomers, 10 binding sites), making it highly avid and effective at complement activation.",
+      "optExp": [
+        "IgG is monomeric.",
+        "IgA is dimeric in secretions.",
+        null,
+        "IgD is monomeric.",
+        "IgE is monomeric."
+      ]
+    },
+    {
+      "id": 506,
+      "cat": "Innate Immunity",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Immunology",
+      "q": "Macrophages in liver are specifically called:",
+      "opts": [
+        "Microglia",
+        "Kupffer cells",
+        "Langerhans cells",
+        "Osteoclasts",
+        "Alveolar macrophages"
+      ],
+      "ans": 1,
+      "exp": "Kupffer cells are liver-resident macrophages lining sinusoids. Microglia = brain, Langerhans = skin, osteoclasts = bone, alveolar = lung.",
+      "optExp": [
+        "Brain macrophages.",
+        null,
+        "Skin macrophages.",
+        "Bone-resorbing cells (also macrophage-derived).",
+        "Lung macrophages."
+      ]
+    }
+  ]
+}

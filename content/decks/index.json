@@ -1,0 +1,47 @@
+[
+  {
+    "deck": "Biochemistry",
+    "file": "biochemistry.json",
+    "count": 153
+  },
+  {
+    "deck": "Genetics",
+    "file": "genetics.json",
+    "count": 58
+  },
+  {
+    "deck": "Physiology",
+    "file": "physiology.json",
+    "count": 65
+  },
+  {
+    "deck": "Immunology",
+    "file": "immunology.json",
+    "count": 47
+  },
+  {
+    "deck": "Pathology",
+    "file": "pathology.json",
+    "count": 51
+  },
+  {
+    "deck": "Histology",
+    "file": "histology.json",
+    "count": 28
+  },
+  {
+    "deck": "Pharmacology",
+    "file": "pharmacology.json",
+    "count": 42
+  },
+  {
+    "deck": "Embryology",
+    "file": "embryology.json",
+    "count": 27
+  },
+  {
+    "deck": "Anatomy",
+    "file": "anatomy.json",
+    "count": 26
+  }
+]

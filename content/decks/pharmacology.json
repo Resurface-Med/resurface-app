@@ -1,0 +1,1019 @@
+{
+  "deck": "Pharmacology",
+  "categories": [
+    "Pharmacology: Introduction & Receptors",
+    "Pharmacology: Pharmacokinetics",
+    "Pharmacology: Pharmacodynamics",
+    "Pharmacology: Antibiotics"
+  ],
+  "questions": [
+    {
+      "id": 328,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Pharmacokinetics refers to:",
+      "opts": [
+        "What the drug does to the body",
+        "What the body does to the drug",
+        "How the drug interacts with receptors",
+        "The side effect profile of the drug",
+        "Genetic variability in drug metabolism"
+      ],
+      "ans": 1,
+      "exp": "Pharmacokinetics = absorption, distribution, metabolism, excretion (ADME) — body's effects on drug.",
+      "optExp": [
+        "That is pharmacodynamics.",
+        null,
+        "That is pharmacodynamics.",
+        "Side effects are pharmacodynamic outputs.",
+        "That is pharmacogenetics."
+      ]
+    },
+    {
+      "id": 329,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Pharmacodynamics refers to:",
+      "opts": [
+        "How the body eliminates the drug",
+        "The effect of the drug on the body",
+        "The rate of drug excretion only",
+        "The formulation type of the drug",
+        "The manufacturing process of the drug"
+      ],
+      "ans": 1,
+      "exp": "Pharmacodynamics = drug effects on receptors and tissues (mechanism of action, dose-response).",
+      "optExp": [
+        "That is pharmacokinetics.",
+        null,
+        "Just one element of PK.",
+        "That is formulation science.",
+        "That is industrial."
+      ]
+    },
+    {
+      "id": 330,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Which receptor type produces the FASTEST response?",
+      "opts": [
+        "G-protein coupled receptor activation",
+        "Receptor tyrosine kinase activation",
+        "Ligand-gated ion channel activation",
+        "Nuclear receptor activation",
+        "Cytokine receptor activation"
+      ],
+      "ans": 2,
+      "exp": "Ligand-gated ion channels (e.g. nicotinic ACh) open in milliseconds — the fastest response.",
+      "optExp": [
+        "GPCRs take seconds.",
+        "RTKs take minutes.",
+        null,
+        "Nuclear receptors take hours-days.",
+        "Cytokine receptors take minutes-hours."
+      ]
+    },
+    {
+      "id": 331,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Which is a GPCR?",
+      "opts": [
+        "Insulin receptor",
+        "Nicotinic acetylcholine receptor",
+        "β-adrenergic receptor",
+        "Cortisol receptor",
+        "NMDA receptor"
+      ],
+      "ans": 2,
+      "exp": "β-adrenergic receptors are GPCRs (Gs → cAMP). Insulin = RTK, nicotinic = LGIC, cortisol = nuclear, NMDA = LGIC.",
+      "optExp": [
+        "RTK.",
+        "LGIC.",
+        null,
+        "Nuclear receptor.",
+        "LGIC."
+      ]
+    },
+    {
+      "id": 332,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Which is an example of a ligand-gated ion channel?",
+      "opts": [
+        "Muscarinic acetylcholine receptor",
+        "Nicotinic acetylcholine receptor",
+        "Insulin receptor",
+        "Steroid receptor",
+        "Adrenergic receptor"
+      ],
+      "ans": 1,
+      "exp": "Nicotinic ACh receptors are pentameric LGICs that flux Na⁺/K⁺ when ACh binds.",
+      "optExp": [
+        "Muscarinic = GPCR.",
+        null,
+        "Insulin = RTK.",
+        "Steroid = nuclear.",
+        "Adrenergic = GPCR."
+      ]
+    },
+    {
+      "id": 333,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Insulin receptor is an example of a(n):",
+      "opts": [
+        "A G-protein coupled receptor",
+        "A receptor tyrosine kinase",
+        "A ligand-gated ion channel",
+        "A nuclear receptor",
+        "A voltage-gated ion channel"
+      ],
+      "ans": 1,
+      "exp": "Insulin binds an RTK, triggering autophosphorylation, IRS, and downstream PI3K/MAPK signalling.",
+      "optExp": [
+        "Glucagon is GPCR.",
+        null,
+        "Nicotinic is LGIC.",
+        "Steroids use nuclear.",
+        "Not a receptor type."
+      ]
+    },
+    {
+      "id": 334,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Intracellular (nuclear) receptors are activated by:",
+      "opts": [
+        "Polar peptide hormones",
+        "Lipid-soluble hormones",
+        "Cytokine signalling molecules",
+        "Neurotransmitter molecules",
+        "Acetylcholine molecules"
+      ],
+      "ans": 1,
+      "exp": "Steroid and thyroid hormones are lipid-soluble; they enter the cell and bind intracellular/nuclear receptors to alter gene expression.",
+      "optExp": [
+        "Peptide hormones use surface receptors.",
+        null,
+        "Cytokines use cytokine receptors.",
+        "Neurotransmitters use LGICs/GPCRs.",
+        "ACh uses LGIC or GPCR."
+      ]
+    },
+    {
+      "id": 335,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "A full agonist is a drug that:",
+      "opts": [
+        "It has no effect on the receptor",
+        "It produces a maximal response at the receptor",
+        "It produces no cellular response",
+        "It produces a partial response at the receptor",
+        "It blocks all receptor activity"
+      ],
+      "ans": 1,
+      "exp": "Full agonists fully activate the receptor (efficacy = 1). Partial agonists give submaximal response even at full occupancy.",
+      "optExp": [
+        "That would be no binding/no efficacy.",
+        null,
+        "That would be an antagonist.",
+        "That is a partial agonist.",
+        "That is an antagonist."
+      ]
+    },
+    {
+      "id": 336,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "A competitive antagonist:",
+      "opts": [
+        "It cannot be overcome by increasing agonist concentration",
+        "It can be overcome by increasing the concentration of agonist",
+        "It has an efficacy of one",
+        "It permanently disables the receptor",
+        "It is the same as a partial agonist"
+      ],
+      "ans": 1,
+      "exp": "Competitive antagonists shift the dose-response curve rightward; full Emax can still be reached with enough agonist.",
+      "optExp": [
+        "Describes non-competitive/irreversible.",
+        null,
+        "Antagonists have efficacy 0.",
+        "Describes irreversible.",
+        "Partial agonists have some intrinsic activity."
+      ]
+    },
+    {
+      "id": 337,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "The main site of oral drug absorption is the:",
+      "opts": [
+        "The stomach lining",
+        "The small intestine",
+        "The colon",
+        "The mouth cavity",
+        "The oesophagus"
+      ],
+      "ans": 1,
+      "exp": "The small intestine, with villi and microvilli, has the largest absorptive surface area for oral drugs.",
+      "optExp": [
+        "Stomach absorbs some acidic drugs but smaller area.",
+        null,
+        "Colon absorbs water and some drugs.",
+        "Mouth allows sublingual absorption for some.",
+        "Oesophagus is primarily transit."
+      ]
+    },
+    {
+      "id": 338,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "First-pass metabolism refers to:",
+      "opts": [
+        "Metabolism of the drug in the intestines only",
+        "Metabolism and inactivation of the drug by the liver before systemic circulation",
+        "The process of renal clearance",
+        "The binding of the drug to plasma proteins",
+        "The absorption of the drug through the skin"
+      ],
+      "ans": 1,
+      "exp": "Drugs absorbed from the gut pass through the liver via portal circulation, where significant metabolism can occur before reaching systemic circulation.",
+      "optExp": [
+        "Intestinal first-pass is a component but liver dominates.",
+        null,
+        "That is renal elimination.",
+        "Plasma protein binding is unrelated.",
+        "Skin absorption is dermal route."
+      ]
+    },
+    {
+      "id": 339,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Which route AVOIDS first-pass metabolism?",
+      "opts": [
+        "Oral administration",
+        "Sublingual or intravenous administration",
+        "Rectal suppository administration",
+        "Subcutaneous injection",
+        "Intramuscular injection"
+      ],
+      "ans": 1,
+      "exp": "IV, sublingual, and (partially) rectal routes bypass the liver's portal circulation.",
+      "optExp": [
+        "Oral has full first-pass.",
+        null,
+        "Rectal partly bypasses, not fully.",
+        "SC enters systemic but is not the most common bypass route mentioned.",
+        "IM enters systemic similarly."
+      ]
+    },
+    {
+      "id": 340,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Phase I metabolism involves:",
+      "opts": [
+        "Conjugation reactions with glutathione or other molecules",
+        "Oxidation and hydrolysis reactions",
+        "Renal excretion of unchanged drug",
+        "Binding of the drug to plasma proteins",
+        "Activation of cellular receptors"
+      ],
+      "ans": 1,
+      "exp": "Phase I involves functional group modifications by CYP450 (oxidation), reductases, and hydrolases.",
+      "optExp": [
+        "That is Phase II.",
+        null,
+        "That is excretion.",
+        "Unrelated.",
+        "Unrelated."
+      ]
+    },
+    {
+      "id": 341,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Phase II metabolism is:",
+      "opts": [
+        "An oxidation reaction",
+        "A conjugation reaction",
+        "A hydrolysis reaction",
+        "A renal excretion process",
+        "A receptor binding process"
+      ],
+      "ans": 1,
+      "exp": "Phase II adds polar groups (glucuronide, sulfate, glutathione) to make drugs water-soluble for excretion.",
+      "optExp": [
+        "That is Phase I.",
+        null,
+        "That is Phase I.",
+        "Different process.",
+        "Unrelated."
+      ]
+    },
+    {
+      "id": 342,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "A drug with a high volume of distribution (Vd) implies:",
+      "opts": [
+        "The drug is restricted to plasma",
+        "The drug distributes extensively into tissues",
+        "The drug is excreted unchanged in urine",
+        "The drug cannot cross cell membranes",
+        "The drug has poor oral absorption"
+      ],
+      "ans": 1,
+      "exp": "High Vd suggests the drug leaves plasma and distributes extensively into tissues (e.g. lipophilic drugs, tissue-binding drugs).",
+      "optExp": [
+        "Low Vd describes plasma confinement.",
+        null,
+        "Unrelated to Vd.",
+        "High Vd actually means easy crossing.",
+        "Vd is about distribution, not absorption."
+      ]
+    },
+    {
+      "id": 343,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "The major route of drug excretion is:",
+      "opts": [
+        "Lungs",
+        "Skin",
+        "Faeces",
+        "Kidneys",
+        "Sweat glands"
+      ],
+      "ans": 3,
+      "exp": "Most drugs are excreted by the kidneys via filtration, secretion, and limited reabsorption.",
+      "optExp": [
+        "Volatile anaesthetics use lung route.",
+        "Some drugs excreted in sweat but minor.",
+        "Bile-excreted drugs may reach faeces.",
+        null,
+        "Minor route."
+      ]
+    },
+    {
+      "id": 344,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "A weakly acidic drug is best excreted in:",
+      "opts": [
+        "Acidic urine",
+        "Alkaline urine",
+        "A dehydrated state",
+        "High sodium intake",
+        "Faeces only"
+      ],
+      "ans": 1,
+      "exp": "Weak acids are more ionised in alkaline urine → less reabsorbed → faster excretion. This is the basis of urinary alkalinisation in aspirin overdose.",
+      "optExp": [
+        "Acidic urine keeps weak acids non-ionised, increasing reabsorption.",
+        null,
+        "Dehydration concentrates urine but doesn't enhance excretion.",
+        "Sodium isn't the relevant variable.",
+        "Acidic drugs go via kidney."
+      ]
+    },
+    {
+      "id": 345,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Bioavailability (F) refers to:",
+      "opts": [
+        "The plasma concentration level achieved",
+        "The fraction of drug reaching systemic circulation",
+        "The elimination half-life value",
+        "The ability to bind to receptors",
+        "The therapeutic index value"
+      ],
+      "ans": 1,
+      "exp": "Bioavailability = (AUC oral / AUC IV) × 100%. IV drugs have F = 100%.",
+      "optExp": [
+        "Concentration is a measurement, not definition.",
+        null,
+        "That is half-life.",
+        "That is pharmacodynamics.",
+        "Therapeutic index is a safety metric."
+      ]
+    },
+    {
+      "id": 346,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Half-life (t½) is the time for plasma drug concentration to:",
+      "opts": [
+        "The time to reach steady state",
+        "The time for plasma concentration to decrease by 50%",
+        "The time for complete drug elimination",
+        "The time for plasma protein binding to occur",
+        "The time to reach maximum concentration (Cmax)"
+      ],
+      "ans": 1,
+      "exp": "t½ = time for plasma concentration to fall to half its value. After 4-5 half-lives, ~94-97% of drug is eliminated.",
+      "optExp": [
+        "Steady state takes ~4-5 t½ with regular dosing.",
+        null,
+        "Complete elimination needs many half-lives.",
+        "Protein binding is a separate property.",
+        "Cmax is peak concentration."
+      ]
+    },
+    {
+      "id": 347,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Drug absorption is enhanced by:",
+      "opts": [
+        "Low lipid solubility",
+        "High lipid solubility",
+        "An ionised form of the drug",
+        "Poor blood flow at the absorption site",
+        "Advanced age"
+      ],
+      "ans": 1,
+      "exp": "Lipid-soluble drugs cross membranes more easily → better absorption.",
+      "optExp": [
+        "Low lipid solubility = poor absorption.",
+        null,
+        "Non-ionised form is absorbed.",
+        "Good blood flow enhances absorption.",
+        "Old age can reduce absorption."
+      ]
+    },
+    {
+      "id": 348,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "CYP450 enzymes are mainly found in the:",
+      "opts": [
+        "Brain tissue",
+        "Liver tissue",
+        "Kidney tissue",
+        "Pancreatic tissue",
+        "Lung tissue"
+      ],
+      "ans": 1,
+      "exp": "CYP450 enzymes are most concentrated in hepatocyte smooth ER, performing most of Phase I drug metabolism.",
+      "optExp": [
+        "Brain has some CYPs but minor.",
+        null,
+        "Kidneys have some CYPs.",
+        "Pancreas has minor CYP activity.",
+        "Lung has minor CYP activity."
+      ]
+    },
+    {
+      "id": 349,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Plasma protein binding affects:",
+      "opts": [
+        "Drug absorption only",
+        "The free active concentration of drug",
+        "Phase I metabolism only",
+        "The half-life by shortening it",
+        "Renal clearance only"
+      ],
+      "ans": 1,
+      "exp": "Only free (unbound) drug can leave the plasma to act on receptors or be metabolised/excreted. Highly bound drugs have prolonged effects.",
+      "optExp": [
+        "Binding affects distribution/elimination more than absorption.",
+        null,
+        "Affects more than just Phase I.",
+        "Often lengthens half-life.",
+        "Affects clearance but not only."
+      ]
+    },
+    {
+      "id": 350,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "The therapeutic index (TI) is defined as:",
+      "opts": [
+        "Calculated as ED50 divided by LD50",
+        "Calculated as LD50 divided by ED50",
+        "Calculated as Cmax divided by Cmin",
+        "Calculated as Vd divided by Cl",
+        "Calculated as dose multiplied by half-life"
+      ],
+      "ans": 1,
+      "exp": "TI = LD50/ED50 (lethal dose for 50% / effective dose for 50%). Higher = safer drug (wider window).",
+      "optExp": [
+        "Inverse of correct.",
+        null,
+        "Refers to drug exposure peak/trough.",
+        "Pharmacokinetic ratio.",
+        "No standard formula."
+      ]
+    },
+    {
+      "id": 351,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Potency refers to:",
+      "opts": [
+        "The maximum effect a drug can produce",
+        "The dose required to produce a given effect",
+        "The bioavailability of the drug",
+        "The half-life of the drug",
+        "The volume of distribution of the drug"
+      ],
+      "ans": 1,
+      "exp": "Potency relates to position on the dose-response curve (EC50). High potency = effect at low dose. Efficacy = max effect.",
+      "optExp": [
+        "That is efficacy.",
+        null,
+        "PK parameter.",
+        "PK parameter.",
+        "PK parameter."
+      ]
+    },
+    {
+      "id": 352,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Efficacy refers to:",
+      "opts": [
+        "The dose needed for therapeutic effect",
+        "The maximum response the drug can produce",
+        "The time to onset of action",
+        "The degree of toxicity",
+        "The selectivity for specific receptors"
+      ],
+      "ans": 1,
+      "exp": "Efficacy = the maximum effect (Emax). Full agonists have high efficacy; partial agonists have lower efficacy.",
+      "optExp": [
+        "That is potency.",
+        null,
+        "PK parameter.",
+        "Adverse effect parameter.",
+        "Receptor binding selectivity is separate."
+      ]
+    },
+    {
+      "id": 353,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "An inverse agonist:",
+      "opts": [
+        "Produces no effect on the receptor",
+        "Activates the receptor fully",
+        "Reduces constitutive activity below basal levels",
+        "Acts as a competitive antagonist",
+        "Has an efficacy value of one"
+      ],
+      "ans": 2,
+      "exp": "Inverse agonists stabilise the inactive receptor conformation, reducing constitutive activity below baseline.",
+      "optExp": [
+        "That is a neutral antagonist (in some descriptions).",
+        "That is an agonist.",
+        null,
+        "Different mechanism — antagonist has zero efficacy, not negative.",
+        "That is full agonist."
+      ]
+    },
+    {
+      "id": 354,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Tachyphylaxis is:",
+      "opts": [
+        "Slow onset of drug action",
+        "Rapid development of tolerance despite continued use",
+        "Slow drug elimination",
+        "Reduced drug absorption",
+        "Increased drug bioavailability"
+      ],
+      "ans": 1,
+      "exp": "Tachyphylaxis = acute desensitisation over minutes-hours with repeated administration.",
+      "optExp": [
+        "Different concept.",
+        null,
+        "PK property.",
+        "PK property.",
+        "PK property."
+      ]
+    },
+    {
+      "id": 355,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Penicillins act by:",
+      "opts": [
+        "Inhibition of DNA gyrase",
+        "Inhibition of bacterial cell wall synthesis",
+        "Blockade of bacterial protein synthesis",
+        "Disruption of bacterial folate metabolism",
+        "Inhibition of bacterial RNA polymerase"
+      ],
+      "ans": 1,
+      "exp": "Penicillins (β-lactams) inhibit penicillin-binding proteins (transpeptidases) needed for cross-linking peptidoglycan.",
+      "optExp": [
+        "Quinolones do that.",
+        null,
+        "Macrolides/aminoglycosides do that.",
+        "Sulfonamides/trimethoprim do that.",
+        "Rifampicin does that."
+      ]
+    },
+    {
+      "id": 356,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Aminoglycosides (e.g. gentamicin) target:",
+      "opts": [
+        "Binds the 30S ribosomal subunit",
+        "Binds the 50S ribosomal subunit",
+        "Inhibits bacterial cell wall synthesis",
+        "Inhibits DNA gyrase",
+        "Blocks folate synthesis"
+      ],
+      "ans": 0,
+      "exp": "Aminoglycosides bind the 30S ribosomal subunit, causing misreading of mRNA and inhibiting protein synthesis.",
+      "optExp": [
+        null,
+        "Macrolides/chloramphenicol target 50S.",
+        "β-lactams target cell wall.",
+        "Quinolones target gyrase.",
+        "Sulfonamides target folate."
+      ]
+    },
+    {
+      "id": 357,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Macrolides (e.g. erythromycin) act by:",
+      "opts": [
+        "Inhibits bacterial cell wall synthesis",
+        "Binds the 50S ribosomal subunit",
+        "Inhibits DNA gyrase",
+        "Blocks folate synthesis",
+        "Disrupts the bacterial cell membrane"
+      ],
+      "ans": 1,
+      "exp": "Macrolides bind the 50S subunit, blocking peptide chain elongation.",
+      "optExp": [
+        "β-lactams.",
+        null,
+        "Quinolones.",
+        "Sulfonamides.",
+        "Polymyxins."
+      ]
+    },
+    {
+      "id": 358,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Fluoroquinolones (e.g. ciprofloxacin) inhibit:",
+      "opts": [
+        "Inhibits the 50S ribosomal subunit",
+        "Inhibits bacterial cell wall synthesis",
+        "Inhibits DNA gyrase",
+        "Blocks folate synthesis",
+        "Inhibits bacterial RNA polymerase"
+      ],
+      "ans": 2,
+      "exp": "Quinolones inhibit DNA gyrase (gram-negative) and topoisomerase IV (gram-positive), preventing DNA replication.",
+      "optExp": [
+        "Macrolides.",
+        "β-lactams.",
+        null,
+        "Sulfa drugs.",
+        "Rifampicin."
+      ]
+    },
+    {
+      "id": 359,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Trimethoprim and sulfonamides inhibit:",
+      "opts": [
+        "Inhibits bacterial cell wall synthesis",
+        "Inhibits bacterial protein synthesis",
+        "Inhibits folate synthesis",
+        "Inhibits DNA gyrase",
+        "Inhibits bacterial RNA polymerase"
+      ],
+      "ans": 2,
+      "exp": "Sulfonamides inhibit dihydropteroate synthase; trimethoprim inhibits dihydrofolate reductase — both block folate-dependent nucleotide synthesis.",
+      "optExp": [
+        "β-lactams.",
+        "Aminoglycosides/macrolides.",
+        null,
+        "Quinolones.",
+        "Rifampicin."
+      ]
+    },
+    {
+      "id": 438,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Tachyphylaxis differs from tolerance in that tachyphylaxis develops:",
+      "opts": [
+        "Over weeks to months with continuous drug exposure",
+        "Over minutes to hours with repeated dosing",
+        "Only in elderly patients receiving treatment",
+        "Only with placebo and inactive compounds",
+        "Only with antibiotic drug classes"
+      ],
+      "ans": 1,
+      "exp": "Tachyphylaxis = rapid (acute) desensitisation. Tolerance develops over days-weeks.",
+      "optExp": [
+        "That is tolerance.",
+        null,
+        "Not age-restricted.",
+        "Placebo effects are different.",
+        "Not antibiotic-restricted."
+      ]
+    },
+    {
+      "id": 439,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Zero-order elimination kinetics means:",
+      "opts": [
+        "Clearance rate depends on drug concentration",
+        "Constant amount of drug eliminated per unit time",
+        "Half-life remains constant at all drug concentrations",
+        "Drug is eliminated instantly without metabolic delay",
+        "Drug accumulates indefinitely without elimination"
+      ],
+      "ans": 1,
+      "exp": "Zero-order: elimination rate is constant (e.g. ethanol). At any concentration above saturation, a fixed amount is removed per unit time.",
+      "optExp": [
+        "That is first-order.",
+        null,
+        "Half-life varies with concentration in zero-order.",
+        "Not instant.",
+        "Drug IS eliminated."
+      ]
+    },
+    {
+      "id": 440,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "First-order elimination means:",
+      "opts": [
+        "Constant amount of drug eliminated per unit time",
+        "Constant fraction of drug eliminated per unit time",
+        "No elimination of drug occurs during therapy",
+        "Enzyme is saturated at all drug concentrations",
+        "Drug elimination follows a linear dose-response relationship"
+      ],
+      "ans": 1,
+      "exp": "First-order: rate of elimination is proportional to concentration; a constant FRACTION is removed per t (most drugs).",
+      "optExp": [
+        "That is zero-order.",
+        null,
+        "All drugs eliminated eventually.",
+        "That is zero-order.",
+        "Linear PK applies to first-order."
+      ]
+    },
+    {
+      "id": 441,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "A non-competitive antagonist:",
+      "opts": [
+        "Binds reversibly to the orthosteric receptor site",
+        "Cannot be overcome by increasing agonist concentration",
+        "Produces a rightward shift in the dose-response curve",
+        "Increases the affinity of agonist for receptor",
+        "Binds to an allosteric site distinct from the agonist binding site"
+      ],
+      "ans": 1,
+      "exp": "Non-competitive (or irreversible) antagonists prevent the agonist from achieving full Emax even at high concentrations.",
+      "optExp": [
+        "That is competitive.",
+        null,
+        "Antagonists have efficacy 0.",
+        "Antagonists decrease potency.",
+        "They have major effect."
+      ]
+    },
+    {
+      "id": 442,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Vancomycin works by:",
+      "opts": [
+        "Inhibits the 30S ribosomal subunit",
+        "Prevents peptidoglycan synthesis in the bacterial cell wall",
+        "Disrupts the bacterial cell membrane integrity",
+        "Inhibits DNA gyrase enzyme activity",
+        "Inhibits bacterial folate synthesis pathway"
+      ],
+      "ans": 1,
+      "exp": "Vancomycin blocks Gram-positive cell wall synthesis by binding D-Ala-D-Ala — used for MRSA, C. difficile.",
+      "optExp": [
+        "That is aminoglycosides.",
+        null,
+        "That is polymyxins.",
+        "That is quinolones.",
+        "That is sulfa drugs."
+      ]
+    },
+    {
+      "id": 466,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "A patient with cirrhosis is at increased risk of toxicity from drugs metabolised by:",
+      "opts": [
+        "Kidney metabolism only",
+        "Hepatic CYP450 metabolism",
+        "Gut flora metabolism only",
+        "Plasma esterase metabolism",
+        "Lung tissue metabolism"
+      ],
+      "ans": 1,
+      "exp": "Cirrhotic livers have reduced CYP450 capacity, so drugs metabolised by Phase I hepatic pathways accumulate.",
+      "optExp": [
+        "Renal-cleared drugs are less affected by liver disease.",
+        null,
+        "Gut flora alterations less relevant.",
+        "Plasma esterases less affected.",
+        "Lung metabolism is minor."
+      ]
+    },
+    {
+      "id": 470,
+      "cat": "Pharmacology: Pharmacodynamics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Naloxone is a:",
+      "opts": [
+        "μ-opioid agonist drug",
+        "μ-opioid antagonist drug",
+        "β-adrenergic agonist drug",
+        "Anticholinergic drug",
+        "GABA agonist drug"
+      ],
+      "ans": 1,
+      "exp": "Naloxone competitively antagonises μ-opioid receptors, reversing opioid respiratory depression in overdose.",
+      "optExp": [
+        "Morphine is an agonist.",
+        null,
+        "β-agonists are for asthma/anaphylaxis (β2/β1).",
+        "Atropine etc.",
+        "Benzos/alcohol affect GABA."
+      ]
+    },
+    {
+      "id": 489,
+      "cat": "Pharmacology: Introduction & Receptors",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Atropine is a:",
+      "opts": [
+        "Nicotinic acetylcholine agonist",
+        "Muscarinic acetylcholine antagonist",
+        "β-adrenergic receptor agonist",
+        "α-adrenergic receptor antagonist",
+        "Opioid receptor agonist"
+      ],
+      "ans": 1,
+      "exp": "Atropine competitively blocks muscarinic ACh receptors → ↑ HR, dry mouth, dilated pupils, bronchodilation.",
+      "optExp": [
+        "Nicotine is the agonist.",
+        null,
+        "Salbutamol is β2 agonist.",
+        "Doxazosin etc.",
+        "Morphine etc."
+      ]
+    },
+    {
+      "id": 490,
+      "cat": "Pharmacology: Antibiotics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Tetracyclines are bacteriostatic via:",
+      "opts": [
+        "Inhibits bacterial cell wall synthesis",
+        "Blocks 30S ribosomal subunit translation",
+        "Inhibits folate synthesis pathway",
+        "Disrupts bacterial cell membranes",
+        "Inhibits bacterial topoisomerase enzyme"
+      ],
+      "ans": 1,
+      "exp": "Tetracyclines bind 30S ribosomal subunit, blocking aminoacyl-tRNA entry to the A site — bacteriostatic.",
+      "optExp": [
+        "β-lactams.",
+        null,
+        "Sulfa.",
+        "Polymyxins.",
+        "Quinolones."
+      ]
+    },
+    {
+      "id": 496,
+      "cat": "Pharmacology: Pharmacokinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pharmacology",
+      "q": "Steady state plasma concentration is achieved after approximately:",
+      "opts": [
+        "After 1 half-life",
+        "After 2 half-lives",
+        "After 4-5 half-lives",
+        "After 10 half-lives",
+        "Never achieved in clinical practice"
+      ],
+      "ans": 2,
+      "exp": "With regular dosing, steady state (input rate = output rate) is reached after ~4-5 half-lives (about 94-97% of steady state).",
+      "optExp": [
+        "50% of steady state.",
+        "75%.",
+        null,
+        "Excessive.",
+        "Eventually reached."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,682 @@
+{
+  "deck": "Histology",
+  "categories": [
+    "Histology: Bone & Cartilage",
+    "Histology: Connective Tissue",
+    "Histology: Muscle"
+  ],
+  "questions": [
+    {
+      "id": 306,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Hyaline cartilage is found in all EXCEPT:",
+      "opts": [
+        "Trachea cartilage",
+        "Articular surfaces of joints",
+        "Nose cartilage",
+        "Intervertebral discs",
+        "Costal cartilage of ribs"
+      ],
+      "ans": 3,
+      "exp": "IV discs are fibrocartilage (shock absorbers). Hyaline cartilage is in trachea, articular surfaces, nose, larynx, costal cartilage.",
+      "optExp": [
+        "Trachea has hyaline rings.",
+        "Articular surfaces are hyaline.",
+        "Nasal cartilage is hyaline.",
+        null,
+        "Costal cartilage is hyaline."
+      ]
+    },
+    {
+      "id": 307,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Elastic cartilage is found in:",
+      "opts": [
+        "Trachea cartilage",
+        "Intervertebral discs",
+        "External ear cartilage",
+        "Articular surfaces of joints",
+        "Costal cartilage of ribs"
+      ],
+      "ans": 2,
+      "exp": "Elastic cartilage (with elastin fibres) is found in the external ear (pinna), epiglottis, and Eustachian tube.",
+      "optExp": [
+        "Hyaline.",
+        "Fibrocartilage.",
+        null,
+        "Hyaline.",
+        "Hyaline."
+      ]
+    },
+    {
+      "id": 308,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Fibrocartilage is found in:",
+      "opts": [
+        "Trachea cartilage",
+        "Intervertebral discs",
+        "External ear cartilage",
+        "Articular surfaces of joints",
+        "Larynx cartilage"
+      ],
+      "ans": 1,
+      "exp": "Fibrocartilage (Type I collagen-rich) is found in IV discs, pubic symphysis, menisci — shock absorbers.",
+      "optExp": [
+        "Hyaline.",
+        null,
+        "Elastic.",
+        "Hyaline.",
+        "Hyaline."
+      ]
+    },
+    {
+      "id": 309,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Compact bone is mainly found in:",
+      "opts": [
+        "Epiphysis of long bones",
+        "Diaphysis of long bones",
+        "Bone marrow cavity",
+        "Interior of flat bones",
+        "Articular surfaces of joints"
+      ],
+      "ans": 1,
+      "exp": "Compact (cortical) bone forms the diaphysis (shaft) of long bones, providing strength.",
+      "optExp": [
+        "Epiphyses have spongy bone.",
+        null,
+        "Marrow cavity contains marrow, not compact bone.",
+        "Flat bones have spongy interior between compact layers.",
+        "Articular surfaces are cartilage."
+      ]
+    },
+    {
+      "id": 310,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Spongy (trabecular) bone is found in:",
+      "opts": [
+        "Found primarily in the diaphysis",
+        "Found primarily in the epiphysis and metaphysis",
+        "Found in tendons and ligaments",
+        "Found in cartilage layers",
+        "Found in the periosteum membrane"
+      ],
+      "ans": 1,
+      "exp": "Spongy bone (with trabeculae) is in the epiphyses of long bones and in flat bones, containing red marrow.",
+      "optExp": [
+        "Compact bone there.",
+        null,
+        "Tendons are connective tissue.",
+        "Cartilage is different.",
+        "Periosteum is a covering."
+      ]
+    },
+    {
+      "id": 311,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Intramembranous ossification is responsible for forming:",
+      "opts": [
+        "Long bones of the limbs",
+        "Flat bones of the skull",
+        "Ribs and sternum",
+        "Vertebrae and spine",
+        "Pelvis and hip bones"
+      ],
+      "ans": 1,
+      "exp": "Intramembranous ossification forms flat bones from mesenchymal cells directly (e.g. skull vault, mandible, clavicle). Closes fontanelles by ~age 2.",
+      "optExp": [
+        "Long bones use endochondral.",
+        null,
+        "Ribs are endochondral.",
+        "Vertebrae are endochondral.",
+        "Pelvis is endochondral."
+      ]
+    },
+    {
+      "id": 312,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Endochondral ossification involves:",
+      "opts": [
+        "Ossification directly from mesenchyme without a cartilage template",
+        "Ossification of a pre-existing cartilage model",
+        "Calcification of fibrous tendons and ligaments",
+        "Bone formation that occurs only in adult life",
+        "Formation of dental tissues and tooth enamel"
+      ],
+      "ans": 1,
+      "exp": "Endochondral ossification produces long bones (and pelvis, ribs, vertebrae) by replacing a cartilage model with bone.",
+      "optExp": [
+        "That is intramembranous.",
+        null,
+        "Tendons don't undergo ossification normally.",
+        "Begins in utero, continues to puberty.",
+        "Teeth use a different process."
+      ]
+    },
+    {
+      "id": 313,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Which cell breaks down bone tissue?",
+      "opts": [
+        "Osteoblast",
+        "Osteocyte",
+        "Osteoclast",
+        "Chondrocyte",
+        "Fibroblast"
+      ],
+      "ans": 2,
+      "exp": "Osteoclasts are large multinucleated cells (from monocyte lineage) that resorb bone via H⁺ and proteases.",
+      "optExp": [
+        "Osteoblasts build bone.",
+        "Osteocytes maintain bone matrix.",
+        null,
+        "Chondrocytes are in cartilage.",
+        "Fibroblasts make collagen in connective tissue."
+      ]
+    },
+    {
+      "id": 314,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Osteocytes reside in:",
+      "opts": [
+        "Within the periosteum",
+        "Within lacunae in the bone matrix",
+        "Within Haversian canals",
+        "Within bone marrow cavities",
+        "Within synovial cavities of joints"
+      ],
+      "ans": 1,
+      "exp": "Osteocytes are osteoblasts that became trapped in lacunae of the mineralised bone matrix, communicating via canaliculi.",
+      "optExp": [
+        "Periosteum has osteoprogenitors.",
+        null,
+        "Haversian canals contain vessels and nerves.",
+        "Marrow contains haematopoietic cells.",
+        "Synovial cavity has fluid."
+      ]
+    },
+    {
+      "id": 315,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Chondrocytes are housed within:",
+      "opts": [
+        "Within Haversian canals",
+        "Within lacunae in the cartilage matrix",
+        "Within lamellae of bone",
+        "Within trabeculae of bone",
+        "Within Volkmann's canals"
+      ],
+      "ans": 1,
+      "exp": "Chondrocytes sit in lacunae within the cartilage matrix; cartilage is avascular and relies on diffusion.",
+      "optExp": [
+        "Haversian canals are in bone.",
+        null,
+        "Lamellae are bone matrix layers.",
+        "Trabeculae are spongy bone struts.",
+        "Volkmann's canals are in bone."
+      ]
+    },
+    {
+      "id": 316,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "The growth plate (epiphyseal plate) zones from epiphysis to diaphysis include:",
+      "opts": [
+        "Calcification zone → hypertrophic zone → proliferation zone → resting zone",
+        "Resting zone → proliferation zone → hypertrophic zone → calcification zone",
+        "Hypertrophic zone → resting zone → calcification zone → proliferation zone",
+        "Proliferation zone → resting zone → calcification zone → hypertrophic zone",
+        "Resting zone → calcification zone → proliferation zone → hypertrophic zone"
+      ],
+      "ans": 1,
+      "exp": "Mnemonic 'Really Poor Habits Cause Osteoporosis': Resting (Reserved) → Proliferation → Hypertrophic → Calcification.",
+      "optExp": [
+        "Reverse order.",
+        null,
+        "Wrong order.",
+        "Wrong order.",
+        "Wrong order."
+      ]
+    },
+    {
+      "id": 317,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "In osteogenesis imperfecta, the defective protein is:",
+      "opts": [
+        "Type II collagen defect",
+        "Type I collagen defect",
+        "Elastin defect",
+        "Fibrillin defect",
+        "Keratin defect"
+      ],
+      "ans": 1,
+      "exp": "OI is caused by mutations in COL1A1/COL1A2 (Type I collagen), causing brittle bones, blue sclerae, hearing loss.",
+      "optExp": [
+        "Type II is in cartilage.",
+        null,
+        "Elastin is in skin/lungs.",
+        "Fibrillin → Marfan.",
+        "Keratin is in skin/hair."
+      ]
+    },
+    {
+      "id": 318,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Tendons and ligaments are composed of:",
+      "opts": [
+        "Loose connective tissue",
+        "Dense regular connective tissue",
+        "Dense irregular connective tissue",
+        "Adipose tissue",
+        "Elastic cartilage"
+      ],
+      "ans": 1,
+      "exp": "Tendons/ligaments are dense regular CT — collagen fibres aligned in parallel to resist tension along one direction.",
+      "optExp": [
+        "Loose CT surrounds vessels/organs.",
+        null,
+        "Dense irregular is in dermis/periosteum.",
+        "Adipose stores fat.",
+        "Different tissue type."
+      ]
+    },
+    {
+      "id": 319,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "The periosteum and perichondrium are examples of:",
+      "opts": [
+        "Dense regular connective tissue",
+        "Dense irregular connective tissue",
+        "Loose connective tissue",
+        "Adipose tissue",
+        "Reticular connective tissue"
+      ],
+      "ans": 1,
+      "exp": "Dense irregular CT has interwoven collagen bundles, providing strength in multiple directions (dermis, periosteum, perichondrium).",
+      "optExp": [
+        "Dense regular is tendons/ligaments.",
+        null,
+        "Loose CT is around organs.",
+        "Adipose is fat.",
+        "Reticular is in lymph nodes/marrow."
+      ]
+    },
+    {
+      "id": 320,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Reticular fibres are predominantly found in:",
+      "opts": [
+        "Tendons and ligaments",
+        "Lymph nodes and spleen",
+        "The dermis of skin",
+        "Walls of large arteries",
+        "Hyaline cartilage matrix"
+      ],
+      "ans": 1,
+      "exp": "Reticular fibres (Type III collagen) form the stroma of lymph nodes, spleen, and bone marrow.",
+      "optExp": [
+        "Tendons use Type I collagen.",
+        null,
+        "Dermis has Type I primarily.",
+        "Aorta has elastic fibres.",
+        "Cartilage has Type II."
+      ]
+    },
+    {
+      "id": 321,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Which connective tissue cell synthesises collagen and ECM?",
+      "opts": [
+        "Macrophage",
+        "Fibroblast",
+        "Mast cell",
+        "Adipocyte",
+        "Plasma cell"
+      ],
+      "ans": 1,
+      "exp": "Fibroblasts are the main producers of collagen, elastin, and ECM ground substance in connective tissue.",
+      "optExp": [
+        "Macrophages phagocytose.",
+        null,
+        "Mast cells release histamine.",
+        "Adipocytes store fat.",
+        "Plasma cells make antibodies."
+      ]
+    },
+    {
+      "id": 322,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Adipose tissue's main function is:",
+      "opts": [
+        "Providing structural strength to tissues",
+        "Energy storage and thermal insulation",
+        "Muscle contraction and movement",
+        "Phagocytosis and immune defense",
+        "Antibody secretion and immunity"
+      ],
+      "ans": 1,
+      "exp": "White adipose tissue stores energy as triglycerides; brown adipose generates heat.",
+      "optExp": [
+        "Dense regular CT for strength.",
+        null,
+        "Muscle for movement.",
+        "Macrophages phagocytose.",
+        "Plasma cells make antibodies."
+      ]
+    },
+    {
+      "id": 323,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Elastic fibres are most abundant in:",
+      "opts": [
+        "Tendons and ligaments",
+        "Articular cartilage",
+        "Walls of large elastic arteries",
+        "Bone matrix",
+        "Lymph nodes"
+      ],
+      "ans": 2,
+      "exp": "Large elastic arteries (aorta) and lung tissue contain abundant elastin, allowing recoil.",
+      "optExp": [
+        "Tendons use collagen.",
+        "Hyaline cartilage uses Type II collagen.",
+        null,
+        "Bone uses Type I + hydroxyapatite.",
+        "Reticular dominates here."
+      ]
+    },
+    {
+      "id": 324,
+      "cat": "Histology: Muscle",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Skeletal muscle fibres are:",
+      "opts": [
+        "Branched, striated multinucleated cells",
+        "Long, multinucleated, striated cells",
+        "Non-striated involuntary cells",
+        "Short cells with a single nucleus",
+        "Cells without sarcomeres or striations"
+      ],
+      "ans": 1,
+      "exp": "Skeletal muscle: long, cylindrical, multinucleated (peripheral nuclei), striated, voluntary.",
+      "optExp": [
+        "That is cardiac muscle.",
+        null,
+        "That is smooth muscle.",
+        "Skeletal fibres are unbranched.",
+        "Skeletal muscle has sarcomeres."
+      ]
+    },
+    {
+      "id": 325,
+      "cat": "Histology: Muscle",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Cardiac muscle is best identified by:",
+      "opts": [
+        "Multiple nuclei located at the periphery of cells",
+        "Lack of visible striations under the microscope",
+        "Intercalated discs joining adjacent cells",
+        "Long uninucleated cells with branching",
+        "Branched cells completely lacking nuclei"
+      ],
+      "ans": 2,
+      "exp": "Cardiac myocytes are branched, striated, with 1-2 central nuclei and intercalated discs containing gap junctions.",
+      "optExp": [
+        "That is skeletal.",
+        "Cardiac IS striated.",
+        null,
+        "Skeletal is uninucleated... wait, skeletal is multinucleated; cardiac has 1-2 central nuclei.",
+        "Cardiac has nuclei."
+      ]
+    },
+    {
+      "id": 326,
+      "cat": "Histology: Muscle",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Smooth muscle differs from skeletal because:",
+      "opts": [
+        "It has visible striations",
+        "It is non-striated and spindle-shaped",
+        "It undergoes voluntary contraction",
+        "It contains sarcomeres",
+        "It has a branched cell structure"
+      ],
+      "ans": 1,
+      "exp": "Smooth muscle cells are spindle-shaped, non-striated, with a single central nucleus, involuntary control.",
+      "optExp": [
+        "Smooth muscle is NON-striated.",
+        null,
+        "Smooth muscle is involuntary.",
+        "Smooth muscle lacks sarcomeres.",
+        "Smooth muscle is not branched."
+      ]
+    },
+    {
+      "id": 327,
+      "cat": "Histology: Muscle",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Intercalated discs are unique to:",
+      "opts": [
+        "Skeletal muscle",
+        "Cardiac muscle",
+        "Smooth muscle",
+        "Tendons",
+        "Cartilage"
+      ],
+      "ans": 1,
+      "exp": "Intercalated discs are unique to cardiac muscle, containing desmosomes and gap junctions for electrical and mechanical coupling.",
+      "optExp": [
+        "Skeletal has none.",
+        null,
+        "Smooth muscle uses gap junctions but no intercalated discs.",
+        "Tendons are CT.",
+        "Cartilage is different."
+      ]
+    },
+    {
+      "id": 434,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Osteoid is:",
+      "opts": [
+        "Mineralised bone matrix",
+        "Unmineralised organic matrix of bone",
+        "Cartilage tissue",
+        "Bone marrow tissue",
+        "Cement substance"
+      ],
+      "ans": 1,
+      "exp": "Osteoid is the protein-rich, unmineralised matrix laid down by osteoblasts; calcium phosphate later mineralises it to form bone.",
+      "optExp": [
+        "Osteoid is pre-mineralised.",
+        null,
+        "Different tissue.",
+        "Bone marrow is haematopoietic.",
+        "Not a biological term in this context."
+      ]
+    },
+    {
+      "id": 435,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "The Haversian system (osteon) contains:",
+      "opts": [
+        "Central canal containing blood vessels",
+        "Muscle fiber bundles",
+        "Nerve fibers only",
+        "Cartilage matrix only",
+        "Bone marrow only"
+      ],
+      "ans": 0,
+      "exp": "Each osteon has a Haversian canal (vessels/nerves) surrounded by concentric lamellae, with osteocytes in lacunae linked by canaliculi.",
+      "optExp": [
+        null,
+        "Not a muscle structure.",
+        "Vessels are also present.",
+        "No cartilage.",
+        "Marrow is in spongy bone."
+      ]
+    },
+    {
+      "id": 436,
+      "cat": "Histology: Connective Tissue",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Mast cells contain granules of:",
+      "opts": [
+        "Insulin and glucagon",
+        "Histamine and heparin",
+        "Bilirubin and bile pigments",
+        "Acetylcholine and serotonin",
+        "Proteoglycans and collagen"
+      ],
+      "ans": 1,
+      "exp": "Mast cells store histamine, heparin, tryptase — released on IgE crosslinking in allergy/anaphylaxis.",
+      "optExp": [
+        "Pancreatic β cells.",
+        null,
+        "Liver process.",
+        "Liver process.",
+        "Neuronal vesicles."
+      ]
+    },
+    {
+      "id": 437,
+      "cat": "Histology: Muscle",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Striations in muscle are due to:",
+      "opts": [
+        "Random organelle arrangement",
+        "Alternating A and I bands with thick and thin filaments",
+        "Glycogen deposits throughout muscle fibers",
+        "Mitochondrial clusters in rows",
+        "Calcium crystal deposition in matrix"
+      ],
+      "ans": 1,
+      "exp": "The repeating sarcomere structure with overlapping actin/myosin produces alternating dark (A) and light (I) bands visible as striations.",
+      "optExp": [
+        "Striations are highly organised.",
+        null,
+        "Glycogen doesn't cause striations.",
+        "Mitochondria don't cause this pattern.",
+        "No calcium crystals."
+      ]
+    },
+    {
+      "id": 507,
+      "cat": "Histology: Bone & Cartilage",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Cartilage receives nutrients via:",
+      "opts": [
+        "Central artery",
+        "Diffusion from perichondrium",
+        "Lymphatic vessels",
+        "Direct synovial fluid uptake",
+        "Nerve-mediated transport"
+      ],
+      "ans": 1,
+      "exp": "Cartilage is avascular and aneural; chondrocytes rely on diffusion through the matrix from the perichondrium.",
+      "optExp": [
+        "No central artery.",
+        null,
+        "No lymphatics in cartilage.",
+        "Synovial fluid plays a role in joints but main mechanism is diffusion.",
+        "Not innervated."
+      ]
+    },
+    {
+      "id": 509,
+      "cat": "Histology: Muscle",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Histology",
+      "q": "Cardiac muscle nuclei are typically:",
+      "opts": [
+        "Multiple nuclei arranged at the periphery of the cell",
+        "One to two nuclei located centrally within the cell",
+        "Completely absent from cardiac muscle cells",
+        "Many nuclei distributed randomly throughout the cytoplasm",
+        "Nuclei embedded exclusively within the intercalated discs"
+      ],
+      "ans": 1,
+      "exp": "Cardiac myocytes have 1-2 centrally located nuclei. Skeletal muscle has many peripheral nuclei.",
+      "optExp": [
+        "That is skeletal.",
+        null,
+        "Cells have nuclei.",
+        "Usually 1-2, not many.",
+        "Discs are at cell ends."
+      ]
+    }
+  ]
+}

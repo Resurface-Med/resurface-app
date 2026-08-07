@@ -1,0 +1,1235 @@
+{
+  "deck": "Pathology",
+  "categories": [
+    "Pathology: Cell Injury & Death",
+    "Pathology: Inflammation",
+    "Pathology: Neoplasia",
+    "Pathology: Thrombosis & Embolism"
+  ],
+  "questions": [
+    {
+      "id": 273,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Which type of necrosis occurs in the brain after infarction?",
+      "opts": [
+        "Coagulative necrosis",
+        "Liquefactive necrosis",
+        "Caseous necrosis",
+        "Fat necrosis",
+        "Fibrinoid necrosis"
+      ],
+      "ans": 1,
+      "exp": "Brain tissue has high lipid and minimal collagen — neutrophil enzymes liquefy it, producing cystic cavities.",
+      "optExp": [
+        "Coagulative is most solid organs.",
+        null,
+        "Caseous is in TB.",
+        "Fat necrosis is in pancreatitis.",
+        "Fibrinoid is in vessel walls."
+      ]
+    },
+    {
+      "id": 274,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Coagulative necrosis is typical of:",
+      "opts": [
+        "Brain infarction",
+        "Myocardial infarction",
+        "Tuberculosis infection",
+        "Acute pancreatitis",
+        "Vasculitis"
+      ],
+      "ans": 1,
+      "exp": "Coagulative necrosis preserves tissue architecture for several days after ischaemic injury (e.g. MI, kidney infarct).",
+      "optExp": [
+        "Brain shows liquefactive.",
+        null,
+        "TB shows caseous.",
+        "Pancreatitis shows fat necrosis.",
+        "Vasculitis shows fibrinoid."
+      ]
+    },
+    {
+      "id": 275,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Caseous necrosis is characteristic of:",
+      "opts": [
+        "Myocardial infarction",
+        "Tuberculosis and fungal infections",
+        "Acute pancreatitis",
+        "Deep vein thrombosis",
+        "Brain stroke"
+      ],
+      "ans": 1,
+      "exp": "Caseous necrosis ('cheese-like') is seen in TB granulomas and certain systemic fungal infections.",
+      "optExp": [
+        "MI is coagulative.",
+        null,
+        "Pancreatitis is fat necrosis.",
+        "DVT is thrombus, not necrosis type per se.",
+        "Stroke is liquefactive."
+      ]
+    },
+    {
+      "id": 276,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Fat necrosis with saponification (chalky white areas) is classically seen in:",
+      "opts": [
+        "Brain tissue damage",
+        "Heart tissue damage",
+        "Pancreatic tissue damage",
+        "Lung tissue damage",
+        "Spleen tissue damage"
+      ],
+      "ans": 2,
+      "exp": "In acute pancreatitis, lipase digests fat → free fatty acids + Ca²⁺ form chalky saponified deposits.",
+      "optExp": [
+        "Brain shows liquefactive.",
+        "Heart shows coagulative.",
+        null,
+        "Lung infarcts are coagulative/hemorrhagic.",
+        "Spleen infarcts are coagulative."
+      ]
+    },
+    {
+      "id": 277,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Fibrinoid necrosis is seen in:",
+      "opts": [
+        "Malignant hypertension",
+        "Tuberculosis infection",
+        "Myocardial infarction",
+        "Brain infarction",
+        "Acute pancreatitis"
+      ],
+      "ans": 0,
+      "exp": "Immune complexes deposit in vessel walls causing fibrin-like material accumulation and necrosis (e.g. malignant HTN, polyarteritis nodosa).",
+      "optExp": [
+        null,
+        "TB is caseous.",
+        "MI is coagulative.",
+        "Brain is liquefactive.",
+        "Pancreatitis is fat necrosis."
+      ]
+    },
+    {
+      "id": 278,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Wet gangrene differs from dry gangrene in that wet gangrene:",
+      "opts": [
+        "No bacterial infection present",
+        "Secondary bacterial infection with tissue liquefaction",
+        "Involvement of fingers only",
+        "Potentially reversible with treatment",
+        "Associated with diabetes only"
+      ],
+      "ans": 1,
+      "exp": "Wet gangrene involves bacterial superinfection leading to liquefactive necrosis with foul odour. Dry gangrene is purely ischaemic.",
+      "optExp": [
+        "Wet HAS infection.",
+        null,
+        "Affects any extremity.",
+        "Gangrene is irreversible.",
+        "Diabetes is a risk factor but not exclusive."
+      ]
+    },
+    {
+      "id": 279,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Apoptosis differs from necrosis in that apoptosis:",
+      "opts": [
+        "Causes inflammatory response",
+        "Unregulated and pathological cell death",
+        "Programmed, organized cell death without inflammation",
+        "Always involves multiple organ systems",
+        "Releases cell contents into surrounding tissue"
+      ],
+      "ans": 2,
+      "exp": "Apoptosis is energy-requiring, programmed cell death without inflammation. Necrosis is messy and inflammatory.",
+      "optExp": [
+        "Apoptosis avoids inflammation.",
+        "Apoptosis is highly regulated.",
+        null,
+        "Apoptosis is cell-specific.",
+        "Apoptotic bodies are phagocytosed; cytoplasmic content is retained."
+      ]
+    },
+    {
+      "id": 280,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Which is NOT a type of cell adaptation?",
+      "opts": [
+        "Hypertrophy",
+        "Hyperplasia",
+        "Atrophy",
+        "Apoptosis",
+        "Metaplasia"
+      ],
+      "ans": 3,
+      "exp": "Apoptosis is cell death, not adaptation. Adaptations include hypertrophy, hyperplasia, atrophy, metaplasia, dysplasia.",
+      "optExp": [
+        "Cell gets bigger.",
+        "More cells.",
+        "Cells get smaller.",
+        null,
+        "Cell type changes."
+      ]
+    },
+    {
+      "id": 281,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Metaplasia refers to:",
+      "opts": [
+        "Reversible change from one differentiated cell type to another",
+        "Disordered growth with loss of normal architecture",
+        "Programmed cell death process",
+        "Decrease in cell size",
+        "Uncontrolled proliferation of cells"
+      ],
+      "ans": 0,
+      "exp": "Metaplasia is the reversible conversion from one adult cell type to another (e.g. Barrett's oesophagus: squamous → columnar).",
+      "optExp": [
+        null,
+        "That is dysplasia.",
+        "That is necrosis/apoptosis.",
+        "That is atrophy.",
+        "That is neoplasia."
+      ]
+    },
+    {
+      "id": 282,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Dysplasia is characterised by:",
+      "opts": [
+        "Maintenance of normal differentiation",
+        "Disordered growth with loss of normal architecture",
+        "Programmed cell death",
+        "Increase in individual cell size",
+        "Invasion beyond tissue boundaries"
+      ],
+      "ans": 1,
+      "exp": "Dysplasia features atypical cells (loss of differentiation, irregular nuclei), but the basement membrane is intact — pre-cancerous.",
+      "optExp": [
+        "Dysplasia is abnormal.",
+        null,
+        "Not cell death.",
+        "That is hypertrophy.",
+        "Invasion = malignancy."
+      ]
+    },
+    {
+      "id": 283,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Hypertrophy of the cardiac left ventricle in response to hypertension is an example of:",
+      "opts": [
+        "Increase in the number of cardiac myocytes",
+        "Increase in size of individual cardiac myocytes",
+        "Replacement of cardiac muscle with another cell type",
+        "Uncontrolled growth of cardiac cells",
+        "Programmed death of cardiac myocytes"
+      ],
+      "ans": 1,
+      "exp": "Cardiac myocytes cannot divide; LV hypertrophy is purely cell enlargement, not increased cell number.",
+      "optExp": [
+        "Hyperplasia is more cells.",
+        null,
+        "Metaplasia is cell-type change.",
+        "Neoplasia is uncontrolled new growth.",
+        "Apoptosis is cell death."
+      ]
+    },
+    {
+      "id": 284,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "The 5 cardinal signs of inflammation include all EXCEPT:",
+      "opts": [
+        "Redness (rubor)",
+        "Warmth (calor)",
+        "Pain (dolor)",
+        "Swelling (tumor)",
+        "Tissue necrosis"
+      ],
+      "ans": 4,
+      "exp": "Cardinal signs: rubor (redness), calor (heat), dolor (pain), tumor (swelling), functio laesa (loss of function). Necrosis is a tissue change, not a cardinal sign.",
+      "optExp": [
+        "Cardinal sign.",
+        "Cardinal sign.",
+        "Cardinal sign.",
+        "Cardinal sign.",
+        null
+      ]
+    },
+    {
+      "id": 285,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Which mediator primarily causes vasodilation and increased vascular permeability in acute inflammation?",
+      "opts": [
+        "TNF-α",
+        "Histamine",
+        "IL-1",
+        "Bradykinin",
+        "Histamine and bradykinin together"
+      ],
+      "ans": 4,
+      "exp": "Multiple mediators contribute, but histamine is the immediate/early mediator, with bradykinin, leukotrienes, NO, and cytokines amplifying.",
+      "optExp": [
+        "Major systemic effects but not the most immediate.",
+        "Major immediate vasodilator/permeability factor.",
+        "Pyrogen and adhesion molecule inducer.",
+        "Increases vascular permeability and pain.",
+        null
+      ]
+    },
+    {
+      "id": 286,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "The correct order of leukocyte extravasation is:",
+      "opts": [
+        "Adhesion → margination → rolling → diapedesis",
+        "Margination → rolling → adhesion → diapedesis",
+        "Diapedesis → adhesion → margination → rolling",
+        "Rolling → margination → adhesion → diapedesis",
+        "Adhesion → rolling → diapedesis → margination"
+      ],
+      "ans": 1,
+      "exp": "Margination (edge), rolling (selectins), firm adhesion (integrins), diapedesis (out into tissue).",
+      "optExp": [
+        "Adhesion comes after rolling.",
+        null,
+        "Diapedesis is last.",
+        "Margination is first.",
+        "Order is wrong."
+      ]
+    },
+    {
+      "id": 287,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Granulomas are characteristic of:",
+      "opts": [
+        "Acute bacterial infection",
+        "Chronic inflammation",
+        "Allergic asthma",
+        "Anaphylactic reaction",
+        "Acute viral hepatitis"
+      ],
+      "ans": 1,
+      "exp": "Granulomas form when macrophages cannot eliminate the antigen — chronic inflammation with epithelioid macrophages, multinucleated giant cells.",
+      "optExp": [
+        "Acute is mainly neutrophilic.",
+        null,
+        "Asthma involves eosinophils.",
+        "Anaphylaxis is mast cell-driven.",
+        "Some viral infections produce granulomas but not typical of viral hepatitis."
+      ]
+    },
+    {
+      "id": 288,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Which cell type predominates in granulomas?",
+      "opts": [
+        "Neutrophils",
+        "Eosinophils",
+        "Epithelioid macrophages",
+        "Plasma cells",
+        "Mast cells"
+      ],
+      "ans": 2,
+      "exp": "Granulomas are dominated by activated macrophages (epithelioid cells) and multinucleated giant cells, with surrounding lymphocytes.",
+      "optExp": [
+        "Neutrophils are acute.",
+        "Eosinophils are parasitic/allergic.",
+        null,
+        "Plasma cells make antibodies.",
+        "Mast cells mediate Type I."
+      ]
+    },
+    {
+      "id": 289,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A non-caseating granuloma is most characteristic of:",
+      "opts": [
+        "Tuberculosis",
+        "Sarcoidosis",
+        "Bacterial pneumonia",
+        "Chronic viral hepatitis",
+        "Sickle cell disease"
+      ],
+      "ans": 1,
+      "exp": "Non-caseating granulomas are characteristic of sarcoidosis. Caseating granulomas are typical of TB.",
+      "optExp": [
+        "TB is caseating.",
+        null,
+        "Pneumonia is acute, not granulomatous.",
+        "Hepatitis B/C are not classic granuloma diseases.",
+        "Not granulomatous."
+      ]
+    },
+    {
+      "id": 290,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Which cytokine is a major pyrogen and is targeted by anti-inflammatory biologics in RA?",
+      "opts": [
+        "IL-2",
+        "TNF-α",
+        "IL-10",
+        "TGF-β",
+        "IL-13"
+      ],
+      "ans": 1,
+      "exp": "TNF-α is a key pyrogen and inflammatory cytokine, blocked by drugs like infliximab in rheumatoid arthritis.",
+      "optExp": [
+        "IL-2 drives T cell proliferation.",
+        null,
+        "IL-10 is anti-inflammatory.",
+        "TGF-β is regulatory.",
+        "IL-13 is in allergy."
+      ]
+    },
+    {
+      "id": 291,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Chronic inflammation is characterised by infiltrate of:",
+      "opts": [
+        "Predominantly neutrophils",
+        "Predominantly mast cells",
+        "Lymphocytes and macrophages",
+        "Predominantly red blood cells",
+        "Predominantly eosinophils"
+      ],
+      "ans": 2,
+      "exp": "Chronic inflammation involves mononuclear cells (lymphocytes, plasma cells, macrophages) with possible fibrosis and granuloma formation.",
+      "optExp": [
+        "Acute is neutrophilic.",
+        "Mast cells alone is allergic.",
+        null,
+        "RBCs indicate haemorrhage, not inflammation.",
+        "Eosinophils alone are parasitic/allergic."
+      ]
+    },
+    {
+      "id": 292,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A benign tumour of glandular epithelium is termed a(n):",
+      "opts": [
+        "Adenocarcinoma",
+        "Adenoma",
+        "Sarcoma",
+        "Lymphoma",
+        "Carcinoma in situ"
+      ],
+      "ans": 1,
+      "exp": "-oma denotes benign; adenoma = benign glandular tumour. Carcinoma denotes malignant epithelial.",
+      "optExp": [
+        "Adenocarcinoma is malignant.",
+        null,
+        "Sarcoma is malignant mesenchymal.",
+        "Lymphoma is malignant lymphoid.",
+        "CIS is dysplasia confined to epithelium."
+      ]
+    },
+    {
+      "id": 293,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A malignant tumour of mesenchymal origin is a:",
+      "opts": [
+        "Carcinoma",
+        "Sarcoma",
+        "Adenoma",
+        "Papilloma",
+        "Teratoma"
+      ],
+      "ans": 1,
+      "exp": "Sarcomas arise from mesenchymal tissue (bone, muscle, fat, fibrous, blood vessels). Carcinomas are epithelial.",
+      "optExp": [
+        "Carcinomas are epithelial.",
+        null,
+        "Adenoma is benign glandular.",
+        "Papilloma is benign epithelial.",
+        "Teratoma arises from germ cells."
+      ]
+    },
+    {
+      "id": 294,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Which of the following is a characteristic of malignant (not benign) tumours?",
+      "opts": [
+        "Slow growth rate",
+        "Well-differentiated cells",
+        "Well-defined encapsulated structure",
+        "Invasion of surrounding tissues and metastasis",
+        "Mature and organized cell types"
+      ],
+      "ans": 3,
+      "exp": "Invasion past the basement membrane and metastasis define malignancy.",
+      "optExp": [
+        "Benign tumours are typically slow.",
+        "Benign tumours are well-differentiated.",
+        "Benign tumours are usually encapsulated.",
+        null,
+        "Malignant can be poorly differentiated/anaplastic."
+      ]
+    },
+    {
+      "id": 295,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Anaplasia describes:",
+      "opts": [
+        "Increase in the number of cells",
+        "Programmed cell death",
+        "Loss of cellular differentiation",
+        "Decrease in cell size",
+        "Reversible change in cell type"
+      ],
+      "ans": 2,
+      "exp": "Anaplasia = lack of differentiation, with disorganised cells and bizarre nuclei — a hallmark of malignancy.",
+      "optExp": [
+        "That is hyperplasia.",
+        "That is necrosis/apoptosis.",
+        null,
+        "That is atrophy.",
+        "That is metaplasia."
+      ]
+    },
+    {
+      "id": 296,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Carcinoma in situ refers to:",
+      "opts": [
+        "Malignant epithelial cells confined within the basement membrane",
+        "Metastatic carcinoma that has spread to distant sites",
+        "Benign tumor with slow growth pattern",
+        "Granulation tissue forming at wound sites",
+        "Premalignant inflammation without cellular atypia"
+      ],
+      "ans": 0,
+      "exp": "CIS has high-grade dysplasia involving full thickness of epithelium but has not breached the basement membrane.",
+      "optExp": [
+        null,
+        "Metastasis is more advanced.",
+        "Carcinoma is malignant.",
+        "Granulation is reparative.",
+        "CIS is more advanced than inflammation."
+      ]
+    },
+    {
+      "id": 297,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Most common route of metastasis for sarcomas is:",
+      "opts": [
+        "Lymphatic spread to regional nodes",
+        "Haematogenous spread via blood vessels",
+        "Transcoelomic spread across body cavities",
+        "Perineural invasion along nerve sheaths",
+        "Direct invasion into adjacent tissues only"
+      ],
+      "ans": 1,
+      "exp": "Sarcomas typically spread via blood (haematogenous, often to lung). Carcinomas typically spread via lymph first.",
+      "optExp": [
+        "More typical of carcinomas.",
+        null,
+        "Trancoelomic (e.g. ovarian) less common.",
+        "Perineural less common.",
+        "Many routes are possible."
+      ]
+    },
+    {
+      "id": 298,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A cervical smear showing abnormal epithelium with atypia but intact basement membrane is:",
+      "opts": [
+        "Hyperplasia with increased cell numbers but normal appearance",
+        "Metaplasia with replacement by different cell type",
+        "Dysplasia with cellular atypia but intact basement membrane",
+        "Carcinoma in situ with breach of basement membrane",
+        "Invasive carcinoma with spread to surrounding tissues"
+      ],
+      "ans": 2,
+      "exp": "Dysplasia is abnormal cellular features without breach of basement membrane. CIS is full-thickness dysplasia.",
+      "optExp": [
+        "Hyperplasia is increased number, not atypia.",
+        "Metaplasia is cell type change.",
+        null,
+        "CIS is more severe but related (full-thickness).",
+        "Invasive carcinoma has broken through basement membrane."
+      ]
+    },
+    {
+      "id": 299,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Virchow's triad components are:",
+      "opts": [
+        "Endothelial injury, blood stasis, and altered blood composition",
+        "Pain, swelling, and redness at affected site",
+        "Platelets, fibrin, and red blood cells",
+        "Pressure changes, flow alterations, and time duration",
+        "Vasodilation and edema formation"
+      ],
+      "ans": 0,
+      "exp": "Virchow's triad: endothelial injury, abnormal flow (stasis/turbulence), hypercoagulability — predisposing factors for thrombosis.",
+      "optExp": [
+        null,
+        "Symptoms of DVT.",
+        "Components of a clot.",
+        "Hemodynamic factors but not Virchow's.",
+        "Inflammation features."
+      ]
+    },
+    {
+      "id": 300,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A 60-year-old woman immobilised after surgery develops DVT. The MOST contributing Virchow's factor is:",
+      "opts": [
+        "Endothelial injury from surgical trauma",
+        "Hypercoagulability induced by anesthesia",
+        "Stasis of blood from immobilization",
+        "Turbulent blood flow in veins",
+        "Atherosclerosis of vessel walls"
+      ],
+      "ans": 2,
+      "exp": "Immobilisation reduces venous return, causing stasis — the predominant factor for post-operative DVT.",
+      "optExp": [
+        "Surgery can cause some injury, but stasis predominates here.",
+        "Surgery and inflammation can contribute, but stasis is key.",
+        null,
+        "Turbulence is more in arteries.",
+        "Not the dominant factor in DVT."
+      ]
+    },
+    {
+      "id": 301,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A young man with fractured femur develops respiratory distress and petechial rash. Which embolism?",
+      "opts": [
+        "Thromboembolism from venous thrombus",
+        "Fat embolism from bone marrow release",
+        "Air embolism from atmospheric entry",
+        "Amniotic fluid embolism during pregnancy",
+        "Septic embolism from bacterial infection"
+      ],
+      "ans": 1,
+      "exp": "Fat embolism syndrome: fat from marrow enters bloodstream after long-bone fractures → respiratory distress, petechiae, cerebral symptoms 24-72 h later.",
+      "optExp": [
+        "Thromboembolism does not classically cause petechiae.",
+        null,
+        "Air embolism is iatrogenic.",
+        "Amniotic embolism is in labour.",
+        "Septic embolism is from infection."
+      ]
+    },
+    {
+      "id": 302,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Air embolism most commonly occurs:",
+      "opts": [
+        "Spontaneous occurrence without identifiable cause",
+        "Iatrogenic injury during medical procedures",
+        "Long-bone fracture with marrow exposure",
+        "Pregnancy and labor complications",
+        "Bacterial infection with septicemia"
+      ],
+      "ans": 1,
+      "exp": "Air can enter circulation during surgery, central line insertion, or scuba diving (decompression).",
+      "optExp": [
+        "Air embolism is not spontaneous.",
+        null,
+        "That is fat embolism.",
+        "That is amniotic fluid embolism.",
+        "That is septic embolism."
+      ]
+    },
+    {
+      "id": 303,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Pulmonary embolism most often arises from thrombi in the:",
+      "opts": [
+        "Cerebral veins of the brain",
+        "Coronary arteries of the heart",
+        "Deep veins of the lower limbs",
+        "Abdominal aorta",
+        "Renal artery of the kidney"
+      ],
+      "ans": 2,
+      "exp": "Most PEs originate from DVTs in deep veins of the lower limbs, traveling through right heart to lungs.",
+      "optExp": [
+        "Cerebral vein thrombosis is rare.",
+        "Coronaries cause MI, not PE.",
+        null,
+        "Aortic emboli travel systemically.",
+        "Renal artery emboli go to kidney."
+      ]
+    },
+    {
+      "id": 304,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "The coagulation cascade ultimately generates which protein to form a clot?",
+      "opts": [
+        "Thrombin alone without other factors",
+        "Fibrinogen protein in its inactive form",
+        "Fibrin generated by thrombin from fibrinogen",
+        "Plasmin protein that dissolves clots",
+        "Von Willebrand factor for platelet adhesion"
+      ],
+      "ans": 2,
+      "exp": "Thrombin (IIa) cleaves fibrinogen to fibrin monomers, which polymerise to form the clot mesh.",
+      "optExp": [
+        "Thrombin is the enzyme; fibrin is the product.",
+        "Fibrinogen is the substrate.",
+        null,
+        "Plasmin breaks down fibrin (fibrinolysis).",
+        "vWF helps platelet adhesion."
+      ]
+    },
+    {
+      "id": 305,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "The first step of thrombus formation at site of vascular injury is:",
+      "opts": [
+        "Fibrin mesh formation and cross-linking",
+        "Platelet adhesion to exposed subendothelium",
+        "Fibrin polymerization and stabilization",
+        "Plasmin activation initiating fibrinolysis",
+        "Vasodilation and increased vascular permeability"
+      ],
+      "ans": 1,
+      "exp": "Endothelial injury exposes collagen; platelets adhere via vWF and GPIb, then activate and aggregate.",
+      "optExp": [
+        "Fibrin formation is later in cascade.",
+        null,
+        "Cross-linking is late.",
+        "Plasmin is for clot breakdown.",
+        "Vasoconstriction (not dilation) occurs initially."
+      ]
+    },
+    {
+      "id": 426,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Reversible cell injury features include:",
+      "opts": [
+        "Nuclear fragmentation",
+        "Cell swelling and fat accumulation",
+        "Coagulative necrosis",
+        "DNA fragmentation in a patterned manner",
+        "Cell membrane rupture"
+      ],
+      "ans": 1,
+      "exp": "Hallmarks of reversible injury: cellular swelling (hydropic change), fatty change, and ribosome detachment. Necrosis features are irreversible.",
+      "optExp": [
+        "That is apoptosis/necrosis.",
+        null,
+        "That is necrosis.",
+        "That is apoptosis.",
+        "Membrane integrity loss = irreversible."
+      ]
+    },
+    {
+      "id": 427,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Apoptosis is regulated by:",
+      "opts": [
+        "Random cellular destruction",
+        "Activation of caspases",
+        "Lysosomal enzyme action only",
+        "Complement system activation",
+        "Nitric oxide release alone"
+      ],
+      "ans": 1,
+      "exp": "Caspases are cysteine proteases that execute apoptosis (initiator caspases 8/9 → effector caspases 3/6/7).",
+      "optExp": [
+        "Apoptosis is regulated, not random.",
+        null,
+        "Lysosomes are for autophagy.",
+        "Complement is innate immunity.",
+        "NO is involved in macrophage killing but not the executioner."
+      ]
+    },
+    {
+      "id": 428,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Pus is a mixture of:",
+      "opts": [
+        "Dead neutrophils and tissue fluid",
+        "Bacterial cells only",
+        "Lymphocyte cells only",
+        "Plasma fluid only",
+        "Bile fluid only"
+      ],
+      "ans": 0,
+      "exp": "Pus is purulent exudate composed of dead/dying neutrophils, tissue debris, and oedema fluid.",
+      "optExp": [
+        null,
+        "Bacteria may be present but not alone.",
+        "Lymphocytes dominate chronic, not acute pus.",
+        "Plasma is acellular.",
+        "Bile is from liver."
+      ]
+    },
+    {
+      "id": 429,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Resolution after acute inflammation is most likely when:",
+      "opts": [
+        "Extensive tissue destruction is present",
+        "Minimal tissue damage allowing regeneration",
+        "Granuloma formation occurs",
+        "Fibrosis becomes the dominant feature",
+        "Chronic infection continues"
+      ],
+      "ans": 1,
+      "exp": "Complete resolution occurs when injury is limited and tissue stem cells can regenerate normal architecture.",
+      "optExp": [
+        "Extensive destruction → repair by fibrosis.",
+        null,
+        "Granulomas indicate chronicity.",
+        "Fibrosis = scarring, not resolution.",
+        "Chronic persistence prevents resolution."
+      ]
+    },
+    {
+      "id": 430,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Oncogenes:",
+      "opts": [
+        "Dominant gain-of-function mutations",
+        "Recessive loss-of-function mutations",
+        "Silent genetic mutations with no effect",
+        "Recessive inheritance pattern only",
+        "Apoptosis trigger genes"
+      ],
+      "ans": 0,
+      "exp": "Oncogenes (e.g. RAS, MYC) are activated proto-oncogenes; one mutated copy can drive uncontrolled growth.",
+      "optExp": [
+        null,
+        "Tumour suppressors are different (e.g. p53, Rb).",
+        "Silent has no effect.",
+        "TSGs are recessive at cellular level.",
+        "Oncogenes prevent apoptosis."
+      ]
+    },
+    {
+      "id": 431,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Tumour suppressor genes (e.g. p53, Rb):",
+      "opts": [
+        "Activated and overexpressed in cancer cells",
+        "Lost or inactivated in both alleles (two-hit hypothesis)",
+        "Dominant gain-of-function mutations",
+        "Oncogene type genes",
+        "Never mutated in human cancers"
+      ],
+      "ans": 1,
+      "exp": "Knudson's two-hit hypothesis: both alleles of a TSG must be inactivated. p53 is mutated in >50% of cancers.",
+      "optExp": [
+        "Inactivated, not activated.",
+        null,
+        "They're recessive at cellular level.",
+        "Different category.",
+        "Frequently mutated."
+      ]
+    },
+    {
+      "id": 432,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Atrial fibrillation predisposes to thromboembolism mainly via:",
+      "opts": [
+        "Endothelial injury from rapid arrhythmia",
+        "Blood stasis in the left atrial appendage",
+        "Genetic hypercoagulability state",
+        "Increased blood viscosity state",
+        "Formation of fat emboli"
+      ],
+      "ans": 1,
+      "exp": "Loss of coordinated atrial contraction leads to stasis (especially in left atrial appendage), promoting thrombus formation → stroke risk.",
+      "optExp": [
+        "Not the predominant factor.",
+        null,
+        "Possible in some but not classic AF.",
+        "Not characteristic.",
+        "Different mechanism entirely."
+      ]
+    },
+    {
+      "id": 433,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "An infarct in the brain typically heals by:",
+      "opts": [
+        "Coagulative necrosis with scar formation",
+        "Liquefactive necrosis with cyst formation",
+        "Caseous necrosis formation",
+        "Fat necrosis formation",
+        "Complete tissue regeneration"
+      ],
+      "ans": 1,
+      "exp": "CNS neurons cannot regenerate; necrotic tissue liquefies, leaving a fluid-filled cyst surrounded by gliosis (astrocyte scar).",
+      "optExp": [
+        "Most other organs use coagulative + fibrosis.",
+        null,
+        "Caseous is TB-related.",
+        "Fat necrosis is pancreatic.",
+        "Neurons do not regenerate normally."
+      ]
+    },
+    {
+      "id": 465,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A patient with rheumatoid arthritis has chronic joint inflammation with pannus formation. The predominant infiltrate is:",
+      "opts": [
+        "Lymphocytes and macrophages",
+        "Neutrophils only",
+        "Eosinophils only",
+        "Mast cells only",
+        "Erythrocytes only"
+      ],
+      "ans": 0,
+      "exp": "RA is chronic autoimmune inflammation with mononuclear cell infiltrate, immune complex deposition, and synovial hyperplasia.",
+      "optExp": [
+        null,
+        "Neutrophils dominate acute inflammation, not RA pannus.",
+        "Eosinophils suggest allergy/parasites.",
+        "Mast cells in allergy.",
+        "Erythrocytes are not inflammatory cells."
+      ]
+    },
+    {
+      "id": 467,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "A pregnant woman in labour suddenly develops respiratory distress, hypotension, and DIC. Most likely:",
+      "opts": [
+        "Amniotic fluid embolism",
+        "Pulmonary embolism",
+        "Fat embolism",
+        "Air embolism",
+        "Septic shock"
+      ],
+      "ans": 0,
+      "exp": "Amniotic fluid embolism is a rare but catastrophic complication of labour, presenting with sudden cardiorespiratory collapse and DIC.",
+      "optExp": [
+        null,
+        "PE less specific to labour.",
+        "Fat embolism follows fractures.",
+        "Air embolism is iatrogenic.",
+        "Sepsis has different features."
+      ]
+    },
+    {
+      "id": 479,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Free radicals damage cells primarily through:",
+      "opts": [
+        "Direct cell membrane fusion",
+        "Lipid peroxidation and DNA damage",
+        "Increased ATP production only",
+        "Glycolysis activation only",
+        "Inhibition of necrotic cell death"
+      ],
+      "ans": 1,
+      "exp": "ROS (e.g. superoxide, H₂O₂) oxidise membrane lipids, proteins, and DNA, causing cell injury and death.",
+      "optExp": [
+        "Not a real mechanism.",
+        null,
+        "Free radicals deplete ATP.",
+        "Not their effect.",
+        "They cause necrosis."
+      ]
+    },
+    {
+      "id": 480,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Endogenous antioxidants include all EXCEPT:",
+      "opts": [
+        "Glutathione",
+        "Superoxide dismutase (SOD)",
+        "Catalase",
+        "Vitamin C",
+        "NADH"
+      ],
+      "ans": 4,
+      "exp": "NADH is a reducing equivalent but not an antioxidant. Glutathione, SOD, catalase, vitamins C/E are antioxidants.",
+      "optExp": [
+        "Major antioxidant.",
+        "Converts O2- to H2O2.",
+        "Converts H2O2 to water.",
+        "Water-soluble antioxidant.",
+        null
+      ]
+    },
+    {
+      "id": 484,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Cachexia in cancer is mediated mainly by:",
+      "opts": [
+        "Insulin hormone exclusively",
+        "TNF-α and other pro-inflammatory cytokines",
+        "Growth hormone primarily",
+        "Cortisol hormone alone",
+        "Unknown mediator mechanism"
+      ],
+      "ans": 1,
+      "exp": "Cancer cachexia involves TNF-α, IL-6, and other cytokines that increase catabolism and reduce appetite.",
+      "optExp": [
+        "Insulin causes anabolism.",
+        null,
+        "GH would build muscle.",
+        "Cortisol contributes but not alone.",
+        "Mediators are well characterised."
+      ]
+    },
+    {
+      "id": 493,
+      "cat": "Pathology: Inflammation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Bradykinin in inflammation causes:",
+      "opts": [
+        "Causes blood vessel constriction",
+        "Causes vasodilation and increased vascular permeability with pain",
+        "Induces cellular death directly",
+        "Stimulates phagocytic activity primarily",
+        "Promotes antibody synthesis"
+      ],
+      "ans": 1,
+      "exp": "Bradykinin causes vasodilation, vascular permeability, and is a potent mediator of pain. ACE inhibitors raise bradykinin → cough.",
+      "optExp": [
+        "Vasoconstriction would be opposite.",
+        null,
+        "Not direct cell death.",
+        "Not a phagocytic signal.",
+        "Not its function."
+      ]
+    },
+    {
+      "id": 494,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Heparin's mechanism of action is:",
+      "opts": [
+        "Inhibits vitamin K-dependent clotting factors",
+        "Activates antithrombin III to enhance thrombin inhibition",
+        "Inhibits platelet aggregation",
+        "Provides direct thrombin inhibition",
+        "Promotes fibrinolysis"
+      ],
+      "ans": 1,
+      "exp": "Heparin binds antithrombin III, accelerating its inactivation of thrombin (IIa) and factor Xa.",
+      "optExp": [
+        "That is warfarin.",
+        null,
+        "Aspirin/clopidogrel.",
+        "Dabigatran is direct.",
+        "tPA itself."
+      ]
+    },
+    {
+      "id": 495,
+      "cat": "Pathology: Thrombosis & Embolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Warfarin acts by:",
+      "opts": [
+        "Provides direct thrombin inhibition",
+        "Inhibits vitamin K-dependent clotting factor synthesis",
+        "Activates antithrombin III",
+        "Blocks platelet aggregation",
+        "Activates plasminogen"
+      ],
+      "ans": 1,
+      "exp": "Warfarin inhibits vitamin K-dependent gamma-carboxylation of clotting factors II, VII, IX, X (and proteins C/S).",
+      "optExp": [
+        "Dabigatran is direct thrombin inhibitor.",
+        null,
+        "That is heparin.",
+        "Antiplatelet drugs do that.",
+        "tPA does that."
+      ]
+    },
+    {
+      "id": 504,
+      "cat": "Pathology: Neoplasia",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Common sites for metastatic cancer to spread are:",
+      "opts": [
+        "Skin only",
+        "Lung, liver, bone, and brain",
+        "Heart only",
+        "Spleen only",
+        "Pancreas only"
+      ],
+      "ans": 1,
+      "exp": "Common metastatic sites are lung, liver, bone (especially axial), and brain — reflecting blood flow and microenvironment.",
+      "optExp": [
+        "Skin is uncommon as primary site.",
+        null,
+        "Heart metastasis is rare.",
+        "Spleen metastasis is uncommon.",
+        "Pancreatic mets are not the typical pattern."
+      ]
+    },
+    {
+      "id": 510,
+      "cat": "Pathology: Cell Injury & Death",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Pathology",
+      "q": "Lipofuscin pigment in cells indicates:",
+      "opts": [
+        "Iron overload in hepatocytes",
+        "Accumulation of indigestible cellular debris from normal wear and tear",
+        "Excessive bilirubin deposition in tissues",
+        "Abnormal melanin synthesis in melanocytes",
+        "Pathological calcium deposition in cardiac tissue"
+      ],
+      "ans": 1,
+      "exp": "Lipofuscin is a yellow-brown 'wear and tear' pigment from oxidised membrane lipids, accumulating in long-lived cells (heart, neurons, liver).",
+      "optExp": [
+        "Haemosiderin = iron.",
+        null,
+        "Bilirubin causes jaundice.",
+        "Melanin is in pigmented cells.",
+        "Calcium phosphate is mineralisation."
+      ]
+    }
+  ]
+}

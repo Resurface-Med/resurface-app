@@ -32,8 +32,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const passcode = process.env.ASCEND_PASSCODE;
-  if (passcode && req.headers["x-ascend-passcode"] !== passcode) {
+  const passcode = process.env.RESURFACE_PASSCODE;
+  if (passcode && req.headers["x-resurface-passcode"] !== passcode) {
     return res.status(401).json({ error: "Wrong access code." });
   }
 

@@ -1,0 +1,633 @@
+{
+  "deck": "Anatomy",
+  "categories": [
+    "Anatomy: Cardiovascular",
+    "Anatomy: Lymphatic System"
+  ],
+  "questions": [
+    {
+      "id": 377,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The heart has how many chambers?",
+      "opts": [
+        "2 chambers",
+        "3 chambers",
+        "4 chambers",
+        "5 chambers",
+        "6 chambers"
+      ],
+      "ans": 2,
+      "exp": "Four chambers: right atrium, right ventricle, left atrium, left ventricle.",
+      "optExp": [
+        "Fish hearts.",
+        "Amphibians.",
+        null,
+        "Includes coronary sinus, but standard answer is 4.",
+        "Too many."
+      ]
+    },
+    {
+      "id": 378,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The left ventricle pumps blood into the:",
+      "opts": [
+        "The pulmonary trunk",
+        "The aorta",
+        "The superior vena cava",
+        "The pulmonary veins",
+        "The inferior vena cava"
+      ],
+      "ans": 1,
+      "exp": "LV → aorta → systemic circulation. RV → pulmonary trunk → lungs.",
+      "optExp": [
+        "RV pumps into pulmonary trunk.",
+        null,
+        "SVC drains into RA.",
+        "Pulmonary veins return to LA.",
+        "IVC drains into RA."
+      ]
+    },
+    {
+      "id": 379,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The right atrium receives blood from:",
+      "opts": [
+        "The pulmonary veins",
+        "The superior vena cava, inferior vena cava, and coronary sinus",
+        "The aorta",
+        "The left ventricle",
+        "The hepatic veins"
+      ],
+      "ans": 1,
+      "exp": "RA receives deoxygenated blood from SVC, IVC, and coronary sinus.",
+      "optExp": [
+        "LA receives pulmonary veins.",
+        null,
+        "Aorta exits LV.",
+        "LV is downstream.",
+        "Hepatic veins drain into IVC."
+      ]
+    },
+    {
+      "id": 380,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The bicuspid (mitral) valve is between:",
+      "opts": [
+        "The right atrium and right ventricle",
+        "The right ventricle and pulmonary artery",
+        "The left atrium and left ventricle",
+        "The left ventricle and aorta",
+        "The superior vena cava and right atrium"
+      ],
+      "ans": 2,
+      "exp": "Mitral (bicuspid) valve sits between LA and LV. Tricuspid is right-sided. SL valves at outflows.",
+      "optExp": [
+        "Tricuspid valve.",
+        "Pulmonary valve.",
+        null,
+        "Aortic valve.",
+        "No valve there."
+      ]
+    },
+    {
+      "id": 381,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The first branch of the aorta is the:",
+      "opts": [
+        "The left common carotid artery",
+        "The brachiocephalic trunk",
+        "The right subclavian artery",
+        "The left coronary artery",
+        "The right coronary artery"
+      ],
+      "ans": 4,
+      "exp": "The first branches of the aorta are the coronary arteries (from the aortic sinuses). Brachiocephalic is the first arch branch.",
+      "optExp": [
+        "This is from the arch.",
+        "First arch branch, but coronaries arise even earlier from the root.",
+        "Branches off brachiocephalic.",
+        "Third arch branch.",
+        null
+      ]
+    },
+    {
+      "id": 382,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The left coronary artery (LCA) divides into:",
+      "opts": [
+        "The posterior descending artery and right marginal artery",
+        "The left anterior descending artery and circumflex artery",
+        "The right coronary artery and circumflex artery",
+        "The left anterior descending artery and diagonal branches",
+        "The marginal artery and posterior descending artery"
+      ],
+      "ans": 1,
+      "exp": "LCA divides into the LAD (left anterior descending) and circumflex artery, supplying most of the left ventricle.",
+      "optExp": [
+        "Those are from RCA.",
+        null,
+        "RCA is independent.",
+        "LCA also gives circumflex.",
+        "Those are right-sided branches."
+      ]
+    },
+    {
+      "id": 383,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "In ~80% of people, the posterior descending artery (PDA) arises from the:",
+      "opts": [
+        "From the left anterior descending artery",
+        "From the left circumflex artery",
+        "From the right coronary artery",
+        "From the aorta directly",
+        "From the left main coronary artery"
+      ],
+      "ans": 2,
+      "exp": "~80% of people are right-coronary dominant — PDA arises from RCA, supplying inferior LV and posterior septum.",
+      "optExp": [
+        "LAD is anterior.",
+        "Left dominant in ~10%.",
+        null,
+        "PDA never arises from aorta directly.",
+        "Never from pulmonary artery."
+      ]
+    },
+    {
+      "id": 384,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The SA node is located in the:",
+      "opts": [
+        "The interventricular septum",
+        "The right atrium at the entrance of the superior vena cava",
+        "The left atrium",
+        "The cardiac apex",
+        "The atrioventricular groove"
+      ],
+      "ans": 1,
+      "exp": "SA node sits in the right atrial wall near the superior vena cava entry — the heart's natural pacemaker.",
+      "optExp": [
+        "Bundle branches are here.",
+        null,
+        "LA is not the pacemaker location.",
+        "Apex is far from pacemaker.",
+        "AV node is in the AV groove."
+      ]
+    },
+    {
+      "id": 385,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The AV node delays conduction to allow:",
+      "opts": [
+        "Allow adequate ventricular filling before contraction",
+        "Increase the heart rate during exercise",
+        "Stimulate the SA node to fire",
+        "Prolong the diastolic phase",
+        "Open the mitral valve"
+      ],
+      "ans": 0,
+      "exp": "AV nodal delay (~100 ms) allows the atria to fully empty into the ventricles before ventricular contraction.",
+      "optExp": [
+        null,
+        "Slower, not faster.",
+        "SA fires independently.",
+        "Diastole is its own phase.",
+        "Mitral valve opens during diastole."
+      ]
+    },
+    {
+      "id": 386,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The vagus nerve (CN X) provides parasympathetic innervation to the heart, primarily slowing the:",
+      "opts": [
+        "SA node firing rate",
+        "AV node conduction velocity",
+        "Ventricular contraction force",
+        "Ventricular repolarization time",
+        "Aortic baroreceptor sensitivity"
+      ],
+      "ans": 0,
+      "exp": "Vagal stimulation slows SA node firing (also slows AV conduction). Has minimal effect on ventricular contractility.",
+      "optExp": [
+        null,
+        "Vagal effect on ventricular force is minimal.",
+        "AV node is also affected, but SA is primary.",
+        "Vagus has limited ventricular contact.",
+        "Baroreceptors send signals TO vagus, not from."
+      ]
+    },
+    {
+      "id": 387,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "Cardiac veins drain into the:",
+      "opts": [
+        "Left atrium",
+        "Right atrium",
+        "Right ventricle",
+        "Aorta",
+        "Superior vena cava"
+      ],
+      "ans": 1,
+      "exp": "Most cardiac venous blood drains into the coronary sinus, which empties into the right atrium.",
+      "optExp": [
+        "LA receives pulmonary veins.",
+        null,
+        "RV receives from RA.",
+        "Aorta receives from LV.",
+        "SVC drains body, not heart."
+      ]
+    },
+    {
+      "id": 388,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The thoracic duct drains into the:",
+      "opts": [
+        "Right subclavian vein",
+        "Left subclavian vein",
+        "Aorta",
+        "Inferior vena cava",
+        "Hepatic portal vein"
+      ],
+      "ans": 1,
+      "exp": "The thoracic duct (largest lymphatic vessel) drains most of the body's lymph into the left venous angle (junction of left subclavian and internal jugular).",
+      "optExp": [
+        "Right lymphatic duct drains there.",
+        null,
+        "Aorta is arterial.",
+        "IVC is venous, not lymph drainage.",
+        "Portal vein is for GI venous return."
+      ]
+    },
+    {
+      "id": 389,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The right lymphatic duct drains lymph from the:",
+      "opts": [
+        "Lower body and left upper body",
+        "Right head, neck, and right arm",
+        "Left lower limb only",
+        "Entire body except right upper quadrant",
+        "Gastrointestinal tract and spleen only"
+      ],
+      "ans": 1,
+      "exp": "The right lymphatic duct drains the right upper quadrant; thoracic duct drains the rest.",
+      "optExp": [
+        "Drained by thoracic duct.",
+        null,
+        "Thoracic duct.",
+        "Thoracic duct drains most.",
+        "Thoracic duct via cisterna chyli."
+      ]
+    },
+    {
+      "id": 390,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "Primary lymphoid organs include:",
+      "opts": [
+        "Bone marrow and thymus",
+        "Spleen and lymph nodes",
+        "Tonsils and adenoids",
+        "Peyer's patches only",
+        "Appendix only"
+      ],
+      "ans": 0,
+      "exp": "Primary lymphoid organs (where lymphocytes mature) = bone marrow (B cells) and thymus (T cells). Secondary = spleen, LNs, MALT.",
+      "optExp": [
+        null,
+        "Spleen and lymph nodes are secondary lymphoid organs.",
+        "Tonsils are secondary.",
+        "Peyer's patches are secondary.",
+        "Appendix is secondary lymphoid."
+      ]
+    },
+    {
+      "id": 391,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "Lymph nodes function to:",
+      "opts": [
+        "Filter lymph and present antigens",
+        "Produce red blood cells",
+        "Store fat reserves",
+        "Detoxify drugs and medications",
+        "Produce bile"
+      ],
+      "ans": 0,
+      "exp": "Lymph nodes filter antigens from lymph and present them to lymphocytes, initiating adaptive responses.",
+      "optExp": [
+        null,
+        "Bone marrow produces RBCs.",
+        "Adipose stores fat.",
+        "Liver detoxifies.",
+        "Liver makes bile."
+      ]
+    },
+    {
+      "id": 392,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The spleen is located in which abdominal quadrant?",
+      "opts": [
+        "Right upper quadrant",
+        "Left upper quadrant",
+        "Right lower quadrant",
+        "Left lower quadrant",
+        "Central epigastric region"
+      ],
+      "ans": 1,
+      "exp": "The spleen sits in the left upper quadrant, posterior to ribs 9-11, lateral to the stomach.",
+      "optExp": [
+        "Liver is in RUQ.",
+        null,
+        "Appendix in RLQ.",
+        "Sigmoid colon in LLQ.",
+        "Central is umbilical."
+      ]
+    },
+    {
+      "id": 393,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The spleen's white pulp contains:",
+      "opts": [
+        "Reticulocytes only",
+        "Lymphoid tissue and lymphocytes",
+        "Hepatocytes and adipocytes",
+        "Mature erythrocytes only",
+        "Fibroblasts and collagen fibres only"
+      ],
+      "ans": 1,
+      "exp": "White pulp contains periarteriolar lymphoid sheaths (PALS, T cells) and B cell follicles. Red pulp filters blood and stores platelets.",
+      "optExp": [
+        "Red pulp deals with RBCs.",
+        null,
+        "Liver-specific.",
+        "Adipose has those.",
+        "Bone marrow has those."
+      ]
+    },
+    {
+      "id": 394,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The cisterna chyli is found at the level of:",
+      "opts": [
+        "C7 vertebral level",
+        "T1 vertebral level",
+        "L1-L2 vertebral level",
+        "S1 vertebral level",
+        "Diaphragmatic hiatus"
+      ],
+      "ans": 2,
+      "exp": "Cisterna chyli is a saccular dilation at the start of the thoracic duct at L1-L2, receiving lumbar and intestinal trunks.",
+      "optExp": [
+        "Too high.",
+        "Too high.",
+        null,
+        "Too low.",
+        "Diaphragmatic hiatus is at T12 — close but L1-L2 is the standard answer."
+      ]
+    },
+    {
+      "id": 395,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "Lymphoedema can result from:",
+      "opts": [
+        "High protein intake",
+        "Lymphatic vessel obstruction or removal",
+        "Anemia or low hemoglobin levels",
+        "Hypoglycemia or low blood glucose",
+        "Hyperthyroidism or excess thyroid hormone"
+      ],
+      "ans": 1,
+      "exp": "Obstruction or removal of lymphatic vessels (e.g. mastectomy with axillary clearance, filariasis) causes lymph accumulation.",
+      "optExp": [
+        "Diet alone doesn't cause lymphoedema.",
+        null,
+        "Anaemia causes pallor.",
+        "Hypoglycaemia is metabolic.",
+        "Hyperthyroidism causes pretibial myxoedema in Graves, but different."
+      ]
+    },
+    {
+      "id": 396,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The thymus is most active in:",
+      "opts": [
+        "During old age",
+        "During adulthood",
+        "During infancy and childhood",
+        "During pregnancy",
+        "During senescence and aging"
+      ],
+      "ans": 2,
+      "exp": "Thymus is most active in early life, producing mature T cells. It involutes (shrinks) after puberty.",
+      "optExp": [
+        "Atrophies with age.",
+        "Largely involuted.",
+        null,
+        "Pregnancy doesn't reactivate thymus.",
+        "Not applicable."
+      ]
+    },
+    {
+      "id": 449,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The apex of the heart is normally located at:",
+      "opts": [
+        "2nd intercostal space at the right midclavicular line",
+        "5th intercostal space at the left midclavicular line",
+        "At the level of the xiphoid process",
+        "At the suprasternal notch",
+        "6th intercostal space at the right midclavicular line"
+      ],
+      "ans": 1,
+      "exp": "The cardiac apex (LV) is normally palpated at the 5th left intercostal space in the midclavicular line.",
+      "optExp": [
+        "This is the area for aortic auscultation.",
+        null,
+        "Substernal region.",
+        "Top of sternum.",
+        "Far right of normal apex."
+      ]
+    },
+    {
+      "id": 450,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "Stenosis of which valve typically causes a crescendo-decrescendo systolic murmur radiating to the carotids?",
+      "opts": [
+        "Mitral valve stenosis",
+        "Tricuspid valve stenosis",
+        "Pulmonary valve stenosis",
+        "Aortic valve stenosis",
+        "Mitral valve regurgitation"
+      ],
+      "ans": 3,
+      "exp": "Aortic stenosis produces an ejection systolic murmur, loudest at the right 2nd intercostal space, radiating to carotids.",
+      "optExp": [
+        "Mitral stenosis = diastolic rumble.",
+        "Tricuspid stenosis is rare; diastolic.",
+        "Pulmonary stenosis murmur in left 2nd ICS.",
+        null,
+        "This is a defined pathology."
+      ]
+    },
+    {
+      "id": 451,
+      "cat": "Anatomy: Lymphatic System",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "Axillary lymph nodes drain the:",
+      "opts": [
+        "Upper limb and breast tissue",
+        "Pelvic organs only",
+        "Lower limb only",
+        "Brain tissue only",
+        "Bladder only"
+      ],
+      "ans": 0,
+      "exp": "Axillary nodes drain the upper extremity, lateral breast, and thoracoabdominal wall — important in breast cancer staging.",
+      "optExp": [
+        null,
+        "Pelvis drains via internal iliac nodes.",
+        "Lower limb drains to inguinal nodes.",
+        "Brain has no lymphatics (mostly).",
+        "Bladder drains to pelvic nodes."
+      ]
+    },
+    {
+      "id": 487,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "S1 heart sound is produced by:",
+      "opts": [
+        "Semilunar valve closure",
+        "Atrioventricular valve closure at ventricular systole",
+        "Atrial muscle contraction",
+        "Ventricular filling phase",
+        "Ductus arteriosus closure"
+      ],
+      "ans": 1,
+      "exp": "S1 ('lub') = closure of mitral and tricuspid valves at the start of systole. S2 ('dub') = SL closure.",
+      "optExp": [
+        "That is S2.",
+        null,
+        "Atrial kick is silent normally.",
+        "S3 reflects rapid filling.",
+        "Postnatal event, not heart sound."
+      ]
+    },
+    {
+      "id": 488,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "S2 heart sound is produced by:",
+      "opts": [
+        "Mitral and tricuspid valve closure",
+        "Aortic and pulmonary valve closure at ventricular diastole",
+        "Atrial muscle contraction",
+        "Rapid ventricular filling phase",
+        "Ventricular ejection phase"
+      ],
+      "ans": 1,
+      "exp": "S2 = closure of aortic and pulmonary valves, marking end of systole.",
+      "optExp": [
+        "That is S1.",
+        null,
+        "Atrial kick is silent.",
+        "S3 reflects this.",
+        "No specific sound."
+      ]
+    },
+    {
+      "id": 508,
+      "cat": "Anatomy: Cardiovascular",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Anatomy",
+      "q": "The pericardium consists of:",
+      "opts": [
+        "Single fibrous layer",
+        "Fibrous and serous layers",
+        "Three serous layers",
+        "Inner endocardium only",
+        "Muscle layers only"
+      ],
+      "ans": 1,
+      "exp": "Pericardium = tough outer fibrous + inner serous (parietal lines fibrous; visceral = epicardium on heart). Pericardial fluid in between.",
+      "optExp": [
+        "Two main components.",
+        null,
+        "Two serous layers.",
+        "Endocardium is the heart's inner lining.",
+        "Myocardium is muscle."
+      ]
+    }
+  ]
+}

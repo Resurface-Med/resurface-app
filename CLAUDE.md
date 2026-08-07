@@ -1,20 +1,19 @@
 # Resurface — project context
 
-Spaced-repetition study app for Year 1 MBChB. React 18 + Vite 5 SPA, no
+Spaced-repetition study app for Year 1 MBChB. React 18 + Vite 7 SPA, no
 backend yet. Formerly "Ascend", and "principles-quiz" before that.
 
 ## State as of 2026-08-07
 
-- One commit (`bb5c539`), branch `main`. Repo was created from a working copy
-  that had never been under version control.
-- Runs with `npm run dev` on :5173. Builds clean (654KB JS / 190KB gzip).
-- **Not yet renamed to Resurface in code** — 7 references still say Ascend
-  (`index.html:6`, `Nav.jsx:45,161`, `api/generate.js:35-36`,
-  `GenerateMode.jsx:92`, `.env.example:10`).
+- Lives at `~/resurface/resurface-app`, org is `Resurface-Med` on GitHub.
+- Restructured and renamed. Lint clean (14 react-hooks warnings remain),
+  24 tests passing, build 655KB / 189KB gzip.
+- See README for layout. `npm run dev` on :5173; Generate mode needs
+  `vercel dev` because vite alone will not serve `api/`.
 
 ## Decisions already made — don't relitigate
 
-**Three repos** under a `resurfacehq` GitHub org (org not created yet):
+**Three repos** under the `Resurface-Med` GitHub org:
 `resurface-app` (this), `resurface-backend`, `resurface-landing`. The split is
 justified by a real backend coming — auth, progress sync, server-served
 question bank — not by the single proxy function that exists today.
@@ -38,7 +37,7 @@ request cap). The user thinks they want Railway for Resurface, which would mean
 a long-running server instead — a better fit for auth and sync anyway. Settle
 this before writing the backend; nothing in the app repo depends on it.
 
-## Planned structure (agreed, not yet applied)
+## Structure (applied)
 
 ```
 resurface-app/
@@ -56,10 +55,10 @@ resurface-app/
 └── tests/
 ```
 
-The restructure must land **before** the user's planned redesign. Their design
-values are 380 hardcoded `px` literals in inline styles; pulling colours,
-spacing, radii, and font sizes into `ui/theme.js` first is what makes the
-redesign tractable.
+**Next: the redesign.** Design values are still ~380 hardcoded `px` literals in
+inline styles. `src/ui/theme.js` exists (it was `constants.js`) but does not yet
+hold spacing, radii, or font sizes — pulling those in is what makes the redesign
+tractable, and should happen before any visual work starts.
 
 ## Security
 
@@ -68,7 +67,7 @@ committed `dist/` bundle. That file is deleted and generation now runs through
 `/api/generate` with the key server-side — verified zero `sk-ant` references in
 the built bundle. **The old key still needs rotating**; treat it as public.
 
-`ASCEND_PASSCODE` gates the endpoint (rename to `RESURFACE_PASSCODE`). The
+`RESURFACE_PASSCODE` gates the endpoint. The
 in-memory rate limiter in `api/generate.js` resets on cold starts — it catches
 runaway loops, not real abuse. Upstash Redis if the code ever leaks.
 
@@ -76,13 +75,12 @@ runaway loops, not real abuse. Upstash Redis if the code ever leaks.
 
 1. **Export/import.** Everything is localStorage. One cleared browser wipes
    months of progress — the likeliest way to lose a user's trust.
-2. Tests: `sm2.js` first (silent breakage corrupts review schedules), then
-   question-bank integrity (`opts.length === 5`, `ans` in range, `optExp`
-   null at the answer index, unique ids — the bank is hand-edited).
-3. CI, ESLint, README.
-4. PWA manifest — med students study on iPads; this is how they install it.
-5. Upgrade Vite 5 → 7. Two high-severity dev-only advisories (esbuild, postcss)
-   would fail `npm audit --audit-level=high` on the first CI run.
+2. Storage tests. `sm2.js` and question-bank integrity are covered; `storage.js`
+   is not, because it needs a jsdom environment for `localStorage`.
+3. PWA manifest — med students study on iPads; this is how they install it.
+4. Lazy-load decks. `src/data/index.js` imports all nine eagerly; making it
+   async is the change, and App.jsx consumes `QUESTIONS` synchronously today.
+5. The 14 `react-hooks` warnings — effect deps and set-state-in-effect.
 
 ## Branding
 
@@ -99,4 +97,5 @@ rather than `100vh` — four call sites depend on this.
 
 - Exact Resurface domain (bought at an outside registrar, not on Vercel)
 - Railway or Vercel for the backend
-- GitHub org still needs creating — org creation has no API on github.com
+- `rafil-g/resurface-app` was pushed by mistake and still needs deleting;
+  the token lacks `delete_repo` scope.

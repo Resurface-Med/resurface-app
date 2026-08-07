@@ -22,23 +22,23 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-import { V, C, card, primaryBtn } from "./constants";
-import { QUESTIONS } from "./data/questions";
-import { sm2Review, isDue } from "./utils/sm2";
-import { practiceStore, srStore, bookmarkStore, activityStore, updateStreak, loadStreak, themeStore } from "./utils/storage";
-import { usePomodoro } from "./utils/pomodoro";
-import { Sidebar } from "./components/Nav";
-import Dashboard from "./components/Dashboard";
-import PracticeMode from "./components/PracticeMode";
-import SRMode from "./components/SRMode";
-import TimedMode from "./components/TimedMode";
-import StatsView from "./components/StatsView";
-import BookmarksView from "./components/BookmarksView";
-import WrongAnswers from "./components/WrongAnswers";
-import SubjectsPage from "./components/SubjectsPage";
-import GenerateMode from "./components/GenerateMode";
-import PomodoroPage from "./components/PomodoroPage";
-import PomodoroToast from "./components/PomodoroToast";
+import { V, C, card, primaryBtn } from "./ui/theme";
+import { QUESTIONS } from "./data";
+import { sm2Review, isDue } from "./lib/sm2";
+import { practiceStore, srStore, bookmarkStore, activityStore, updateStreak, loadStreak, themeStore } from "./lib/storage";
+import { usePomodoro } from "./lib/pomodoro";
+import { Sidebar } from "./views/Nav";
+import Dashboard from "./views/Dashboard";
+import PracticeMode from "./modes/PracticeMode";
+import SRMode from "./modes/SRMode";
+import TimedMode from "./modes/TimedMode";
+import StatsView from "./views/StatsView";
+import BookmarksView from "./views/BookmarksView";
+import WrongAnswers from "./views/WrongAnswers";
+import SubjectsPage from "./views/SubjectsPage";
+import GenerateMode from "./views/GenerateMode";
+import PomodoroPage from "./views/PomodoroPage";
+import PomodoroToast from "./views/PomodoroToast";
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 

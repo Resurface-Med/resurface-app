@@ -1,0 +1,1404 @@
+{
+  "deck": "Genetics",
+  "categories": [
+    "Genetics: Genome & Chromosomes",
+    "Genetics: Mutations & Disease",
+    "Genetics: Inheritance Patterns",
+    "Genetics: Cell Division (Mitosis & Meiosis)",
+    "Genetics: Epigenetics"
+  ],
+  "questions": [
+    {
+      "id": 146,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "How many chromosomes are in a normal human somatic cell?",
+      "opts": [
+        "23",
+        "44",
+        "46",
+        "48",
+        "92"
+      ],
+      "ans": 2,
+      "exp": "Human somatic cells are diploid with 46 chromosomes (22 autosome pairs + XX/XY).",
+      "optExp": [
+        "23 is the haploid number (gametes).",
+        "Only autosomes counted; sex chromosomes excluded incorrectly.",
+        null,
+        "Number for great apes.",
+        "92 would be tetraploid."
+      ]
+    },
+    {
+      "id": 147,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Approximately how many protein-coding genes does the human genome contain?",
+      "opts": [
+        "Approximately two thousand five hundred",
+        "Approximately ten thousand genes",
+        "Approximately twenty to twenty-five thousand genes",
+        "Approximately two hundred fifty thousand genes",
+        "Approximately three million genes"
+      ],
+      "ans": 2,
+      "exp": "Recent estimates place protein-coding genes at ~20,000-25,000 across 46 chromosomes.",
+      "optExp": [
+        "Too few.",
+        "Too few.",
+        null,
+        "Vastly overestimates.",
+        "That's roughly the number of SNPs in some studies, not genes."
+      ]
+    },
+    {
+      "id": 148,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "The centromere of a chromosome is the:",
+      "opts": [
+        "Tip of a chromosome arm",
+        "Constricted region where spindle fibres attach",
+        "Site of DNA replication origin",
+        "Repetitive sequence at the chromosome terminus",
+        "Site of gene activation during transcription"
+      ],
+      "ans": 1,
+      "exp": "The centromere is the constricted region where the kinetochore assembles for spindle fibre attachment during mitosis/meiosis.",
+      "optExp": [
+        "Tips are telomeres.",
+        null,
+        "Origins of replication are scattered.",
+        "Telomeres are at chromosome ends.",
+        "Gene activation occurs throughout."
+      ]
+    },
+    {
+      "id": 149,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Telomeres are:",
+      "opts": [
+        "Repetitive sequences at chromosome ends",
+        "Spindle fibre attachment points at the centromere",
+        "Sites of mRNA transcription initiation",
+        "Mitochondrial DNA structural elements",
+        "Histone modification marks on chromatin"
+      ],
+      "ans": 0,
+      "exp": "Telomeres (TTAGGG repeats) cap chromosome ends, preventing end-joining and degradation. They shorten with each division.",
+      "optExp": [
+        null,
+        "That is the centromere.",
+        "Telomeres are gene-poor.",
+        "Telomeres are nuclear, not mitochondrial.",
+        "They are DNA sequences, not modifications."
+      ]
+    },
+    {
+      "id": 150,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A karyotype of 47,XXY corresponds to:",
+      "opts": [
+        "Turner syndrome presentation",
+        "Klinefelter syndrome presentation",
+        "Down syndrome presentation",
+        "Patau syndrome presentation",
+        "Edwards syndrome presentation"
+      ],
+      "ans": 1,
+      "exp": "Klinefelter syndrome (47,XXY) — phenotypically male with hypogonadism, gynaecomastia, tall stature.",
+      "optExp": [
+        "Turner is 45,X.",
+        null,
+        "Down is trisomy 21.",
+        "Patau is trisomy 13.",
+        "Edwards is trisomy 18."
+      ]
+    },
+    {
+      "id": 151,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Heterochromatin refers to:",
+      "opts": [
+        "Loose transcriptionally active chromatin",
+        "Condensed transcriptionally silent chromatin",
+        "RNA-DNA hybrid duplex structure",
+        "Single-stranded DNA molecules",
+        "Histone-free DNA regions"
+      ],
+      "ans": 1,
+      "exp": "Heterochromatin is densely packed and transcriptionally silent. Euchromatin is loose and active.",
+      "optExp": [
+        "That is euchromatin.",
+        null,
+        "Not RNA-DNA hybrid.",
+        "Heterochromatin is double-stranded.",
+        "Histones are present (often hypoacetylated)."
+      ]
+    },
+    {
+      "id": 152,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "The 5 histones include H2A, H2B, H3, H4 and:",
+      "opts": [
+        "H0 histone protein",
+        "H1 linker histone protein",
+        "H5 histone protein",
+        "HSP70 heat shock protein",
+        "H-box histone protein"
+      ],
+      "ans": 1,
+      "exp": "H1 is the linker histone that binds DNA between nucleosomes, stabilising the 30-nm chromatin fibre.",
+      "optExp": [
+        "Not a histone designation.",
+        null,
+        "H5 is avian; not standard mammalian.",
+        "HSP70 is a chaperone.",
+        "Not a histone."
+      ]
+    },
+    {
+      "id": 153,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Which of the following is mitochondrially inherited?",
+      "opts": [
+        "Cystic fibrosis inheritance pattern",
+        "Huntington disease inheritance pattern",
+        "Leber hereditary optic neuropathy",
+        "Sickle cell anaemia inheritance pattern",
+        "Duchenne muscular dystrophy"
+      ],
+      "ans": 2,
+      "exp": "LHON results from mitochondrial DNA mutations, inherited maternally from the egg's mitochondria.",
+      "optExp": [
+        "CF is autosomal recessive.",
+        "Huntington is autosomal dominant.",
+        null,
+        "Sickle cell is autosomal recessive.",
+        "DMD is X-linked recessive."
+      ]
+    },
+    {
+      "id": 154,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "In genomic terms, an exon is a:",
+      "opts": [
+        "Non-coding sequence removed during RNA processing",
+        "Coding sequence retained in mature mRNA",
+        "Promoter element located upstream of the gene",
+        "Repetitive telomeric element at chromosome end",
+        "Mitochondrial gene sequence"
+      ],
+      "ans": 1,
+      "exp": "Exons are retained in mature mRNA and translated. Introns are spliced out.",
+      "optExp": [
+        "That is an intron.",
+        null,
+        "Promoters are regulatory regions.",
+        "Repetitive telomeric elements are different.",
+        "Exons are nuclear DNA."
+      ]
+    },
+    {
+      "id": 155,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "What percentage of the human genome encodes proteins?",
+      "opts": [
+        "1-2%",
+        "5%",
+        "25%",
+        "50%",
+        "Over 90%"
+      ],
+      "ans": 0,
+      "exp": "Only ~1-2% of the genome encodes proteins. The rest includes regulatory, structural, and non-coding RNAs.",
+      "optExp": [
+        null,
+        "Too high.",
+        "Greatly overestimates.",
+        "Way too high.",
+        "Most of the genome is non-coding."
+      ]
+    },
+    {
+      "id": 156,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A point mutation that changes a single nucleotide but does NOT alter the amino acid is called:",
+      "opts": [
+        "Missense mutation",
+        "Silent mutation",
+        "Nonsense mutation",
+        "Frameshift mutation",
+        "Chromosomal inversion"
+      ],
+      "ans": 1,
+      "exp": "Silent mutations exploit the degeneracy of the genetic code — different codons encode the same amino acid.",
+      "optExp": [
+        "Missense changes the amino acid.",
+        null,
+        "Nonsense creates a premature stop.",
+        "Frameshift = insertion/deletion not a multiple of 3.",
+        "Inversion involves segment flipping."
+      ]
+    },
+    {
+      "id": 157,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A point mutation creating a premature stop codon is:",
+      "opts": [
+        "Silent mutation",
+        "Missense mutation",
+        "Nonsense mutation",
+        "Frameshift mutation",
+        "Splice site mutation"
+      ],
+      "ans": 2,
+      "exp": "Nonsense mutations introduce a stop codon (UAA, UAG, UGA), truncating the protein.",
+      "optExp": [
+        "Silent preserves amino acid.",
+        "Missense changes amino acid.",
+        null,
+        "Frameshift = insertion/deletion.",
+        "Splice site disrupts intron/exon boundary."
+      ]
+    },
+    {
+      "id": 158,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A single nucleotide insertion in a coding region is most likely to cause:",
+      "opts": [
+        "Silent mutation with no phenotypic effect",
+        "Frameshift mutation disrupting the reading frame",
+        "Synonymous mutation preserving the amino acid",
+        "Conservative substitution of a similar amino acid",
+        "Chromosomal translocation event"
+      ],
+      "ans": 1,
+      "exp": "Inserting one base shifts the reading frame downstream, drastically altering the protein.",
+      "optExp": [
+        "Insertions of one base are not silent.",
+        null,
+        "Synonymous means same amino acid.",
+        "Not a substitution at all.",
+        "Translocation involves chromosome segments."
+      ]
+    },
+    {
+      "id": 159,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Sickle cell anaemia results from which mutation?",
+      "opts": [
+        "Deletion of exon five",
+        "Single missense mutation in the β-globin gene",
+        "Trinucleotide repeat expansion",
+        "Frameshift mutation in the α-globin gene",
+        "Promoter SNP reducing transcription"
+      ],
+      "ans": 1,
+      "exp": "A single missense substitution (Glu6Val) in β-globin produces HbS, which polymerises under low O₂, sickling RBCs.",
+      "optExp": [
+        "Not a deletion.",
+        null,
+        "Not a trinucleotide repeat disease.",
+        "α-globin is unaffected; β-globin is altered.",
+        "Coding, not promoter, change."
+      ]
+    },
+    {
+      "id": 160,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Trinucleotide repeat expansion is the mechanism of:",
+      "opts": [
+        "Cystic fibrosis",
+        "Huntington disease",
+        "Sickle cell anaemia",
+        "Marfan syndrome",
+        "Familial hypercholesterolaemia"
+      ],
+      "ans": 1,
+      "exp": "Huntington disease is caused by CAG repeat expansion in the HTT gene, with anticipation in subsequent generations.",
+      "optExp": [
+        "CF is a deletion (ΔF508 most common).",
+        null,
+        "Sickle cell is a missense.",
+        "Marfan is FBN1 missense/loss.",
+        "FH is LDL receptor mutations."
+      ]
+    },
+    {
+      "id": 161,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Genetic anticipation describes:",
+      "opts": [
+        "Disease skips generations",
+        "Disease occurring earlier and with greater severity in successive generations",
+        "Disease occurring after age fifty",
+        "Mitochondrial inheritance pattern",
+        "Sex-limited inheritance pattern"
+      ],
+      "ans": 1,
+      "exp": "Trinucleotide repeat disorders (e.g. myotonic dystrophy, Huntington) typically show anticipation due to repeat expansion in gametes.",
+      "optExp": [
+        "Skipping generations is not anticipation.",
+        null,
+        "Onset varies, not always late.",
+        "Mitochondrial is its own pattern.",
+        "Sex-limited is different (e.g. premature ovarian failure)."
+      ]
+    },
+    {
+      "id": 162,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Cystic fibrosis is caused by mutations in:",
+      "opts": [
+        "CFTR chloride channel gene",
+        "Dystrophin gene",
+        "Haemoglobin β-chain gene",
+        "FBN1 fibrillin gene",
+        "HTT huntingtin gene"
+      ],
+      "ans": 0,
+      "exp": "CFTR mutations (most commonly ΔF508) disrupt chloride transport, causing thick mucus in lungs, pancreas, gut.",
+      "optExp": [
+        null,
+        "Dystrophin is in DMD.",
+        "β-globin is in sickle cell/thalassaemia.",
+        "FBN1 is in Marfan.",
+        "HTT is in Huntington."
+      ]
+    },
+    {
+      "id": 163,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Translocation refers to:",
+      "opts": [
+        "Base substitution mutation",
+        "Base deletion mutation",
+        "DNA segment movement between chromosomes",
+        "Chromosome inversion",
+        "Chromosome duplication event"
+      ],
+      "ans": 2,
+      "exp": "Translocation occurs when a chromosomal segment breaks off and reattaches to a different chromosome (e.g. BCR-ABL in CML).",
+      "optExp": [
+        "That is a point mutation.",
+        "That is a deletion.",
+        null,
+        "That is inversion.",
+        "That is duplication/trisomy."
+      ]
+    },
+    {
+      "id": 164,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Which type of mutation results in the production of a polypeptide of altered length most directly?",
+      "opts": [
+        "Silent mutation",
+        "Conservative missense mutation",
+        "Nonsense or frameshift mutation",
+        "Synonymous mutation",
+        "Promoter substitution mutation"
+      ],
+      "ans": 2,
+      "exp": "Nonsense (premature stop) and frameshift mutations alter the polypeptide length most directly.",
+      "optExp": [
+        "Silent does not change protein.",
+        "Length still preserved.",
+        null,
+        "Synonymous = silent.",
+        "Promoter affects amount, not length."
+      ]
+    },
+    {
+      "id": 165,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Loss-of-function mutations are typically:",
+      "opts": [
+        "Dominant",
+        "Recessive",
+        "X-linked dominant",
+        "Mitochondrial",
+        "Imprinted"
+      ],
+      "ans": 1,
+      "exp": "Loss of function usually requires both copies to be defective — recessive inheritance. Gain of function is typically dominant.",
+      "optExp": [
+        "GoF mutations are typically dominant.",
+        null,
+        "Not necessarily X-linked.",
+        "Not necessarily mitochondrial.",
+        "Imprinting is separate."
+      ]
+    },
+    {
+      "id": 166,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Which is an autosomal DOMINANT condition?",
+      "opts": [
+        "Cystic fibrosis",
+        "Sickle cell anaemia",
+        "Huntington disease",
+        "Phenylketonuria",
+        "Tay-Sachs disease"
+      ],
+      "ans": 2,
+      "exp": "Huntington disease is autosomal dominant — one mutant copy of HTT (with expanded CAG repeats) causes disease.",
+      "optExp": [
+        "CF is autosomal recessive.",
+        "Sickle cell is autosomal recessive.",
+        null,
+        "PKU is autosomal recessive.",
+        "Tay-Sachs is autosomal recessive."
+      ]
+    },
+    {
+      "id": 167,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Which is an X-linked recessive condition?",
+      "opts": [
+        "Marfan syndrome",
+        "Achondroplasia",
+        "Duchenne muscular dystrophy",
+        "Down syndrome",
+        "Cystic fibrosis"
+      ],
+      "ans": 2,
+      "exp": "DMD is X-linked recessive — males (XY) with one mutant dystrophin allele are affected.",
+      "optExp": [
+        "Marfan is autosomal dominant.",
+        "Achondroplasia is autosomal dominant.",
+        null,
+        "Down is trisomy 21 (chromosomal).",
+        "CF is autosomal recessive."
+      ]
+    },
+    {
+      "id": 168,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Which pattern of inheritance never shows male-to-male transmission?",
+      "opts": [
+        "Autosomal dominant",
+        "Autosomal recessive",
+        "X-linked inheritance",
+        "Mitochondrial inheritance",
+        "Codominant inheritance"
+      ],
+      "ans": 2,
+      "exp": "X-linked traits cannot pass father-to-son because fathers give the Y, not X, to sons. Mitochondrial is also non-male transmitted.",
+      "optExp": [
+        "Can show father-to-son.",
+        "Can show father-to-son.",
+        null,
+        "Mitochondrial is exclusively maternal — also fits, but X-linked is the classic answer.",
+        "Codominance is independent of sex."
+      ]
+    },
+    {
+      "id": 169,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Two heterozygous carriers of an autosomal recessive disease have what risk per child of an affected offspring?",
+      "opts": [
+        "0%",
+        "25%",
+        "33%",
+        "50%",
+        "100%"
+      ],
+      "ans": 1,
+      "exp": "Aa × Aa cross: 25% AA (unaffected), 50% Aa (carrier), 25% aa (affected).",
+      "optExp": [
+        "This is the probability if neither carry.",
+        null,
+        "33% would be if focusing only on non-AA.",
+        "50% is the carrier frequency.",
+        "100% would only be if both are affected."
+      ]
+    },
+    {
+      "id": 170,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "An affected father with an autosomal dominant condition has what chance of an affected child (heterozygote × normal)?",
+      "opts": [
+        "25%",
+        "50%",
+        "75%",
+        "100%",
+        "0%"
+      ],
+      "ans": 1,
+      "exp": "Aa × aa = 50% Aa (affected), 50% aa (normal).",
+      "optExp": [
+        "25% is the autosomal recessive carrier × carrier ratio.",
+        null,
+        "75% is more than expected.",
+        "100% would be Aa × Aa with full penetrance + lethality of aa.",
+        "0% impossible with affected parent."
+      ]
+    },
+    {
+      "id": 171,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Mitochondrial inheritance is characterised by:",
+      "opts": [
+        "Equal transmission from both parents",
+        "Exclusively maternal transmission",
+        "Only male-to-male transmission",
+        "Skipping generations pattern",
+        "X-linked inheritance pattern"
+      ],
+      "ans": 1,
+      "exp": "Mitochondrial DNA comes from the egg, so mothers pass mitochondrial diseases to all children; affected fathers do not transmit.",
+      "optExp": [
+        "Father contributes minimal mtDNA.",
+        null,
+        "Opposite of true pattern.",
+        "Generally does not skip; depends on heteroplasmy.",
+        "Mitochondrial is its own pattern."
+      ]
+    },
+    {
+      "id": 172,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Penetrance refers to:",
+      "opts": [
+        "Severity of phenotype in affected individuals",
+        "Proportion of genotype carriers showing the phenotype",
+        "Whether the trait is dominant or recessive",
+        "Strength of natural selection pressure",
+        "Mutation rate in a population"
+      ],
+      "ans": 1,
+      "exp": "Penetrance = % of individuals with a disease-causing genotype who actually express it. Expressivity = how SEVERELY they express.",
+      "optExp": [
+        "That is expressivity.",
+        null,
+        "Dominance is a separate concept.",
+        "Selection is different.",
+        "Mutation rate is unrelated."
+      ]
+    },
+    {
+      "id": 173,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Uniparental disomy gives rise to which of the following?",
+      "opts": [
+        "Turner syndrome",
+        "Trisomy 21",
+        "Prader-Willi or Angelman syndrome",
+        "Klinefelter syndrome",
+        "Triploidy"
+      ],
+      "ans": 2,
+      "exp": "Both copies of chromosome 15 from one parent: paternal duplication → Prader-Willi; maternal → Angelman (due to imprinting).",
+      "optExp": [
+        "45,X is monosomy X.",
+        "Trisomy 21 is nondisjunction.",
+        null,
+        "47,XXY is nondisjunction of X.",
+        "Triploidy is dispermy or diploid gamete."
+      ]
+    },
+    {
+      "id": 174,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Genomic imprinting means:",
+      "opts": [
+        "Expression of only the paternal or maternal allele",
+        "Both alleles expressed equally",
+        "Expression only in brain tissue",
+        "Gene sequence changing with each generation",
+        "Mutations always inherited from parents"
+      ],
+      "ans": 0,
+      "exp": "Imprinted genes are expressed monoallelically depending on parental origin (DNA methylation 'remembers' which parent).",
+      "optExp": [
+        null,
+        "That is biallelic expression (normal).",
+        "Imprinting is not tissue-restricted.",
+        "Imprinting is epigenetic.",
+        "Imprinting is not about new mutations."
+      ]
+    },
+    {
+      "id": 175,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Heterozygote advantage explains why which disease persists in some populations?",
+      "opts": [
+        "Huntington disease",
+        "Sickle cell disease in malaria-endemic regions",
+        "Down syndrome",
+        "Klinefelter syndrome",
+        "Turner syndrome"
+      ],
+      "ans": 1,
+      "exp": "Some recessive diseases (e.g. sickle cell vs malaria, possibly CF vs cholera/TB) persist because heterozygotes have a survival advantage.",
+      "optExp": [
+        "Huntington has no heterozygote advantage.",
+        null,
+        "Down is chromosomal nondisjunction.",
+        "Klinefelter is sex chromosome anomaly.",
+        "Turner is sex chromosome anomaly."
+      ]
+    },
+    {
+      "id": 176,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "In which phase of mitosis do chromosomes align at the metaphase plate?",
+      "opts": [
+        "Prophase",
+        "Metaphase",
+        "Anaphase",
+        "Telophase",
+        "Cytokinesis"
+      ],
+      "ans": 1,
+      "exp": "During metaphase, chromosomes line up in the middle of the cell with sister chromatids attached to spindle fibres.",
+      "optExp": [
+        "Prophase = condensation and spindle formation.",
+        null,
+        "Anaphase = sister chromatids separate.",
+        "Telophase = nuclear membranes reform.",
+        "Cytokinesis = cell division."
+      ]
+    },
+    {
+      "id": 177,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Sister chromatids separate to opposite poles in:",
+      "opts": [
+        "Prophase",
+        "Metaphase",
+        "Anaphase",
+        "Telophase",
+        "Interphase"
+      ],
+      "ans": 2,
+      "exp": "Anaphase: centromeres split, sister chromatids are pulled apart by shortening spindle fibres.",
+      "optExp": [
+        "Prophase = condensation.",
+        "Metaphase = alignment.",
+        null,
+        "Telophase = membranes reform.",
+        "Interphase = growth/replication."
+      ]
+    },
+    {
+      "id": 178,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "DNA replication occurs during:",
+      "opts": [
+        "G1 phase",
+        "S phase",
+        "G2 phase",
+        "M phase",
+        "G0 phase"
+      ],
+      "ans": 1,
+      "exp": "S (synthesis) phase of interphase is when DNA is replicated.",
+      "optExp": [
+        "G1 is growth before replication.",
+        null,
+        "G2 is preparation for mitosis.",
+        "M is mitosis itself.",
+        "G0 is quiescent state."
+      ]
+    },
+    {
+      "id": 179,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Which checkpoint protein halts the cell cycle at G1 in response to DNA damage?",
+      "opts": [
+        "BRCA1",
+        "p53",
+        "Cyclin D",
+        "Bcl-2",
+        "Retinoblastoma protein (Rb)"
+      ],
+      "ans": 1,
+      "exp": "p53 ('guardian of the genome') arrests the cell at G1 to allow repair, or triggers apoptosis if damage is irreparable.",
+      "optExp": [
+        "BRCA1 is involved in DNA repair, not checkpoint per se.",
+        null,
+        "Cyclin D promotes progression.",
+        "Bcl-2 prevents apoptosis.",
+        "Rb regulates G1/S but is downstream."
+      ]
+    },
+    {
+      "id": 180,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Meiosis produces:",
+      "opts": [
+        "2 diploid daughter cells",
+        "4 haploid daughter cells",
+        "2 haploid identical cells",
+        "4 diploid daughter cells",
+        "1 polyploid cell"
+      ],
+      "ans": 1,
+      "exp": "Meiosis I + II yield 4 haploid gametes, with genetic diversity from crossing over and independent assortment.",
+      "optExp": [
+        "That is mitosis.",
+        null,
+        "Two haploid is only after meiosis I.",
+        "Diploid would not be a gamete.",
+        "Meiosis halves chromosome count."
+      ]
+    },
+    {
+      "id": 181,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Crossing over occurs during which phase of meiosis?",
+      "opts": [
+        "Prophase I",
+        "Metaphase I",
+        "Anaphase I",
+        "Prophase II",
+        "Telophase II"
+      ],
+      "ans": 0,
+      "exp": "Crossing over (recombination) occurs in prophase I (pachytene), generating genetic variation between homologous chromosomes.",
+      "optExp": [
+        null,
+        "Alignment of homologues, not recombination.",
+        "Separation of homologues.",
+        "No homologue pairing in meiosis II.",
+        "Late meiosis II, no recombination."
+      ]
+    },
+    {
+      "id": 182,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Independent assortment of homologous chromosomes occurs in:",
+      "opts": [
+        "Anaphase I of meiosis",
+        "Anaphase II of meiosis",
+        "Mitotic anaphase",
+        "S phase of interphase",
+        "G2 phase of interphase"
+      ],
+      "ans": 0,
+      "exp": "Independent assortment of HOMOLOGOUS chromosomes happens in meiosis I anaphase, contributing to genetic diversity.",
+      "optExp": [
+        null,
+        "Anaphase II separates SISTERS not homologues.",
+        "Mitotic anaphase doesn't involve homologue separation in this way.",
+        "S = replication.",
+        "G2 = preparation."
+      ]
+    },
+    {
+      "id": 183,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Nondisjunction in meiosis is the failure of:",
+      "opts": [
+        "Failure of DNA replication",
+        "Failure of chromosomes to separate",
+        "Failure of cytokinesis",
+        "Failure of nuclear membrane reformation",
+        "Failure of spindle assembly"
+      ],
+      "ans": 1,
+      "exp": "Nondisjunction = failure of homologues (meiosis I) or sister chromatids (meiosis II) to separate, leading to aneuploidy (e.g. trisomy 21).",
+      "optExp": [
+        "Replication is separate.",
+        null,
+        "Cytokinesis is cell separation, not chromosome separation.",
+        "Membrane reformation is telophase.",
+        "Spindle defects are different."
+      ]
+    },
+    {
+      "id": 184,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "If p53 is mutated/non-functional, the result is:",
+      "opts": [
+        "DNA repair occurs more rapidly",
+        "Damaged cells continue dividing uncontrolled",
+        "Cells enter permanent growth arrest",
+        "Cells undergo immediate apoptosis",
+        "Cell cycle regulation remains normal"
+      ],
+      "ans": 1,
+      "exp": "Without functional p53, damaged DNA isn't repaired or eliminated — cells with mutations replicate and may become cancerous.",
+      "optExp": [
+        "Repair efficiency drops, not improves.",
+        null,
+        "Cells continue dividing.",
+        "Apoptosis is impaired.",
+        "p53 is a key regulator."
+      ]
+    },
+    {
+      "id": 185,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "At the end of meiosis I, the daughter cells are:",
+      "opts": [
+        "Diploid with sister chromatids still joined",
+        "Haploid with sister chromatids still joined",
+        "Haploid with separated individual chromatids",
+        "Tetraploid with replicated chromosomes",
+        "Genetically identical to the parent cell"
+      ],
+      "ans": 1,
+      "exp": "After meiosis I, each cell is haploid (n) but each chromosome still has 2 sister chromatids. Meiosis II separates these.",
+      "optExp": [
+        "No longer diploid after meiosis I.",
+        null,
+        "Chromatids separate in meiosis II.",
+        "Not tetraploid.",
+        "Mitosis gives identical cells."
+      ]
+    },
+    {
+      "id": 186,
+      "cat": "Genetics: Epigenetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Epigenetic mechanisms affect gene expression without altering:",
+      "opts": [
+        "Histone protein modifications",
+        "DNA sequence composition",
+        "Transcription of genes",
+        "Cell phenotype and function",
+        "Protein folding patterns"
+      ],
+      "ans": 1,
+      "exp": "Epigenetic changes (methylation, histone modifications) modify gene activity without changing the DNA sequence itself.",
+      "optExp": [
+        "Histones ARE modified.",
+        null,
+        "Transcription IS affected.",
+        "Phenotype IS affected.",
+        "Folding is downstream and not the definition."
+      ]
+    },
+    {
+      "id": 187,
+      "cat": "Genetics: Epigenetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "DNA methylation typically occurs at:",
+      "opts": [
+        "GG dinucleotide sequences",
+        "CpG dinucleotide sequences",
+        "AA dinucleotide sequences",
+        "TT dinucleotide sequences",
+        "Telomeric repeat sequences"
+      ],
+      "ans": 1,
+      "exp": "In mammals, cytosines in CpG dinucleotides are the predominant target of DNA methylation, silencing genes.",
+      "optExp": [
+        "Not the typical site.",
+        null,
+        "Not the typical site.",
+        "Not the typical site.",
+        "Telomeres have their own structure but methylation is CpG-targeted."
+      ]
+    },
+    {
+      "id": 188,
+      "cat": "Genetics: Epigenetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "X-inactivation in females is mediated by:",
+      "opts": [
+        "Genomic imprinting genes alone",
+        "XIST long non-coding RNA",
+        "DNA polymerase enzyme activity",
+        "RNase enzyme activity",
+        "Telomerase enzyme activity"
+      ],
+      "ans": 1,
+      "exp": "XIST RNA coats one X chromosome and recruits silencing machinery, forming a Barr body in females.",
+      "optExp": [
+        "Imprinting is separate.",
+        null,
+        "DNA pol is for replication.",
+        "RNase degrades RNA.",
+        "Telomerase extends telomeres."
+      ]
+    },
+    {
+      "id": 189,
+      "cat": "Genetics: Epigenetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Histone acetylation tends to:",
+      "opts": [
+        "Silencing gene expression",
+        "Activating gene expression by loosening chromatin structure",
+        "Causing DNA strand breaks",
+        "Initiating programmed cell death",
+        "Inducing point mutations in DNA"
+      ],
+      "ans": 1,
+      "exp": "Acetylation neutralises positive lysine charges on histone tails, loosening DNA wrapping → euchromatin → active transcription.",
+      "optExp": [
+        "Deacetylation silences.",
+        null,
+        "Acetylation doesn't damage DNA.",
+        "No direct apoptosis trigger.",
+        "Doesn't cause mutations."
+      ]
+    },
+    {
+      "id": 190,
+      "cat": "Genetics: Epigenetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Imprinting disorders such as Prader-Willi and Angelman syndromes both involve chromosome:",
+      "opts": [
+        "Chromosome 7",
+        "Chromosome 11",
+        "Chromosome 15",
+        "Chromosome 18",
+        "Chromosome 21"
+      ],
+      "ans": 2,
+      "exp": "Both result from deletion or uniparental disomy of chromosome 15q11-13 — paternal loss → Prader-Willi; maternal loss → Angelman.",
+      "optExp": [
+        "CFTR is on 7 but not for these.",
+        "Beckwith-Wiedemann is on 11.",
+        null,
+        "Edwards is trisomy 18, unrelated.",
+        "Down is trisomy 21, unrelated."
+      ]
+    },
+    {
+      "id": 405,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Sex chromosomes in a normal human male are:",
+      "opts": [
+        "XX",
+        "XY",
+        "XO",
+        "XXY",
+        "XYY"
+      ],
+      "ans": 1,
+      "exp": "Normal male karyotype is 46,XY. XX is female; XO is Turner; XXY is Klinefelter; XYY is Jacobs.",
+      "optExp": [
+        "Female.",
+        null,
+        "Turner syndrome.",
+        "Klinefelter.",
+        "Jacobs syndrome."
+      ]
+    },
+    {
+      "id": 406,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "In Duchenne muscular dystrophy, the affected gene encodes:",
+      "opts": [
+        "Myosin protein",
+        "Actin protein",
+        "Dystrophin protein",
+        "Collagen protein",
+        "Titin protein"
+      ],
+      "ans": 2,
+      "exp": "DMD is caused by dystrophin gene mutations (X-linked recessive), leading to fragile muscle membranes.",
+      "optExp": [
+        "Myosin defects cause cardiomyopathies.",
+        "Actin defects cause myopathies but not DMD.",
+        null,
+        "Collagen defects cause OI.",
+        "Titin defects cause other myopathies."
+      ]
+    },
+    {
+      "id": 407,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Myotonic dystrophy is caused by:",
+      "opts": [
+        "Dystrophin gene deletion",
+        "CTG repeat expansion in DMPK gene",
+        "CAG repeat expansion in HTT gene",
+        "CFTR gene mutation",
+        "Type I collagen gene mutation"
+      ],
+      "ans": 1,
+      "exp": "Myotonic dystrophy (autosomal dominant) results from CTG repeat expansion in DMPK, with genetic anticipation.",
+      "optExp": [
+        "That is DMD.",
+        null,
+        "That is Huntington.",
+        "That is CF.",
+        "That is OI."
+      ]
+    },
+    {
+      "id": 408,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Angelman syndrome results from:",
+      "opts": [
+        "Paternal 15q11-q13 deletion or maternal uniparental disomy",
+        "Maternal 15q11-q13 deletion or paternal uniparental disomy",
+        "Trisomy 21",
+        "X-linked recessive mutation",
+        "Mitochondrial inheritance pattern"
+      ],
+      "ans": 1,
+      "exp": "Angelman = loss of the maternal contribution of 15q11-13 (deletion or paternal UPD), causing severe intellectual disability and 'happy puppet' features.",
+      "optExp": [
+        "That is Prader-Willi.",
+        null,
+        "Down is unrelated.",
+        "Not X-linked.",
+        "Not mitochondrial."
+      ]
+    },
+    {
+      "id": 409,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Prader-Willi syndrome results from:",
+      "opts": [
+        "Paternal 15q11-q13 deletion or maternal uniparental disomy",
+        "Maternal 15q11-q13 deletion or paternal uniparental disomy",
+        "Trisomy 21",
+        "X-linked dominant mutation",
+        "Mitochondrial inheritance pattern"
+      ],
+      "ans": 0,
+      "exp": "Prader-Willi = loss of paternal contribution to 15q11-13 → obesity, short stature, hypotonia.",
+      "optExp": [
+        null,
+        "That is Angelman.",
+        "Down is unrelated.",
+        "Not X-linked.",
+        "Not mitochondrial."
+      ]
+    },
+    {
+      "id": 410,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "At the G2 checkpoint, the cell ensures:",
+      "opts": [
+        "DNA replication is complete before mitosis",
+        "Cell reaches adequate size for division",
+        "Spindle apparatus is properly assembled",
+        "Cytokinesis completes properly",
+        "Apoptosis pathway is activated"
+      ],
+      "ans": 0,
+      "exp": "G2/M checkpoint verifies DNA was replicated correctly and undamaged before allowing mitosis.",
+      "optExp": [
+        null,
+        "Size check is more in G1.",
+        "Spindle checkpoint is at metaphase-anaphase transition.",
+        "Cytokinesis is after M.",
+        "Apoptosis is when checkpoints fail."
+      ]
+    },
+    {
+      "id": 411,
+      "cat": "Genetics: Epigenetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A Barr body is:",
+      "opts": [
+        "Inactivated X chromosome",
+        "Extra Y chromosome",
+        "Nucleolus structure",
+        "Mitochondrion in cytoplasm",
+        "Spliceosome in nucleus"
+      ],
+      "ans": 0,
+      "exp": "The Barr body is the inactivated X chromosome (via XIST), visible as a dense structure in female somatic cells.",
+      "optExp": [
+        null,
+        "Not Y-related.",
+        "Different structure.",
+        "Different organelle.",
+        "Different complex."
+      ]
+    },
+    {
+      "id": 462,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A child with short stature, single palmar crease, hypotonia, and flat midface most likely has:",
+      "opts": [
+        "Turner syndrome",
+        "Down syndrome (trisomy 21)",
+        "Patau syndrome (trisomy 13)",
+        "Edwards syndrome (trisomy 18)",
+        "Klinefelter syndrome"
+      ],
+      "ans": 1,
+      "exp": "Trisomy 21 (Down syndrome): flat midface, single palmar crease (simian crease), hypotonia, short stature, characteristic upward palpebral slant.",
+      "optExp": [
+        "Turner: short, webbed neck, female-only.",
+        null,
+        "Patau: cleft lip/palate, polydactyly.",
+        "Edwards: clenched fists, rocker bottom feet.",
+        "Klinefelter: tall, hypogonadism, in males."
+      ]
+    },
+    {
+      "id": 463,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "A male infant has clenched fists with overlapping fingers, rocker-bottom feet, micrognathia, and severe heart defects. Likely diagnosis:",
+      "opts": [
+        "Down syndrome",
+        "Patau syndrome (trisomy 13)",
+        "Edwards syndrome (trisomy 18)",
+        "Turner syndrome",
+        "Cri-du-chat syndrome"
+      ],
+      "ans": 2,
+      "exp": "Trisomy 18 (Edwards): clenched fists, rocker-bottom feet, low-set ears, severe cardiac defects, poor survival (<1 year).",
+      "optExp": [
+        "Trisomy 21 features differ.",
+        "Trisomy 13 has cleft lip/palate, polydactyly.",
+        null,
+        "Turner is monosomy X, female phenotype.",
+        "Cri-du-chat has cat-like cry, 5p deletion."
+      ]
+    },
+    {
+      "id": 481,
+      "cat": "Genetics: Genome & Chromosomes",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "In a nucleosome, DNA wraps around:",
+      "opts": [
+        "Ribosomal RNA molecules",
+        "Histone octamer core proteins",
+        "Centromere proteins complex",
+        "Nuclear membrane proteins",
+        "Sugar-phosphate backbone strands"
+      ],
+      "ans": 1,
+      "exp": "~147 bp of DNA wraps around a histone octamer (2 each of H2A, H2B, H3, H4) to form a nucleosome.",
+      "optExp": [
+        "DNA is paired with histones, not RNA.",
+        null,
+        "Centromere proteins are separate.",
+        "Not membrane-bound.",
+        "Backbone is part of DNA structure."
+      ]
+    },
+    {
+      "id": 492,
+      "cat": "Genetics: Inheritance Patterns",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "In a pedigree, an autosomal dominant condition typically shows:",
+      "opts": [
+        "Skips generations in families",
+        "Affects only male individuals",
+        "Vertical transmission pattern through generations",
+        "Affects only female individuals",
+        "Requires two carrier parents"
+      ],
+      "ans": 2,
+      "exp": "Autosomal dominant patterns show vertical transmission (every generation), both sexes affected equally.",
+      "optExp": [
+        "Recessive may appear to skip generations.",
+        "X-linked recessive favours males.",
+        null,
+        "Not sex-specific.",
+        "That is recessive."
+      ]
+    },
+    {
+      "id": 500,
+      "cat": "Genetics: Mutations & Disease",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "Sickle cell carriers (heterozygotes) have a survival advantage against:",
+      "opts": [
+        "Tuberculosis infection",
+        "Cholera bacterial infection",
+        "Malaria parasitic infection",
+        "HIV viral infection",
+        "Influenza viral infection"
+      ],
+      "ans": 2,
+      "exp": "Sickled red cells are inhospitable to P. falciparum, giving heterozygotes a survival advantage in malarial regions — explaining persistence of the allele.",
+      "optExp": [
+        "TB resistance is unrelated.",
+        "Possibly CF.",
+        null,
+        "HIV resistance is CCR5-Δ32.",
+        "Not selected."
+      ]
+    },
+    {
+      "id": 503,
+      "cat": "Genetics: Cell Division (Mitosis & Meiosis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Genetics",
+      "q": "After S phase but before mitosis, each chromosome consists of:",
+      "opts": [
+        "One chromatid",
+        "Two sister chromatids joined at centromere",
+        "Four chromatids",
+        "Half a chromatid",
+        "No chromatids"
+      ],
+      "ans": 1,
+      "exp": "DNA replication in S phase doubles each chromosome to two sister chromatids joined at the centromere, separated in mitotic anaphase.",
+      "optExp": [
+        "Pre-S phase configuration.",
+        null,
+        "Tetraploid would be too many.",
+        "Not a real state.",
+        "Not real state."
+      ]
+    }
+  ]
+}

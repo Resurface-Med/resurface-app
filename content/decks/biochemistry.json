@@ -1,0 +1,3691 @@
+{
+  "deck": "Biochemistry",
+  "categories": [
+    "Glycolysis & Bioenergetics",
+    "TCA Cycle & Link Reaction",
+    "Oxidative Phosphorylation",
+    "Enzymes & Enzyme Kinetics",
+    "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+    "Beta Oxidation & Lipid Metabolism",
+    "Amino Acids & pH",
+    "Nucleic Acids & DNA",
+    "Protein Structure",
+    "Gene Regulation",
+    "Protein Synthesis",
+    "Clinical Biochemistry"
+  ],
+  "questions": [
+    {
+      "id": 1,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Where in the cell does glycolysis take place?",
+      "opts": [
+        "Mitochondrial matrix",
+        "Inner mitochondrial membrane",
+        "Cytoplasm",
+        "Nucleus",
+        "Smooth endoplasmic reticulum"
+      ],
+      "ans": 2,
+      "exp": "Glycolysis occurs in the cytoplasm and does not require oxygen, so it can run in both aerobic and anaerobic conditions.",
+      "optExp": [
+        "The matrix hosts the TCA cycle and link reaction, not glycolysis.",
+        "ETC complexes sit here; glycolysis is cytosolic.",
+        null,
+        "DNA replication/transcription happens here, not glycolysis.",
+        "The smooth ER handles lipid synthesis, not glucose breakdown."
+      ]
+    },
+    {
+      "id": 2,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What is the NET ATP yield from glycolysis of one glucose molecule?",
+      "opts": [
+        "4 ATP",
+        "8 ATP",
+        "2 ATP",
+        "6 ATP",
+        "38 ATP"
+      ],
+      "ans": 2,
+      "exp": "Glycolysis invests 2 ATP and generates 4 ATP, giving a net gain of 2 ATP per glucose.",
+      "optExp": [
+        "4 is the gross production, not the net yield.",
+        "8 ATP exceeds glycolytic output; this is closer to total NADH equivalents.",
+        null,
+        "6 ATP would require including TCA-derived molecules.",
+        "38 ATP is the approximate yield from complete glucose oxidation, not glycolysis alone."
+      ]
+    },
+    {
+      "id": 3,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme catalyses the rate-limiting step of glycolysis?",
+      "opts": [
+        "Hexokinase catalyses initial glucose phosphorylation",
+        "Phosphofructokinase-1 catalyses the rate-limiting step",
+        "Pyruvate kinase catalyses final pyruvate formation",
+        "Aldolase catalyses aldol cleavage of fructose-1,6-bisphosphate",
+        "Phosphoglyceromutase catalyses phosphate group transfer"
+      ],
+      "ans": 1,
+      "exp": "PFK-1 catalyses the irreversible conversion of F6P to F1,6BP and is allosterically regulated by ATP, AMP, citrate, and F2,6BP — making it the rate-limiting step.",
+      "optExp": [
+        "Hexokinase is irreversible but not the rate-limiting committed step.",
+        null,
+        "Pyruvate kinase is irreversible but not rate-limiting.",
+        "Aldolase catalyses a reversible cleavage and is not regulated.",
+        "Phosphoglyceromutase is a reversible enzyme and not the rate-limiting step."
+      ]
+    },
+    {
+      "id": 4,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "PFK-1 is allosterically INHIBITED by which of the following?",
+      "opts": [
+        "AMP",
+        "ADP",
+        "High ATP concentration",
+        "Fructose-2,6-bisphosphate",
+        "Insulin"
+      ],
+      "ans": 2,
+      "exp": "When ATP is abundant the cell does not need to make more, so high ATP allosterically inhibits PFK-1, slowing glycolysis.",
+      "optExp": [
+        "AMP activates PFK-1, signalling low energy.",
+        "ADP also activates PFK-1.",
+        null,
+        "F2,6BP is the most potent activator of PFK-1.",
+        "Insulin upregulates glycolysis, not inhibits it."
+      ]
+    },
+    {
+      "id": 5,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What are the NET products of glycolysis from one glucose molecule?",
+      "opts": [
+        "2 Pyruvate, 4 ATP, 4 NADH",
+        "2 Pyruvate, 2 ATP, 2 NADH",
+        "1 Pyruvate, 2 ATP, 1 NADH",
+        "2 Acetyl-CoA, 2 ATP, 2 NADH",
+        "2 Pyruvate, 2 ATP, 2 FADH₂"
+      ],
+      "ans": 1,
+      "exp": "Per glucose: 2 pyruvate, net 2 ATP (4 made − 2 invested), and 2 NADH are produced.",
+      "optExp": [
+        "4 ATP is gross output; 4 NADH overstates yield.",
+        null,
+        "Glucose (6C) splits into 2 pyruvate (3C each).",
+        "Acetyl-CoA is the product of the link reaction, not glycolysis.",
+        "FADH₂ is produced in the TCA cycle, not glycolysis."
+      ]
+    },
+    {
+      "id": 6,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How many ATP are consumed in the investment phase of glycolysis?",
+      "opts": [
+        "0 ATP",
+        "1 ATP",
+        "2 ATP",
+        "3 ATP",
+        "4 ATP"
+      ],
+      "ans": 2,
+      "exp": "Two ATP are invested: one by hexokinase (glucose → G6P) and one by PFK-1 (F6P → F1,6BP).",
+      "optExp": [
+        "At least 1 ATP is needed for glucose phosphorylation.",
+        "Only one phosphorylation step would leave glucose unable to split.",
+        null,
+        "3 ATP overstates the investment.",
+        "4 ATP describes the gross gain, not investment."
+      ]
+    },
+    {
+      "id": 7,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme converts phosphoenolpyruvate (PEP) to pyruvate in the final step of glycolysis?",
+      "opts": [
+        "Phosphofructokinase",
+        "Aldolase",
+        "Triose phosphate isomerase",
+        "Pyruvate kinase",
+        "Hexokinase"
+      ],
+      "ans": 3,
+      "exp": "Pyruvate kinase catalyses the irreversible transfer of phosphate from PEP to ADP, producing ATP and pyruvate.",
+      "optExp": [
+        "PFK acts earlier on F6P.",
+        "Aldolase cleaves F1,6BP into two trioses.",
+        "Enolase converts 2-phosphoglycerate to PEP (the step before).",
+        null,
+        "Hexokinase acts at the start, phosphorylating glucose."
+      ]
+    },
+    {
+      "id": 8,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In anaerobic conditions, how is NAD⁺ regenerated so glycolysis can continue?",
+      "opts": [
+        "Tricarboxylic acid cycle regenerates NAD⁺",
+        "Electron transport chain regenerates NAD⁺",
+        "Lactate dehydrogenase catalyses pyruvate to lactate conversion",
+        "Beta-oxidation regenerates NAD⁺",
+        "Gluconeogenesis pathway regenerates NAD⁺"
+      ],
+      "ans": 2,
+      "exp": "Lactate dehydrogenase reduces pyruvate to lactate, oxidising NADH back to NAD⁺ so glycolysis can keep producing ATP.",
+      "optExp": [
+        "The TCA cycle requires oxygen indirectly via NADH reoxidation.",
+        "The ETC requires O₂ as the terminal electron acceptor.",
+        null,
+        "Beta-oxidation produces NADH, it does not regenerate NAD⁺.",
+        "Gluconeogenesis consumes NADH/NADPH."
+      ]
+    },
+    {
+      "id": 9,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "ATP hydrolysis (ATP → ADP + Pi) releases approximately how much free energy?",
+      "opts": [
+        "−2.3 kcal/mol",
+        "−7.3 kcal/mol",
+        "−14 kcal/mol",
+        "−3.5 kcal/mol",
+        "−20 kcal/mol"
+      ],
+      "ans": 1,
+      "exp": "Hydrolysis of the terminal phosphoanhydride bond of ATP releases about −7.3 kcal/mol under standard conditions.",
+      "optExp": [
+        "Too low — this is closer to weaker bond energies.",
+        null,
+        "Roughly double; this is too high for a single phosphate hydrolysis.",
+        "Too low to drive most endergonic biological reactions.",
+        "Far too high; no single ATP bond releases this much."
+      ]
+    },
+    {
+      "id": 10,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which best describes an exergonic reaction?",
+      "opts": [
+        "ΔG > 0, requires energy input, non-spontaneous",
+        "ΔG < 0, releases energy, spontaneous",
+        "ΔG = 0, at thermodynamic equilibrium",
+        "ΔG > 0, releases energy, spontaneous",
+        "ΔG < 0, requires energy input, non-spontaneous"
+      ],
+      "ans": 1,
+      "exp": "Exergonic reactions are spontaneous, release free energy, and have a negative ΔG.",
+      "optExp": [
+        "This describes endergonic reactions.",
+        null,
+        "ΔG = 0 means equilibrium, not exergonic.",
+        "Contradictory: positive ΔG cannot release energy.",
+        "Contradictory: negative ΔG cannot require energy input."
+      ]
+    },
+    {
+      "id": 11,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which of the following best describes anabolism?",
+      "opts": [
+        "Breaking down complex molecules into simpler units",
+        "Synthesizing complex molecules from simpler precursors",
+        "Converting glucose to pyruvate in glycolysis",
+        "Producing NADH in the tricarboxylic acid cycle",
+        "Generating ATP via oxidative phosphorylation"
+      ],
+      "ans": 1,
+      "exp": "Anabolism builds larger molecules from smaller precursors and requires ATP input (endergonic).",
+      "optExp": [
+        "This describes catabolism.",
+        null,
+        "Glycolysis is catabolic.",
+        "TCA cycle is catabolic.",
+        "Oxidative phosphorylation is catabolic energy production."
+      ]
+    },
+    {
+      "id": 12,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Hexokinase differs from glucokinase in that hexokinase:",
+      "opts": [
+        "Found mainly in hepatocytes and pancreatic beta cells",
+        "Has high Km for glucose and lower substrate affinity",
+        "Has low Km and high affinity for glucose",
+        "Inducible by insulin in response to feeding",
+        "Not inhibited by its product glucose-6-phosphate"
+      ],
+      "ans": 2,
+      "exp": "Hexokinase is present in most tissues with a low Km, ensuring efficient glucose uptake even at low blood glucose. Glucokinase (liver/β-cells) has a high Km and works after meals.",
+      "optExp": [
+        "Glucokinase is the liver isoform.",
+        "High Km describes glucokinase.",
+        null,
+        "Glucokinase is insulin-induced, not hexokinase.",
+        "Hexokinase IS inhibited by glucose-6-phosphate (product inhibition)."
+      ]
+    },
+    {
+      "id": 14,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In red blood cells, why does glycolysis end with lactate production even when oxygen is available?",
+      "opts": [
+        "Red blood cells lack mitochondria and cannot perform oxidative phosphorylation",
+        "Red blood cells lack glucose transporters on their membranes",
+        "Red blood cells have very high ATP demand relative to their size",
+        "Red blood cells cannot synthesize NADH from glycolysis",
+        "Red blood cells exclusively metabolize fatty acids for energy"
+      ],
+      "ans": 0,
+      "exp": "Erythrocytes lack mitochondria, so they cannot perform oxidative phosphorylation and must regenerate NAD⁺ via lactate production.",
+      "optExp": [
+        null,
+        "RBCs express GLUT1 transporters abundantly.",
+        "RBC ATP demand is modest, but they still rely on glycolysis.",
+        "RBCs do make NADH in glycolysis.",
+        "RBCs rely on glucose, not fatty acids, for energy."
+      ]
+    },
+    {
+      "id": 16,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The Gibbs free energy change (ΔG) of a reaction with ΔG < 0 is:",
+      "opts": [
+        "Exergonic reaction, spontaneous under standard conditions",
+        "Endergonic reaction, non-spontaneous under standard conditions",
+        "Reaction at thermodynamic equilibrium",
+        "Endergonic reaction, spontaneous under standard conditions",
+        "Exergonic reaction, non-spontaneous under standard conditions"
+      ],
+      "ans": 0,
+      "exp": "Negative ΔG means the reaction is spontaneous and releases free energy.",
+      "optExp": [
+        null,
+        "Endergonic = positive ΔG.",
+        "Equilibrium means ΔG = 0.",
+        "Contradictory.",
+        "Contradictory."
+      ]
+    },
+    {
+      "id": 17,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which molecule is the most potent allosteric ACTIVATOR of PFK-1?",
+      "opts": [
+        "Fructose-2,6-bisphosphate is the most potent allosteric activator",
+        "ATP is a potent allosteric inhibitor of PFK-1",
+        "Citrate is a potent allosteric inhibitor of PFK-1",
+        "NADH is a potent allosteric inhibitor of PFK-1",
+        "Acetyl-CoA is a potent allosteric inhibitor of PFK-1"
+      ],
+      "ans": 0,
+      "exp": "F2,6BP, produced by PFK-2 in response to insulin, is the most potent activator of PFK-1 and stimulates glycolysis after meals.",
+      "optExp": [
+        null,
+        "ATP inhibits PFK-1.",
+        "Citrate (high TCA output) inhibits PFK-1.",
+        "NADH is not a PFK regulator.",
+        "Acetyl-CoA does not regulate PFK-1 directly."
+      ]
+    },
+    {
+      "id": 18,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What is the immediate product of pyruvate kinase?",
+      "opts": [
+        "Pyruvate and ATP",
+        "Lactate from pyruvate",
+        "Acetyl-CoA from pyruvate",
+        "Phosphoenolpyruvate",
+        "Oxaloacetate from pyruvate"
+      ],
+      "ans": 0,
+      "exp": "Pyruvate kinase transfers a phosphate from PEP to ADP, producing pyruvate and ATP.",
+      "optExp": [
+        null,
+        "Lactate is produced later by LDH if anaerobic.",
+        "Acetyl-CoA is from the link reaction.",
+        "PEP is the SUBSTRATE, not the product.",
+        "OAA is a TCA intermediate, not a glycolysis product."
+      ]
+    },
+    {
+      "id": 19,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What is the role of NAD⁺ in glycolysis?",
+      "opts": [
+        "Accepts electrons from GAPDH",
+        "Donates electrons to GAPDH",
+        "Acts as a phosphate donor",
+        "Phosphorylates ADP to ATP",
+        "Stabilizes pyruvate"
+      ],
+      "ans": 1,
+      "exp": "GAPDH oxidises glyceraldehyde-3-phosphate, reducing NAD⁺ to NADH.",
+      "optExp": [
+        "NAD⁺ accepts (does not donate) electrons.",
+        null,
+        "NAD⁺ is an electron carrier, not a phosphate donor.",
+        "Substrate-level phosphorylation involves PGK/PK, not NAD⁺.",
+        "NAD⁺ has no structural role with pyruvate."
+      ]
+    },
+    {
+      "id": 20,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Catabolism is best described as:",
+      "opts": [
+        "Breaking down molecules for energy",
+        "Building up complex molecules",
+        "Synthesizing nucleic acid polymers",
+        "Phosphorylating various substrates",
+        "Reducing oxygen to water"
+      ],
+      "ans": 0,
+      "exp": "Catabolism breaks larger molecules into smaller units, releasing energy in the form of ATP and reducing equivalents.",
+      "optExp": [
+        null,
+        "This is anabolism.",
+        "Nucleic acid synthesis is anabolic.",
+        "Phosphorylation can be either anabolic or catabolic.",
+        "This is one specific step in oxidative phosphorylation."
+      ]
+    },
+    {
+      "id": 21,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Where does the TCA cycle take place?",
+      "opts": [
+        "Cytoplasm",
+        "Intermembrane space",
+        "Inner mitochondrial membrane",
+        "Mitochondrial matrix",
+        "Outer mitochondrial membrane"
+      ],
+      "ans": 3,
+      "exp": "Both the link reaction and the TCA cycle occur in the mitochondrial matrix.",
+      "optExp": [
+        "The cytoplasm hosts glycolysis.",
+        "ETC pumps protons here; TCA does not run here.",
+        "The ETC sits here, not TCA enzymes.",
+        null,
+        "Only the outer membrane sits here; no TCA reactions."
+      ]
+    },
+    {
+      "id": 22,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme catalyses the link reaction (pyruvate → acetyl-CoA)?",
+      "opts": [
+        "Pyruvate kinase",
+        "Isocitrate dehydrogenase",
+        "Pyruvate dehydrogenase",
+        "Citrate synthase",
+        "α-ketoglutarate dehydrogenase"
+      ],
+      "ans": 2,
+      "exp": "PDH oxidatively decarboxylates pyruvate, producing acetyl-CoA, CO₂, and NADH.",
+      "optExp": [
+        "Pyruvate kinase acts in glycolysis, making pyruvate from PEP.",
+        "IDH is the TCA rate-limiting enzyme; comes later.",
+        null,
+        "Citrate synthase joins acetyl-CoA to OAA inside the TCA.",
+        "α-KG dehydrogenase acts on α-KG within the TCA cycle."
+      ]
+    },
+    {
+      "id": 23,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What are the products of the link reaction?",
+      "opts": [
+        "Acetyl-CoA, CO₂, and NADH",
+        "Acetyl-CoA and FADH₂ with CO₂",
+        "Acetyl-CoA, H₂O, and NADH",
+        "Acetyl-CoA, ATP, and CO₂",
+        "Acetyl-CoA, 2 NADH, and CO₂"
+      ],
+      "ans": 0,
+      "exp": "PDH converts pyruvate to acetyl-CoA, releasing one CO₂ and producing one NADH per pyruvate.",
+      "optExp": [
+        null,
+        "FADH₂ is not produced by PDH.",
+        "No water is produced as a labelled product here.",
+        "PDH does not produce ATP.",
+        "Only one NADH per pyruvate."
+      ]
+    },
+    {
+      "id": 24,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What is the rate-limiting enzyme of the TCA cycle?",
+      "opts": [
+        "Enzyme that catalyzes isocitrate oxidation",
+        "Enzyme that catalyzes citrate formation",
+        "Enzyme that catalyzes succinate oxidation",
+        "Enzyme that catalyzes malate conversion",
+        "Enzyme that catalyzes aconitase conversion"
+      ],
+      "ans": 0,
+      "exp": "Isocitrate dehydrogenase catalyses the rate-limiting step. It is activated by ADP and inhibited by ATP/NADH.",
+      "optExp": [
+        null,
+        "Citrate synthase is regulated but not the rate-limiting step.",
+        "SDH (Complex II) is unregulated allosterically.",
+        "MDH catalyses the last step but is not rate-limiting.",
+        "Aconitase is a freely reversible isomerisation step."
+      ]
+    },
+    {
+      "id": 25,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What are the products of ONE complete turn of the TCA cycle?",
+      "opts": [
+        "3 NADH, 1 FADH₂, 1 GTP, 2 CO₂",
+        "2 NADH, 2 FADH₂, 1 ATP, 2 CO₂",
+        "4 NADH, 1 FADH₂, 1 ATP, 3 CO₂",
+        "3 NADH, 2 FADH₂, 2 ATP, 2 CO₂",
+        "2 NADH, 1 FADH₂, 2 ATP, 2 CO₂"
+      ],
+      "ans": 0,
+      "exp": "Per acetyl-CoA: 3 NADH, 1 FADH₂, 1 GTP/ATP, 2 CO₂ — the '3211' rule.",
+      "optExp": [
+        null,
+        "Only 1 FADH₂ per turn (from succinate→fumarate).",
+        "4 NADH overstates yield.",
+        "Only 1 GTP per turn.",
+        "Only 2 NADH is too few."
+      ]
+    },
+    {
+      "id": 26,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Isocitrate dehydrogenase is allosterically activated by:",
+      "opts": [
+        "High ADP levels",
+        "High NADH levels",
+        "High ATP levels",
+        "High Acetyl-CoA levels",
+        "High oxaloacetate levels"
+      ],
+      "ans": 0,
+      "exp": "ADP signals low cellular energy and activates IDH, accelerating the TCA cycle.",
+      "optExp": [
+        null,
+        "NADH inhibits IDH.",
+        "ATP inhibits IDH.",
+        "Acetyl-CoA activates PDH but not IDH directly.",
+        "OAA is a substrate downstream, not an allosteric activator."
+      ]
+    },
+    {
+      "id": 27,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme joins oxaloacetate with acetyl-CoA at the start of the TCA cycle?",
+      "opts": [
+        "Citrate synthase",
+        "Isocitrate dehydrogenase",
+        "Aconitase",
+        "Succinyl-CoA synthetase",
+        "Fumarase"
+      ],
+      "ans": 0,
+      "exp": "Citrate synthase condenses 4C OAA with 2C acetyl-CoA to form 6C citrate.",
+      "optExp": [
+        null,
+        "Isocitrate dehydrogenase acts later, on isocitrate.",
+        "Aconitase isomerises citrate to isocitrate — it does not form citrate.",
+        "Succinyl-CoA synthetase makes GTP further along.",
+        "Fumarase converts fumarate to malate."
+      ]
+    },
+    {
+      "id": 28,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The Cori cycle transports which substrate from muscle to liver for re-conversion to glucose?",
+      "opts": [
+        "Lactate",
+        "Fatty acids",
+        "Acetyl-CoA",
+        "Alanine",
+        "Glycerol"
+      ],
+      "ans": 0,
+      "exp": "Lactate produced by anaerobic glycolysis in muscle is exported to the liver, where gluconeogenesis converts it back to glucose.",
+      "optExp": [
+        null,
+        "Fatty acids are not part of the Cori cycle.",
+        "Acetyl-CoA cannot be converted back to glucose — it is irreversibly committed to the TCA cycle.",
+        "Alanine is the substrate of the glucose-alanine cycle, not the Cori cycle.",
+        "Glycerol enters gluconeogenesis but is not exported from muscle via the Cori cycle."
+      ]
+    },
+    {
+      "id": 29,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Acetyl-CoA entering the TCA cycle can come from each of the following EXCEPT:",
+      "opts": [
+        "Direct conversion from lactate",
+        "Pyruvate via the link reaction",
+        "Beta-oxidation of fatty acids",
+        "Ketogenic amino acids",
+        "Ketone bodies"
+      ],
+      "ans": 0,
+      "exp": "Lactate must first be converted back to pyruvate, then via PDH to acetyl-CoA — there is no direct lactate → acetyl-CoA step.",
+      "optExp": [
+        null,
+        "This is the standard PDH route.",
+        "Beta-oxidation produces acetyl-CoA in mitochondria.",
+        "Ketogenic amino acids (leucine, lysine) yield acetyl-CoA.",
+        "Ketone bodies can be reconverted to acetyl-CoA in extrahepatic tissues."
+      ]
+    },
+    {
+      "id": 34,
+      "cat": "TCA Cycle & Link Reaction",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How many CO₂ molecules are released per turn of the TCA cycle (excluding link reaction)?",
+      "opts": [
+        "2 CO₂ molecules",
+        "1 CO₂ molecule",
+        "3 CO₂ molecules",
+        "4 CO₂ molecules",
+        "0 CO₂ molecules"
+      ],
+      "ans": 0,
+      "exp": "Two CO₂ molecules are released per turn — by IDH (isocitrate → α-KG) and α-KG dehydrogenase (α-KG → succinyl-CoA).",
+      "optExp": [
+        null,
+        "Two decarboxylations occur per turn.",
+        "3 would include the link reaction's CO₂.",
+        "Excessive; only 2 decarboxylating steps in the cycle proper.",
+        "CO₂ IS released in the TCA cycle."
+      ]
+    },
+    {
+      "id": 36,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Where is the electron transport chain located?",
+      "opts": [
+        "On the inner mitochondrial membrane",
+        "Within the mitochondrial matrix",
+        "Within the cellular cytoplasm",
+        "On the outer mitochondrial membrane",
+        "Within the nuclear envelope"
+      ],
+      "ans": 0,
+      "exp": "Complexes I-V of the ETC are embedded in the inner mitochondrial membrane, allowing proton pumping into the intermembrane space.",
+      "optExp": [
+        null,
+        "The matrix hosts TCA enzymes, not the ETC.",
+        "Glycolysis is cytoplasmic; the ETC is not.",
+        "The outer membrane is permeable to ions and lacks ETC complexes.",
+        "DNA replication occurs here, not the ETC."
+      ]
+    },
+    {
+      "id": 37,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "What is the final electron acceptor of the ETC?",
+      "opts": [
+        "Oxygen",
+        "NAD⁺",
+        "FAD",
+        "CO₂",
+        "Cytochrome c"
+      ],
+      "ans": 0,
+      "exp": "Oxygen accepts electrons at Complex IV (cytochrome c oxidase) and combines with H⁺ to form water.",
+      "optExp": [
+        null,
+        "NAD⁺ accepts electrons in the TCA cycle, not the end of ETC.",
+        "FAD acts at substrate level, not the end of ETC.",
+        "CO₂ is a waste product, not an electron acceptor.",
+        "Cytochrome c is an intermediate mobile carrier, not final."
+      ]
+    },
+    {
+      "id": 38,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which complex accepts electrons from NADH?",
+      "opts": [
+        "Complex I",
+        "Complex II",
+        "Complex III",
+        "Complex IV",
+        "Complex V"
+      ],
+      "ans": 3,
+      "exp": "NADH dehydrogenase (Complex I) oxidises NADH and passes electrons to coenzyme Q while pumping 4 H⁺.",
+      "optExp": [
+        "Complex II accepts electrons from FADH₂, not NADH.",
+        "Complex III receives from coenzyme Q.",
+        "Complex IV receives from cytochrome c.",
+        null,
+        "Complex V is ATP synthase, not an electron transfer complex."
+      ]
+    },
+    {
+      "id": 39,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which mobile carrier transports electrons from Complex I/II to Complex III?",
+      "opts": [
+        "Coenzyme Q",
+        "Cytochrome c",
+        "NADH",
+        "FADH₂",
+        "Iron-sulfur clusters"
+      ],
+      "ans": 0,
+      "exp": "Coenzyme Q is a lipid-soluble quinone that shuttles electrons through the inner membrane to Complex III.",
+      "optExp": [
+        null,
+        "Cytochrome c transports between Complex III and IV.",
+        "NADH delivers electrons but is not mobile within the membrane.",
+        "FADH₂ is tethered to Complex II.",
+        "Iron-sulfur clusters are within complexes, not mobile."
+      ]
+    },
+    {
+      "id": 40,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The mechanism by which proton flow through ATP synthase drives ATP production is called:",
+      "opts": [
+        "Chemiosmosis",
+        "Substrate-level phosphorylation",
+        "Beta-oxidation",
+        "Glycolysis",
+        "Fermentation"
+      ],
+      "ans": 0,
+      "exp": "Chemiosmosis is the use of the proton gradient (proton-motive force) across the inner mitochondrial membrane to power ATP synthesis.",
+      "optExp": [
+        null,
+        "This describes direct phosphate transfer in glycolysis/TCA.",
+        "Beta-oxidation is fatty acid breakdown.",
+        "Glycolysis is glucose breakdown.",
+        "Fermentation regenerates NAD⁺ but does not produce ATP from a gradient."
+      ]
+    },
+    {
+      "id": 41,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Approximately how many ATP are produced from complete oxidation of one glucose molecule?",
+      "opts": [
+        "Approximately 2 ATP",
+        "Approximately 8 ATP",
+        "Approximately 18 ATP",
+        "Approximately 30-38 ATP",
+        "Approximately 100 ATP"
+      ],
+      "ans": 3,
+      "exp": "Complete oxidation yields ~30-38 ATP: 2 from glycolysis, 2 from TCA SLP, and the rest from oxidative phosphorylation.",
+      "optExp": [
+        "2 ATP is the glycolytic yield alone.",
+        "Too low for complete oxidation.",
+        "Significantly undershoots the actual yield.",
+        null,
+        "100 ATP exceeds the theoretical limit."
+      ]
+    },
+    {
+      "id": 42,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Why do fats yield more energy per gram than carbohydrates?",
+      "opts": [
+        "Fatty acids generate more NADH and FADH₂ per molecule",
+        "Lipids contain more oxygen atoms",
+        "Lipids enter the TCA cycle directly",
+        "Lipids bypass ATP phosphorylation",
+        "Glycerol directly produces ATP"
+      ],
+      "ans": 0,
+      "exp": "Fatty acids are highly reduced; beta-oxidation generates abundant NADH and FADH₂, producing ~9 kcal/g vs ~4 kcal/g for carbohydrates.",
+      "optExp": [
+        null,
+        "Lipids contain LESS oxygen than carbohydrates.",
+        "Fatty acids must be processed via beta-oxidation first.",
+        "Lipids still rely on oxidative phosphorylation.",
+        "Glycerol enters glycolysis/gluconeogenesis, not ATP directly."
+      ]
+    },
+    {
+      "id": 45,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Cyanide inhibits oxidative phosphorylation by binding to:",
+      "opts": [
+        "Complex I",
+        "Complex II",
+        "Complex III",
+        "Complex IV",
+        "ATP synthase"
+      ],
+      "ans": 3,
+      "exp": "Cyanide binds the Fe³⁺ in cytochrome c oxidase (Complex IV), preventing electron transfer to oxygen and stopping the ETC.",
+      "optExp": [
+        "Rotenone (a pesticide) inhibits Complex I.",
+        "Malonate is a Complex II inhibitor.",
+        "Antimycin A inhibits Complex III.",
+        null,
+        "Oligomycin inhibits ATP synthase, not cyanide."
+      ]
+    },
+    {
+      "id": 46,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Uncoupling agents (e.g. DNP, thermogenin in brown fat) cause:",
+      "opts": [
+        "Loss of the proton gradient across the inner mitochondrial membrane",
+        "Increased ATP synthesis",
+        "Cessation of oxygen consumption",
+        "Inhibition of glycolysis",
+        "Reduced TCA cycle activity"
+      ],
+      "ans": 0,
+      "exp": "Uncouplers allow protons to leak back across the membrane without going through ATP synthase, dissipating the gradient as heat.",
+      "optExp": [
+        null,
+        "ATP synthesis decreases when uncoupled.",
+        "Oxygen consumption actually increases.",
+        "Glycolysis is not directly affected.",
+        "TCA may speed up to compensate."
+      ]
+    },
+    {
+      "id": 47,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Brown adipose tissue generates heat via:",
+      "opts": [
+        "UCP1 uncouples oxidative phosphorylation to dissipate energy as heat",
+        "Increased glycolysis in brown adipose tissue",
+        "Beta-oxidation alone produces significant heat",
+        "Substrate cycling in muscle tissue",
+        "Cytochrome P450 activity increases"
+      ],
+      "ans": 0,
+      "exp": "Thermogenin (UCP1) allows protons to bypass ATP synthase, dissipating the gradient as heat — important in neonates.",
+      "optExp": [
+        null,
+        "Glycolysis is not a major heat source in BAT.",
+        "Beta-oxidation feeds fuel but doesn't itself uncouple.",
+        "Substrate cycles consume ATP but are not the main mechanism.",
+        "CYP450 is for drug metabolism, not thermogenesis."
+      ]
+    },
+    {
+      "id": 48,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "ATP synthase (Complex V) uses what to drive ATP synthesis?",
+      "opts": [
+        "Electron flow",
+        "Substrate-level phosphorylation",
+        "Proton gradient flowing down its electrochemical gradient",
+        "ATP hydrolysis",
+        "NADH oxidation"
+      ],
+      "ans": 2,
+      "exp": "H⁺ flow from the intermembrane space back to the matrix through ATP synthase drives rotation and ATP synthesis.",
+      "optExp": [
+        "Electron flow happens at I-IV, not V.",
+        "SLP is in glycolysis/TCA.",
+        null,
+        "That is the reverse reaction.",
+        "NADH oxidation is at Complex I."
+      ]
+    },
+    {
+      "id": 50,
+      "cat": "Oxidative Phosphorylation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In oxidative phosphorylation, oxygen is reduced to:",
+      "opts": [
+        "Carbon dioxide",
+        "Hydrogen peroxide",
+        "Water",
+        "Superoxide radical only",
+        "Ozone"
+      ],
+      "ans": 2,
+      "exp": "At Complex IV, O₂ accepts four electrons and combines with 4 H⁺ to form 2 H₂O.",
+      "optExp": [
+        "CO₂ is produced in TCA and link reaction, not the ETC.",
+        "H₂O₂ may form as a side product but is not the main product.",
+        null,
+        "Superoxide can form as a leak but is detoxified.",
+        "Ozone is not a biological product."
+      ]
+    },
+    {
+      "id": 51,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How do enzymes accelerate reactions?",
+      "opts": [
+        "Lower the activation energy of the reaction",
+        "Shift equilibrium toward products",
+        "Raise the energy of substrates",
+        "Bind substrates permanently",
+        "Increase the reaction temperature"
+      ],
+      "ans": 0,
+      "exp": "Enzymes lower the activation energy (Ea), allowing reactions to proceed faster without changing ΔG.",
+      "optExp": [
+        null,
+        "Enzymes do not shift equilibrium position.",
+        "They lower, not raise, energy barriers.",
+        "Enzymes bind transiently, not permanently.",
+        "They do not increase temperature."
+      ]
+    },
+    {
+      "id": 52,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "An apoenzyme is:",
+      "opts": [
+        "Inactive enzyme lacking a required cofactor or coenzyme",
+        "Active enzyme bound to its cofactor",
+        "Enzyme that has been denatured",
+        "Enzyme with multiple active sites",
+        "Regulatory protein subunit"
+      ],
+      "ans": 0,
+      "exp": "Apoenzyme = protein-only, inactive. Apoenzyme + cofactor = holoenzyme (active).",
+      "optExp": [
+        null,
+        "That is a holoenzyme.",
+        "Denatured enzymes are permanently inactive; apoenzymes can be reactivated.",
+        "Number of active sites is unrelated.",
+        "Regulatory subunits are different structural elements."
+      ]
+    },
+    {
+      "id": 53,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The induced fit model states that:",
+      "opts": [
+        "The active site changes shape upon substrate binding",
+        "The active site is permanently rigid",
+        "Substrate molds to fit a rigid active site",
+        "Enzymes bind any substrate with equal affinity",
+        "The active site remains open and unchanging"
+      ],
+      "ans": 0,
+      "exp": "In induced fit, the active site flexibly remodels around the substrate, optimising catalysis.",
+      "optExp": [
+        null,
+        "Rigid fit is the older 'lock and key' model.",
+        "The enzyme changes, not the substrate.",
+        "Enzymes are specific.",
+        "Active sites can close around substrate."
+      ]
+    },
+    {
+      "id": 54,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Km (Michaelis constant) is:",
+      "opts": [
+        "The substrate concentration at which the enzyme reaches half its maximum velocity",
+        "The maximum velocity achieved by the enzyme",
+        "The rate of product formation",
+        "The enzyme saturation level",
+        "The inhibitor binding constant"
+      ],
+      "ans": 0,
+      "exp": "Km = [S] at which enzyme velocity is ½ Vmax. Low Km = high affinity for substrate.",
+      "optExp": [
+        null,
+        "That is Vmax.",
+        "That is k_cat or turnover.",
+        "Km is a substrate parameter, not enzyme concentration.",
+        "Ki is the inhibitor constant."
+      ]
+    },
+    {
+      "id": 55,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A competitive inhibitor affects enzyme kinetics by:",
+      "opts": [
+        "It increases Km while Vmax remains unchanged",
+        "It decreases Vmax only",
+        "It decreases both Km and Vmax",
+        "It increases both Km and Vmax",
+        "It decreases Km only"
+      ],
+      "ans": 0,
+      "exp": "Competitive inhibitors compete for the active site — more substrate restores Vmax, but more is needed to reach ½ Vmax (Km increases).",
+      "optExp": [
+        null,
+        "This describes non-competitive inhibition.",
+        "This describes uncompetitive inhibition.",
+        "Both increasing is not typical.",
+        "Km should INCREASE with competitive inhibition."
+      ]
+    },
+    {
+      "id": 56,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A non-competitive inhibitor affects enzyme kinetics by:",
+      "opts": [
+        "Binds to the allosteric site, not the active site",
+        "Decreases Vmax only",
+        "Binds to both free enzyme and enzyme-substrate complex",
+        "Increases Km without affecting Vmax",
+        "Always produces irreversible inhibition"
+      ],
+      "ans": 1,
+      "exp": "Non-competitive inhibitors bind allosteric sites and cannot be overcome by more substrate. Vmax decreases; Km unchanged.",
+      "optExp": [
+        "This is competitive.",
+        null,
+        "That's uncompetitive (binds ES complex).",
+        "Inhibitors do not increase Vmax.",
+        "Many non-competitive inhibitors are reversible."
+      ]
+    },
+    {
+      "id": 57,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Uncompetitive inhibitors:",
+      "opts": [
+        "Binds only to the enzyme-substrate complex",
+        "Decreases both Km and Vmax proportionally",
+        "Increases Vmax at higher substrate concentrations",
+        "Always produces irreversible inhibition",
+        "Cannot be overcome by increasing substrate concentration"
+      ],
+      "ans": 0,
+      "exp": "Uncompetitive inhibitors bind only the ES complex, locking the substrate in. Both Km and Vmax decrease.",
+      "optExp": [
+        null,
+        "Km and Vmax do decrease, but binding only the ES complex is the defining feature.",
+        "Inhibitors decrease, not increase, Vmax.",
+        "Reversibility varies.",
+        "True but not the defining feature."
+      ]
+    },
+    {
+      "id": 58,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "On a Lineweaver-Burk plot, the y-intercept equals:",
+      "opts": [
+        "Vmax directly",
+        "1/Vmax (the reciprocal of Vmax)",
+        "Km directly",
+        "Negative 1/Km",
+        "The slope of the line"
+      ],
+      "ans": 1,
+      "exp": "On the double-reciprocal plot, the y-intercept = 1/Vmax and the x-intercept = −1/Km.",
+      "optExp": [
+        "Vmax is not the y-intercept directly.",
+        null,
+        "Km appears as the x-intercept reciprocal.",
+        "x-intercept value, not y.",
+        "Slope-related, not y-intercept."
+      ]
+    },
+    {
+      "id": 59,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Most human enzymes function optimally at:",
+      "opts": [
+        "25°C",
+        "30°C",
+        "37°C",
+        "42°C",
+        "45°C"
+      ],
+      "ans": 2,
+      "exp": "Human enzymes evolved at core body temperature (~37°C). Above this, denaturation occurs.",
+      "optExp": [
+        "Too cold; enzyme activity drops.",
+        "Below optimum.",
+        null,
+        "This is feverish; many enzymes start to denature.",
+        "Significant denaturation occurs."
+      ]
+    },
+    {
+      "id": 60,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "An enzyme with a LOW Km has:",
+      "opts": [
+        "Low affinity for its substrate",
+        "High affinity for its substrate",
+        "Very high Vmax at all times",
+        "Inability to undergo competitive inhibition",
+        "An absolute requirement for cofactors"
+      ],
+      "ans": 1,
+      "exp": "Low Km = high substrate affinity (e.g. hexokinase). The enzyme operates efficiently at low substrate concentrations.",
+      "optExp": [
+        "Inverse of correct.",
+        null,
+        "Km is independent of Vmax.",
+        "Low Km enzymes can still be inhibited.",
+        "Km does not indicate cofactor requirement."
+      ]
+    },
+    {
+      "id": 61,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which is NOT an irreversible step of glycolysis?",
+      "opts": [
+        "The hexokinase reaction is reversible",
+        "The phosphoglucose isomerase reaction is reversible",
+        "The PFK-1 reaction is irreversible",
+        "The pyruvate kinase reaction is irreversible",
+        "All glycolytic steps are reversible"
+      ],
+      "ans": 1,
+      "exp": "The three irreversible steps are hexokinase, PFK-1, and pyruvate kinase. Phosphoglucose isomerase (step 2) is reversible, making it the only reversible step listed.",
+      "optExp": [
+        "Hexokinase IS irreversible — it is one of the three irreversible glycolytic steps.",
+        null,
+        "PFK-1 IS irreversible — the rate-limiting step of glycolysis.",
+        "Pyruvate kinase IS irreversible — the final step of glycolysis.",
+        "Most glycolytic steps are reversible; only hexokinase, PFK-1, and pyruvate kinase are irreversible."
+      ]
+    },
+    {
+      "id": 62,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Vmax is best defined as:",
+      "opts": [
+        "The maximum velocity achieved at enzyme saturation",
+        "The substrate concentration at half-maximal velocity",
+        "The minimum velocity ever achieved by the enzyme",
+        "The enzyme-substrate dissociation constant",
+        "The ratio of product formed to substrate consumed"
+      ],
+      "ans": 0,
+      "exp": "Vmax is the maximum rate when all enzyme active sites are saturated with substrate.",
+      "optExp": [
+        null,
+        "That is Km.",
+        "Vmax is the MAXIMUM, not minimum.",
+        "That is Kd, a different parameter.",
+        "That describes k_cat or turnover number."
+      ]
+    },
+    {
+      "id": 63,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Allosteric enzymes typically show:",
+      "opts": [
+        "Hyperbolic kinetics",
+        "Sigmoidal kinetics",
+        "Constant velocity regardless of substrate concentration",
+        "Inverse relationship between substrate and velocity",
+        "No saturation point"
+      ],
+      "ans": 1,
+      "exp": "Allosteric enzymes (often multi-subunit) show sigmoidal kinetics due to cooperative substrate binding.",
+      "optExp": [
+        "Michaelis-Menten enzymes show hyperbolic kinetics.",
+        null,
+        "Velocity changes with substrate.",
+        "Not a real kinetic shape.",
+        "Allosteric enzymes do saturate."
+      ]
+    },
+    {
+      "id": 64,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "An irreversible inhibitor:",
+      "opts": [
+        "Can be overcome by adding excess substrate",
+        "Forms permanent covalent bonds with the enzyme",
+        "Binds reversibly to the allosteric site",
+        "Always increases Vmax of the enzyme",
+        "Reduces Km while leaving Vmax unchanged"
+      ],
+      "ans": 1,
+      "exp": "Irreversible inhibitors form covalent bonds and permanently disable the enzyme (e.g. aspirin acetylating COX).",
+      "optExp": [
+        "Cannot be overcome — they are covalently bound.",
+        null,
+        "Allosteric inhibitors can be reversible.",
+        "Inhibitors lower activity.",
+        "Doesn't describe irreversible inhibition."
+      ]
+    },
+    {
+      "id": 65,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which TCA enzyme is inhibited by high NADH?",
+      "opts": [
+        "Citrate synthase only",
+        "Isocitrate dehydrogenase only",
+        "Both citrate synthase and isocitrate dehydrogenase",
+        "Aconitase only",
+        "Fumarase only"
+      ],
+      "ans": 2,
+      "exp": "Both citrate synthase and IDH (and α-KG DH) are inhibited by NADH, which signals high cellular energy state.",
+      "optExp": [
+        "Citrate synthase is inhibited, but so are others.",
+        "IDH is inhibited, but so is citrate synthase.",
+        null,
+        "Aconitase is not allosterically regulated.",
+        "Fumarase is not allosterically regulated."
+      ]
+    },
+    {
+      "id": 66,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Gluconeogenesis produces glucose from non-carbohydrate sources mainly in the:",
+      "opts": [
+        "Brain",
+        "Heart",
+        "Liver",
+        "Skeletal muscle",
+        "Spleen"
+      ],
+      "ans": 2,
+      "exp": "Gluconeogenesis occurs principally in the liver (and to a smaller extent the kidney cortex), maintaining blood glucose during fasting.",
+      "optExp": [
+        "The brain consumes glucose; cannot make it.",
+        "Heart consumes glucose/fatty acids.",
+        null,
+        "Muscle lacks glucose-6-phosphatase, so cannot release glucose.",
+        "The spleen has no significant role in gluconeogenesis."
+      ]
+    },
+    {
+      "id": 67,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which of the following substrates is NOT a major gluconeogenic precursor?",
+      "opts": [
+        "Lactate",
+        "Glycerol",
+        "Alanine",
+        "Acetyl-CoA",
+        "Pyruvate"
+      ],
+      "ans": 3,
+      "exp": "Acetyl-CoA cannot be net converted to glucose in humans — there is no enzyme to bypass the irreversible PDH step.",
+      "optExp": [
+        "Lactate (Cori cycle) is a major precursor.",
+        "Glycerol from triacylglycerols is a precursor.",
+        "Alanine (glucose-alanine cycle) is a major precursor.",
+        null,
+        "Pyruvate enters via pyruvate carboxylase."
+      ]
+    },
+    {
+      "id": 68,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme is unique to gluconeogenesis, bypassing pyruvate kinase?",
+      "opts": [
+        "Pyruvate dehydrogenase",
+        "Pyruvate carboxylase and phosphoenolpyruvate carboxykinase (PEPCK)",
+        "Hexokinase",
+        "Aldolase",
+        "Phosphoglucose isomerase"
+      ],
+      "ans": 1,
+      "exp": "Pyruvate carboxylase converts pyruvate to OAA; PEPCK then converts OAA to PEP, bypassing irreversible pyruvate kinase.",
+      "optExp": [
+        "PDH converts pyruvate to acetyl-CoA, not gluconeogenic.",
+        null,
+        "Hexokinase makes G6P from glucose, the opposite direction.",
+        "Aldolase is shared with glycolysis (reversible).",
+        "Reversible enzyme shared with glycolysis."
+      ]
+    },
+    {
+      "id": 69,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme bypasses PFK-1 in gluconeogenesis?",
+      "opts": [
+        "Fructose-1,6-bisphosphatase",
+        "Glucose-6-phosphatase",
+        "Hexokinase",
+        "Aldolase",
+        "Enolase"
+      ],
+      "ans": 0,
+      "exp": "Fructose-1,6-bisphosphatase hydrolyses F1,6BP to F6P, the gluconeogenic bypass of PFK-1.",
+      "optExp": [
+        null,
+        "G6Pase bypasses hexokinase at the final step.",
+        "Hexokinase is glycolytic.",
+        "Aldolase is reversible.",
+        "Enolase is reversible."
+      ]
+    },
+    {
+      "id": 70,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Why can't muscle release free glucose into the blood?",
+      "opts": [
+        "It lacks glucokinase",
+        "It lacks glucose-6-phosphatase",
+        "It lacks pyruvate carboxylase",
+        "It lacks glycogen synthase",
+        "Its glucose is sequestered in the glycolytic pathway"
+      ],
+      "ans": 1,
+      "exp": "Muscle lacks glucose-6-phosphatase, so G6P generated from glycogen cannot be dephosphorylated to free glucose for export.",
+      "optExp": [
+        "Muscle uses hexokinase, not glucokinase.",
+        null,
+        "Muscle lacks pyruvate carboxylase too, but the key difference is G6Pase.",
+        "Muscle has glycogen synthase.",
+        "Not a real mechanism."
+      ]
+    },
+    {
+      "id": 71,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which hormone promotes glycogenolysis in the liver during fasting?",
+      "opts": [
+        "Insulin",
+        "Glucagon",
+        "Aldosterone",
+        "Calcitonin",
+        "Oxytocin"
+      ],
+      "ans": 1,
+      "exp": "Glucagon (and adrenaline) activates glycogen phosphorylase via cAMP/PKA, mobilising glucose from glycogen stores.",
+      "optExp": [
+        "Insulin promotes glycogen STORAGE.",
+        null,
+        "Aldosterone regulates Na/K.",
+        "Calcitonin regulates calcium.",
+        "Oxytocin acts on uterus and breast."
+      ]
+    },
+    {
+      "id": 72,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme catalyses the rate-limiting step of glycogen synthesis?",
+      "opts": [
+        "Glycogen phosphorylase",
+        "Glycogen synthase",
+        "Branching enzyme",
+        "Debranching enzyme",
+        "UDP-glucose pyrophosphorylase"
+      ],
+      "ans": 1,
+      "exp": "Glycogen synthase is rate-limiting in glycogenesis, activated by insulin (via dephosphorylation).",
+      "optExp": [
+        "This is the glycogenolysis enzyme.",
+        null,
+        "Branching enzyme adds α-1,6 branches but isn't rate-limiting.",
+        "Debranching is for glycogenolysis.",
+        "Provides activated glucose but isn't rate-limiting."
+      ]
+    },
+    {
+      "id": 73,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme is the rate-limiting step of glycogenolysis?",
+      "opts": [
+        "Glycogen synthase",
+        "Glycogen phosphorylase",
+        "Branching enzyme",
+        "Glucokinase",
+        "Phosphoglucomutase"
+      ],
+      "ans": 1,
+      "exp": "Glycogen phosphorylase liberates glucose-1-phosphate from glycogen and is rate-limiting; activated by glucagon/adrenaline.",
+      "optExp": [
+        "This is for glycogen synthesis.",
+        null,
+        "Adds branches, not rate-limiting.",
+        "Glucokinase is in glucose phosphorylation.",
+        "Converts G1P to G6P, downstream."
+      ]
+    },
+    {
+      "id": 74,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In severe liver disease, a patient is most likely to develop:",
+      "opts": [
+        "Hyperglycaemia develops",
+        "Hypoglycaemia develops",
+        "Ketoacidosis develops",
+        "Lactic alkalosis develops",
+        "Glycogen accumulates excessively"
+      ],
+      "ans": 1,
+      "exp": "The liver maintains blood glucose during fasting via gluconeogenesis and glycogenolysis. Severe liver dysfunction → hypoglycaemia.",
+      "optExp": [
+        "Patients usually become hypoglycaemic.",
+        null,
+        "Liver may also affect ketone clearance but hypoglycaemia is the key finding.",
+        "Lactic acidosis (not alkalosis) is more typical.",
+        "Glycogen stores are reduced."
+      ]
+    },
+    {
+      "id": 75,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How many ATP equivalents does the Cori cycle cost the body per glucose recycled?",
+      "opts": [
+        "1 ATP equivalent",
+        "2 ATP equivalents",
+        "4 ATP equivalents",
+        "6 ATP equivalents",
+        "8 ATP equivalents"
+      ],
+      "ans": 2,
+      "exp": "Muscle gains 2 ATP from anaerobic glycolysis, but the liver uses 6 ATP to remake glucose — a net cost of 4 ATP.",
+      "optExp": [
+        "Too few.",
+        "Too few.",
+        null,
+        "Overestimates the net loss.",
+        "Overestimates the net loss."
+      ]
+    },
+    {
+      "id": 76,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Glycogen branches are formed by an α-1,6 glycosidic bond approximately every:",
+      "opts": [
+        "Every 2–3 residues",
+        "Every 4–6 residues",
+        "Every 8–10 residues",
+        "Every 30–50 residues",
+        "Every 100 residues"
+      ],
+      "ans": 2,
+      "exp": "Branching enzyme introduces α-1,6 branches roughly every 8-10 glucose units, increasing solubility and accessibility.",
+      "optExp": [
+        "Too frequent.",
+        "Too frequent.",
+        null,
+        "Branches are denser than this.",
+        "Far too sparse."
+      ]
+    },
+    {
+      "id": 77,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The activated form of glucose used to add residues to glycogen is:",
+      "opts": [
+        "Glucose-6-phosphate",
+        "Fructose-1,6-bisphosphate",
+        "UDP-glucose",
+        "ADP-glucose",
+        "Glucose-1-phosphate"
+      ],
+      "ans": 2,
+      "exp": "UDP-glucose, made by UDP-glucose pyrophosphorylase, donates glucose units to growing glycogen chains.",
+      "optExp": [
+        "G6P is the entry point, not the donor.",
+        "An unrelated glycolysis intermediate.",
+        null,
+        "ADP-glucose is the plant/bacterial donor.",
+        "G1P is the immediate precursor of UDP-glucose."
+      ]
+    },
+    {
+      "id": 78,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "During prolonged fasting, the brain begins to use which alternative fuel?",
+      "opts": [
+        "Fatty acids",
+        "Amino acids",
+        "Ketone bodies",
+        "Lactate",
+        "Glycerol"
+      ],
+      "ans": 2,
+      "exp": "After a few days of fasting, the brain shifts to using ketone bodies (β-hydroxybutyrate, acetoacetate) for ~60% of its energy.",
+      "optExp": [
+        "Fatty acids cannot cross the BBB efficiently.",
+        "Amino acids are not the main brain fuel.",
+        null,
+        "Lactate use is limited.",
+        "Glycerol is too minor a fuel source."
+      ]
+    },
+    {
+      "id": 79,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Glycogen storage in the liver primarily serves to:",
+      "opts": [
+        "Provides ATP for hepatocytes",
+        "Maintains blood glucose during fasting",
+        "Powers skeletal muscle contraction",
+        "Stores water molecules",
+        "Synthesizes cholesterol"
+      ],
+      "ans": 1,
+      "exp": "Liver glycogen is broken down to release free glucose into the blood, maintaining blood glucose levels between meals.",
+      "optExp": [
+        "Liver glycogen serves systemic glucose homeostasis, not local ATP.",
+        null,
+        "Muscle has its own glycogen.",
+        "Glycogen is hydrated but storage isn't for water.",
+        "Cholesterol synthesis uses acetyl-CoA, not glycogen directly."
+      ]
+    },
+    {
+      "id": 80,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Adrenaline activates glycogenolysis in muscle via:",
+      "opts": [
+        "α1 receptors and IP3 signalling",
+        "β2 receptors and cAMP signalling",
+        "M3 muscarinic receptors",
+        "Insulin receptors",
+        "Nicotinic receptors"
+      ],
+      "ans": 1,
+      "exp": "Adrenaline binds β2 receptors on muscle (Gs-coupled), raising cAMP, activating PKA, which activates phosphorylase kinase → glycogen phosphorylase.",
+      "optExp": [
+        "α1 receptors are more on vascular smooth muscle.",
+        null,
+        "M3 are smooth muscle/glandular.",
+        "Insulin promotes glycogen STORAGE.",
+        "Nicotinic receptors are ligand-gated ion channels."
+      ]
+    },
+    {
+      "id": 81,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Where does beta-oxidation of fatty acids occur?",
+      "opts": [
+        "Cytoplasm",
+        "Mitochondrial matrix",
+        "Lysosome",
+        "Smooth endoplasmic reticulum",
+        "Nuclear envelope"
+      ],
+      "ans": 1,
+      "exp": "Beta-oxidation occurs in the mitochondrial matrix (peroxisomes handle very-long-chain fatty acids).",
+      "optExp": [
+        "Fatty acid synthesis is cytoplasmic, but breakdown is mitochondrial.",
+        null,
+        "Lysosomes degrade macromolecules but not via beta-oxidation.",
+        "Smooth ER handles lipid SYNTHESIS.",
+        "Beta-oxidation does not happen here."
+      ]
+    },
+    {
+      "id": 82,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Long-chain fatty acids enter mitochondria via:",
+      "opts": [
+        "Diffusion through the outer membrane",
+        "Carnitine shuttle system",
+        "GLUT4 transporter",
+        "ATP synthase complex",
+        "Sodium-glucose co-transporter"
+      ],
+      "ans": 1,
+      "exp": "Long-chain fatty acyl-CoAs are conjugated to carnitine by CPT-I, transported by translocase, and reformed by CPT-II in the matrix.",
+      "optExp": [
+        "Long chains cannot freely cross the inner membrane.",
+        null,
+        "GLUT4 transports glucose.",
+        "ATP synthase is for protons.",
+        "Sodium-glucose co-transport is for intestinal/renal glucose."
+      ]
+    },
+    {
+      "id": 83,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Each cycle of beta-oxidation produces:",
+      "opts": [
+        "1 NADH, 1 FADH₂, and 1 acetyl-CoA",
+        "2 NADH and 1 acetyl-CoA",
+        "1 ATP, 1 NADH, and 1 FADH₂",
+        "2 acetyl-CoA and 1 NADH",
+        "1 NADH, 1 FADH₂, and 2 acetyl-CoA"
+      ],
+      "ans": 0,
+      "exp": "Each round shortens the fatty acid by 2 carbons, releasing one acetyl-CoA and reducing one FAD and one NAD⁺.",
+      "optExp": [
+        null,
+        "FADH₂ is also produced.",
+        "ATP is not directly produced per cycle.",
+        "Only one acetyl-CoA per cycle.",
+        "Only one acetyl-CoA per cycle."
+      ]
+    },
+    {
+      "id": 84,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Beta-oxidation is most active in which condition?",
+      "opts": [
+        "Fed state with high insulin levels",
+        "Fasting or prolonged exercise",
+        "High-carbohydrate meal",
+        "Anaerobic exercise",
+        "Immediate postprandial period"
+      ],
+      "ans": 1,
+      "exp": "Beta-oxidation is upregulated when glucose is low: fasting, prolonged exercise, or starvation.",
+      "optExp": [
+        "Insulin suppresses lipolysis and beta-oxidation.",
+        null,
+        "Insulin suppresses fatty acid use.",
+        "Anaerobic exercise relies on glycolysis.",
+        "Insulin spikes here, suppressing beta-oxidation."
+      ]
+    },
+    {
+      "id": 85,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Ketone bodies are produced in the liver from:",
+      "opts": [
+        "Glucose",
+        "Acetyl-CoA",
+        "Lactate",
+        "Amino acids",
+        "Pyruvate"
+      ],
+      "ans": 1,
+      "exp": "Ketogenesis condenses two acetyl-CoA into acetoacetate (and β-hydroxybutyrate), produced when acetyl-CoA exceeds TCA capacity.",
+      "optExp": [
+        "Glucose breakdown does not directly form ketones.",
+        null,
+        "Lactate is recycled via Cori cycle.",
+        "Ketogenic amino acids contribute via acetyl-CoA.",
+        "Pyruvate must first become acetyl-CoA."
+      ]
+    },
+    {
+      "id": 86,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which is NOT a ketone body?",
+      "opts": [
+        "Acetoacetate",
+        "β-hydroxybutyrate",
+        "Acetone",
+        "Pyruvate",
+        "All of the above are ketone bodies"
+      ],
+      "ans": 3,
+      "exp": "The three ketone bodies are acetoacetate, β-hydroxybutyrate and acetone. Pyruvate is not a ketone body.",
+      "optExp": [
+        "Acetoacetate is a ketone body.",
+        "β-OH-butyrate is the most abundant in DKA.",
+        "Acetone gives the breath smell in DKA.",
+        null,
+        "Pyruvate is NOT a ketone body."
+      ]
+    },
+    {
+      "id": 87,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "During lipolysis in adipose tissue, triacylglycerols are broken into:",
+      "opts": [
+        "Pyruvate and glucose",
+        "Glycerol and free fatty acids",
+        "Cholesterol and bile salts",
+        "Amino acids and glucose",
+        "Acetyl-CoA only"
+      ],
+      "ans": 1,
+      "exp": "Hormone-sensitive lipase hydrolyses TAGs into glycerol and free fatty acids, which are released into blood.",
+      "optExp": [
+        "No pyruvate or glucose produced here.",
+        null,
+        "Cholesterol is unrelated to TAG breakdown.",
+        "Amino acids are from protein.",
+        "Acetyl-CoA forms later in mitochondria."
+      ]
+    },
+    {
+      "id": 88,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In adipose tissue, glycerol released from TAG breakdown is used in the liver for:",
+      "opts": [
+        "Beta-oxidation",
+        "Gluconeogenesis",
+        "Glycogen synthesis only",
+        "Cholesterol synthesis",
+        "Bile acid synthesis"
+      ],
+      "ans": 1,
+      "exp": "Glycerol enters gluconeogenesis via glycerol kinase → glycerol-3-P → DHAP, contributing to blood glucose during fasting.",
+      "optExp": [
+        "Glycerol is not a fatty acid.",
+        null,
+        "Glycogen synthesis happens after glucose is made.",
+        "Cholesterol uses acetyl-CoA.",
+        "Bile acids come from cholesterol."
+      ]
+    },
+    {
+      "id": 89,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Each fatty acid carbon yields more energy than each glucose carbon because:",
+      "opts": [
+        "Fatty acids contain more carbons per molecule",
+        "Fatty acids are more reduced than carbohydrates",
+        "Fatty acids bypass the electron transport chain",
+        "Fatty acids enter glycolysis directly",
+        "Fatty acids contain more oxygen atoms"
+      ],
+      "ans": 1,
+      "exp": "Fatty acid carbons are highly reduced, so beta-oxidation generates many more NADH/FADH₂ per carbon.",
+      "optExp": [
+        "Length alone is not the reason — it's per gram efficiency.",
+        null,
+        "Fatty acids feed INTO the ETC, not skip it.",
+        "They do not enter glycolysis.",
+        "They are largely OXYGEN-poor compared to carbohydrate."
+      ]
+    },
+    {
+      "id": 90,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In uncontrolled type 1 diabetes leading to diabetic ketoacidosis (DKA), the metabolic state most resembles:",
+      "opts": [
+        "A fed metabolic state with high insulin levels",
+        "Severe starvation or prolonged fasting",
+        "Anaerobic exercise metabolism",
+        "Refeeding syndrome",
+        "Postprandial hyperinsulinaemia"
+      ],
+      "ans": 1,
+      "exp": "DKA mimics fasting/starvation: cells cannot use glucose (no insulin), so beta-oxidation and ketogenesis run unchecked.",
+      "optExp": [
+        "Insulin is absent in DKA, not high.",
+        null,
+        "Anaerobic exercise produces lactate, not ketones primarily.",
+        "Opposite condition.",
+        "Insulin is deficient, not high."
+      ]
+    },
+    {
+      "id": 91,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How many amino acids are commonly found in human proteins?",
+      "opts": [
+        "Four amino acids",
+        "Ten amino acids",
+        "Twenty amino acids",
+        "Twenty-six amino acids",
+        "Sixty-four amino acids"
+      ],
+      "ans": 2,
+      "exp": "There are 20 standard amino acids encoded by the genetic code, with 9 considered essential in humans.",
+      "optExp": [
+        "4 is the number of nucleotides in DNA.",
+        "Approximate number of essential amino acids.",
+        null,
+        "The alphabet has 26 letters, not amino acids.",
+        "64 is the number of codons (including stop)."
+      ]
+    },
+    {
+      "id": 92,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The isoelectric point (pI) of an amino acid is the pH at which it:",
+      "opts": [
+        "It has maximum positive charge",
+        "It has maximum negative charge",
+        "It has zero net charge",
+        "It becomes most soluble in water",
+        "It reaches minimum solubility"
+      ],
+      "ans": 2,
+      "exp": "At the pI, the amino acid exists as a zwitterion with no net charge — solubility is minimal and it does not migrate in an electric field.",
+      "optExp": [
+        "Below pI it carries positive charge.",
+        "Above pI it carries negative charge.",
+        null,
+        "Solubility is actually minimal at pI.",
+        "While solubility is minimal, this is a consequence, not the definition."
+      ]
+    },
+    {
+      "id": 93,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which amino acid is achiral?",
+      "opts": [
+        "Alanine",
+        "Glycine",
+        "Leucine",
+        "Valine",
+        "Serine"
+      ],
+      "ans": 1,
+      "exp": "Glycine has two hydrogens on its α-carbon, making it the only achiral amino acid.",
+      "optExp": [
+        "Has a methyl side chain — chiral.",
+        null,
+        "Branched side chain — chiral.",
+        "Branched side chain — chiral.",
+        "Hydroxyl side chain — chiral."
+      ]
+    },
+    {
+      "id": 94,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which amino acid contains a thiol (-SH) group capable of forming disulfide bonds?",
+      "opts": [
+        "Methionine",
+        "Serine",
+        "Cysteine",
+        "Threonine",
+        "Tyrosine"
+      ],
+      "ans": 2,
+      "exp": "Cysteine has a sulfhydryl (-SH) side chain that forms covalent disulfide bridges with other cysteines, stabilising protein structure.",
+      "optExp": [
+        "Methionine has a thioether (S-CH₃), not a free -SH.",
+        "Serine has a hydroxyl.",
+        null,
+        "Threonine has a hydroxyl.",
+        "Tyrosine has an aromatic ring with hydroxyl."
+      ]
+    },
+    {
+      "id": 95,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Normal arterial blood pH is approximately:",
+      "opts": [
+        "6.8",
+        "7.0",
+        "7.4",
+        "7.8",
+        "8.0"
+      ],
+      "ans": 2,
+      "exp": "Arterial pH is tightly maintained at 7.35-7.45, averaging 7.40.",
+      "optExp": [
+        "Severe acidosis — incompatible with life.",
+        "Neutral pH — outside biological range for blood.",
+        null,
+        "Severe alkalosis.",
+        "Far outside normal."
+      ]
+    },
+    {
+      "id": 96,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The Henderson-Hasselbalch equation for the bicarbonate buffer is:",
+      "opts": [
+        "pH = pKa + log([HCO₃⁻]/[CO₂])",
+        "pH = pKa − log([HCO₃⁻]/[CO₂])",
+        "pH = pKa × [HCO₃⁻]",
+        "pH = [HCO₃⁻] − pCO₂",
+        "pH = log(pCO₂/[HCO₃⁻])"
+      ],
+      "ans": 0,
+      "exp": "pH = pKa + log([conjugate base]/[weak acid]) = 6.1 + log([HCO₃⁻]/(0.03 × pCO₂)) for blood.",
+      "optExp": [
+        null,
+        "Wrong sign — should be addition.",
+        "No log; ratio matters.",
+        "Subtraction is incorrect.",
+        "Inverted ratio and missing pKa."
+      ]
+    },
+    {
+      "id": 97,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which amino acid is positively charged at physiological pH?",
+      "opts": [
+        "Glutamate",
+        "Aspartate",
+        "Lysine",
+        "Serine",
+        "Phenylalanine"
+      ],
+      "ans": 2,
+      "exp": "Lysine, arginine, and histidine have basic side chains with positive charges at pH 7.4 (histidine partially).",
+      "optExp": [
+        "Glutamate is negatively charged (acidic).",
+        "Aspartate is negatively charged (acidic).",
+        null,
+        "Serine is neutral polar.",
+        "Phenylalanine is neutral aromatic."
+      ]
+    },
+    {
+      "id": 98,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A buffer system functions best when:",
+      "opts": [
+        "When pH = pKa + 3",
+        "When pH is far from pKa",
+        "When pH = pKa",
+        "When pH = 7",
+        "When pKa = 0"
+      ],
+      "ans": 2,
+      "exp": "Buffering capacity is maximal when pH = pKa, where [HA] = [A⁻] and the system resists pH changes most effectively.",
+      "optExp": [
+        "Beyond effective buffer range.",
+        "Buffer is ineffective far from pKa.",
+        null,
+        "Only useful if pKa is near 7.",
+        "pKa near 0 means very strong acid — poor buffer."
+      ]
+    },
+    {
+      "id": 99,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Essential amino acids are those that:",
+      "opts": [
+        "Required only during growth and development phases",
+        "Cannot be synthesized by the body and must be obtained from diet",
+        "Produced exclusively by the liver",
+        "Not incorporated into protein structures",
+        "Stored primarily in adipose tissue"
+      ],
+      "ans": 1,
+      "exp": "Essential amino acids cannot be synthesised in adequate amounts and must be obtained from the diet. There are 9 essential amino acids in adults.",
+      "optExp": [
+        "They are required throughout life, not just growth.",
+        null,
+        "They are dietary, not liver-produced.",
+        "They ARE used in protein synthesis.",
+        "Amino acids are not stored in adipose."
+      ]
+    },
+    {
+      "id": 100,
+      "cat": "Amino Acids & pH",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A patient with severe vomiting develops which acid-base disturbance?",
+      "opts": [
+        "Metabolic acidosis",
+        "Metabolic alkalosis",
+        "Respiratory acidosis",
+        "Respiratory alkalosis",
+        "No change in acid-base balance"
+      ],
+      "ans": 1,
+      "exp": "Loss of gastric HCl causes metabolic alkalosis (loss of H⁺).",
+      "optExp": [
+        "Acidosis is typical of diarrhoea, not vomiting.",
+        null,
+        "Respiratory disorders are about CO₂.",
+        "Hyperventilation causes respiratory alkalosis.",
+        "There is a clear acid-base shift."
+      ]
+    },
+    {
+      "id": 101,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which base pairs with adenine in DNA?",
+      "opts": [
+        "Cytosine",
+        "Guanine",
+        "Thymine",
+        "Uracil",
+        "Adenine"
+      ],
+      "ans": 2,
+      "exp": "A pairs with T via 2 hydrogen bonds in DNA. In RNA, A pairs with U.",
+      "optExp": [
+        "C pairs with G.",
+        "G pairs with C.",
+        null,
+        "U is in RNA, not DNA.",
+        "Bases don't self-pair in normal DNA."
+      ]
+    },
+    {
+      "id": 102,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How many hydrogen bonds form between G and C?",
+      "opts": [
+        "One hydrogen bond",
+        "Two hydrogen bonds",
+        "Three hydrogen bonds",
+        "Four hydrogen bonds",
+        "Five hydrogen bonds"
+      ],
+      "ans": 2,
+      "exp": "G-C pairs form 3 H-bonds, making GC-rich regions more thermodynamically stable than AT-rich.",
+      "optExp": [
+        "A-T has 2 H-bonds via 1 less; 1 is too few.",
+        "This is the A-T count.",
+        null,
+        "4 H-bonds not possible between these bases.",
+        "Exceeds possible H-bonds."
+      ]
+    },
+    {
+      "id": 103,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "DNA replication is described as semiconservative because:",
+      "opts": [
+        "Each daughter DNA molecule has two new strands",
+        "Each daughter DNA molecule has one old and one new strand",
+        "DNA is conserved without any copying occurring",
+        "Only half of the DNA molecule is copied during replication",
+        "DNA replication occurs randomly rather than in a coordinated manner"
+      ],
+      "ans": 1,
+      "exp": "Each new double helix contains one original strand serving as a template and one newly synthesised strand.",
+      "optExp": [
+        "That would be conservative-like.",
+        null,
+        "Replication occurs each cell cycle.",
+        "All DNA is copied.",
+        "Replication is highly regulated."
+      ]
+    },
+    {
+      "id": 104,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "DNA polymerase synthesises new DNA in which direction?",
+      "opts": [
+        "3' to 5' direction",
+        "5' to 3' direction",
+        "Both directions with equal frequency",
+        "Only on the lagging strand",
+        "In a random, non-directional manner"
+      ],
+      "ans": 1,
+      "exp": "DNA polymerase adds new nucleotides to the 3' OH of the growing strand, so synthesis proceeds 5' → 3'.",
+      "optExp": [
+        "This is the wrong direction.",
+        null,
+        "It always goes 5' → 3'.",
+        "Both strands are synthesised 5' → 3', just differently.",
+        "Synthesis is highly directional."
+      ]
+    },
+    {
+      "id": 105,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme unwinds the DNA double helix at the replication fork?",
+      "opts": [
+        "DNA polymerase",
+        "Helicase",
+        "Ligase",
+        "Topoisomerase",
+        "Primase"
+      ],
+      "ans": 1,
+      "exp": "Helicase breaks H-bonds between bases, unwinding the parental DNA at the fork.",
+      "optExp": [
+        "DNA pol synthesises new strand, doesn't unwind.",
+        null,
+        "Ligase joins Okazaki fragments.",
+        "Topoisomerase relieves supercoiling AHEAD of helicase.",
+        "Primase makes RNA primers."
+      ]
+    },
+    {
+      "id": 106,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Okazaki fragments are joined by:",
+      "opts": [
+        "DNA polymerase I",
+        "DNA polymerase III",
+        "DNA ligase",
+        "Helicase",
+        "Topoisomerase"
+      ],
+      "ans": 2,
+      "exp": "DNA ligase seals nicks between Okazaki fragments on the lagging strand by forming phosphodiester bonds.",
+      "optExp": [
+        "DNA pol I removes RNA primers in prokaryotes.",
+        "Pol III synthesises strands.",
+        null,
+        "Helicase unwinds DNA.",
+        "Topoisomerase manages supercoiling."
+      ]
+    },
+    {
+      "id": 107,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Telomerase is most active in which cell type?",
+      "opts": [
+        "Mature neurons",
+        "Stem cells and cancer cells",
+        "Mature erythrocytes",
+        "Mature cardiac myocytes",
+        "Differentiated skin keratinocytes"
+      ],
+      "ans": 1,
+      "exp": "Telomerase adds repetitive TTAGGG sequences to chromosome ends, active in proliferative cells: stem cells, germline, and most cancers.",
+      "optExp": [
+        "Neurons are largely post-mitotic.",
+        null,
+        "RBCs have no nucleus.",
+        "Cardiac cells have low turnover.",
+        "Differentiated keratinocytes lose telomerase activity."
+      ]
+    },
+    {
+      "id": 108,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In transcription, RNA polymerase reads the DNA template in which direction?",
+      "opts": [
+        "3' to 5' direction",
+        "5' to 3' direction",
+        "Both directions equally",
+        "Only the sense strand",
+        "From the 3' poly-A tail"
+      ],
+      "ans": 0,
+      "exp": "RNA polymerase reads the template strand 3' → 5' and synthesises RNA 5' → 3'.",
+      "optExp": [
+        null,
+        "This is the direction of RNA synthesis, not template reading.",
+        "Reading is unidirectional.",
+        "The template is the antisense strand.",
+        "No poly-A on DNA template."
+      ]
+    },
+    {
+      "id": 109,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In eukaryotes, post-transcriptional modifications of mRNA include all EXCEPT:",
+      "opts": [
+        "5' capping of mRNA",
+        "3' polyadenylation of mRNA tail",
+        "Splicing to remove introns",
+        "Reverse transcription of mRNA to DNA",
+        "RNA editing of specific bases"
+      ],
+      "ans": 3,
+      "exp": "Reverse transcription (RNA → DNA) is performed by retroviruses, NOT by eukaryotic cells during normal mRNA maturation.",
+      "optExp": [
+        "5' cap protects mRNA.",
+        "Poly-A tail stabilises mRNA.",
+        "Splicing removes introns.",
+        null,
+        "RNA editing can occur (e.g. ApoB)."
+      ]
+    },
+    {
+      "id": 110,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which of the following is found in RNA but not DNA?",
+      "opts": [
+        "Adenine",
+        "Thymine",
+        "Cytosine",
+        "Uracil",
+        "Guanine"
+      ],
+      "ans": 3,
+      "exp": "RNA contains uracil instead of thymine. The sugar in RNA is ribose, not deoxyribose.",
+      "optExp": [
+        "Adenine is in both.",
+        "Thymine is in DNA only.",
+        "Cytosine is in both.",
+        null,
+        "Guanine is in both."
+      ]
+    },
+    {
+      "id": 111,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Primary protein structure refers to:",
+      "opts": [
+        "Linear sequence of amino acids",
+        "α-helices and β-sheets",
+        "Three-dimensional folding of a polypeptide",
+        "Assembly of multiple subunit chains",
+        "Disulfide bonds between cysteine residues"
+      ],
+      "ans": 0,
+      "exp": "Primary structure is the linear sequence of amino acids joined by peptide bonds.",
+      "optExp": [
+        null,
+        "That is secondary structure.",
+        "That is tertiary structure.",
+        "That is quaternary structure.",
+        "Disulfide bonds stabilise tertiary structure."
+      ]
+    },
+    {
+      "id": 112,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Secondary structure is stabilised mainly by:",
+      "opts": [
+        "Disulfide bonds between cysteine residues",
+        "Hydrogen bonds between backbone atoms",
+        "Hydrophobic interactions between side chains",
+        "Ionic bonds between charged side chains",
+        "Peptide bonds linking consecutive amino acids"
+      ],
+      "ans": 1,
+      "exp": "α-helices and β-sheets are stabilised by H-bonds between backbone N-H and C=O groups.",
+      "optExp": [
+        "Disulfide bonds stabilise tertiary.",
+        null,
+        "Hydrophobic interactions stabilise tertiary.",
+        "Ionic bonds also stabilise tertiary.",
+        "Peptide bonds form primary structure."
+      ]
+    },
+    {
+      "id": 113,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Quaternary structure refers to:",
+      "opts": [
+        "Sequence of amino acids",
+        "Local folding into secondary motifs",
+        "Overall three-dimensional shape of a single polypeptide",
+        "Assembly of multiple polypeptide subunits",
+        "Disulfide bond network throughout the protein"
+      ],
+      "ans": 3,
+      "exp": "Quaternary structure is the arrangement of two or more polypeptide subunits, e.g. haemoglobin (α2β2).",
+      "optExp": [
+        "That is primary.",
+        "That is secondary.",
+        "That is tertiary.",
+        null,
+        "Disulfide bonds can stabilise but aren't quaternary by definition."
+      ]
+    },
+    {
+      "id": 114,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which interaction is NOT typically involved in tertiary structure?",
+      "opts": [
+        "Hydrogen bonds between side chains",
+        "Disulfide bonds between cysteine residues",
+        "Hydrophobic interactions between nonpolar side chains",
+        "Peptide bonds between amino acids",
+        "Ionic interactions between charged side chains"
+      ],
+      "ans": 3,
+      "exp": "Peptide bonds link primary structure residues. Tertiary structure relies on side-chain interactions (H-bonds, ionic, hydrophobic, disulfide).",
+      "optExp": [
+        "These contribute to tertiary structure.",
+        "Disulfide bridges stabilise tertiary structure.",
+        "Hydrophobic interactions drive folding.",
+        null,
+        "Ionic interactions stabilise tertiary structure."
+      ]
+    },
+    {
+      "id": 115,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Collagen's triple helix is unusual because it contains a high proportion of:",
+      "opts": [
+        "High cysteine content",
+        "High glycine and proline content",
+        "High lysine content",
+        "High tryptophan content",
+        "High methionine content"
+      ],
+      "ans": 1,
+      "exp": "Collagen has a repeating Gly-X-Y motif (often Pro-Hyp), allowing tight triple helix packing.",
+      "optExp": [
+        "Cysteine is rare in collagen.",
+        null,
+        "Lysine is involved in cross-linking but not the main composition.",
+        "Tryptophan is rare in collagen.",
+        "Methionine is rare."
+      ]
+    },
+    {
+      "id": 116,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Denaturation of a protein involves:",
+      "opts": [
+        "Breaking peptide bonds",
+        "Loss of native three-dimensional structure",
+        "Loss of primary amino acid sequence",
+        "Synthesis of new amino acids",
+        "Complete hydrolysis of all bonds"
+      ],
+      "ans": 1,
+      "exp": "Denaturation disrupts secondary/tertiary/quaternary structure (e.g. by heat, pH, urea) but leaves peptide bonds intact.",
+      "optExp": [
+        "Hydrolysis breaks peptide bonds, not denaturation.",
+        null,
+        "Primary structure persists.",
+        "Denaturation doesn't synthesise.",
+        "That is hydrolysis."
+      ]
+    },
+    {
+      "id": 117,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Haemoglobin demonstrates cooperative binding, shown as a:",
+      "opts": [
+        "Hyperbolic curve",
+        "Sigmoidal curve",
+        "Linear curve",
+        "Inverse curve",
+        "Step function"
+      ],
+      "ans": 1,
+      "exp": "Haemoglobin's sigmoidal O₂ binding curve reflects positive cooperativity between its 4 subunits.",
+      "optExp": [
+        "Myoglobin (1 subunit) shows hyperbolic binding.",
+        null,
+        "Not linear.",
+        "Not inverse.",
+        "Not a step function."
+      ]
+    },
+    {
+      "id": 118,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Chaperones (e.g. HSP70) function to:",
+      "opts": [
+        "Catalysing peptide bond formation during translation",
+        "Assisting correct protein folding and preventing aggregation",
+        "Degrading misfolded proteins for disposal",
+        "Cleaving signal sequences from nascent proteins",
+        "Binding to mRNA molecules during translation"
+      ],
+      "ans": 1,
+      "exp": "Chaperones prevent misfolding/aggregation and assist proper folding of nascent polypeptides.",
+      "optExp": [
+        "Ribosomes catalyse peptide bond formation.",
+        null,
+        "Proteasomes degrade misfolded proteins.",
+        "Signal peptidases cleave signal sequences.",
+        "RNA-binding proteins are different."
+      ]
+    },
+    {
+      "id": 119,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The α-helix is stabilised by H-bonds between:",
+      "opts": [
+        "Side chains of adjacent amino acid residues",
+        "Backbone carbonyl (C=O) and amide (N-H) groups",
+        "Backbone atoms and surrounding water molecules",
+        "Disulfide bridges between cysteine residues",
+        "Peptide bonds connecting adjacent amino acids"
+      ],
+      "ans": 1,
+      "exp": "In an α-helix, each backbone C=O H-bonds with the N-H of the residue 4 amino acids ahead.",
+      "optExp": [
+        "Side chains can have interactions but aren't the main α-helix bond.",
+        null,
+        "Water is excluded from inside an α-helix.",
+        "Disulfides are not α-helix-specific.",
+        "Peptide bonds are covalent, not H-bonds."
+      ]
+    },
+    {
+      "id": 120,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In a globular protein, hydrophobic residues are typically found:",
+      "opts": [
+        "On the protein surface in contact with water",
+        "In the hydrophobic core of the protein",
+        "Concentrated within the active site",
+        "Only found in signal peptide sequences",
+        "Primarily involved in forming disulfide bonds"
+      ],
+      "ans": 1,
+      "exp": "Hydrophobic residues cluster in the protein interior, away from water, driving folding via the hydrophobic effect.",
+      "optExp": [
+        "Surface is mostly hydrophilic.",
+        null,
+        "Active sites can be either; not 'hydrophobic only'.",
+        "Signal peptides have specific motifs.",
+        "Disulfide bonds use cysteines."
+      ]
+    },
+    {
+      "id": 121,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In eukaryotes, gene transcription is initiated when RNA polymerase II binds to:",
+      "opts": [
+        "Origin of replication",
+        "Promoter region upstream of the gene",
+        "Terminator sequence at the gene end",
+        "Centromere of the chromosome",
+        "Telomere at the chromosome end"
+      ],
+      "ans": 1,
+      "exp": "RNA Pol II binds the promoter (with help of general transcription factors) to initiate mRNA synthesis.",
+      "optExp": [
+        "Origins are for DNA replication.",
+        null,
+        "Terminator ends transcription.",
+        "Centromeres bind kinetochores.",
+        "Telomeres protect chromosome ends."
+      ]
+    },
+    {
+      "id": 122,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The TATA box is found in the:",
+      "opts": [
+        "In the 3' untranslated region",
+        "In the promoter region upstream of the gene",
+        "In the protein-coding region",
+        "Within intron sequences",
+        "Near the poly-A tail of mRNA"
+      ],
+      "ans": 1,
+      "exp": "The TATA box is a core promoter element ~25-30 bp upstream of the start site, bound by TBP.",
+      "optExp": [
+        "3' UTR is downstream.",
+        null,
+        "It's outside coding region.",
+        "TATA box is in promoter, not introns.",
+        "Poly-A is at the end of mRNA."
+      ]
+    },
+    {
+      "id": 123,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Enhancer sequences regulate transcription by:",
+      "opts": [
+        "Binding to ribosomes to regulate translation",
+        "Binding transcription factors and looping DNA to increase transcription",
+        "Blocking RNA polymerase II activity",
+        "Cleaving and processing mRNA molecules",
+        "Adding poly-A tails to mRNA"
+      ],
+      "ans": 1,
+      "exp": "Enhancers bind transcription factor activators; the DNA loops to bring them near the promoter, increasing transcription.",
+      "optExp": [
+        "Ribosomes don't bind DNA.",
+        null,
+        "Silencers (not enhancers) block.",
+        "mRNA cleavage is a different process.",
+        "Poly-A is added in nucleus by polyA polymerase."
+      ]
+    },
+    {
+      "id": 124,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Histone acetylation generally:",
+      "opts": [
+        "Tightens chromatin structure, leading to gene silencing",
+        "Loosens chromatin structure, leading to gene activation",
+        "Marks DNA for degradation",
+        "Triggers DNA replication initiation",
+        "Has no significant effect on gene expression"
+      ],
+      "ans": 1,
+      "exp": "Acetylation of histone lysines neutralises positive charges, loosening DNA-histone interaction → euchromatin → transcriptionally active.",
+      "optExp": [
+        "Deacetylation tightens chromatin.",
+        null,
+        "Acetylation does not target degradation.",
+        "Replication is regulated by different complexes.",
+        "Acetylation has clear effects."
+      ]
+    },
+    {
+      "id": 125,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "DNA methylation (typically on CpG islands) usually:",
+      "opts": [
+        "Increases transcription of the affected gene",
+        "Silences gene expression",
+        "Causes point mutations in the DNA sequence",
+        "Marks the centromere for chromosome segregation",
+        "Increases translation of mRNA"
+      ],
+      "ans": 1,
+      "exp": "Methylation of cytosines in CpG islands recruits repressors and condenses chromatin, silencing genes.",
+      "optExp": [
+        "Methylation silences, doesn't activate.",
+        null,
+        "Methylation regulates rather than directly mutates.",
+        "Centromeres have other marks.",
+        "DNA methylation affects transcription, not translation."
+      ]
+    },
+    {
+      "id": 126,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In which step of gene expression do introns get removed?",
+      "opts": [
+        "During transcription initiation",
+        "During RNA splicing in the nucleus",
+        "During translation in the cytoplasm",
+        "During DNA replication",
+        "During post-translational modification"
+      ],
+      "ans": 1,
+      "exp": "Spliceosomes remove introns from pre-mRNA in the nucleus before mature mRNA is exported.",
+      "optExp": [
+        "Initiation just starts RNA synthesis.",
+        null,
+        "Introns are removed before mRNA leaves the nucleus.",
+        "DNA is not edited like this.",
+        "Splicing is RNA-level, not protein."
+      ]
+    },
+    {
+      "id": 127,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "How many nucleotides make up a codon?",
+      "opts": [
+        "1 nucleotide",
+        "2 nucleotides",
+        "3 nucleotides",
+        "4 nucleotides",
+        "5 nucleotides"
+      ],
+      "ans": 2,
+      "exp": "A codon is a triplet of nucleotides specifying one amino acid (4³ = 64 possible codons).",
+      "optExp": [
+        "A single nucleotide cannot specify 20 amino acids.",
+        "4² = 16, too few for 20 amino acids.",
+        null,
+        "4 nucleotides would yield 256 codons — more than needed.",
+        "Even more than needed."
+      ]
+    },
+    {
+      "id": 128,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The start codon in eukaryotes is:",
+      "opts": [
+        "UAA (stop codon)",
+        "UAG (stop codon)",
+        "UGA (stop codon)",
+        "AUG (start codon)",
+        "GUG (alternative start codon)"
+      ],
+      "ans": 3,
+      "exp": "AUG codes for methionine and is the initiation codon for translation in eukaryotes.",
+      "optExp": [
+        "UAA is a stop codon.",
+        "UAG is a stop codon.",
+        "UGA is a stop codon.",
+        null,
+        "GUG is a start codon in prokaryotes, but AUG is standard eukaryotic start."
+      ]
+    },
+    {
+      "id": 129,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which of the following is NOT a stop codon?",
+      "opts": [
+        "UAA",
+        "UAG",
+        "UGA",
+        "AUG",
+        "All of UAA, UAG, and UGA are stop codons"
+      ],
+      "ans": 3,
+      "exp": "AUG is the START codon. Stop codons are UAA, UAG, UGA.",
+      "optExp": [
+        "UAA is a stop codon.",
+        "UAG is a stop codon.",
+        "UGA is a stop codon.",
+        null,
+        "This is correct as a statement."
+      ]
+    },
+    {
+      "id": 130,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "tRNAs carry their amino acid attached to:",
+      "opts": [
+        "The 5' end of the tRNA molecule",
+        "The anticodon loop region",
+        "The 3' CCA end of the tRNA",
+        "The D arm of the tRNA",
+        "The T arm of the tRNA"
+      ],
+      "ans": 2,
+      "exp": "Amino acids are esterified to the 3' CCA terminus of tRNA via aminoacyl-tRNA synthetases.",
+      "optExp": [
+        "The 5' end is phosphorylated.",
+        "Anticodon binds mRNA, doesn't carry amino acid.",
+        null,
+        "D arm binds activating enzyme.",
+        "T arm binds ribosome."
+      ]
+    },
+    {
+      "id": 131,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "During translation elongation, the incoming aminoacyl-tRNA binds which ribosomal site?",
+      "opts": [
+        "A site",
+        "P site",
+        "E site",
+        "G site",
+        "D site"
+      ],
+      "ans": 0,
+      "exp": "Incoming aminoacyl-tRNAs enter the A (aminoacyl) site; the growing peptide moves from P to A.",
+      "optExp": [
+        null,
+        "The P site holds the growing peptide chain.",
+        "E site is exit.",
+        "T site is not a ribosomal site.",
+        "Not a ribosomal site."
+      ]
+    },
+    {
+      "id": 132,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Peptide bond formation in the ribosome is catalysed by:",
+      "opts": [
+        "Aminoacyl-tRNA synthetase enzyme",
+        "Peptidyl transferase activity in ribosomal rRNA",
+        "DNA polymerase enzyme",
+        "Helicase enzyme activity",
+        "Release factor protein"
+      ],
+      "ans": 1,
+      "exp": "Peptidyl transferase activity is a ribozyme (catalytic RNA) in the large ribosomal subunit.",
+      "optExp": [
+        "This charges tRNA with amino acid.",
+        null,
+        "DNA pol synthesises DNA.",
+        "Helicase unwinds DNA.",
+        "Release factor terminates translation."
+      ]
+    },
+    {
+      "id": 133,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The genetic code is described as 'degenerate' because:",
+      "opts": [
+        "Each codon specifies multiple amino acids",
+        "Multiple codons encode the same amino acid",
+        "Some codons are skipped during translation",
+        "The genetic code differs between prokaryotes and eukaryotes",
+        "Codons overlap with each other on mRNA"
+      ],
+      "ans": 1,
+      "exp": "Most amino acids are encoded by more than one codon, due to wobble base-pairing at the third position.",
+      "optExp": [
+        "One codon → one amino acid (unambiguous).",
+        null,
+        "Codons are read sequentially without skipping.",
+        "The code is nearly universal.",
+        "Codons do NOT overlap."
+      ]
+    },
+    {
+      "id": 134,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Polypeptide synthesis proceeds from:",
+      "opts": [
+        "C-terminus to N-terminus direction",
+        "N-terminus to C-terminus direction",
+        "Middle outward in both directions",
+        "Random order without directional sequence",
+        "3' to 5' direction on mRNA strand"
+      ],
+      "ans": 1,
+      "exp": "Translation grows the polypeptide from N-terminus to C-terminus while mRNA is read 5' to 3'.",
+      "optExp": [
+        "Opposite direction.",
+        null,
+        "Synthesis is sequential.",
+        "Highly ordered process.",
+        "mRNA is read 5'→3'."
+      ]
+    },
+    {
+      "id": 135,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Post-translational modifications include all EXCEPT:",
+      "opts": [
+        "Phosphorylation of proteins",
+        "Glycosylation of proteins",
+        "Proteolytic cleavage of proteins",
+        "Reverse transcription of mRNA",
+        "Ubiquitination of proteins"
+      ],
+      "ans": 3,
+      "exp": "Reverse transcription generates DNA from RNA — it is not a post-translational protein modification.",
+      "optExp": [
+        "A common reversible PTM.",
+        "Adds sugar chains in ER/Golgi.",
+        "Activates pro-proteins (e.g. insulin).",
+        null,
+        "Tags proteins for proteasomal degradation."
+      ]
+    },
+    {
+      "id": 136,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which enzyme is most specific for myocardial infarction in the first 6 hours?",
+      "opts": [
+        "Aspartate aminotransferase (AST)",
+        "Alanine aminotransferase (ALT)",
+        "Cardiac troponin I",
+        "Alkaline phosphatase",
+        "Pancreatic amylase"
+      ],
+      "ans": 2,
+      "exp": "Cardiac troponin I (and T) is the gold-standard cardiac-specific marker, rising 3-6 hours post-MI and lasting up to 10-14 days.",
+      "optExp": [
+        "AST is non-specific (liver/muscle).",
+        "ALT is liver-specific.",
+        null,
+        "ALP is liver/bone.",
+        "Amylase points to pancreatitis."
+      ]
+    },
+    {
+      "id": 137,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In acute pancreatitis, which enzyme is most elevated?",
+      "opts": [
+        "Alanine aminotransferase (ALT) elevation",
+        "Alkaline phosphatase (ALP) elevation",
+        "Serum amylase and lipase elevation",
+        "Cardiac troponin elevation",
+        "Creatine kinase elevation"
+      ],
+      "ans": 2,
+      "exp": "Serum amylase and lipase rise rapidly in acute pancreatitis. Lipase is more specific and persists longer.",
+      "optExp": [
+        "ALT is for liver injury.",
+        "ALP is for liver/bone.",
+        null,
+        "Troponin is for cardiac.",
+        "CK is for muscle/heart, less specific."
+      ]
+    },
+    {
+      "id": 138,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In hepatocellular injury, which liver enzyme is most specific?",
+      "opts": [
+        "Alkaline phosphatase (ALP)",
+        "Gamma-glutamyl transferase (GGT)",
+        "Alanine aminotransferase (ALT)",
+        "Pancreatic amylase",
+        "Creatine kinase (CK)"
+      ],
+      "ans": 2,
+      "exp": "ALT is found predominantly in hepatocytes — the most specific marker for hepatocellular injury.",
+      "optExp": [
+        "ALP is more cholestatic/bone.",
+        "GGT confirms hepatic origin of ALP but not most specific itself.",
+        null,
+        "Amylase is pancreatic.",
+        "CK is muscle."
+      ]
+    },
+    {
+      "id": 139,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "HbA1c reflects average blood glucose over approximately:",
+      "opts": [
+        "One day of average blood glucose",
+        "One week of average blood glucose",
+        "Two to three months of average blood glucose",
+        "Six months of average blood glucose",
+        "One year of average blood glucose"
+      ],
+      "ans": 2,
+      "exp": "HbA1c reflects glycation of haemoglobin over ~2-3 months (the lifespan of red cells).",
+      "optExp": [
+        "Fasting glucose reflects 1 day.",
+        "Fructosamine reflects ~2-3 weeks.",
+        null,
+        "RBC lifespan is ~120 days.",
+        "Far too long."
+      ]
+    },
+    {
+      "id": 140,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A raised anion gap metabolic acidosis can be caused by all EXCEPT:",
+      "opts": [
+        "Lactic acidosis",
+        "Diabetic ketoacidosis",
+        "Salicylate poisoning",
+        "Diarrhoea with bicarbonate loss",
+        "Methanol poisoning"
+      ],
+      "ans": 3,
+      "exp": "Diarrhoea causes a NORMAL anion gap metabolic acidosis (bicarbonate loss). The others add unmeasured anions.",
+      "optExp": [
+        "Lactate adds anions.",
+        "Ketones add anions.",
+        "Salicylate metabolites add anions.",
+        null,
+        "Methanol → formate."
+      ]
+    },
+    {
+      "id": 141,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In phenylketonuria (PKU), the deficient enzyme is:",
+      "opts": [
+        "Tyrosinase deficiency",
+        "Phenylalanine hydroxylase deficiency",
+        "Homogentisate oxidase deficiency",
+        "Cystathionine synthase deficiency",
+        "Branched-chain α-keto acid dehydrogenase deficiency"
+      ],
+      "ans": 1,
+      "exp": "PKU is an autosomal recessive disorder of phenylalanine hydroxylase, leading to phenylalanine accumulation and intellectual disability if untreated.",
+      "optExp": [
+        "Tyrosinase deficiency causes albinism.",
+        null,
+        "Homogentisate deficiency causes alkaptonuria.",
+        "Cystathionine deficiency causes homocystinuria.",
+        "BCKD deficiency causes maple syrup urine disease."
+      ]
+    },
+    {
+      "id": 142,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In G6PD deficiency, oxidative haemolysis occurs because:",
+      "opts": [
+        "Cannot synthesise haemoglobin",
+        "Cannot regenerate reduced glutathione via NADPH",
+        "Cannot produce adenosine triphosphate (ATP)",
+        "Cannot bind oxygen to iron",
+        "Cannot tolerate free iron exposure"
+      ],
+      "ans": 1,
+      "exp": "G6PD generates NADPH via the pentose phosphate pathway, needed to regenerate reduced glutathione and protect RBCs from oxidative damage.",
+      "optExp": [
+        "Haemoglobin synthesis is unaffected.",
+        null,
+        "ATP levels are largely unaffected.",
+        "Oxygen binding is intact.",
+        "Iron contact isn't the trigger."
+      ]
+    },
+    {
+      "id": 143,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Jaundice with predominantly conjugated hyperbilirubinaemia suggests:",
+      "opts": [
+        "Haemolysis with unconjugated hyperbilirubinaemia",
+        "Gilbert syndrome with mild unconjugated hyperbilirubinaemia",
+        "Biliary obstruction or cholestasis",
+        "Crigler-Najjar syndrome",
+        "Newborn physiological jaundice"
+      ],
+      "ans": 2,
+      "exp": "Conjugated bilirubin elevation suggests cholestasis/post-hepatic obstruction (stones, tumour, stricture).",
+      "optExp": [
+        "Haemolysis raises unconjugated.",
+        "Gilbert is unconjugated.",
+        null,
+        "Crigler-Najjar is unconjugated.",
+        "Physiological jaundice is unconjugated."
+      ]
+    },
+    {
+      "id": 144,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In hypoglycaemia, which counter-regulatory hormone is released first?",
+      "opts": [
+        "Cortisol from adrenal cortex",
+        "Glucagon from pancreatic alpha cells",
+        "Growth hormone from anterior pituitary",
+        "Insulin from pancreatic beta cells",
+        "Thyroxine from thyroid gland"
+      ],
+      "ans": 1,
+      "exp": "Glucagon is the first-line counter-regulator, rapidly mobilising hepatic glucose via glycogenolysis and gluconeogenesis. Adrenaline also rises quickly.",
+      "optExp": [
+        "Cortisol acts later in chronic hypoglycaemia.",
+        null,
+        "GH is a slower responder.",
+        "Insulin would WORSEN hypoglycaemia.",
+        "Thyroxine is not a rapid responder."
+      ]
+    },
+    {
+      "id": 145,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Which of the following best indicates renal function?",
+      "opts": [
+        "Alanine aminotransferase (ALT) levels",
+        "Creatinine and estimated glomerular filtration rate (eGFR)",
+        "Bilirubin levels",
+        "Pancreatic amylase levels",
+        "Cardiac troponin levels"
+      ],
+      "ans": 1,
+      "exp": "Creatinine and eGFR are the standard markers of renal function. Urea is also used but is more variable.",
+      "optExp": [
+        "ALT is for liver.",
+        null,
+        "Bilirubin is for liver/haemolysis.",
+        "Amylase is for pancreas.",
+        "Troponin is for heart."
+      ]
+    },
+    {
+      "id": 399,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "In skeletal muscle during exercise, lactate is produced because:",
+      "opts": [
+        "Mitochondria are absent in muscle cells",
+        "Glycolysis rate exceeds oxidative capacity",
+        "Acetyl-CoA inhibits pyruvate dehydrogenase",
+        "ATP levels decrease significantly",
+        "TCA cycle activity stops completely"
+      ],
+      "ans": 1,
+      "exp": "During intense exercise, glycolysis outpaces oxidative phosphorylation; LDH regenerates NAD⁺ from NADH by reducing pyruvate to lactate.",
+      "optExp": [
+        "Muscle has mitochondria.",
+        null,
+        "Acetyl-CoA inhibition is part of regulation but not the cause.",
+        "ATP is being USED, not absent.",
+        "TCA continues but capacity is exceeded."
+      ]
+    },
+    {
+      "id": 401,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Allosteric activators of enzymes typically:",
+      "opts": [
+        "Bind to the active site",
+        "Bind to a regulatory site distant from the active site",
+        "Permanently bind to the enzyme",
+        "Bind to the enzyme-substrate complex",
+        "Have no effect on enzyme Vmax"
+      ],
+      "ans": 1,
+      "exp": "Allosteric activators bind regulatory sites distinct from the active site, often shifting the enzyme toward its high-affinity (R) state.",
+      "optExp": [
+        "Substrates and competitive ligands bind active site.",
+        null,
+        "Allosteric modulators are usually reversible.",
+        "That is uncompetitive inhibitor behaviour.",
+        "Allosteric activators often increase Vmax/affinity."
+      ]
+    },
+    {
+      "id": 402,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A coenzyme differs from a cofactor in that coenzymes are:",
+      "opts": [
+        "Inorganic ions only",
+        "Organic molecules that serve as cofactors",
+        "Identical to the substrate molecule",
+        "Permanently bound to enzymes",
+        "Lipid molecules exclusively"
+      ],
+      "ans": 1,
+      "exp": "Cofactors include both inorganic (metal ions) and organic (coenzymes — often vitamin-derived) helpers. Coenzymes are organic.",
+      "optExp": [
+        "Inorganic ions are cofactors generally.",
+        null,
+        "Coenzymes assist but aren't substrates per se.",
+        "Some are loosely bound (e.g. NAD⁺).",
+        "Not all are lipids."
+      ]
+    },
+    {
+      "id": 403,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "NAD⁺ functions as a:",
+      "opts": [
+        "Phosphate group donor",
+        "Electron acceptor in redox reactions",
+        "Acetyl group carrier",
+        "Methyl group donor",
+        "Glucose transport protein"
+      ],
+      "ans": 1,
+      "exp": "NAD⁺ accepts electrons (becoming NADH) in catabolic reactions; NADP⁺/NADPH is for biosynthesis.",
+      "optExp": [
+        "ATP/GTP donate phosphate.",
+        null,
+        "Acetyl-CoA donates acetyl.",
+        "SAM is methyl donor.",
+        "Glucose has its own transporters."
+      ]
+    },
+    {
+      "id": 404,
+      "cat": "Enzymes & Enzyme Kinetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The turnover number (kcat) refers to:",
+      "opts": [
+        "Maximum substrate concentration at enzyme saturation",
+        "Number of substrate molecules converted per enzyme molecule per unit time",
+        "Substrate concentration at half-maximal velocity",
+        "Half-life of the enzyme molecule",
+        "Maximum reaction velocity of the enzyme"
+      ],
+      "ans": 1,
+      "exp": "kcat = Vmax/[Etotal] = molecules of substrate converted per enzyme molecule per second at saturation.",
+      "optExp": [
+        "Substrate concentration is separate.",
+        null,
+        "Km is half-saturation [S].",
+        "Half-life is for drug PK.",
+        "Vmax is rate, not turnover per enzyme."
+      ]
+    },
+    {
+      "id": 452,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The backbone of DNA is composed of:",
+      "opts": [
+        "Amino acids",
+        "Deoxyribose sugar and phosphate groups",
+        "Glycerol and fatty acids",
+        "Histone proteins only",
+        "Cholesterol molecules"
+      ],
+      "ans": 1,
+      "exp": "DNA backbone = alternating deoxyribose sugars and phosphate groups linked by phosphodiester bonds.",
+      "optExp": [
+        "Amino acids form proteins.",
+        null,
+        "That's lipid structure.",
+        "Histones package DNA but aren't the backbone.",
+        "Cholesterol is a lipid."
+      ]
+    },
+    {
+      "id": 453,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A purine includes:",
+      "opts": [
+        "Adenine and guanine",
+        "Cytosine and thymine",
+        "Uracil only",
+        "Ribose sugar component",
+        "Phosphate group"
+      ],
+      "ans": 0,
+      "exp": "Purines = adenine and guanine (two rings). Pyrimidines = cytosine, thymine, uracil (one ring).",
+      "optExp": [
+        null,
+        "Those are pyrimidines.",
+        "Pyrimidine.",
+        "Not a base.",
+        "Not a base."
+      ]
+    },
+    {
+      "id": 454,
+      "cat": "Nucleic Acids & DNA",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A pyrimidine includes:",
+      "opts": [
+        "Cytosine, thymine, and uracil",
+        "Adenine only",
+        "Guanine only",
+        "Ribose sugar",
+        "Adenosine nucleoside"
+      ],
+      "ans": 0,
+      "exp": "Pyrimidines have a single ring structure: cytosine (C), thymine (T) and uracil (U). Purines (adenine, guanine) have a double ring.",
+      "optExp": [
+        null,
+        "Adenine is a purine — double ring structure.",
+        "Guanine is a purine — double ring structure.",
+        "Ribose is a sugar, not a nitrogenous base.",
+        "Adenosine is a nucleoside (adenine + ribose), not a base."
+      ]
+    },
+    {
+      "id": 455,
+      "cat": "Protein Structure",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "The peptide bond is a:",
+      "opts": [
+        "A hydrogen bond between atoms",
+        "A covalent amide bond between amino acids",
+        "An ionic bond between charged atoms",
+        "A hydrophobic interaction between side chains",
+        "A phosphate ester linkage"
+      ],
+      "ans": 1,
+      "exp": "A peptide bond is a covalent amide linkage formed by dehydration synthesis between two amino acids.",
+      "optExp": [
+        "H-bonds form secondary structure.",
+        null,
+        "Ionic bonds are weaker non-covalent.",
+        "Hydrophobic interactions are non-covalent.",
+        "Phosphate esters are in DNA/RNA backbones."
+      ]
+    },
+    {
+      "id": 456,
+      "cat": "Gene Regulation",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Transcription factors regulate gene expression by:",
+      "opts": [
+        "Bind to DNA sequences and recruit RNA polymerase",
+        "Cleave DNA strands at specific sites",
+        "Translate mRNA into protein",
+        "Form the structural components of ribosomes",
+        "Generate ATP for cellular energy"
+      ],
+      "ans": 0,
+      "exp": "Transcription factors bind promoters/enhancers/silencers, recruiting (or blocking) RNA pol II and modifying transcription rates.",
+      "optExp": [
+        null,
+        "Nucleases cleave DNA.",
+        "Ribosomes translate.",
+        "Ribosomes are rRNA + proteins.",
+        "Not their function."
+      ]
+    },
+    {
+      "id": 457,
+      "cat": "Protein Synthesis",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Polysomes (polyribosomes) are:",
+      "opts": [
+        "Multiple ribosomes translating a single mRNA simultaneously",
+        "Multiple DNA strands bound together covalently",
+        "Mitochondrial ribosomal structures in prokaryotes",
+        "Damaged or defective ribosomal complexes",
+        "Free amino acid chains awaiting incorporation into protein"
+      ],
+      "ans": 0,
+      "exp": "Multiple ribosomes can translate a single mRNA at the same time, increasing protein output per transcript.",
+      "optExp": [
+        null,
+        "DNA is in chromosomes.",
+        "Mitochondria have their own ribosomes but polysome is the general term.",
+        "Functional, not damaged.",
+        "Not amino acids."
+      ]
+    },
+    {
+      "id": 458,
+      "cat": "Clinical Biochemistry",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Random blood glucose ≥ 11.1 mmol/L with symptoms is diagnostic of:",
+      "opts": [
+        "Hypoglycaemia",
+        "Diabetes mellitus",
+        "Insulinoma",
+        "Glycogen storage disease",
+        "Hyperinsulinaemia"
+      ],
+      "ans": 1,
+      "exp": "WHO/NICE criteria: random ≥11.1 mmol/L with symptoms, or fasting ≥7.0 mmol/L, or HbA1c ≥48 mmol/mol (6.5%).",
+      "optExp": [
+        "Hypoglycaemia is LOW glucose.",
+        null,
+        "Insulinoma causes hypoglycaemia.",
+        "GSDs typically cause hypoglycaemia.",
+        "Hyperinsulinaemia causes hypoglycaemia."
+      ]
+    },
+    {
+      "id": 459,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Cholesterol synthesis occurs primarily in the:",
+      "opts": [
+        "Mitochondrial membranes",
+        "Cytoplasm and smooth endoplasmic reticulum",
+        "Nuclear envelope regions",
+        "Lysosomal compartments",
+        "Peroxisomal organelles"
+      ],
+      "ans": 1,
+      "exp": "Cholesterol is synthesised in hepatocyte cytoplasm and smooth ER, starting from acetyl-CoA via HMG-CoA reductase (the statin target).",
+      "optExp": [
+        "Beta-oxidation occurs in mitochondria.",
+        null,
+        "Not site of cholesterol synthesis.",
+        "Lysosomes degrade.",
+        "Peroxisomes handle VLCFAs and bile acid synthesis steps."
+      ]
+    },
+    {
+      "id": 460,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "HMG-CoA reductase is the target of:",
+      "opts": [
+        "Aspirin",
+        "Statins",
+        "Insulin",
+        "Metformin",
+        "Warfarin"
+      ],
+      "ans": 1,
+      "exp": "Statins inhibit HMG-CoA reductase, the rate-limiting enzyme of cholesterol synthesis, lowering LDL cholesterol.",
+      "optExp": [
+        "Aspirin inhibits COX.",
+        null,
+        "Insulin acts on insulin receptor.",
+        "Metformin acts on AMPK / mitochondrial pathways.",
+        "Warfarin inhibits vitamin K epoxide reductase."
+      ]
+    },
+    {
+      "id": 461,
+      "cat": "Glucose Metabolism (Gluconeogenesis, Glycogenesis, Glycogenolysis)",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A child with hepatomegaly and severe fasting hypoglycaemia has glucose-6-phosphatase deficiency. This is:",
+      "opts": [
+        "McArdle disease",
+        "Pompe disease",
+        "Von Gierke disease",
+        "Cori disease",
+        "Andersen disease"
+      ],
+      "ans": 2,
+      "exp": "Von Gierke disease (GSD I) = glucose-6-phosphatase deficiency, presenting with severe fasting hypoglycaemia, hepatomegaly, lactic acidosis, hyperuricaemia.",
+      "optExp": [
+        "McArdle = muscle phosphorylase deficiency.",
+        "Pompe = lysosomal α-glucosidase.",
+        null,
+        "Cori = debranching enzyme deficiency.",
+        "Andersen = branching enzyme deficiency."
+      ]
+    },
+    {
+      "id": 468,
+      "cat": "Beta Oxidation & Lipid Metabolism",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "A patient with a 4-day fast has ketones in the urine because:",
+      "opts": [
+        "High glucagon activating ketogenesis",
+        "High glucose levels",
+        "High insulin levels",
+        "Fully active TCA cycle",
+        "Increased lactic acid production"
+      ],
+      "ans": 0,
+      "exp": "Fasting → low insulin, high glucagon → lipolysis → beta-oxidation → excess acetyl-CoA → ketogenesis in the liver.",
+      "optExp": [
+        null,
+        "Glucose is LOW in fasting.",
+        "Insulin is LOW in fasting.",
+        "OAA is depleted (used for gluconeogenesis), so TCA is limited.",
+        "Lactic acidosis is anaerobic glycolysis, not fasting."
+      ]
+    },
+    {
+      "id": 469,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Lactic acidosis in shock results from:",
+      "opts": [
+        "Insufficient oxygen availability leading to anaerobic metabolism",
+        "Excess insulin secretion",
+        "Liver dysfunction only",
+        "Hyperventilation response",
+        "Hyperthermia response only"
+      ],
+      "ans": 0,
+      "exp": "Tissue hypoxia in shock forces anaerobic glycolysis, producing lactate. Lactic acidosis is a key feature of shock.",
+      "optExp": [
+        null,
+        "Not insulin-related.",
+        "Liver clears lactate; dysfunction worsens but is not the cause.",
+        "Hyperventilation is respiratory alkalosis.",
+        "Hyperthermia is separate."
+      ]
+    },
+    {
+      "id": 499,
+      "cat": "Glycolysis & Bioenergetics",
+      "year": "Year 1",
+      "block": "Principles",
+      "deck": "Biochemistry",
+      "q": "Insulin signalling activates which transporter for glucose uptake into muscle and fat?",
+      "opts": [
+        "GLUT1",
+        "GLUT2",
+        "GLUT3",
+        "GLUT4",
+        "SGLT1"
+      ],
+      "ans": 3,
+      "exp": "GLUT4 is insulin-responsive; insulin → translocation of GLUT4 to the plasma membrane in muscle and adipose tissue.",
+      "optExp": [
+        "GLUT1 is widespread, insulin-independent.",
+        "GLUT2 is in liver, β-cells.",
+        "GLUT3 is in neurons.",
+        null,
+        "SGLT1 is gut/kidney sodium-glucose cotransporter."
+      ]
+    }
+  ]
+}
