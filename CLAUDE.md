@@ -1,15 +1,35 @@
 # Resurface — project context
 
-Spaced-repetition study app for Year 1 MBChB. React 18 + Vite 7 SPA, no
-backend yet. Formerly "Ascend", and "principles-quiz" before that.
+Spaced-repetition study app for Year 1 MBChB. React 18 + Vite 7 SPA, with
+generation served by `resurface-backend`. Formerly "Ascend", and
+"principles-quiz" before that.
 
 ## State as of 2026-08-07
 
 - Lives at `~/resurface/resurface-app`, org is `Resurface-Med` on GitHub.
 - Restructured and renamed. Lint clean (14 react-hooks warnings remain),
   24 tests passing, build 655KB / 189KB gzip.
-- See README for layout. `npm run dev` on :5173; Generate mode needs
-  `vercel dev` because vite alone will not serve `api/`.
+- See README for layout. `npm run dev` on :5173; Generate mode talks to
+  `resurface-backend`, which serves `/api/generate` on :3001 locally.
+
+## Deployed (2026-08-07)
+
+All three repos are live on the Vercel team `resurface`, public, with
+deployment protection off. The repos themselves stay **private**.
+
+| Repo | URL |
+| --- | --- |
+| `resurface-app` | https://resurface-app-eight.vercel.app |
+| `resurface-landing` | https://resurface-landing.vercel.app |
+| `resurface-backend` | https://resurface-backend-resurface.vercel.app |
+
+`VITE_API_BASE` is set on the Vercel project and inlined at build time, so
+changing it needs a redeploy — as does any backend env var, since Vercel only
+applies env changes to deployments built after the change.
+
+Generate mode returns 500 until `ANTHROPIC_API_KEY` is set on
+`resurface-backend`. The endpoint is currently unauthenticated by choice;
+a login page is the intended gate.
 
 ## Decisions already made — don't relitigate
 
@@ -48,7 +68,7 @@ resurface-app/
 │   ├── views/                 ← Dashboard, Stats, Bookmarks, WrongAnswers,
 │   │                            Subjects, Pomodoro, Generate — just render state
 │   ├── ui/                    ← shared primitives + theme.js
-│   ├── lib/                   ← sm2, storage, pomodoro, extract, generate-client
+│   ├── lib/                   ← sm2, storage, pomodoro
 │   └── data/                  ← deck loader
 └── tests/
 ```
@@ -65,8 +85,11 @@ committed `dist/` bundle. That file is deleted and generation now runs through
 `/api/generate` with the key server-side — verified zero `sk-ant` references in
 the built bundle. **The old key still needs rotating**; treat it as public.
 
-`RESURFACE_PASSCODE` gates the endpoint, and its rate limiter is in-memory —
-both now live in `resurface-backend`. See that repo for the details.
+`RESURFACE_PASSCODE` is deliberately unset (decided 2026-08-07) — the route
+skips the check when it is empty, so `/api/generate` is open on a public URL
+and its only brake is an in-memory rate limiter that serverless recycling
+makes best-effort. A login page is the intended fix. Both live in
+`resurface-backend`; see that repo for details.
 
 ## Not built yet, roughly in priority order
 
@@ -93,4 +116,5 @@ rather than `100vh` — four call sites depend on this.
 ## Open questions for the user
 
 - Exact Resurface domain (bought at an outside registrar, not on Vercel)
-- Landing page is Astro (decided 2026-08-07), scaffolded but not designed.
+- Whether Generate mode stays open or moves behind the planned login. Decided
+  2026-08-07 not to use `RESURFACE_PASSCODE`; a login page supersedes it.
