@@ -14,7 +14,7 @@ Related repos: `resurface-backend`, `resurface-landing`.
    content/decks/*.json ┤
    (497 questions)      └─ progress + SR schedule → localStorage
 
-   Generate mode → POST /api/generate → Claude (key stays server-side)
+   Generate mode → resurface-backend → Claude (key stays server-side)
                                      └─ new questions → localStorage
 ```
 
@@ -28,13 +28,12 @@ npm install
 npm run dev            # http://localhost:5173
 ```
 
-Generate mode needs the serverless function, which `vite` alone does not serve.
-For that path use `vercel dev` (or the backend, once it exists) with:
+Generate mode calls `resurface-backend`. Run that repo alongside this one
+(`npm run dev` there serves :3001), or point at a deployed instance:
 
 ```bash
 cp .env.example .env.local
-# ANTHROPIC_API_KEY=sk-ant-...      server-side only, never prefix with VITE_
-# RESURFACE_PASSCODE=<shared code>
+# VITE_API_BASE=https://api.resurface.example
 ```
 
 ## Layout
@@ -47,7 +46,6 @@ cp .env.example .env.local
 | `src/lib/` | Everything with no React in it — `sm2`, `storage`, `pomodoro` |
 | `src/data/` | Deck loader; the only module that knows how questions are stored |
 | `content/decks/` | The question bank, one JSON file per subject |
-| `api/` | `generate.js` — Anthropic proxy, holds the API key |
 | `tests/` | Vitest, no browser environment needed |
 
 Questions live outside `src/` on purpose. They are content, not code — edited
@@ -73,8 +71,6 @@ npm run lint         npm test             npm run test:watch
 - **No export or import.** Everything is in localStorage, so clearing a browser
   loses every streak and review schedule. Highest-priority gap.
 - **No accounts or sync**, so progress does not follow a user between devices.
-- The rate limiter in `api/generate.js` is in-memory and resets on cold starts.
-  It stops runaway loops, not real abuse.
 - `react-hooks` lint warnings (14) are unfixed — effect dependencies and
   set-state-in-effect, visible in `npm run lint`.
 - One 655KB bundle. Decks are eagerly imported; lazy-loading them per subject

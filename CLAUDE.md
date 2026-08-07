@@ -31,18 +31,16 @@ source — hand-edited, changed far more often than the app, and 294KB of the
 "principles-quiz" and invisible to users. Renaming them silently wipes
 everyone's spaced-repetition progress for zero benefit.
 
-**Deployment target is unsettled.** `api/generate.js` is written as a Vercel
-serverless function (file-convention routing, coded around Vercel's 4.5MB
-request cap). The user thinks they want Railway for Resurface, which would mean
-a long-running server instead — a better fit for auth and sync anyway. Settle
-this before writing the backend; nothing in the app repo depends on it.
+**Vercel, not Railway** — decided 2026-08-07. Generation now lives in
+`resurface-backend` (Next 16 on Vercel), not in this repo. The app reaches it
+via `VITE_API_BASE`, so the two are separate origins and the backend keeps a
+CORS allowlist (`ALLOWED_ORIGINS`).
 
 ## Structure (applied)
 
 ```
 resurface-app/
 ├── .github/workflows/ci.yml   ← install → lint → test → audit (no typecheck)
-├── api/generate.js            ← moves to resurface-backend eventually
 ├── content/decks/*.json       ← questions, split per deck
 ├── scripts/audit-questions.mjs
 ├── src/
@@ -67,9 +65,8 @@ committed `dist/` bundle. That file is deleted and generation now runs through
 `/api/generate` with the key server-side — verified zero `sk-ant` references in
 the built bundle. **The old key still needs rotating**; treat it as public.
 
-`RESURFACE_PASSCODE` gates the endpoint. The
-in-memory rate limiter in `api/generate.js` resets on cold starts — it catches
-runaway loops, not real abuse. Upstash Redis if the code ever leaks.
+`RESURFACE_PASSCODE` gates the endpoint, and its rate limiter is in-memory —
+both now live in `resurface-backend`. See that repo for the details.
 
 ## Not built yet, roughly in priority order
 
@@ -96,6 +93,4 @@ rather than `100vh` — four call sites depend on this.
 ## Open questions for the user
 
 - Exact Resurface domain (bought at an outside registrar, not on Vercel)
-- Railway or Vercel for the backend
-- `rafil-g/resurface-app` was pushed by mistake and still needs deleting;
-  the token lacks `delete_repo` scope.
+- Landing page is Astro (decided 2026-08-07), scaffolded but not designed.

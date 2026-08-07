@@ -4,6 +4,10 @@ import { C, pageWrap, card, h1, h2, primaryBtn, chipBtn, chipBtnActive } from ".
 import { DECK_MAP } from "../data";
 import { generatedStore, passcodeStore } from "../lib/storage";
 
+// Generation lives in resurface-backend; this is the only place the app talks
+// to it. Falls back to the backend's local dev port.
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+
 // Vercel serverless functions cap request bodies at 4.5MB, and base64 inflates
 // a file by ~33%, so anything over ~3MB will be rejected at the edge.
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
@@ -85,7 +89,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
   if (!userContent.length) throw new Error("No content to generate from.");
 
-  const res = await fetch("/api/generate", {
+  const res = await fetch(`${API_BASE}/api/generate`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
