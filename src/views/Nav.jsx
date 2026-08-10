@@ -77,7 +77,7 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
           borderRadius: "var(--r-pill)",
           background: "#fff",
           boxShadow: "0 10px 24px rgba(15, 27, 61, 0.2)",
-          transition: "top 0.35s cubic-bezier(0.22,1,0.36,1), height 0.2s ease",
+          transition: "top 0.2s cubic-bezier(0.22,1,0.36,1), height 0.15s ease",
           pointerEvents: "none", zIndex: 0,
         }} />
 

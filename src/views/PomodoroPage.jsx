@@ -19,7 +19,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
     <div style={pageWrap}>
 
       {/* Header */}
-      <div style={{ animation: "dash-left 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
+      <div style={{ animation: "dash-left 0.24s cubic-bezier(0.22,1,0.36,1) both" }}>
         <h1 style={h1}>Pomodoro.</h1>
         <p style={pageSub}>
           {count === 0 ? "Start a focus session to track your study time." : `${count} session${count !== 1 ? "s" : ""} completed today`}

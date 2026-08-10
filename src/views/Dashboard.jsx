@@ -52,7 +52,7 @@ const glassTile = {
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-function useCountUp(target, duration = 900, delay = 0) {
+function useCountUp(target, duration = 420, delay = 0) {
   const [val, setVal] = useState(0);
   useEffect(() => {
     if (target === null || target === 0) { setVal(target ?? 0); return; }
@@ -76,8 +76,8 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
 
-  const animAcc  = useCountUp(acc, 1000, 500);
-  const animSeen = useCountUp(Object.keys(pStats).length, 900, 600);
+  const animAcc  = useCountUp(acc, 450, 120);
+  const animSeen = useCountUp(Object.keys(pStats).length, 420, 160);
 
   const [weekOffset, setWeekOffset] = useState(0);
   const [goalTarget, setGoalTarget] = useState(() => goalStore.get());
@@ -145,7 +145,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-        <div style={{ animation: "dash-left 0.55s cubic-bezier(0.22,1,0.36,1) both" }}>
+        <div style={{ animation: "dash-left 0.26s cubic-bezier(0.22,1,0.36,1) both" }}>
           <h1 style={h1}>{greeting}.</h1>
           <p style={{ color: "var(--c-on-field-soft)", marginTop: 5, fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>
             {totalT === 0 ? "Start practising to track your progress." : `${totalT} questions answered · ${acc ?? 0}% accuracy`}
@@ -158,7 +158,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
             padding: "6px 14px 6px 10px",
             border: "1px solid rgba(255,255,255,0.28)",
             boxShadow: "0 10px 24px rgba(15,27,61,0.15)",
-            animation: "spring-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.15s both",
+            animation: "spring-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.15s both",
           }}>
             <span style={{ fontSize: 14 }}>🔥</span>
             <span style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: -0.3 }}>{streak.streak}</span>
@@ -172,7 +172,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
         gap: 10,
-        animation: "rise-blur 0.55s cubic-bezier(0.22,1,0.36,1) 0.25s both",
+        animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.25s both",
       }}>
         {[
           { label: "Due now", value: String(dueCount), foot: dueCount > 0 ? "ready to review" : "all caught up" },
@@ -196,7 +196,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                     width: `${Math.min(todayCount / goalTarget, 1) * 100}%`,
                     background: "#fff",
                     borderRadius: 99,
-                    transition: "width 0.8s cubic-bezier(0.22,1,0.36,1)",
+                    transition: "width 0.35s cubic-bezier(0.22,1,0.36,1)",
                   }} />
                 </div>
                 <div style={{ fontSize: 12, color: "var(--c-on-field-soft)", marginTop: 7, display: "flex", alignItems: "center", gap: 5 }}>
@@ -238,7 +238,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       </div>
 
       {/* Heatmap */}
-      <div style={{ ...cardSolid, padding: "20px 22px", animation: "sweep-reveal 0.75s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
+      <div style={{ ...cardSolid, padding: "20px 22px", animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>Activity</span>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -383,7 +383,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
             cursor: "pointer",
             fontFamily: "inherit",
             border: "none",
-            animation: `rise-blur 0.55s cubic-bezier(0.22,1,0.36,1) ${0.7 + i * 0.07}s both`,
+            animation: `rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) ${0.16 + i * 0.035}s both`,
           }}>
             <div style={{
               fontSize: 40, fontWeight: 700, color: C.accent, opacity: 0.22,
@@ -406,7 +406,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       </div>
 
       {/* Reset links */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", animation: "rise-blur 0.4s ease 1s both" }}>
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", animation: "rise-blur 0.22s ease 1s both" }}>
         <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP(); }}>Reset Practice</GhostBtn>
         <GhostBtn onClick={() => { if (window.confirm("Reset flashcard schedules?")) onClearSR(); }}>Reset Flashcards</GhostBtn>
       </div>

@@ -111,7 +111,7 @@ export default function PomodoroTimer() {
       borderTop: "1px solid var(--c-nav-border)",
       padding: "14px 14px 12px",
       background: flash ? dim : "transparent",
-      transition: "background 0.4s",
+      transition: "background 0.25s",
     }}>
 
       {/* Header row: mode tabs + dots */}

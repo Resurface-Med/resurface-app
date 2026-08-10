@@ -160,8 +160,11 @@ html {
   padding: 0;
 }
 
+/* Applies to essentially every element, so this one number sets how responsive
+   the whole app feels on hover and state change. Long enough to smooth a theme
+   switch, short enough that a button reacts immediately. */
 body, button, input, select, textarea, div, span, p, h1, h2, h3 {
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 body {
@@ -182,7 +185,7 @@ body::before {
   background: var(--c-body-overlay-bg);
   pointer-events: none;
   z-index: 0;
-  transition: background 0.4s ease;
+  transition: background 0.25s ease;
 }
 
 body::after {
@@ -322,24 +325,24 @@ body::after {
 
 /* ─── Animation utilities ────────────────────────────────────────── */
 
-.anim-fade-up   { animation: fadeSlideUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-fade-down { animation: fadeSlideDown 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-fade-in   { animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-scale-in  { animation: scaleIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-shake     { animation: shake 0.36s ease both; }
-.anim-pop       { animation: pop 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-bounce-in { animation: bounce-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-up   { animation: fadeSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-down { animation: fadeSlideDown 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-fade-in   { animation: fadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-scale-in  { animation: scaleIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-shake     { animation: shake 0.3s ease both; }
+.anim-pop       { animation: pop 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-bounce-in { animation: bounce-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
 .delay-0   { animation-delay: 0ms; }
 .delay-50  { animation-delay: 50ms; }
-.delay-100 { animation-delay: 100ms; }
-.delay-150 { animation-delay: 150ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-250 { animation-delay: 250ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-350 { animation-delay: 350ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
+.delay-100 { animation-delay: 40ms; }
+.delay-150 { animation-delay: 60ms; }
+.delay-200 { animation-delay: 80ms; }
+.delay-250 { animation-delay: 95ms; }
+.delay-300 { animation-delay: 110ms; }
+.delay-350 { animation-delay: 130ms; }
+.delay-400 { animation-delay: 150ms; }
+.delay-500 { animation-delay: 180ms; }
 
 .anim-badge-pulse    { animation: badge-pulse 2.2s ease-in-out infinite; }
 .anim-timer-urgent   { animation: timer-pulse 0.7s ease-in-out infinite; }

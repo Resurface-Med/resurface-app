@@ -27,7 +27,7 @@ export default function PomodoroToast({ toast, onDismiss, onStart }) {
       left: "50%",
       transform: "translateX(-50%)",
       zIndex: 2000,
-      animation: "toast-slide-in 0.4s cubic-bezier(0.22,1,0.36,1) both",
+      animation: "toast-slide-in 0.26s cubic-bezier(0.22,1,0.36,1) both",
     }}>
       <div style={{
         background: "var(--c-card-bg)",
