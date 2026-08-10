@@ -1,8 +1,10 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { C, V, pageWrap, h1, card } from "../ui/theme";
+import { C, V, pageWrap, h1, cardSolid } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { goalStore } from "../lib/storage";
+import { isDue } from "../lib/sm2";
 import GhostBtn from "../ui/GhostBtn";
+import DailyQuestion from "../ui/DailyQuestion";
 
 const WEEKS = 26;
 const DAY_COL_W = 18; // day-label column width + margin — must stay in sync with JSX
@@ -30,11 +32,24 @@ function buildGrid(weekOffset = 0) {
 
 function heatColor(count, max = 1) {
   if (!count) return "var(--c-accent-glow)";
-  // sqrt scale gives better visual spread across the actual range
+  // sqrt scale gives better visual spread across the actual range.
+  // Alpha varies per cell, so this is one of the few places a raw colour is
+  // unavoidable — it tracks --c-accent (#3562f5) and must move with it.
   const pct = Math.sqrt(Math.min(count / max, 1));
   const opacity = 0.18 + pct * 0.82;
   return `rgba(53,98,245,${opacity.toFixed(2)})`;
 }
+
+/** Frosted tile floating on the blue field — the landing's glass card. */
+const glassTile = {
+  background: "rgba(255,255,255,0.14)",
+  border: "1.5px solid rgba(255,255,255,0.32)",
+  borderRadius: "var(--r-card)",
+  padding: "16px 18px",
+  boxShadow: "0 12px 28px rgba(15,27,61,0.15)",
+  backdropFilter: "blur(14px) saturate(160%)",
+  WebkitBackdropFilter: "blur(14px) saturate(160%)",
+};
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -58,7 +73,7 @@ function useCountUp(target, duration = 900, delay = 0) {
   return val;
 }
 
-export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, onClearP, onClearSR }) {
+export default function Dashboard({ pStats, srCards = {}, streak, dueCount, setView, activity = {}, onAnswer, onClearP, onClearSR }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
@@ -73,8 +88,6 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const [goalDraft, setGoalDraft] = useState("");
   const [tooltip, setTooltip] = useState(null); // { x, y, date, count }
   const heatmapRef = useRef(null);
-  const [ringsReady, setRingsReady] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setRingsReady(true), 500); return () => clearTimeout(t); }, []);
 
   const grid = useMemo(() => buildGrid(weekOffset), [weekOffset]);
 
@@ -119,10 +132,12 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
     return sum;
   }, [activity]);
 
+  // Numbered like the landing's "How it works" steps — the order is the
+  // suggested route through the app, not three equivalent buttons.
   const modes = [
-    { k: V.PRACTICE, icon: "▷", label: "Practice",     col: C.accent },
-    { k: V.SR,       icon: "↻", label: `Flashcards${dueCount > 0 ? ` (${dueCount})` : ""}`, col: dueCount > 0 ? C.success : C.sub },
-    { k: V.WRONG,    icon: "✕", label: "Wrong Answers", col: C.danger },
+    { k: V.PRACTICE, n: "1", label: "Practice",      body: "Work a topic at your own pace." },
+    { k: V.SR,       n: "2", label: "Flashcards",    body: dueCount > 0 ? `${dueCount} due for review right now.` : "Nothing due — you're on top of it.", badge: dueCount > 0 ? dueCount : null },
+    { k: V.WRONG,    n: "3", label: "Wrong answers", body: "Go back to what caught you out." },
   ];
 
   const hour = new Date().getHours();
@@ -155,8 +170,90 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         )}
       </div>
 
+      {/* The white sheet: one real question, answerable here. */}
+      {onAnswer && (
+        <DailyQuestion
+          questions={QUESTIONS}
+          srCards={srCards}
+          pStats={pStats}
+          isDue={isDue}
+          onAnswer={onAnswer}
+          onOpenPractice={() => setView(V.PRACTICE)}
+        />
+      )}
+
+      {/* Glass tiles on the field */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+        gap: 10,
+        animation: "rise-blur 0.55s cubic-bezier(0.22,1,0.36,1) 0.25s both",
+      }}>
+        {[
+          { label: "Due now", value: String(dueCount), foot: dueCount > 0 ? "ready to review" : "all caught up" },
+          { label: "Accuracy", value: acc === null ? "—" : `${animAcc}%`, foot: `${totalC}/${totalT} correct`, tint: accCol },
+          { label: "Seen", value: String(animSeen), foot: `of ${QUESTIONS.length} questions` },
+          { label: "Today", value: String(todayCount), foot: null, goal: true },
+        ].map(tile => (
+          <div key={tile.label} style={glassTile}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--c-on-field-soft)", letterSpacing: 0.3, textTransform: "uppercase" }}>
+              {tile.label}
+            </div>
+            <div style={{ fontSize: 30, fontWeight: 700, color: "#fff", letterSpacing: -1.2, lineHeight: 1.15, marginTop: 6 }}>
+              {tile.value}
+            </div>
+
+            {tile.goal ? (
+              <>
+                <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.22)", marginTop: 10, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%",
+                    width: `${Math.min(todayCount / goalTarget, 1) * 100}%`,
+                    background: "#fff",
+                    borderRadius: 99,
+                    transition: "width 0.8s cubic-bezier(0.22,1,0.36,1)",
+                  }} />
+                </div>
+                <div style={{ fontSize: 12, color: "var(--c-on-field-soft)", marginTop: 7, display: "flex", alignItems: "center", gap: 5 }}>
+                  {editingGoal ? (
+                    <form onSubmit={e => {
+                      e.preventDefault();
+                      const n = parseInt(goalDraft);
+                      if (n > 0) { goalStore.set(n); setGoalTarget(n); }
+                      setEditingGoal(false);
+                    }}>
+                      <input autoFocus type="number" min="1" max="500"
+                        value={goalDraft} onChange={e => setGoalDraft(e.target.value)}
+                        onBlur={() => setEditingGoal(false)}
+                        style={{
+                          width: 54, background: "rgba(255,255,255,0.16)", border: "none",
+                          borderRadius: 6, outline: "none", fontSize: 12, color: "#fff",
+                          fontFamily: "inherit", textAlign: "center", padding: "2px 0",
+                        }}
+                      />
+                    </form>
+                  ) : (
+                    <>
+                      {todayCount >= goalTarget ? "✓ " : ""}goal {goalTarget}
+                      <button onClick={() => { setGoalDraft(String(goalTarget)); setEditingGoal(true); }}
+                        aria-label="Edit daily goal"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-on-field-soft)", fontSize: 11, padding: 0 }}
+                      >✎</button>
+                    </>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 12, color: "var(--c-on-field-soft)", marginTop: 7 }}>
+                {tile.foot}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
       {/* Heatmap */}
-      <div style={{ ...card, padding: "20px 22px", animation: "sweep-reveal 0.75s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
+      <div style={{ ...cardSolid, padding: "20px 22px", animation: "sweep-reveal 0.75s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>Activity</span>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -275,130 +372,6 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         </div>
       )}
 
-      {/* Stat rings */}
-      {(() => {
-        const R = 48, SW = 7, CIRC = 2 * Math.PI * R, SIZE = (R + SW) * 2;
-        const goalCol = todayCount >= goalTarget ? C.success : todayCount >= goalTarget * 0.7 ? C.warning : C.accent;
-        const rings = [
-          {
-            label: "Accuracy", sub: `${totalC}/${totalT} correct`,
-            progress: acc !== null ? acc / 100 : 0,
-            display: acc !== null ? animAcc + "%" : "—",
-            color: accCol, delay: "0.45s",
-          },
-          {
-            label: "Today's goal", sub: null,
-            progress: Math.min(todayCount / goalTarget, 1),
-            display: String(todayCount),
-            color: goalCol, delay: "0.52s",
-          },
-          {
-            label: "Questions seen", sub: `of ${QUESTIONS.length}`,
-            progress: QUESTIONS.length > 0 ? Object.keys(pStats).length / QUESTIONS.length : 0,
-            display: String(animSeen),
-            color: C.accentLt, delay: "0.59s",
-          },
-        ];
-        return (
-          <div style={{
-            display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12,
-            marginTop: 4,
-            animation: "sweep-reveal 0.75s cubic-bezier(0.25,0.46,0.45,0.94) 0.3s both",
-          }}>
-            {rings.map((ring, ri) => {
-              const dashOffset = CIRC * (1 - ring.progress);
-              return (
-                <div key={ring.label} style={{
-                  display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
-                  background: "var(--c-card-bg)",
-                  borderRadius: "var(--r-panel)",
-                  padding: "22px 12px 18px",
-                  border: "1px solid var(--c-border)",
-                  boxShadow: "var(--c-card-shadow)",
-                  animation: `spring-pop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${ring.delay} both`,
-                }}>
-                  <div style={{ position: "relative", width: SIZE, height: SIZE }}>
-                    <svg width={SIZE} height={SIZE}>
-                      <defs>
-                        <filter id={`glow-${ri}`} x="-50%" y="-50%" width="200%" height="200%">
-                          <feGaussianBlur stdDeviation="3" result="blur" />
-                        </filter>
-                      </defs>
-                      {/* Track */}
-                      <circle cx={R+SW} cy={R+SW} r={R} fill="none" stroke="var(--c-surface3)" strokeWidth={SW+1} />
-                      {/* Glow */}
-                      {ring.progress > 0 && (
-                        <circle cx={R+SW} cy={R+SW} r={R} fill="none"
-                          stroke={ring.color} strokeWidth={SW+2}
-                          strokeDasharray={CIRC} strokeDashoffset={ringsReady ? dashOffset : CIRC}
-                          strokeLinecap="round"
-                          transform={`rotate(-90 ${R+SW} ${R+SW})`}
-                          opacity={0.25} filter={`url(#glow-${ri})`}
-                          style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1)" }}
-                        />
-                      )}
-                      {/* Arc */}
-                      <circle cx={R+SW} cy={R+SW} r={R} fill="none"
-                        stroke={ring.color} strokeWidth={SW}
-                        strokeDasharray={CIRC} strokeDashoffset={ringsReady ? dashOffset : CIRC}
-                        strokeLinecap="round"
-                        transform={`rotate(-90 ${R+SW} ${R+SW})`}
-                        style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1)" }}
-                      />
-                    </svg>
-                    {/* Centre number */}
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <div style={{ fontSize: 22, fontWeight: 600, color: ring.color, letterSpacing: -0.8, lineHeight: 1 }}>
-                        {ring.display}
-                      </div>
-                    </div>
-                  </div>
-                  {/* Label */}
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: C.text, letterSpacing: -0.3 }}>{ring.label}</div>
-                    {ri === 1 ? (
-                      editingGoal ? (
-                        <form onSubmit={e => {
-                          e.preventDefault();
-                          const n = parseInt(goalDraft);
-                          if (n > 0) { goalStore.set(n); setGoalTarget(n); }
-                          setEditingGoal(false);
-                        }}>
-                          <input autoFocus type="number" min="1" max="500"
-                            value={goalDraft} onChange={e => setGoalDraft(e.target.value)}
-                            onBlur={() => setEditingGoal(false)}
-                            style={{
-                              width: 60, background: "transparent", border: "none",
-                              borderBottom: `1px solid ${C.accentBrd}`, outline: "none",
-                              fontSize: 12, color: C.accent, fontFamily: "inherit",
-                              textAlign: "center", padding: "2px 0", marginTop: 3,
-                            }}
-                          />
-                        </form>
-                      ) : (
-                        <div style={{ fontSize: 12, color: C.muted, marginTop: 3, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                          {todayCount >= goalTarget ? "✓ " : ""}{todayCount}/{goalTarget}
-                          <button onClick={() => { setGoalDraft(String(goalTarget)); setEditingGoal(true); }}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: C.mutedDim, fontSize: 11, padding: 0 }}
-                            onMouseEnter={e => e.currentTarget.style.color = C.muted}
-                            onMouseLeave={e => e.currentTarget.style.color = C.mutedDim}
-                          >✎</button>
-                        </div>
-                      )
-                    ) : (
-                      <div style={{ fontSize: 12, color: C.muted, marginTop: 3 }}>{ring.sub}</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
-      })()}
-
       {/* Stats link */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button onClick={() => setView(V.STATS)} className="btn-press" style={{
@@ -414,19 +387,35 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         </button>
       </div>
 
-      {/* Quick launch */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+      {/* Where to go next — the landing's numbered steps, as buttons */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
         {modes.map((m, i) => (
           <button key={m.k} onClick={() => setView(m.k)} className="hover-lift btn-press" style={{
-            background: "rgba(255,255,255,0.14)", borderRadius: "var(--r-pill)",
-            padding: "18px 16px", textAlign: "center",
-            border: "1.5px solid rgba(255,255,255,0.35)",
-            boxShadow: "0 12px 28px rgba(15,27,61,0.15)",
-            cursor: "pointer", fontFamily: "inherit",
+            ...cardSolid,
+            position: "relative",
+            padding: "20px 20px 18px",
+            textAlign: "left",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            border: "none",
             animation: `rise-blur 0.55s cubic-bezier(0.22,1,0.36,1) ${0.7 + i * 0.07}s both`,
           }}>
-            <div style={{ fontSize: 22, color: "#fff", marginBottom: 8 }}>{m.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", lineHeight: 1.3, letterSpacing: -0.3 }}>{m.label}</div>
+            <div style={{
+              fontSize: 40, fontWeight: 700, color: C.accent, opacity: 0.22,
+              letterSpacing: -2, lineHeight: 1, marginBottom: 10,
+            }}>{m.n}</div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16, fontWeight: 600, color: C.text, letterSpacing: -0.4 }}>{m.label}</span>
+              {m.badge && (
+                <span style={{
+                  fontSize: 11.5, fontWeight: 700, color: "#fff", background: C.success,
+                  borderRadius: "var(--r-pill)", padding: "2px 9px", lineHeight: 1.5,
+                }}>{m.badge}</span>
+              )}
+            </div>
+
+            <p style={{ marginTop: 5, fontSize: 13.5, color: C.sub, lineHeight: 1.45 }}>{m.body}</p>
           </button>
         ))}
       </div>

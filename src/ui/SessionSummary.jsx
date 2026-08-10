@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn } from "./theme";
+import { C, pageWrap, card, h1, h2, fieldBtn } from "./theme";
 import ProgressBar from "./ProgressBar";
 import GhostBtn from "./GhostBtn";
 
