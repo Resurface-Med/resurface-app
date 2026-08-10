@@ -19,12 +19,6 @@ const field = {
   outline: "none",
 };
 
-const POINTS = [
-  "Questions that resurface right before you forget them",
-  "Nine subjects, following the topics on your course",
-  "Turn your own lecture slides into practice questions",
-];
-
 export default function LoginPage() {
   const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
 
@@ -93,17 +87,12 @@ export default function LoginPage() {
             Don't let the lecture sink.
           </h2>
 
-          <ul style={{ listStyle: "none", margin: "26px 0 0", padding: 0, display: "grid", gap: 13 }}>
-            {POINTS.map(p => (
-              <li key={p} style={{ display: "flex", gap: 11, alignItems: "flex-start", fontSize: 15, color: OF.soft, lineHeight: 1.5 }}>
-                <svg viewBox="0 0 20 20" width="19" height="19" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true">
-                  <circle cx="10" cy="10" r="9" fill="rgba(255,255,255,0.22)" />
-                  <path d="M6 10.2l2.6 2.6L14 7.4" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {p}
-              </li>
-            ))}
-          </ul>
+          {/* Anyone on this screen has already decided; listing features again
+              is wasted space. Who made it is the thing they don't know. */}
+          <p style={{ marginTop: 22, fontSize: 16, color: OF.soft, lineHeight: 1.6, maxWidth: "40ch" }}>
+            Built by a medical student, for medical students — questions that
+            follow your course, not a generic syllabus.
+          </p>
         </div>
 
         <img
