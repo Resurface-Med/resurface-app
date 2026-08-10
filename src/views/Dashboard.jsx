@@ -2,9 +2,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { C, V, pageWrap, h1, cardSolid } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { goalStore } from "../lib/storage";
-import { isDue } from "../lib/sm2";
 import GhostBtn from "../ui/GhostBtn";
-import DailyQuestion from "../ui/DailyQuestion";
 
 const WEEKS = 26;
 const DAY_COL_W = 18; // day-label column width + margin — must stay in sync with JSX
@@ -73,11 +71,10 @@ function useCountUp(target, duration = 900, delay = 0) {
   return val;
 }
 
-export default function Dashboard({ pStats, srCards = {}, streak, dueCount, setView, activity = {}, onAnswer, onClearP, onClearSR }) {
+export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, onClearP, onClearSR }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
-  const accCol = acc === null ? C.muted : acc >= 70 ? C.success : acc >= 50 ? C.warning : C.danger;
 
   const animAcc  = useCountUp(acc, 1000, 500);
   const animSeen = useCountUp(Object.keys(pStats).length, 900, 600);
@@ -170,18 +167,6 @@ export default function Dashboard({ pStats, srCards = {}, streak, dueCount, setV
         )}
       </div>
 
-      {/* The white sheet: one real question, answerable here. */}
-      {onAnswer && (
-        <DailyQuestion
-          questions={QUESTIONS}
-          srCards={srCards}
-          pStats={pStats}
-          isDue={isDue}
-          onAnswer={onAnswer}
-          onOpenPractice={() => setView(V.PRACTICE)}
-        />
-      )}
-
       {/* Glass tiles on the field */}
       <div style={{
         display: "grid",
@@ -191,7 +176,7 @@ export default function Dashboard({ pStats, srCards = {}, streak, dueCount, setV
       }}>
         {[
           { label: "Due now", value: String(dueCount), foot: dueCount > 0 ? "ready to review" : "all caught up" },
-          { label: "Accuracy", value: acc === null ? "—" : `${animAcc}%`, foot: `${totalC}/${totalT} correct`, tint: accCol },
+          { label: "Accuracy", value: acc === null ? "—" : `${animAcc}%`, foot: `${totalC}/${totalT} correct` },
           { label: "Seen", value: String(animSeen), foot: `of ${QUESTIONS.length} questions` },
           { label: "Today", value: String(todayCount), foot: null, goal: true },
         ].map(tile => (

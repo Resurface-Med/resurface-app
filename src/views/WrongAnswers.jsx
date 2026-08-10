@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { C, pageWrap, card, h1, primaryBtn, fieldBtn, selectBtn, label as labelStyle } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, fieldBtn, selectBtn, label as labelStyle, pageSub } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import ProgressBar from "../ui/ProgressBar";
@@ -113,7 +113,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="anim-fade-down delay-0" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={h1}>Wrong Answers</h1>
-            <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>
+            <p style={pageSub}>
               {cat === "All" ? "All topics" : cat}
             </p>
           </div>
@@ -166,7 +166,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
     <div style={pageWrap}>
       <div className="anim-fade-up delay-0">
         <h1 style={h1}>Wrong Answers</h1>
-        <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>
+        <p style={pageSub}>
           Targeted revision of your weakest questions.
         </p>
       </div>

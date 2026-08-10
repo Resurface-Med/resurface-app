@@ -1,4 +1,4 @@
-import { C, pageWrap, h1 } from "../ui/theme";
+import { C, pageWrap, h1, pageSub } from "../ui/theme";
 import { POMODORO_MODES } from "../lib/pomodoro";
 
 const R  = 108;
@@ -21,7 +21,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
       {/* Header */}
       <div style={{ animation: "dash-left 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
         <h1 style={h1}>Pomodoro.</h1>
-        <p style={{ color: C.sub, marginTop: 5, fontSize: 15, fontWeight: 500 }}>
+        <p style={pageSub}>
           {count === 0 ? "Start a focus session to track your study time." : `${count} session${count !== 1 ? "s" : ""} completed today`}
         </p>
       </div>

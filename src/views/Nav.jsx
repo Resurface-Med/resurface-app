@@ -40,26 +40,23 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
       overflow: "hidden",
     }}>
       <div style={{
-        padding: "14px 12px 12px",
+        padding: "18px 16px 16px",
         borderBottom: "1px solid var(--c-nav-border)",
       }}>
-        <div style={{
-          background: "#fff",
-          borderRadius: 14,
-          padding: "10px 12px",
-          boxShadow: "0 8px 20px rgba(15,27,61,0.12)",
-        }}>
-          <img
-            src="/logo-lockup.png"
-            alt="Resurface"
-            style={{
-              width: "100%",
-              maxWidth: 168,
-              height: "auto",
-              display: "block",
-            }}
-          />
-        </div>
+        {/* The lockup is blue-on-transparent, which disappears against the
+            blue nav. Rather than box it in a white bubble, flip it to solid
+            white — the nav is dark in both themes, so white always reads. */}
+        <img
+          src="/logo-lockup.png"
+          alt="Resurface"
+          style={{
+            width: "100%",
+            maxWidth: 164,
+            height: "auto",
+            display: "block",
+            filter: "brightness(0) invert(1)",
+          }}
+        />
       </div>
 
       <nav ref={navRef} style={{

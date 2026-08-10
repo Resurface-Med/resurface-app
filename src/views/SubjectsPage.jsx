@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { C, V, pageWrap, h1, primaryBtn, card } from "../ui/theme";
+import { C, V, pageWrap, h1, primaryBtn, card, pageSub } from "../ui/theme";
 import { QUESTIONS, DECK_MAP } from "../data";
 
 const DECK_ICONS = {
@@ -94,7 +94,7 @@ export default function SubjectsPage({ pStats, srCards, setView, setLaunchFilter
       {/* Header */}
       <div className="anim-fade-up delay-0">
         <h1 style={h1}>Subjects</h1>
-        <p style={{ color: C.sub, fontSize: 15, marginTop: 5, fontWeight: 500 }}>
+        <p style={pageSub}>
           Browse your question bank by deck and subdeck.
         </p>
       </div>

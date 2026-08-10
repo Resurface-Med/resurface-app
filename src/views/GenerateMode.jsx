@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import JSZip from "jszip";
-import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn, chipBtn, chipBtnActive } from "../ui/theme";
+import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn, chipBtn, chipBtnActive, pageSub } from "../ui/theme";
 import { DECK_MAP } from "../data";
 import { generatedStore, passcodeStore } from "../lib/storage";
 
@@ -321,7 +321,7 @@ export default function GenerateMode() {
     return (
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>Review Questions</h1>
-        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 15, marginTop: 4 }}>
+        <p className="anim-fade-up delay-50" style={pageSub}>
           Untick any questions you don't want to keep. {keptList.length}/{generated.length} selected.
         </p>
 
@@ -428,7 +428,7 @@ export default function GenerateMode() {
     <div style={pageWrap}>
       <div className="anim-fade-up delay-0">
         <h1 style={h1}>AI Generate</h1>
-        <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 400, letterSpacing: -0.2 }}>Upload your slides and Claude will write questions for you.</p>
+        <p style={pageSub}>Upload your slides and Claude will write questions for you.</p>
       </div>
 
       {/* Single card with all settings */}

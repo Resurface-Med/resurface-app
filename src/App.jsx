@@ -165,7 +165,6 @@ export default function App() {
         <div style={{ flex: 1, overflowY: "auto" }}>
           {view === V.DASH && <Dashboard pStats={pStats} srCards={srCards} streak={streak} dueCount={dueCount} bmCount={bookmarks.length} setView={setView}
             activity={activityStore.load()}
-            onAnswer={recordAnswer}
             onClearP={() => { practiceStore.clear(); setPStats({}); }}
             onClearSR={() => { srStore.clear(); setSrCards({}); }} />}
           {view === V.SUBJECTS && <SubjectsPage pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}

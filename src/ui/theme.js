@@ -83,12 +83,62 @@ export const pageWrap = {
   gap: 20,
 };
 
+/**
+ * Text sitting directly on the blue field.
+ *
+ * C.text / C.sub / C.muted are ink colours — they assume a white or panel
+ * surface underneath. Used on the field they render dark-on-blue and become
+ * unreadable in light theme. Anything outside a card must use these instead.
+ */
+export const OF = {
+  text:  "var(--c-on-field)",
+  soft:  "var(--c-on-field-soft)",
+  faint: "var(--c-on-field-faint)",
+  pos:   "var(--c-of-pos)",
+  warn:  "var(--c-of-warn)",
+  neg:   "var(--c-of-neg)",
+};
+
 export const h1 = {
   fontSize: 36,
   fontWeight: 600,
-  color: "var(--c-on-field)",
+  color: OF.text,
   letterSpacing: -1.2,
   lineHeight: 1.15,
+};
+
+/** The line under a page title. Always on the field, so never ink. */
+export const pageSub = {
+  color: OF.soft,
+  fontSize: 15,
+  marginTop: 4,
+  fontWeight: 500,
+  letterSpacing: -0.2,
+};
+
+/** Frosted object floating on the field — the landing's glass card. */
+export const glassCard = {
+  background: "rgba(255,255,255,0.14)",
+  border: "1.5px solid rgba(255,255,255,0.32)",
+  borderRadius: "var(--r-panel)",
+  padding: 24,
+  boxShadow: "0 16px 36px rgba(15,27,61,0.18)",
+  backdropFilter: "blur(14px) saturate(160%)",
+  WebkitBackdropFilter: "blur(14px) saturate(160%)",
+  color: OF.text,
+};
+
+/** Secondary action on the field: outlined white pill, not muted ink. */
+export const fieldGhostBtn = {
+  padding: "11px 20px",
+  borderRadius: "var(--r-pill)",
+  border: "1.5px solid rgba(255,255,255,0.4)",
+  background: "transparent",
+  color: OF.text,
+  fontSize: 15,
+  fontWeight: 500,
+  cursor: "pointer",
+  fontFamily: "inherit",
 };
 
 export const h2 = {

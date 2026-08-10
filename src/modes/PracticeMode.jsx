@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
+import { C, pageWrap, card, h1, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive, label as labelStyle, pageSub } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import ProgressBar from "../ui/ProgressBar";
@@ -234,7 +234,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return (
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>Free Practice</h1>
-        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 500 }}>No timer, no pressure. Learn at your pace.</p>
+        <p className="anim-fade-up delay-50" style={pageSub}>No timer, no pressure. Learn at your pace.</p>
 
         {/* Resume card */}
         {savedSession && (() => {
@@ -243,27 +243,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             : cats.length <= 2 ? cats.join(" · ")
             : `${cats.slice(0, 2).join(" · ")} +${cats.length - 2} more`;
           return (
-            <div className="anim-scale-in delay-50" style={{
-              ...card,
-              borderColor: C.accentBrd,
-              background: C.accentDim,
-            }}>
+            // Sits on the blue field, so it is glass with white text. It used
+            // to be a `card` tinted with accentDim — a 10% blue wash on blue,
+            // carrying blue and ink text that neither theme could read.
+            <div className="anim-scale-in delay-50" style={glassCard}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: C.accent, marginBottom: 6 }}>Session in progress</div>
-                  <div style={{ fontSize: 15, color: C.sub }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: OF.text, marginBottom: 6 }}>Session in progress</div>
+                  <div style={{ fontSize: 15, color: OF.soft }}>
                     Question {(savedSession.idx ?? 0) + 1} of {savedSession.queue?.length ?? "?"} · {savedSession.sC ?? 0}/{savedSession.sT ?? 0} correct
                   </div>
                   {topicLabel && (
-                    <div style={{ fontSize: 14, color: C.muted, marginTop: 5 }}>{topicLabel}</div>
+                    <div style={{ fontSize: 14, color: OF.faint, marginTop: 5 }}>{topicLabel}</div>
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="hover-lift btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
-                  <button className="hover-lift btn-press" onClick={discardSession} style={{
-                    padding: "11px 16px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
-                    background: "transparent", color: C.muted, fontSize: 15, cursor: "pointer", fontFamily: "inherit",
-                  }}>Discard</button>
+                  <button className="hover-lift btn-press" onClick={discardSession} style={fieldGhostBtn}>Discard</button>
                 </div>
               </div>
             </div>
@@ -312,26 +308,26 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       <div className="anim-fade-down delay-0" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1 style={h1}>Free Practice</h1>
-          <p style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 500 }}>{filterLabel}</p>
+          <p style={pageSub}>{filterLabel}</p>
         </div>
         {pct !== null && (
           <div className="anim-scale-in delay-100" style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 32, fontWeight: 600, color: pct >= 70 ? C.success : C.warning, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
-            <div style={{ fontSize: 11, color: C.muted }}>{sC}/{sT}</div>
+            <div style={{ fontSize: 32, fontWeight: 600, color: pct >= 70 ? OF.pos : OF.warn, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
+            <div style={{ fontSize: 11, color: OF.soft }}>{sC}/{sT}</div>
           </div>
         )}
       </div>
       <div className="anim-fade-up delay-50" style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <button onClick={handleBack} disabled={idx === 0} className="btn-press" style={{
-          flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: "var(--r-pill)", padding: "5px 10px", color: C.muted, fontSize: 13,
+          flexShrink: 0, background: "none", border: "1.5px solid rgba(255,255,255,0.4)",
+          borderRadius: "var(--r-pill)", padding: "5px 10px", color: OF.text, fontSize: 13,
           cursor: idx === 0 ? "default" : "pointer", opacity: idx === 0 ? 0.3 : 1,
         }}>←</button>
         <ProgressBar value={(idx + 1) / queue.length * 100} colour={C.accent} />
-        <span style={{ fontSize: 12, color: C.muted, whiteSpace: "nowrap" }}>{idx + 1}/{queue.length}</span>
+        <span style={{ fontSize: 12, color: OF.soft, whiteSpace: "nowrap" }}>{idx + 1}/{queue.length}</span>
         <button onClick={handleNext} disabled={idx + 1 >= queue.length} className="btn-press" style={{
-          flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: "var(--r-pill)", padding: "5px 10px", color: C.muted, fontSize: 13,
+          flexShrink: 0, background: "none", border: "1.5px solid rgba(255,255,255,0.4)",
+          borderRadius: "var(--r-pill)", padding: "5px 10px", color: OF.text, fontSize: 13,
           cursor: idx + 1 >= queue.length ? "default" : "pointer", opacity: idx + 1 >= queue.length ? 0.3 : 1,
         }}>→</button>
         <button onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }} className="btn-press" style={{

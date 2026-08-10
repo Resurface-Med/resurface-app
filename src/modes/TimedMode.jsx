@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
+import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { timedBestStore } from "../lib/storage";
 import QuestionCard from "../ui/QuestionCard";
@@ -97,7 +97,7 @@ export default function TimedMode({ pStats, onAnswer, launchFilter }) {
     return (
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>Timed Challenge</h1>
-        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 500 }}>Answer each question before the timer runs out.</p>
+        <p className="anim-fade-up delay-50" style={pageSub}>Answer each question before the timer runs out.</p>
         <div className="anim-fade-up delay-100" style={card}>
           <div style={{ marginBottom: 20 }}>
             <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
@@ -139,12 +139,12 @@ export default function TimedMode({ pStats, onAnswer, launchFilter }) {
     <div style={pageWrap}>
       <div className="anim-fade-down delay-0" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
         <div>
-          <div style={{ fontSize: 11, color: C.muted, letterSpacing: 1, fontWeight: 600, textTransform: "uppercase" }}>Timed Challenge</div>
-          <div style={{ fontWeight: 600, fontSize: 16, marginTop: 2, color: C.text, letterSpacing: -0.3 }}>Q{idx + 1} of {queue.length}</div>
+          <div style={{ fontSize: 11, color: OF.soft, letterSpacing: 1, fontWeight: 600, textTransform: "uppercase" }}>Timed Challenge</div>
+          <div style={{ fontWeight: 600, fontSize: 16, marginTop: 2, color: OF.text, letterSpacing: -0.3 }}>Q{idx + 1} of {queue.length}</div>
         </div>
         <div className="anim-scale-in delay-100" style={{ textAlign: "right" }}>
           <div className={tl <= limit * 0.25 ? "anim-timer-urgent" : ""} style={{ fontSize: 40, fontWeight: 600, color: timerCol, lineHeight: 1, letterSpacing: -2 }}>{tl}</div>
-          {sT > 0 && <div style={{ fontSize: 11, color: C.muted }}>{Math.round(sC / sT * 100)}% so far</div>}
+          {sT > 0 && <div style={{ fontSize: 11, color: OF.soft }}>{Math.round(sC / sT * 100)}% so far</div>}
         </div>
       </div>
       <div className="anim-fade-up delay-50" style={{ height: 5, background: "var(--c-overlay2)", borderRadius: "var(--r-pill)", overflow: "hidden", marginBottom: 4 }}>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, pageWrap, card, h1, chipBtn, chipBtnActive } from "../ui/theme";
+import { C, pageWrap, card, h1, chipBtn, chipBtnActive, pageSub } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import CatTag from "../ui/CatTag";
 import BmBtn from "../ui/BmBtn";
@@ -14,7 +14,7 @@ export default function BookmarksView({ bookmarks, pStats, onToggleBookmark }) {
     <div style={pageWrap}>
       <div className="anim-fade-down delay-0" style={{ marginBottom: 4 }}>
         <h1 style={h1}>Saved Questions</h1>
-        <p style={{ color: C.muted, fontSize: 15, marginTop: 4 }}>{bqs.length} bookmarked</p>
+        <p style={pageSub}>{bqs.length} bookmarked</p>
       </div>
 
       {bqs.length > 0 && (

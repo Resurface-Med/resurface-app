@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
+import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { isDue, getNextIntervals } from "../lib/sm2";
@@ -115,7 +115,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
     return (
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>Flashcards</h1>
-        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>Flip each card and rate your recall to schedule the next review.</p>
+        <p className="anim-fade-up delay-50" style={pageSub}>Flip each card and rate your recall to schedule the next review.</p>
         <div className="anim-fade-up delay-100" style={card}>
           <div style={{ marginBottom: 20 }}>
             <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
@@ -159,13 +159,13 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
       <div className="anim-fade-down" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1 style={h1}>Flashcards</h1>
-          <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>Click the card to reveal the answer.</p>
+          <p style={pageSub}>Click the card to reveal the answer.</p>
         </div>
         <div className="anim-scale-in delay-100" style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontSize: 32, fontWeight: 600, color: C.success, lineHeight: 1, letterSpacing: -1 }}>{cleared}<span style={{ fontSize: 18, color: C.muted }}>/{totalCards}</span></div>
-          <div style={{ fontSize: 12, color: C.muted }}>cleared</div>
+          <div style={{ fontSize: 32, fontWeight: 600, color: OF.pos, lineHeight: 1, letterSpacing: -1 }}>{cleared}<span style={{ fontSize: 18, color: OF.faint }}>/{totalCards}</span></div>
+          <div style={{ fontSize: 12, color: OF.soft }}>cleared</div>
           {learningIds.size > 0 && (
-            <div style={{ fontSize: 12, color: C.warning, marginTop: 2 }}>{learningIds.size} learning</div>
+            <div style={{ fontSize: 12, color: OF.soft, marginTop: 2 }}>{learningIds.size} learning</div>
           )}
         </div>
       </div>
@@ -173,8 +173,8 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
       <div className="anim-fade-up delay-50" style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <ProgressBar value={(cleared / totalCards) * 100} colour={C.success} />
         <button onClick={() => setSessionQueue(null)} className="btn-press" style={{
-          flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.muted, fontSize: 13,
+          flexShrink: 0, background: "none", border: "1.5px solid rgba(255,255,255,0.4)",
+          borderRadius: "var(--r-pill)", padding: "5px 12px", color: OF.text, fontSize: 13,
           cursor: "pointer", fontFamily: "inherit",
         }}>Exit</button>
       </div>

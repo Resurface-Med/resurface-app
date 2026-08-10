@@ -19,6 +19,14 @@
   --r-panel: 28px;
   --r-card: 18px;
   --r-ctrl: 12px;
+
+  /* Semantic colours for text ON the blue field. The success/danger/warning
+     tokens are tuned for white panels and lose almost all contrast against
+     blue, so anything outside a card uses these light tints instead. Shared
+     by both themes, because the field stays blue in both. */
+  --c-of-pos: #7ff0b4;
+  --c-of-warn: #ffd67e;
+  --c-of-neg: #ffb0b0;
 }
 
 #root {
@@ -66,7 +74,11 @@
   --c-nav-muted: rgba(255, 255, 255, 0.58);
   --c-nav-muted-dim: rgba(255, 255, 255, 0.4);
   --c-on-field: #ffffff;
-  --c-on-field-soft: rgba(255, 255, 255, 0.78);
+  /* 0.94, not 0.78. White on #3562f5 is only 4.98:1, so anything dimmer
+     than this fails AA for small text — secondary text earns its rank from
+     size and weight here, not from opacity. */
+  --c-on-field-soft: rgba(255, 255, 255, 0.94);
+  --c-on-field-faint: rgba(255, 255, 255, 0.82);
   --c-overlay: rgba(15, 27, 61, 0.03);
   --c-overlay2: rgba(15, 27, 61, 0.05);
   --c-overlay3: rgba(15, 27, 61, 0.08);
@@ -120,7 +132,8 @@
   --c-nav-muted: rgba(238, 242, 255, 0.55);
   --c-nav-muted-dim: rgba(238, 242, 255, 0.35);
   --c-on-field: #eef2ff;
-  --c-on-field-soft: rgba(238, 242, 255, 0.78);
+  --c-on-field-soft: rgba(238, 242, 255, 0.84);
+  --c-on-field-faint: rgba(238, 242, 255, 0.66);
   --c-overlay: rgba(255, 255, 255, 0.03);
   --c-overlay2: rgba(255, 255, 255, 0.05);
   --c-overlay3: rgba(255, 255, 255, 0.08);
