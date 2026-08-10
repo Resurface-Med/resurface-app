@@ -19,7 +19,7 @@ function playTone() {
 }
 
 export const POMODORO_MODES = {
-  work:       { label: "Focus",       duration: 25 * 60, color: "#4d8ef5", glow: "rgba(77,142,245,0.3)"  },
+  work:       { label: "Focus",       duration: 25 * 60, color: "#3562F5", glow: "rgba(53,98,245,0.28)"  },
   shortBreak: { label: "Short Break", duration:  5 * 60, color: "#3ecf8e", glow: "rgba(62,207,142,0.3)"  },
   longBreak:  { label: "Long Break",  duration: 15 * 60, color: "#f6c54d", glow: "rgba(246,197,77,0.3)"  },
 };

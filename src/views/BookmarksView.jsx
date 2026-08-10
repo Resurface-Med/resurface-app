@@ -44,12 +44,12 @@ export default function BookmarksView({ bookmarks, pStats, onToggleBookmark }) {
                 <BmBtn active={true} onClick={() => onToggleBookmark(q.id)} />
               </div>
             </div>
-            <p style={{ fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.55, marginBottom: 12 }}>{q.q}</p>
-            <div style={{ display: "flex", gap: 8, padding: "10px 14px", background: C.successDim, border: `1px solid ${C.successBrd}`, borderRadius: 8, fontSize: 14, color: C.success }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.55, marginBottom: 12, letterSpacing: -0.2 }}>{q.q}</p>
+            <div style={{ display: "flex", gap: 8, padding: "10px 14px", background: C.successDim, border: `1px solid ${C.successBrd}`, borderRadius: "var(--r-card)", fontSize: 14, color: C.success }}>
               <span style={{ fontWeight: 700 }}>{"ABCDE"[q.ans]}</span>
               <span>{q.opts[q.ans]}</span>
             </div>
-            <div style={{ marginTop: 10, padding: "10px 14px", background: C.accentDim, borderRadius: 8, fontSize: 13, color: "#c7d2fe", lineHeight: 1.7 }}>{q.exp}</div>
+            <div style={{ marginTop: 10, padding: "10px 14px", background: C.accentDim, border: `1px solid ${C.accentBrd}`, borderRadius: "var(--r-card)", fontSize: 13, color: C.sub, lineHeight: 1.7 }}>{q.exp}</div>
           </div>
         );
       })}

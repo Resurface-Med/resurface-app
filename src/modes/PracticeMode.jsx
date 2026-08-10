@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { C, pageWrap, card, h1, primaryBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, fieldBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import ProgressBar from "../ui/ProgressBar";
@@ -21,11 +21,11 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
     <div style={{
       width: 220, flexShrink: 0,
       display: "flex", flexDirection: "column",
-      borderRadius: 16,
+      borderRadius: "var(--r-panel)",
       border: "1px solid var(--c-border)",
       overflow: "hidden",
       background: "var(--c-card-bg)",
-      boxShadow: "0 4px 24px rgba(0,0,0,0.25)",
+      boxShadow: "var(--c-card-shadow)",
       maxHeight: maxHeight ?? undefined,
     }}>
 
@@ -56,11 +56,11 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
         {answered > 0 && (
           <div style={{ display: "flex", gap: 16 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-              <span style={{ fontSize: 20, fontWeight: 300, color: C.success, letterSpacing: -0.5 }}>{correct}</span>
+              <span style={{ fontSize: 20, fontWeight: 500, color: C.success, letterSpacing: -0.5 }}>{correct}</span>
               <span style={{ fontSize: 11, color: C.muted }}>correct</span>
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-              <span style={{ fontSize: 20, fontWeight: 300, color: C.danger, letterSpacing: -0.5 }}>{wrong}</span>
+              <span style={{ fontSize: 20, fontWeight: 500, color: C.danger, letterSpacing: -0.5 }}>{wrong}</span>
               <span style={{ fontSize: 11, color: C.muted }}>wrong</span>
             </div>
           </div>
@@ -78,19 +78,19 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
             <button key={i} ref={isCurrent ? activeRef : null}
               onClick={() => onJump(i)} className="btn-press" style={{
                 display: "flex", alignItems: "center", gap: 8,
-                padding: "11px 12px", borderRadius: 10, border: "none",
-                background: isCurrent ? "rgba(77,142,245,0.12)" : "transparent",
-                outline: isCurrent ? "1px solid rgba(77,142,245,0.3)" : "none",
+                padding: "11px 12px", borderRadius: "var(--r-card)", border: "none",
+                background: isCurrent ? "var(--c-accent-dim)" : "transparent",
+                outline: isCurrent ? "1px solid var(--c-accent-brd)" : "none",
                 cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%",
               }}>
               <div style={{
                 width: 10, height: 10, borderRadius: "50%", flexShrink: 0,
                 background: isCurrent ? C.accent : dotColor,
-                boxShadow: isCurrent ? `0 0 5px ${C.accent}` : "none",
+                boxShadow: isCurrent ? "0 0 0 3px var(--c-accent-glow)" : "none",
                 border: !isAnswered && !isCurrent ? "1px solid var(--c-border)" : "none",
                 transition: "all 0.2s",
               }} />
-              <span style={{ fontSize: 14, fontWeight: isCurrent ? 600 : 400, color: isCurrent ? C.text : isAnswered ? C.sub : C.muted }}>
+              <span style={{ fontSize: 14, fontWeight: isCurrent ? 600 : 400, letterSpacing: isCurrent ? -0.2 : 0, color: isCurrent ? C.text : isAnswered ? C.sub : C.muted }}>
                 Q{i + 1}
               </span>
             </button>
@@ -234,7 +234,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return (
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>Free Practice</h1>
-        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 300 }}>No timer, no pressure. Learn at your pace.</p>
+        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 500 }}>No timer, no pressure. Learn at your pace.</p>
 
         {/* Resume card */}
         {savedSession && (() => {
@@ -259,9 +259,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button className="hover-lift btn-press" style={primaryBtn} onClick={resumeSession}>Continue →</button>
+                  <button className="hover-lift btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
                   <button className="hover-lift btn-press" onClick={discardSession} style={{
-                    padding: "11px 16px", borderRadius: 12, border: "1px solid var(--c-border)",
+                    padding: "11px 16px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
                     background: "transparent", color: C.muted, fontSize: 15, cursor: "pointer", fontFamily: "inherit",
                   }}>Discard</button>
                 </div>
@@ -290,7 +290,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               })}
             </div>
           </div>
-          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...primaryBtn, width: "100%" }} onClick={start} disabled={baseCount === 0}>
+          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...fieldBtn, width: "100%", opacity: baseCount === 0 ? 0.5 : 1 }} onClick={start} disabled={baseCount === 0}>
             Start Practice →
           </button>
         </div>
@@ -312,11 +312,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       <div className="anim-fade-down delay-0" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1 style={h1}>Free Practice</h1>
-          <p style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 300 }}>{filterLabel}</p>
+          <p style={{ color: C.sub, fontSize: 14, marginTop: 4, fontWeight: 500 }}>{filterLabel}</p>
         </div>
         {pct !== null && (
           <div className="anim-scale-in delay-100" style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 32, fontWeight: 300, color: pct >= 70 ? C.success : C.warning, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
+            <div style={{ fontSize: 32, fontWeight: 600, color: pct >= 70 ? C.success : C.warning, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
             <div style={{ fontSize: 11, color: C.muted }}>{sC}/{sT}</div>
           </div>
         )}
@@ -324,19 +324,19 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       <div className="anim-fade-up delay-50" style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <button onClick={handleBack} disabled={idx === 0} className="btn-press" style={{
           flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: 8, padding: "5px 10px", color: C.muted, fontSize: 13,
+          borderRadius: "var(--r-pill)", padding: "5px 10px", color: C.muted, fontSize: 13,
           cursor: idx === 0 ? "default" : "pointer", opacity: idx === 0 ? 0.3 : 1,
         }}>←</button>
         <ProgressBar value={(idx + 1) / queue.length * 100} colour={C.accent} />
         <span style={{ fontSize: 12, color: C.muted, whiteSpace: "nowrap" }}>{idx + 1}/{queue.length}</span>
         <button onClick={handleNext} disabled={idx + 1 >= queue.length} className="btn-press" style={{
           flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: 8, padding: "5px 10px", color: C.muted, fontSize: 13,
+          borderRadius: "var(--r-pill)", padding: "5px 10px", color: C.muted, fontSize: 13,
           cursor: idx + 1 >= queue.length ? "default" : "pointer", opacity: idx + 1 >= queue.length ? 0.3 : 1,
         }}>→</button>
         <button onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }} className="btn-press" style={{
           flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: 8, padding: "5px 12px", color: C.muted, fontSize: 12, cursor: "pointer",
+          borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.muted, fontSize: 12, cursor: "pointer",
         }}>Exit</button>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>

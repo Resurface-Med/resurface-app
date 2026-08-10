@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import JSZip from "jszip";
-import { C, pageWrap, card, h1, h2, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
+import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import { DECK_MAP } from "../data";
 import { generatedStore, passcodeStore } from "../lib/storage";
 
@@ -192,73 +192,86 @@ function GeneratingScreen({ count }) {
   }, []);
 
   return (
-    <div style={{ ...pageWrap, alignItems: "center", justifyContent: "center", minHeight: "calc(var(--app-vh) * 0.7)", position: "relative", overflow: "hidden" }}>
+    <div style={{ ...pageWrap, alignItems: "center", justifyContent: "center", minHeight: "calc(var(--app-vh) * 0.7)" }}>
       <style>{KEYFRAMES}</style>
 
-      {/* Floating question marks */}
-      {floaters.map(f => (
-        <div key={f.id} style={{
-          position: "absolute", bottom: "30%", left: `${f.left}%`,
-          fontSize: 22, color: C.accent, opacity: 0.7, pointerEvents: "none",
-          animation: "floatup 2.5s ease-out forwards",
-        }}>{f.sym}</div>
-      ))}
-
-      {/* Orb */}
-      <div style={{ position: "relative", width: 130, height: 130, marginBottom: 40 }}>
-        {/* Glow */}
-        <div style={{
-          position: "absolute", inset: -20,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(77,142,245,0.35) 0%, transparent 70%)",
-          animation: "orb-pulse 2s ease-in-out infinite",
-        }} />
-        {/* Core orb */}
-        <div style={{
-          width: 130, height: 130, borderRadius: "50%",
-          background: "radial-gradient(circle at 35% 35%, #7ab0ff, #2563eb 60%, #1a3a8f)",
-          boxShadow: "0 0 40px rgba(77,142,245,0.6), 0 0 80px rgba(77,142,245,0.3)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          animation: "orb-pulse 2s ease-in-out infinite",
-          fontSize: 36,
-        }}>✦</div>
-
-        {/* Orbiting dots */}
-        {[
-          { anim: "orbit 2.4s linear infinite", color: C.accentLt },
-          { anim: "orbit2 2.4s linear infinite", color: C.success },
-          { anim: "orbit3 2.4s linear infinite", color: C.warning },
-        ].map((dot, i) => (
-          <div key={i} style={{
-            position: "absolute", top: "50%", left: "50%",
-            width: 10, height: 10, marginTop: -5, marginLeft: -5,
-            animation: dot.anim,
-          }}>
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: dot.color, boxShadow: `0 0 8px ${dot.color}` }} />
-          </div>
-        ))}
-      </div>
-
-      {/* Title */}
-      <div style={{ fontSize: 22, fontWeight: 400, color: C.text, marginBottom: 8 }}>
-        Generating {count} questions
-      </div>
-
-      {/* Rotating message */}
-      <div key={msgIdx} style={{
-        fontSize: 15, color: C.accent, marginBottom: 32, height: 22,
-        animation: "msg-fade 2.2s ease forwards",
+      <div style={{
+        ...card,
+        width: "100%",
+        maxWidth: 520,
+        textAlign: "center",
+        padding: "48px 36px 40px",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}>
-        {MESSAGES[msgIdx]}
-      </div>
+        {/* Floating question marks */}
+        {floaters.map(f => (
+          <div key={f.id} style={{
+            position: "absolute", bottom: "28%", left: `${f.left}%`,
+            fontSize: 22, color: C.accent, opacity: 0.7, pointerEvents: "none",
+            animation: "floatup 2.5s ease-out forwards",
+          }}>{f.sym}</div>
+        ))}
 
-      {/* Indeterminate progress bar */}
-      <div style={{ width: 280, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 99, overflow: "hidden" }}>
-        <div style={{
-          height: "100%", width: "40%", borderRadius: 99,
-          background: "linear-gradient(90deg, transparent, #4d8ef5, #7ab0ff, #4d8ef5, transparent)",
-          animation: "bar-slide 1.6s ease-in-out infinite",
-        }} />
+        {/* Orb */}
+        <div style={{ position: "relative", width: 130, height: 130, marginBottom: 36 }}>
+          {/* Glow */}
+          <div style={{
+            position: "absolute", inset: -20,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, var(--c-accent-glow) 0%, transparent 70%)",
+            animation: "orb-pulse 2s ease-in-out infinite",
+          }} />
+          {/* Core orb */}
+          <div style={{
+            width: 130, height: 130, borderRadius: "50%",
+            background: "radial-gradient(circle at 35% 35%, #6e8ff7, var(--c-accent) 60%, #2450e8)",
+            boxShadow: "0 0 40px var(--c-accent-glow), 0 12px 32px rgba(20, 44, 130, 0.22)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            animation: "orb-pulse 2s ease-in-out infinite",
+            fontSize: 36, color: "#fff",
+          }}>✦</div>
+
+          {/* Orbiting dots */}
+          {[
+            { anim: "orbit 2.4s linear infinite", color: C.accentLt },
+            { anim: "orbit2 2.4s linear infinite", color: C.success },
+            { anim: "orbit3 2.4s linear infinite", color: C.warning },
+          ].map((dot, i) => (
+            <div key={i} style={{
+              position: "absolute", top: "50%", left: "50%",
+              width: 10, height: 10, marginTop: -5, marginLeft: -5,
+              animation: dot.anim,
+            }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: dot.color, boxShadow: `0 0 8px ${dot.color}` }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Title */}
+        <div style={{ fontSize: 22, fontWeight: 600, color: C.text, marginBottom: 8, letterSpacing: -0.8 }}>
+          Generating {count} questions
+        </div>
+
+        {/* Rotating message */}
+        <div key={msgIdx} style={{
+          fontSize: 15, color: C.accent, marginBottom: 32, height: 22,
+          animation: "msg-fade 2.2s ease forwards",
+        }}>
+          {MESSAGES[msgIdx]}
+        </div>
+
+        {/* Indeterminate progress bar */}
+        <div style={{ width: 280, height: 6, background: C.surface3, borderRadius: "var(--r-pill)", overflow: "hidden" }}>
+          <div style={{
+            height: "100%", width: "40%", borderRadius: "var(--r-pill)",
+            background: "linear-gradient(90deg, #6e8ff7, var(--c-accent))",
+            animation: "bar-slide 1.6s ease-in-out infinite",
+          }} />
+        </div>
       </div>
     </div>
   );
@@ -318,8 +331,8 @@ export default function GenerateMode() {
             return (
               <div key={i} className="anim-fade-up" style={{
                 ...card, padding: "18px 20px",
-                opacity: isKept ? 1 : 0.4,
-                borderColor: isKept ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)",
+                opacity: isKept ? 1 : 0.45,
+                borderColor: isKept ? "var(--c-border)" : "var(--c-overlay)",
                 transition: "opacity 0.2s",
               }}>
                 <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
@@ -331,13 +344,13 @@ export default function GenerateMode() {
                     });
                   }} style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0, accentColor: C.accent, cursor: "pointer" }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.6, marginBottom: 10 }}>{q.q}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.6, marginBottom: 10, letterSpacing: -0.3 }}>{q.q}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       {q.opts.map((opt, oi) => (
                         <div key={oi} style={{
-                          fontSize: 14, padding: "6px 10px", borderRadius: 8,
-                          background: oi === q.ans ? C.successDim : "rgba(255,255,255,0.02)",
-                          border: `1px solid ${oi === q.ans ? C.successBrd : "rgba(255,255,255,0.05)"}`,
+                          fontSize: 14, padding: "6px 10px", borderRadius: "var(--r-card)",
+                          background: oi === q.ans ? C.successDim : C.surface2,
+                          border: `1px solid ${oi === q.ans ? C.successBrd : "var(--c-border)"}`,
                           color: oi === q.ans ? C.success : C.sub,
                           display: "flex", gap: 8,
                         }}>
@@ -364,8 +377,9 @@ export default function GenerateMode() {
             Add {keptList.length} Question{keptList.length !== 1 ? "s" : ""} to Bank →
           </button>
           <button className="hover-lift btn-press" onClick={() => { setPhase("setup"); setGenerated([]); }} style={{
-            padding: "11px 18px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
-            background: "transparent", color: C.sub, fontSize: 15, cursor: "pointer", fontFamily: "inherit",
+            padding: "12px 22px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
+            background: "var(--c-card-bg)", color: C.sub, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+            boxShadow: "var(--c-card-shadow)",
           }}>Start Over</button>
         </div>
       </div>
@@ -378,8 +392,8 @@ export default function GenerateMode() {
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>AI Generate</h1>
         <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "48px 32px" }}>
-          <div className="anim-pop delay-200" style={{ fontSize: 52, marginBottom: 16 }}>✓</div>
-          <div style={{ fontSize: 17, color: C.text, fontWeight: 500, marginBottom: 8 }}>Questions added!</div>
+          <div className="anim-pop delay-200" style={{ fontSize: 52, marginBottom: 16, color: C.success }}>✓</div>
+          <div style={{ fontSize: 17, color: C.text, fontWeight: 600, marginBottom: 8, letterSpacing: -0.5 }}>Questions added!</div>
           <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>
             Reload the page to see them in Practice, Flashcards, and all other modes.
           </div>
@@ -388,8 +402,8 @@ export default function GenerateMode() {
               Reload App
             </button>
             <button className="hover-lift btn-press" onClick={() => { setPhase("setup"); setGenerated([]); setFile(null); setPastedText(""); }} style={{
-              padding: "11px 18px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
-              background: "transparent", color: C.sub, fontSize: 15, cursor: "pointer", fontFamily: "inherit",
+              padding: "12px 22px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
+              background: C.surface2, color: C.sub, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
             }}>Generate More</button>
           </div>
         </div>
@@ -404,17 +418,17 @@ export default function GenerateMode() {
   const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
 
   const inputStyle = {
-    width: "100%", background: C.surface2, border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 12, padding: "10px 14px", color: C.text, fontSize: 15,
+    width: "100%", background: C.surface2, border: "1px solid var(--c-border)",
+    borderRadius: "var(--r-card)", padding: "10px 14px", color: C.text, fontSize: 15,
     fontFamily: "inherit", outline: "none", boxSizing: "border-box",
   };
-  const labelStyle2 = { fontSize: 13, color: C.muted, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 };
+  const labelStyle2 = { fontSize: 13, color: C.muted, fontWeight: 600, letterSpacing: -0.2, marginBottom: 8 };
 
   return (
     <div style={pageWrap}>
       <div className="anim-fade-up delay-0">
         <h1 style={h1}>AI Generate</h1>
-        <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 300 }}>Upload your slides and Claude will write questions for you.</p>
+        <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 400, letterSpacing: -0.2 }}>Upload your slides and Claude will write questions for you.</p>
       </div>
 
       {/* Single card with all settings */}
@@ -424,10 +438,10 @@ export default function GenerateMode() {
         <div
           onClick={() => fileRef.current?.click()}
           style={{
-            border: `2px dashed ${file ? C.accentBrd : "rgba(255,255,255,0.1)"}`,
-            borderRadius: 12, padding: file ? "16px 20px" : "22px 20px",
+            border: `2px dashed ${file ? C.accentBrd : "var(--c-border)"}`,
+            borderRadius: "var(--r-card)", padding: file ? "16px 20px" : "22px 20px",
             textAlign: "center", cursor: "pointer", transition: "all 0.2s",
-            background: file ? C.accentDim : "transparent", marginBottom: 16,
+            background: file ? C.accentDim : C.surface2, marginBottom: 16,
           }}
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setFile(f); setPastedText(""); } }}
@@ -539,7 +553,7 @@ export default function GenerateMode() {
       </div>
 
       {error && (
-        <div style={{ padding: "12px 16px", background: C.dangerDim, border: `1px solid ${C.dangerBrd}`, borderRadius: 12, fontSize: 14, color: C.danger }}>
+        <div style={{ padding: "12px 16px", background: C.dangerDim, border: `1px solid ${C.dangerBrd}`, borderRadius: "var(--r-card)", fontSize: 14, color: C.danger }}>
           {error}
         </div>
       )}
@@ -556,7 +570,7 @@ export default function GenerateMode() {
               onChange={e => setCodeInput(e.target.value)}
               placeholder="Access code"
               style={{
-                flex: 1, padding: "10px 14px", borderRadius: 10, fontSize: 14,
+                flex: 1, padding: "10px 14px", borderRadius: "var(--r-card)", fontSize: 14,
                 background: C.surface2, color: C.text, fontFamily: "inherit",
                 border: `1px solid ${C.border}`,
               }}
@@ -578,7 +592,7 @@ export default function GenerateMode() {
 
       <button
         className="hover-lift btn-press"
-        style={{ ...primaryBtn, width: "100%", opacity: canGenerate ? 1 : 0.4 }}
+        style={{ ...fieldBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
         disabled={!canGenerate}
         onClick={async () => {
           setError("");
@@ -623,8 +637,8 @@ export default function GenerateMode() {
               {savedQs.map(q => (
                 <div key={q.id} style={{
                   display: "flex", alignItems: "flex-start", gap: 12,
-                  padding: "12px 14px", borderRadius: 12,
-                  background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+                  padding: "12px 14px", borderRadius: "var(--r-card)",
+                  background: C.surface2, border: "1px solid var(--c-border)",
                 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, color: C.accent, marginBottom: 4 }}>{q.deck} · {q.cat}</div>
@@ -634,9 +648,9 @@ export default function GenerateMode() {
                     </div>
                   </div>
                   <button onClick={() => { deleteQuestion(q.id); window.location.reload(); }} style={{
-                    flexShrink: 0, background: "none", border: "1px solid rgba(245,101,101,0.2)",
-                    borderRadius: 8, padding: "4px 10px", color: C.danger, fontSize: 13,
-                    cursor: "pointer", fontFamily: "inherit",
+                    flexShrink: 0, background: C.dangerDim, border: `1px solid ${C.dangerBrd}`,
+                    borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.danger, fontSize: 13,
+                    fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
                   }}>Delete</button>
                 </div>
               ))}

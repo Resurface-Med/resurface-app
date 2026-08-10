@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { C, pageWrap, card, h1, primaryBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, fieldBtn, chipBtn, chipBtnActive, label as labelStyle } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { isDue, getNextIntervals } from "../lib/sm2";
@@ -76,8 +76,8 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
         <h1 className="anim-fade-up delay-0" style={h1}>Flashcards</h1>
         <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "64px 32px" }}>
           <div className="anim-pop delay-300" style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
-          <div className="anim-fade-up delay-400" style={{ fontWeight: 400, fontSize: 22, color: C.text }}>All caught up!</div>
-          <div className="anim-fade-up delay-500" style={{ color: C.muted, marginTop: 8, fontSize: 15, fontWeight: 300 }}>{nextIn !== null ? `Next cards due in ~${nextIn}h` : "Check back tomorrow."}</div>
+          <div className="anim-fade-up delay-400" style={{ fontWeight: 600, fontSize: 22, color: C.text, letterSpacing: -0.4 }}>All caught up!</div>
+          <div className="anim-fade-up delay-500" style={{ color: C.muted, marginTop: 8, fontSize: 15, fontWeight: 500 }}>{nextIn !== null ? `Next cards due in ~${nextIn}h` : "Check back tomorrow."}</div>
           {cleared > 0 && <div className="anim-fade-up delay-600" style={{ color: C.success, marginTop: 12, fontSize: 15 }}>Cleared {cleared} cards this session</div>}
         </div>
       </div>
@@ -92,7 +92,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
         <h1 className="anim-fade-up delay-0" style={h1}>Flashcards</h1>
         <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "64px 32px" }}>
           <div className="anim-pop delay-300" style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
-          <div className="anim-fade-up delay-400" style={{ fontWeight: 400, fontSize: 22, color: C.text }}>All cards cleared!</div>
+          <div className="anim-fade-up delay-400" style={{ fontWeight: 600, fontSize: 22, color: C.text, letterSpacing: -0.4 }}>All cards cleared!</div>
           <div className="anim-fade-up delay-500" style={{ color: C.success, marginTop: 8, fontSize: 15 }}>
             {cleared} card{cleared !== 1 ? "s" : ""} graduated this session
           </div>
@@ -102,8 +102,8 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
             </div>
           )}
           <div className="anim-fade-up delay-700" style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 28 }}>
-            {moreLeft && <button className="hover-lift btn-press" style={primaryBtn} onClick={() => setSessionQueue(null)}>Keep Going</button>}
-            {!moreLeft && <button className="hover-lift btn-press" style={primaryBtn} onClick={() => setSessionQueue(null)}>Done</button>}
+            {moreLeft && <button className="hover-lift btn-press" style={fieldBtn} onClick={() => setSessionQueue(null)}>Keep Going</button>}
+            {!moreLeft && <button className="hover-lift btn-press" style={fieldBtn} onClick={() => setSessionQueue(null)}>Done</button>}
           </div>
         </div>
       </div>
@@ -115,7 +115,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
     return (
       <div style={pageWrap}>
         <h1 className="anim-fade-up delay-0" style={h1}>Flashcards</h1>
-        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 300 }}>Flip each card and rate your recall to schedule the next review.</p>
+        <p className="anim-fade-up delay-50" style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>Flip each card and rate your recall to schedule the next review.</p>
         <div className="anim-fade-up delay-100" style={card}>
           <div style={{ marginBottom: 20 }}>
             <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
@@ -139,7 +139,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
               })}
             </div>
           </div>
-          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...primaryBtn, width: "100%" }} onClick={startSession} disabled={filteredDue.length === 0}>
+          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...fieldBtn, width: "100%", opacity: filteredDue.length === 0 ? 0.5 : 1 }} onClick={startSession} disabled={filteredDue.length === 0}>
             Start Session →
           </button>
         </div>
@@ -159,10 +159,10 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
       <div className="anim-fade-down" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <h1 style={h1}>Flashcards</h1>
-          <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 300 }}>Click the card to reveal the answer.</p>
+          <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>Click the card to reveal the answer.</p>
         </div>
         <div className="anim-scale-in delay-100" style={{ textAlign: "right", flexShrink: 0 }}>
-          <div style={{ fontSize: 32, fontWeight: 300, color: C.success, lineHeight: 1, letterSpacing: -1 }}>{cleared}<span style={{ fontSize: 18, color: C.muted }}>/{totalCards}</span></div>
+          <div style={{ fontSize: 32, fontWeight: 600, color: C.success, lineHeight: 1, letterSpacing: -1 }}>{cleared}<span style={{ fontSize: 18, color: C.muted }}>/{totalCards}</span></div>
           <div style={{ fontSize: 12, color: C.muted }}>cleared</div>
           {learningIds.size > 0 && (
             <div style={{ fontSize: 12, color: C.warning, marginTop: 2 }}>{learningIds.size} learning</div>
@@ -174,7 +174,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
         <ProgressBar value={(cleared / totalCards) * 100} colour={C.success} />
         <button onClick={() => setSessionQueue(null)} className="btn-press" style={{
           flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: 8, padding: "5px 12px", color: C.muted, fontSize: 13,
+          borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.muted, fontSize: 13,
           cursor: "pointer", fontFamily: "inherit",
         }}>Exit</button>
       </div>
@@ -183,7 +183,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
       {isLearning && (
         <div className="anim-fade-up" style={{
           display: "inline-flex", alignItems: "center", gap: 6,
-          padding: "4px 12px", borderRadius: 99,
+          padding: "4px 12px", borderRadius: "var(--r-pill)",
           background: C.warningDim, border: `1px solid ${C.warningBrd}`,
           fontSize: 13, color: C.warning,
         }}>
@@ -210,7 +210,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             background: "var(--c-card-bg)",
-            borderRadius: 18,
+            borderRadius: "var(--r-panel)",
             border: "1px solid var(--c-border)",
             boxShadow: "var(--c-card-shadow)",
             padding: "36px 32px",
@@ -219,7 +219,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
             textAlign: "center",
           }}>
             <CatTag label={q.cat} />
-            <p style={{ fontSize: 19, fontWeight: 400, color: C.text, lineHeight: 1.7, margin: "28px 0 36px" }}>{q.q}</p>
+            <p style={{ fontSize: 19, fontWeight: 600, color: C.text, lineHeight: 1.7, margin: "28px 0 36px", letterSpacing: -0.3 }}>{q.q}</p>
             <div style={{ color: C.muted, fontSize: 14, letterSpacing: 0.3 }}>Click to reveal answer</div>
           </div>
 
@@ -229,8 +229,8 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
-            background: "linear-gradient(145deg, #0d1a35 0%, #070d1c 100%)",
-            borderRadius: 18,
+            background: "var(--c-card-bg)",
+            borderRadius: "var(--r-panel)",
             border: `1px solid ${C.accentBrd}`,
             boxShadow: "var(--c-card-shadow)",
             padding: "28px 28px",
@@ -248,16 +248,16 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
               padding: "16px 20px",
               background: C.successDim,
               border: `1px solid ${C.successBrd}`,
-              borderRadius: 12,
+              borderRadius: "var(--r-card)",
               marginBottom: 16,
             }}>
               <div style={{
-                width: 38, height: 38, borderRadius: 12, flexShrink: 0,
+                width: 38, height: 38, borderRadius: "var(--r-card)", flexShrink: 0,
                 background: C.successDim,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontWeight: 700, fontSize: 16, color: C.success,
               }}>{"ABCDE"[q.ans]}</div>
-              <span style={{ fontSize: 16, color: C.text, lineHeight: 1.45 }}>{q.opts[q.ans]}</span>
+              <span style={{ fontSize: 16, color: C.text, lineHeight: 1.45, fontWeight: 600, letterSpacing: -0.2 }}>{q.opts[q.ans]}</span>
             </div>
 
             {/* Explanation */}
@@ -266,7 +266,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
               padding: "16px 18px",
               background: C.accentDim,
               border: `1px solid ${C.accentBrd}`,
-              borderRadius: 12,
+              borderRadius: "var(--r-card)",
             }}>
               {q.exp}
             </div>
@@ -289,14 +289,14 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
             {RATINGS.map((r, ri) => (
               <button key={r.label} onClick={() => handleRate(r.quality)} className={`anim-fade-up delay-${100 + ri * 50} hover-lift btn-press`} style={{
-                padding: "13px 4px", borderRadius: 12,
+                padding: "13px 4px", borderRadius: "var(--r-pill)",
                 border: `1px solid ${r.brd}`,
                 background: r.dim,
                 cursor: "pointer",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                 fontFamily: "inherit", transition: "all 0.15s",
               }}>
-                <span style={{ fontWeight: 600, fontSize: 15, color: r.col }}>{r.label}</span>
+                <span style={{ fontWeight: 600, fontSize: 15, color: r.col, letterSpacing: -0.2 }}>{r.label}</span>
                 <span style={{ fontSize: 12, color: C.muted }}>{intervals[ri].display}</span>
               </button>
             ))}

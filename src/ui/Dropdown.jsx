@@ -19,12 +19,12 @@ export default function Dropdown({ items, active, onSelect, multiple }) {
   return (
     <div ref={ref} style={{
       position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0,
-      background: "#0c1830",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderRadius: 12, zIndex: 200,
+      background: "var(--c-card-bg)",
+      border: "1px solid var(--c-border)",
+      borderRadius: "var(--r-card)", zIndex: 200,
       maxHeight: 300, overflowY: "auto",
       overscrollBehavior: "contain",
-      boxShadow: "0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(77,142,245,0.08)",
+      boxShadow: "var(--c-card-shadow)",
     }}>
       {items.map(c => {
         const isSel = multiple ? active.includes(c) : c === active;
@@ -32,11 +32,12 @@ export default function Dropdown({ items, active, onSelect, multiple }) {
           <button key={c} type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(c); }} style={{
             display: "flex", alignItems: "center", width: "100%", gap: 10,
             padding: "12px 16px",
-            background: isSel ? "rgba(77,142,245,0.1)" : "transparent",
+            background: isSel ? "var(--c-accent-dim)" : "transparent",
             border: "none",
-            borderBottom: "1px solid rgba(255,255,255,0.04)",
+            borderBottom: "1px solid var(--c-border)",
             color: isSel ? C.accentLt : C.sub,
             fontSize: 14, fontWeight: isSel ? 600 : 400,
+            letterSpacing: isSel ? -0.15 : 0,
             textAlign: "left", cursor: "pointer",
             fontFamily: "inherit",
             transition: "background 0.12s",
@@ -44,7 +45,7 @@ export default function Dropdown({ items, active, onSelect, multiple }) {
             {multiple && (
               <div style={{
                 width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                border: `1px solid ${isSel ? C.accent : "rgba(255,255,255,0.2)"}`,
+                border: `1px solid ${isSel ? C.accent : "var(--c-border)"}`,
                 background: isSel ? C.accent : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center"
               }}>

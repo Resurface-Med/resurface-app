@@ -6,14 +6,14 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ padding: 40, fontFamily: "monospace", color: "#f56565", background: "#030812", minHeight: "100vh" }}>
-          <div style={{ fontSize: 20, marginBottom: 16, color: "#e2eaff" }}>💥 Runtime Error</div>
-          <div style={{ fontSize: 14, color: "#f56565", whiteSpace: "pre-wrap", background: "#0a1428", padding: 20, borderRadius: 8, border: "1px solid #f5656544" }}>
+        <div style={{ padding: 40, fontFamily: "Poppins, sans-serif", color: "#d64545", background: "#3562f5", minHeight: "100vh" }}>
+          <div style={{ fontSize: 20, marginBottom: 16, color: "#fff", fontWeight: 600 }}>Runtime error</div>
+          <div style={{ fontSize: 14, color: "#d64545", whiteSpace: "pre-wrap", background: "#fff", padding: 20, borderRadius: 18, border: "1px solid rgba(214,69,69,0.25)", boxShadow: "0 22px 48px rgba(20,44,130,0.2)" }}>
             {this.state.error.toString()}
             {"\n\n"}
             {this.state.error.stack}
           </div>
-          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 20, padding: "8px 16px", background: "#4d8ef5", border: "none", borderRadius: 8, color: "#fff", cursor: "pointer", fontSize: 14 }}>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: 20, padding: "10px 20px", background: "#fff", border: "none", borderRadius: 999, color: "#3562f5", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
             Dismiss
           </button>
         </div>
@@ -105,29 +105,29 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div style={{ display: "flex", minHeight: "var(--app-vh)" }}>
+    <div style={{ display: "flex", minHeight: "var(--app-vh)", gap: 0, background: "transparent" }}>
       <Sidebar {...nav} />
-      {/* Leave-session confirmation modal */}
       {pendingView && (
         <div style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)",
+          position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+          backdropFilter: "blur(4px)",
         }}>
-          <div style={{ ...card, maxWidth: 360, width: "90%", textAlign: "center", padding: "36px 28px" }}>
-            <div style={{ fontSize: 32, marginBottom: 14 }}>💾</div>
-            <div style={{ fontSize: 17, color: C.text, fontWeight: 500, marginBottom: 8 }}>Leave session?</div>
-            <div style={{ fontSize: 13, color: C.muted, marginBottom: 28, lineHeight: 1.6 }}>
-              Your progress will be saved — you can pick up exactly where you left off.
+          <div style={{ ...card, maxWidth: 380, width: "90%", textAlign: "center", padding: "36px 28px" }}>
+            <div style={{ fontSize: 18, color: C.text, fontWeight: 600, marginBottom: 8, letterSpacing: -0.3 }}>Leave session?</div>
+            <div style={{ fontSize: 14, color: C.sub, marginBottom: 28, lineHeight: 1.55 }}>
+              Your progress will be saved. You can pick up exactly where you left off.
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => { setView(pendingView); setPendingView(null); }}
+                className="btn-press"
                 style={{ ...primaryBtn, flex: 1 }}>
-                Save & Leave
+                Save and leave
               </button>
-              <button onClick={() => setPendingView(null)} style={{
-                flex: 1, padding: "11px 16px", borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.1)", background: "transparent",
-                color: C.sub, fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+              <button onClick={() => setPendingView(null)} className="btn-press" style={{
+                flex: 1, padding: "12px 16px", borderRadius: "var(--r-pill)",
+                border: "1px solid var(--c-border)", background: "var(--c-surface2)",
+                color: C.sub, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
               }}>
                 Stay
               </button>
@@ -136,24 +136,32 @@ export default function App() {
         </div>
       )}
 
-      {/* Theme toggle — compact icon, top right */}
       <button
         onClick={toggleTheme}
         className="btn-press"
-        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         style={{
-          position: "fixed", top: 14, right: 18, zIndex: 500,
-          width: 34, height: 34,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "var(--c-card-bg)",
-          border: "1px solid var(--c-border)",
-          borderRadius: "50%",
-          boxShadow: "var(--c-card-shadow)",
-          cursor: "pointer", fontSize: 15,
+          position: "fixed", top: 18, right: 22, zIndex: 500,
+          height: 36, padding: "0 14px",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          background: "rgba(255,255,255,0.14)",
+          border: "1px solid rgba(255,255,255,0.28)",
+          borderRadius: "var(--r-pill)",
+          boxShadow: "0 10px 24px rgba(15,27,61,0.15)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          cursor: "pointer", fontSize: 13, fontWeight: 600,
+          color: "#fff", letterSpacing: -0.1,
         }}
-      >{theme === 'dark' ? '🌙' : '☀️'}</button>
+      >{theme === "dark" ? "Light" : "Night"}</button>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+      <div style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        minWidth: 0,
+        overflow: "hidden",
+      }}>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {view === V.DASH && <Dashboard pStats={pStats} srCards={srCards} streak={streak} dueCount={dueCount} bmCount={bookmarks.length} setView={setView}
             activity={activityStore.load()}

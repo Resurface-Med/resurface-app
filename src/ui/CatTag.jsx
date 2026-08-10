@@ -3,13 +3,12 @@ export default function CatTag({ label }) {
   return (
     <span style={{
       display: "inline-block",
-      fontSize: 10, fontWeight: 500,
-      letterSpacing: 0.5,
-      color: C.muted,
-      background: "transparent",
-      border: "1px solid var(--c-border)",
-      padding: "3px 10px", borderRadius: 6,
-      textTransform: "uppercase",
+      fontSize: 12, fontWeight: 600,
+      letterSpacing: -0.1,
+      color: C.accent,
+      background: "var(--c-accent-dim)",
+      border: "1px solid var(--c-accent-brd)",
+      padding: "4px 12px", borderRadius: "var(--r-pill)",
     }}>
       {label}
     </span>

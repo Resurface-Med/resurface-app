@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { C, pageWrap, card, h1, primaryBtn, selectBtn, label as labelStyle } from "../ui/theme";
-import { QUESTIONS, CATEGORIES } from "../data";
+import { C, pageWrap, card, h1, primaryBtn, fieldBtn, selectBtn, label as labelStyle } from "../ui/theme";
+import { QUESTIONS } from "../data";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import ProgressBar from "../ui/ProgressBar";
 import QuestionCard from "../ui/QuestionCard";
@@ -73,9 +73,9 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
         <h1 className="anim-fade-up delay-0" style={h1}>Wrong Answers</h1>
         <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "56px 32px" }}>
           <div className="anim-pop delay-200" style={{ fontSize: 56, color: C.success }}>✓</div>
-          <div className="anim-fade-up delay-300" style={{ fontSize: 18, color: C.text, marginTop: 12, fontWeight: 400 }}>All cleared!</div>
+          <div className="anim-fade-up delay-300" style={{ fontSize: 18, color: C.text, marginTop: 12, fontWeight: 600, letterSpacing: -0.3 }}>All cleared!</div>
           <div className="anim-fade-up delay-400" style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>Every question is now above 60% accuracy.</div>
-          <button className="anim-fade-up delay-500 hover-lift btn-press" style={{ ...primaryBtn, marginTop: 24 }} onClick={() => setAllCleared(false)}>
+          <button className="anim-fade-up delay-500 hover-lift btn-press" style={{ ...fieldBtn, marginTop: 24 }} onClick={() => setAllCleared(false)}>
             Back to Menu
           </button>
         </div>
@@ -90,8 +90,8 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
         <h1 className="anim-fade-up delay-0" style={h1}>Wrong Answers</h1>
         <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "64px 32px" }}>
           <div className="anim-pop delay-300" style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
-          <div className="anim-fade-up delay-400" style={{ fontWeight: 400, fontSize: 22, color: C.text }}>No mistakes yet!</div>
-          <div className="anim-fade-up delay-500" style={{ color: C.muted, marginTop: 8, fontSize: 15, fontWeight: 300 }}>
+          <div className="anim-fade-up delay-400" style={{ fontWeight: 600, fontSize: 22, color: C.text, letterSpacing: -0.4 }}>No mistakes yet!</div>
+          <div className="anim-fade-up delay-500" style={{ color: C.muted, marginTop: 8, fontSize: 15, fontWeight: 500 }}>
             Questions you answer incorrectly will appear here for targeted revision.
           </div>
         </div>
@@ -113,13 +113,13 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="anim-fade-down delay-0" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={h1}>Wrong Answers</h1>
-            <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 300 }}>
+            <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>
               {cat === "All" ? "All topics" : cat}
             </p>
           </div>
           {pct !== null && (
             <div className="anim-scale-in delay-100" style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ fontSize: 32, fontWeight: 300, color: pct >= 70 ? C.success : C.warning, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
+              <div style={{ fontSize: 32, fontWeight: 600, color: pct >= 70 ? C.success : C.warning, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
               <div style={{ fontSize: 12, color: C.muted }}>{sC}/{sT} this session</div>
             </div>
           )}
@@ -129,7 +129,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
           {idx > 0 && (
             <button onClick={handleBack} className="hover-lift btn-press" style={{
               flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-              borderRadius: 8, padding: "5px 10px", color: C.muted, fontSize: 14,
+              borderRadius: "var(--r-pill)", padding: "5px 10px", color: C.muted, fontSize: 14,
               cursor: "pointer", fontFamily: "inherit",
             }}>←</button>
           )}
@@ -137,7 +137,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
           <span style={{ fontSize: 13, color: C.muted, whiteSpace: "nowrap" }}>{idx + 1}/{queue.length}</span>
           <button onClick={exitSession} className="btn-press" style={{
             flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-            borderRadius: 8, padding: "5px 12px", color: C.muted, fontSize: 13,
+            borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.muted, fontSize: 13,
             cursor: "pointer", fontFamily: "inherit",
           }}>Exit</button>
         </div>
@@ -166,23 +166,21 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
     <div style={pageWrap}>
       <div className="anim-fade-up delay-0">
         <h1 style={h1}>Wrong Answers</h1>
-        <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 300 }}>
+        <p style={{ color: C.sub, fontSize: 15, marginTop: 4, fontWeight: 500 }}>
           Targeted revision of your weakest questions.
         </p>
       </div>
 
       {/* Summary stat */}
       <div className="anim-scale-in delay-100" style={{
-        background: "var(--c-card-bg)",
-        borderRadius: 18, padding: "20px 24px",
+        ...card,
         border: `1px solid ${C.dangerBrd}`,
         borderLeft: `3px solid ${C.danger}`,
-        boxShadow: "0 4px 32px rgba(0,0,0,0.4)",
         display: "flex", alignItems: "center", gap: 20,
       }}>
-        <div style={{ fontSize: 48, fontWeight: 300, color: C.danger, lineHeight: 1, letterSpacing: -2 }}>{wrongQs.length}</div>
+        <div style={{ fontSize: 48, fontWeight: 600, color: C.danger, lineHeight: 1, letterSpacing: -2 }}>{wrongQs.length}</div>
         <div>
-          <div style={{ fontSize: 16, color: C.text, fontWeight: 400 }}>questions need revision</div>
+          <div style={{ fontSize: 16, color: C.text, fontWeight: 600, letterSpacing: -0.2 }}>questions need revision</div>
           <div style={{ fontSize: 13, color: C.muted, marginTop: 3 }}>
             sorted by worst accuracy first
           </div>
@@ -194,7 +192,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
         <div style={{ marginBottom: 20 }}>
           <div style={labelStyle}>Filter by topic</div>
           <div style={{ position: "relative" }}>
-            <button className="hover-lift btn-press" style={{ ...selectBtn, borderColor: cat !== "All" ? C.dangerBrd : "rgba(255,255,255,0.07)", color: cat !== "All" ? C.danger : C.text }}
+            <button className="hover-lift btn-press" style={{ ...selectBtn, borderColor: cat !== "All" ? C.dangerBrd : "var(--c-border)", color: cat !== "All" ? C.danger : C.text }}
               onClick={() => setDD(v => !v)}>
               <span>{cat}</span>
               <span style={{ marginLeft: "auto", color: C.muted, fontSize: 13 }}>▾</span>
@@ -213,7 +211,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
         </div>
 
         <button className="hover-lift btn-press"
-          style={{ ...primaryBtn, width: "100%", background: "linear-gradient(135deg, #c0392b, #962d22)", boxShadow: `0 0 22px ${C.danger}35` }}
+          style={{ ...primaryBtn, width: "100%", background: C.danger, boxShadow: "0 12px 30px rgba(214, 69, 69, 0.22)" }}
           onClick={start}
           disabled={filtered.length === 0}
         >
@@ -224,16 +222,16 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
       {/* Worst categories preview */}
       {cats.length > 0 && (
         <div className="anim-fade-up delay-300" style={card}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: C.muted, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>Weakest Topics</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: C.muted, letterSpacing: -0.2, textTransform: "uppercase", marginBottom: 16 }}>Weakest Topics</div>
           {cats.slice(0, 5).map((c, i) => {
             const qs = wrongQs.filter(q => q.cat === c);
             const totalC = qs.reduce((s, q) => s + (pStats[q.id]?.correct || 0), 0);
             const totalT = qs.reduce((s, q) => s + (pStats[q.id]?.total || 0), 0);
             const pct = totalT > 0 ? Math.round(totalC / totalT * 100) : 0;
             return (
-              <div key={c} className={`anim-fade-up delay-${300 + i * 50}`} style={i > 0 ? { borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 12, marginTop: 12 } : {}}>
+              <div key={c} className={`anim-fade-up delay-${300 + i * 50}`} style={i > 0 ? { borderTop: "1px solid var(--c-border)", paddingTop: 12, marginTop: 12 } : {}}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                  <span style={{ fontSize: 14, color: C.text }}>{c}</span>
+                  <span style={{ fontSize: 14, color: C.text, fontWeight: 600, letterSpacing: -0.15 }}>{c}</span>
                   <span style={{ fontSize: 13, fontWeight: 600, color: pct < 50 ? C.danger : C.warning }}>{pct}% · {qs.length} wrong</span>
                 </div>
                 <ProgressBar value={pct} colour={pct < 50 ? C.danger : C.warning} />

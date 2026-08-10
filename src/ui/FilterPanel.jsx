@@ -25,11 +25,11 @@ function CompactEnrichedDropdown({ opts, activeVal, statsMap, onSelect }) {
     <div ref={dropRef} style={{
       position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0,
       background: "var(--c-card-bg)",
-      border: "1px solid rgba(255,255,255,0.09)",
-      borderRadius: 12, zIndex: 200,
+      border: "1px solid var(--c-border)",
+      borderRadius: "var(--r-card)", zIndex: 200,
       maxHeight: 300, overflowY: "auto",
       overscrollBehavior: "contain",
-      boxShadow: "0 24px 60px rgba(0,0,0,0.7)",
+      boxShadow: "var(--c-card-shadow)",
     }}>
       {opts.map(c => {
         const isSel = activeVal.includes(c);
@@ -40,17 +40,18 @@ function CompactEnrichedDropdown({ opts, activeVal, statsMap, onSelect }) {
           <button key={c} type="button" onClick={e => { e.preventDefault(); e.stopPropagation(); onSelect(c); }} style={{
             display: "flex", flexDirection: "column", width: "100%",
             padding: isAll ? "10px 16px" : "8px 16px 7px",
-            background: isSel ? "rgba(77,142,245,0.1)" : "transparent",
-            border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)",
+            background: isSel ? "var(--c-accent-dim)" : "transparent",
+            border: "none", borderBottom: "1px solid var(--c-border)",
             color: isSel ? C.accentLt : C.sub,
             fontSize: 14, fontWeight: isSel ? 600 : 400,
+            letterSpacing: isSel ? -0.15 : 0,
             textAlign: "left", cursor: "pointer", fontFamily: "inherit",
             transition: "background 0.12s",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{
                 width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                border: `1px solid ${isSel ? C.accent : "rgba(255,255,255,0.2)"}`,
+                border: `1px solid ${isSel ? C.accent : "var(--c-border)"}`,
                 background: isSel ? C.accent : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
@@ -62,8 +63,8 @@ function CompactEnrichedDropdown({ opts, activeVal, statsMap, onSelect }) {
               )}
             </div>
             {!isAll && s && s.total > 0 && (
-              <div style={{ marginTop: 5, marginLeft: 26, height: 2, borderRadius: 99, background: "var(--c-overlay2)", overflow: "hidden" }}>
-                <div style={{ height: "100%", width: seenPct + "%", background: C.accent, borderRadius: 99 }} />
+              <div style={{ marginTop: 5, marginLeft: 26, height: 2, borderRadius: "var(--r-pill)", background: "var(--c-overlay2)", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: seenPct + "%", background: C.accent, borderRadius: "var(--r-pill)" }} />
               </div>
             )}
           </button>
@@ -143,7 +144,7 @@ export default function FilterPanel({ value, onChange, pStats = {} }) {
         <button
           style={{
             ...selectBtn,
-            borderColor: active ? C.accentBrd : "rgba(255,255,255,0.07)",
+            borderColor: active ? C.accentBrd : "var(--c-border)",
             color: active ? C.accentLt : onlyAll ? C.mutedDim : C.text,
             opacity: opts.length <= 1 ? 0.4 : 1,
             cursor: opts.length <= 1 ? "not-allowed" : "pointer",

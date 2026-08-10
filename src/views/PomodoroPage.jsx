@@ -21,7 +21,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
       {/* Header */}
       <div style={{ animation: "dash-left 0.45s cubic-bezier(0.22,1,0.36,1) both" }}>
         <h1 style={h1}>Pomodoro.</h1>
-        <p style={{ color: C.sub, marginTop: 5, fontSize: 15, fontWeight: 300 }}>
+        <p style={{ color: C.sub, marginTop: 5, fontSize: 15, fontWeight: 500 }}>
           {count === 0 ? "Start a focus session to track your study time." : `${count} session${count !== 1 ? "s" : ""} completed today`}
         </p>
       </div>
@@ -29,17 +29,18 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
       {/* Mode tabs */}
       <div className="anim-fade-up delay-50" style={{
         display: "flex", gap: 8,
-        background: "var(--c-card-bg)", borderRadius: 12,
+        background: "var(--c-card-bg)", borderRadius: "var(--r-panel)",
         padding: 6, border: "1px solid var(--c-border)",
+        boxShadow: "var(--c-card-shadow)",
         alignSelf: "flex-start",
       }}>
         {Object.entries(POMODORO_MODES).map(([k, m]) => (
           <button key={k} type="button" onClick={() => switchMode(k)} style={{
-            padding: "8px 20px", borderRadius: 8, border: "none", cursor: "pointer",
-            fontFamily: "inherit", fontSize: 14, fontWeight: 600,
+            padding: "8px 20px", borderRadius: "var(--r-pill)", border: "none", cursor: "pointer",
+            fontFamily: "inherit", fontSize: 14, fontWeight: 600, letterSpacing: -0.15,
             background: mode === k ? m.color : "transparent",
             color: mode === k ? "#fff" : C.muted,
-            boxShadow: mode === k ? `0 0 16px ${m.glow}` : "none",
+            boxShadow: mode === k ? `0 8px 20px ${m.glow}` : "none",
             transition: "all 0.2s",
           }}>{m.label}</button>
         ))}
@@ -129,30 +130,32 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
       {/* Controls */}
       <div className="anim-fade-up delay-200" style={{ display: "flex", gap: 12, justifyContent: "center", alignItems: "center" }}>
         <button type="button" onClick={reset} className="btn-press" style={{
-          width: 48, height: 48, borderRadius: 99,
+          width: 48, height: 48, borderRadius: "var(--r-pill)",
           background: "var(--c-card-bg)", border: "1px solid var(--c-border)",
           cursor: "pointer", fontSize: 18, color: C.muted,
           display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "var(--c-card-shadow)",
           transition: "border-color 0.2s, color 0.2s",
         }} title="Reset">↺</button>
 
         <button type="button" onClick={toggle} className="btn-press" style={{
-          width: 72, height: 72, borderRadius: 99, border: "none",
+          width: 72, height: 72, borderRadius: "var(--r-pill)", border: "none",
           cursor: "pointer", fontSize: running ? 22 : 20,
           background: color,
           color: "#fff",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 0 32px ${glow}, 0 4px 24px rgba(0,0,0,0.4)`,
+          boxShadow: `0 12px 30px ${glow}`,
           transition: "background 0.25s, box-shadow 0.25s, transform 0.1s",
         }} title={running ? "Pause" : "Start"}>
           {running ? "⏸" : "▷"}
         </button>
 
         <button type="button" onClick={skip} className="btn-press" style={{
-          width: 48, height: 48, borderRadius: 99,
+          width: 48, height: 48, borderRadius: "var(--r-pill)",
           background: "var(--c-card-bg)", border: "1px solid var(--c-border)",
           cursor: "pointer", fontSize: 16, color: C.muted,
           display: "flex", alignItems: "center", justifyContent: "center",
+          boxShadow: "var(--c-card-shadow)",
           transition: "border-color 0.2s, color 0.2s",
         }} title="Skip to next">⏭</button>
       </div>

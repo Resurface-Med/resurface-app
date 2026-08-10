@@ -24,7 +24,7 @@ function AnimatedRing({ pct, col, size = 88 }) {
         strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"
         style={{ transition: "stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1)" }} />
       <text x={cx} y={cx} textAnchor="middle" dominantBaseline="central"
-        fill={col} fontSize={16} fontWeight={300} fontFamily="Outfit,sans-serif"
+        fill={col} fontSize={16} fontWeight={600} fontFamily="Poppins,sans-serif"
         style={{ transform: `rotate(90deg)`, transformOrigin: `${cx}px ${cx}px` }}>
         {pct}%
       </text>
@@ -46,7 +46,7 @@ function AccBadge({ pct }) {
       fontSize: 13, fontWeight: 700, color: col,
       background: pct === null ? "transparent" : pct >= 70 ? C.successDim : pct >= 50 ? C.warningDim : C.dangerDim,
       border: `1px solid ${pct === null ? "transparent" : pct >= 70 ? C.successBrd : pct >= 50 ? C.warningBrd : C.dangerBrd}`,
-      borderRadius: 6, padding: "2px 7px",
+      borderRadius: "var(--r-pill)", padding: "2px 8px",
     }}>
       {pct === null ? "—" : pct + "%"}
     </span>
@@ -72,22 +72,22 @@ function TopicRow({ topic, pStats, divider, onPractice }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         ...(divider ? { borderTop: "1px solid var(--c-border)", paddingTop: 8, marginTop: 8 } : {}),
-        borderRadius: 8,
+        borderRadius: "var(--r-card)",
         padding: "6px 4px",
         transition: "background 0.15s",
         background: hovered ? "var(--c-overlay)" : "transparent",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-        <span style={{ flex: 1, fontSize: 14, color: C.text, fontWeight: 400, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span style={{ flex: 1, fontSize: 14, color: C.text, fontWeight: 600, letterSpacing: -0.15, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {topic}
         </span>
         {hovered && onPractice ? (
           <button onClick={onPractice} className="hover-lift btn-press" style={{
-            padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600,
+            padding: "3px 10px", borderRadius: "var(--r-pill)", fontSize: 12, fontWeight: 600,
             background: "var(--c-accent-dim)", border: "1px solid var(--c-accent-brd)",
             color: "var(--c-accent)", cursor: "pointer", fontFamily: "inherit",
-            whiteSpace: "nowrap", flexShrink: 0,
+            whiteSpace: "nowrap", flexShrink: 0, letterSpacing: -0.1,
           }}>Practice →</button>
         ) : (
           <>
@@ -143,7 +143,7 @@ function DeckSection({ deck, cats, pStats, collapsed, onToggle, onPractice }) {
           borderBottom: isOpen ? "1px solid var(--c-border)" : "none",
         }}
       >
-        <span style={{ fontWeight: 400, fontSize: 15, color: C.text, flex: 1, textAlign: "left" }}>{deck}</span>
+        <span style={{ fontWeight: 600, fontSize: 15, color: C.text, flex: 1, textAlign: "left", letterSpacing: -0.2 }}>{deck}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {deckPct !== null && (
             <span style={{ fontSize: 13, fontWeight: 700, color: deckPct >= 70 ? C.success : deckPct >= 50 ? C.warning : C.danger }}>
@@ -242,9 +242,9 @@ export default function StatsView({ pStats, srCards, setView, setLaunchFilter })
       <div className="anim-scale-in delay-100" style={{ ...card, display: "flex", alignItems: "center", gap: 28 }}>
         <AnimatedRing pct={oPct} col={accCol} />
         <div className="anim-fade-up delay-400">
-          <div style={{ fontWeight: 400, fontSize: 18, color: C.text }}>Overall Accuracy</div>
-          <div style={{ color: C.muted, fontSize: 15, marginTop: 4, fontWeight: 300 }}>{totalC} correct of {totalT} attempts</div>
-          <div style={{ color: C.muted, fontSize: 14, marginTop: 3, fontWeight: 300 }}>
+          <div style={{ fontWeight: 600, fontSize: 18, color: C.text, letterSpacing: -0.3 }}>Overall Accuracy</div>
+          <div style={{ color: C.muted, fontSize: 15, marginTop: 4, fontWeight: 500 }}>{totalC} correct of {totalT} attempts</div>
+          <div style={{ color: C.muted, fontSize: 14, marginTop: 3, fontWeight: 500 }}>
             {seen} of {QUESTIONS.length} questions seen · {learned} cards learned
           </div>
         </div>
@@ -269,7 +269,7 @@ export default function StatsView({ pStats, srCards, setView, setLaunchFilter })
                   <span style={{ flex: 1, fontSize: 14, color: C.text, fontWeight: 500 }}>{cat}</span>
                   <span style={{
                     fontSize: 11, fontWeight: 600, color: C.muted,
-                    background: "var(--c-overlay2)", borderRadius: 5, padding: "2px 6px",
+                    background: "var(--c-overlay2)", borderRadius: "var(--r-pill)", padding: "2px 8px",
                   }}>
                     {deck}
                   </span>
@@ -325,7 +325,7 @@ export default function StatsView({ pStats, srCards, setView, setLaunchFilter })
                 {notStarted.map(({ cat, deck }) => (
                   <div key={cat} style={{
                     fontSize: 13, color: C.muted, background: "var(--c-surface2)",
-                    border: "1px solid var(--c-border)", borderRadius: 8, padding: "5px 10px",
+                    border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)", padding: "5px 12px",
                     display: "flex", alignItems: "center", gap: 6,
                   }}>
                     <span>{cat}</span>

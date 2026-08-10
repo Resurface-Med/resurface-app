@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, pageWrap, card, h1, h2, primaryBtn } from "./theme";
+import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn } from "./theme";
 import ProgressBar from "./ProgressBar";
 import GhostBtn from "./GhostBtn";
 
@@ -31,14 +31,13 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
 
       {/* Score card */}
       <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "40px 32px" }}>
-        <div className="anim-pop delay-300" style={{ fontSize: 80, fontWeight: 300, color: scoreCol, lineHeight: 1, letterSpacing: -4 }}>{pct}%</div>
-        <div className="anim-fade-up delay-400" style={{ fontSize: 16, color: C.text, marginTop: 10, fontWeight: 400 }}>{message}</div>
-        <div className="anim-fade-up delay-500" style={{ fontSize: 14, color: C.muted, marginTop: 4 }}>{correct} correct · {total - correct} wrong · {total} total</div>
+        <div className="anim-pop delay-300" style={{ fontSize: 72, fontWeight: 600, color: scoreCol, lineHeight: 1, letterSpacing: -3 }}>{pct}%</div>
+        <div className="anim-fade-up delay-400" style={{ fontSize: 16, color: C.text, marginTop: 10, fontWeight: 600, letterSpacing: -0.2 }}>{message}</div>
+        <div className="anim-fade-up delay-500" style={{ fontSize: 14, color: C.sub, marginTop: 4 }}>{correct} correct · {total - correct} wrong · {total} total</div>
       </div>
 
-      {/* By topic */}
       <div className="anim-fade-up delay-200" style={card}>
-        <div style={{ ...h2, marginTop: 0, marginBottom: 18 }}>By Topic</div>
+        <div style={{ ...h2, marginTop: 0, marginBottom: 18 }}>By topic</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {catRows.map(({ cat, correct: c, total: t, pct: p }, i) => {
             const col = p >= 70 ? C.success : p >= 50 ? C.warning : C.danger;
@@ -74,7 +73,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
             <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12 }}>
               {wrongOnes.map((r, i) => (
                 <div key={r.id} className={`anim-fade-up delay-${i * 30}`} style={{
-                  padding: "13px 16px", borderRadius: 12,
+                  padding: "13px 16px", borderRadius: "var(--r-card)",
                   background: C.dangerDim, border: `1px solid ${C.dangerBrd}`,
                 }}>
                   <div style={{ fontSize: 14, color: C.text, lineHeight: 1.6, marginBottom: 6 }}>{r.q}</div>
@@ -95,16 +94,16 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
 
       {/* Actions */}
       <div className="anim-fade-up delay-400" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <button className="hover-lift btn-press" style={{ ...primaryBtn, flex: 1 }} onClick={onRestart}>
+        <button className="hover-lift btn-press" style={{ ...fieldBtn, flex: 1 }} onClick={onRestart}>
           Practice Again
         </button>
         {onDrillWrong && wrongOnes.length > 0 && (
           <button className="hover-lift btn-press" onClick={() => onDrillWrong(wrongOnes.map(r => r.id))} style={{
-            flex: 1, padding: "11px 20px", borderRadius: 12, border: `1px solid ${C.dangerBrd}`,
+            flex: 1, padding: "12px 20px", borderRadius: "var(--r-pill)", border: `1px solid ${C.dangerBrd}`,
             background: C.dangerDim, color: C.danger,
             fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
           }}>
-            Redo {wrongOnes.length} Missed →
+            Redo {wrongOnes.length} missed →
           </button>
         )}
         {onChangeSettings && <GhostBtn onClick={onChangeSettings}>Change Settings</GhostBtn>}

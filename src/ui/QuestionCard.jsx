@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { C, card, primaryBtn } from "./theme";
+import { C, cardSolid, primaryBtn } from "./theme";
 import CatTag from "./CatTag";
 import BmBtn from "./BmBtn";
 import EditQuestionModal from "./EditQuestionModal";
@@ -116,7 +116,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
-    <div style={card} className="anim-scale-in">
+    <div style={cardSolid} className="anim-scale-in">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <CatTag label={q.cat} />
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -165,39 +165,39 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         </div>
       </div>
 
-      <p className="anim-fade-up delay-0" style={{ fontSize: 19, fontWeight: 600, color: C.text, lineHeight: 1.7, marginBottom: 24 }}>{q.q}</p>
+      <p className="anim-fade-up delay-0" style={{ fontSize: 20, fontWeight: 600, color: C.text, lineHeight: 1.55, marginBottom: 22, letterSpacing: -0.4 }}>{q.q}</p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {q.opts.map((opt, i) => {
           const ok = i === q.ans;
           const picked = i === sel;
           const isPending = !answered && pending === i;
           const isElim = !answered && eliminated.has(i);
 
-          // Compute colours
-          let bg = "transparent", brd = "var(--c-border)", col = C.text;
+          let bg = "var(--c-surface2)", brd = "var(--c-border)", col = C.text;
           let animClass = `anim-fade-up delay-${(i + 1) * 50}`;
           let extraClass = "";
 
           if (answered) {
             animClass = "";
             if (ok) {
-              bg = C.successDim; brd = C.successBrd; col = C.success;
+              bg = "#e7f6ed"; brd = "#1f9d55"; col = "#146c3d";
               extraClass = "option-correct";
               if (picked) animClass = "anim-pop";
             } else if (picked) {
-              bg = C.dangerDim; brd = C.dangerBrd; col = C.danger;
+              bg = "#fdeaea"; brd = "#d64545"; col = "#a33232";
               extraClass = "option-wrong";
               animClass = "anim-shake";
             } else {
-              col = C.mutedDim; brd = "var(--c-overlay2)";
+              col = C.mutedDim; brd = "var(--c-border)";
+              bg = "var(--c-surface2)";
               extraClass = "option-faded";
             }
           } else if (isPending) {
             bg = C.accentDim; brd = C.accentBrd; col = C.accent;
             extraClass = "option-pending";
           } else if (isElim) {
-            bg = "transparent"; brd = "var(--c-overlay)"; col = C.mutedDim;
+            bg = "var(--c-surface2)"; brd = "var(--c-overlay)"; col = C.mutedDim;
             animClass = "";
           } else {
             animClass += " option-btn";
@@ -212,49 +212,47 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               className={`${animClass} ${extraClass}`.trim()}
               style={{
                 display: "flex", flexDirection: "column", alignItems: "stretch",
-                padding: "15px 18px", borderRadius: 12,
+                padding: "12px 16px", borderRadius: "var(--r-pill)",
                 cursor: answered ? "default" : "pointer",
-                textAlign: "left", fontSize: 15, lineHeight: 1.55,
-                background: bg, border: `1px solid ${brd}`,
+                textAlign: "left", fontSize: 15, lineHeight: 1.5,
+                background: bg, border: `1.5px solid ${brd}`,
                 transition: "background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s",
                 fontFamily: "inherit",
                 opacity: isElim ? 0.4 : 1,
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-                {/* Letter badge */}
                 <span style={{
-                  fontWeight: 700, fontSize: 12, minWidth: 26, padding: "4px 7px",
-                  borderRadius: 6, flexShrink: 0,
-                  fontFamily: "monospace",
-                  background: answered ? "transparent" : isPending ? "var(--c-accent-dim)" : C.surface2,
-                  color: answered ? col : isPending ? C.accent : C.muted,
+                  fontWeight: 700, fontSize: 12, width: 28, height: 28,
+                  display: "grid", placeItems: "center",
+                  borderRadius: "50%", flexShrink: 0,
+                  background: answered ? "transparent" : isPending ? "var(--c-accent)" : "var(--c-wash, var(--c-surface3))",
+                  color: answered ? col : isPending ? "#fff" : C.muted,
                 }}>{"ABCDE"[i]}</span>
 
-                {/* Option text */}
                 <span style={{
                   flex: 1,
                   color: answered ? col : isPending ? C.accent : isElim ? C.mutedDim : C.text,
                   textDecoration: isElim ? "line-through" : "none",
+                  fontWeight: 500,
+                  letterSpacing: -0.15,
                 }}>{opt}</span>
 
-                {/* Right indicator */}
                 {answered && ok       && <span className="anim-pop" style={{ marginLeft: "auto", color: C.success, fontWeight: 700, flexShrink: 0 }}>✓</span>}
                 {answered && picked && !ok && <span style={{ marginLeft: "auto", color: C.danger, flexShrink: 0 }}>✗</span>}
-                {!answered && isPending && <span style={{ marginLeft: "auto", fontSize: 11, color: C.accent, flexShrink: 0 }}>selected</span>}
-                {/* X eliminate button */}
+                {!answered && isPending && <span style={{ marginLeft: "auto", fontSize: 11, color: C.accent, flexShrink: 0, fontWeight: 600 }}>selected</span>}
                 {!answered && (
                   <button
                     onClick={(e) => toggleEliminate(e, i)}
                     style={{
                       marginLeft: isPending ? 8 : "auto",
                       flexShrink: 0,
-                      cursor: "pointer", padding: "3px 6px",
+                      cursor: "pointer", padding: "4px 8px",
                       color: isElim ? C.danger : C.muted,
                       fontSize: 11, lineHeight: 1,
                       opacity: isElim ? 1 : 0.7,
                       border: `1px solid ${isElim ? C.dangerBrd : "var(--c-border)"}`,
-                      borderRadius: 5,
+                      borderRadius: "var(--r-pill)",
                       background: isElim ? C.dangerDim : "transparent",
                       transition: "opacity 0.15s, color 0.15s, border-color 0.15s",
                     }}
@@ -265,17 +263,16 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 )}
               </div>
 
-              {/* Distractor explanation */}
               {wrongNote && (
                 <div style={{
-                  marginTop: 8, marginLeft: 28,
+                  marginTop: 8, marginLeft: 40,
                   paddingLeft: 10,
                   borderLeft: picked
                     ? `3px solid ${C.danger}`
                     : "2px solid var(--c-border)",
                   fontSize: 13, lineHeight: 1.65,
                   fontWeight: picked ? 600 : 400,
-                  color: picked ? "#fca5a5" : C.sub,
+                  color: picked ? C.danger : C.sub,
                 }}>
                   {wrongNote}
                 </div>
@@ -303,18 +300,17 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
       {/* Time's up banner */}
       {timedOut && sel === null && (
-        <div className="anim-shake" style={{ marginTop: 14, padding: "13px 16px", background: C.dangerDim, border: `1px solid ${C.dangerBrd}`, borderRadius: 12, fontSize: 13, color: C.danger }}>
+        <div className="anim-shake" style={{ marginTop: 14, padding: "13px 16px", background: C.dangerDim, border: `1px solid ${C.dangerBrd}`, borderRadius: "var(--r-card)", fontSize: 13, color: C.danger }}>
           <b>Time's up!</b> The correct answer was <b>{"ABCDE"[q.ans]} — {q.opts[q.ans]}</b>
         </div>
       )}
 
-      {/* Explanation box */}
       {answered && (
         <div className="anim-fade-up" style={{
           marginTop: 14, padding: "16px 18px",
           background: "var(--c-accent-dim)",
           border: "1px solid var(--c-accent-brd)",
-          borderRadius: 12,
+          borderRadius: "var(--r-card)",
         }}>
           <div style={{ fontWeight: 600, fontSize: 13, color: sel === q.ans ? C.success : C.danger, marginBottom: 8 }}>
             {sel === q.ans
@@ -327,13 +323,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         </div>
       )}
 
-      {/* Next button */}
       {answered && (
         <div className="anim-fade-up delay-100" style={{ display: "flex", gap: 10, marginTop: 14 }}>
           {onPrev && (
             <button className="hover-lift btn-press" onClick={onPrev} style={{
-              padding: "11px 18px", borderRadius: 12, border: "1px solid var(--c-border)",
-              background: "transparent", color: C.sub, fontSize: 14, fontWeight: 500,
+              padding: "12px 18px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
+              background: "var(--c-surface2)", color: C.sub, fontSize: 14, fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit", transition: "border-color 0.15s, color 0.15s",
               flexShrink: 0,
             }}>← Back</button>

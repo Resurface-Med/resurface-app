@@ -1,18 +1,18 @@
 import { C } from "./theme";
 export default function GhostBtn({ children, onClick }) {
   return (
-    <button onClick={onClick} style={{
-      padding: "9px 18px",
-      background: "transparent",
-      color: C.sub,
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 12,
+    <button onClick={onClick} className="btn-press" style={{
+      padding: "11px 20px",
+      background: "rgba(255,255,255,0.14)",
+      color: "#fff",
+      border: "1.5px solid rgba(255,255,255,0.45)",
+      borderRadius: "var(--r-pill)",
       fontSize: 14,
-      fontWeight: 500,
+      fontWeight: 600,
       cursor: "pointer",
       fontFamily: "inherit",
       transition: "all 0.15s",
-      letterSpacing: 0.1,
+      letterSpacing: -0.1,
     }}>
       {children}
     </button>

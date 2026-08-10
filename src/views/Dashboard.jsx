@@ -29,11 +29,11 @@ function buildGrid(weekOffset = 0) {
 }
 
 function heatColor(count, max = 1) {
-  if (!count) return "rgba(77,142,245,0.06)";
+  if (!count) return "var(--c-accent-glow)";
   // sqrt scale gives better visual spread across the actual range
   const pct = Math.sqrt(Math.min(count / max, 1));
   const opacity = 0.18 + pct * 0.82;
-  return `rgba(77,142,245,${opacity.toFixed(2)})`;
+  return `rgba(53,98,245,${opacity.toFixed(2)})`;
 }
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -135,21 +135,22 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
         <div style={{ animation: "dash-left 0.55s cubic-bezier(0.22,1,0.36,1) both" }}>
           <h1 style={h1}>{greeting}.</h1>
-          <p style={{ color: C.sub, marginTop: 5, fontSize: 15, fontWeight: 300 }}>
+          <p style={{ color: "var(--c-on-field-soft)", marginTop: 5, fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>
             {totalT === 0 ? "Start practising to track your progress." : `${totalT} questions answered · ${acc ?? 0}% accuracy`}
           </p>
         </div>
         {streak.streak > 0 && (
           <div style={{
             display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
-            background: "rgba(246,197,77,0.08)", borderRadius: 99,
-            padding: "5px 12px 5px 8px",
-            border: "1px solid rgba(246,197,77,0.18)",
+            background: "rgba(255,255,255,0.16)", borderRadius: "var(--r-pill)",
+            padding: "6px 14px 6px 10px",
+            border: "1px solid rgba(255,255,255,0.28)",
+            boxShadow: "0 10px 24px rgba(15,27,61,0.15)",
             animation: "spring-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.15s both",
           }}>
             <span style={{ fontSize: 14 }}>🔥</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: C.warning }}>{streak.streak}</span>
-            <span style={{ fontSize: 13, color: C.muted }}>day streak</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: -0.3 }}>{streak.streak}</span>
+            <span style={{ fontSize: 13, color: "var(--c-on-field-soft)" }}>day streak</span>
           </div>
         )}
       </div>
@@ -162,20 +163,20 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
             <span style={{ fontSize: 13, color: C.muted }}>{totalThisWeek} this week</span>
             <div style={{ display: "flex", gap: 4 }}>
               <button onClick={() => setWeekOffset(o => o - 4)} className="btn-press" style={{
-                background: "none", border: "1px solid var(--c-border)", borderRadius: 6,
-                color: C.muted, fontSize: 13, padding: "2px 8px", cursor: "pointer", fontFamily: "inherit",
+                background: C.surface2, border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)",
+                color: C.muted, fontSize: 13, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit",
               }}>‹</button>
               {weekOffset < 0 && (
                 <button onClick={() => setWeekOffset(0)} className="btn-press" style={{
-                  background: "none", border: "1px solid var(--c-border)", borderRadius: 6,
-                  color: C.accent, fontSize: 12, padding: "2px 8px", cursor: "pointer", fontFamily: "inherit",
+                  background: C.accentDim, border: "1px solid var(--c-accent-brd)", borderRadius: "var(--r-pill)",
+                  color: C.accent, fontSize: 12, fontWeight: 600, padding: "4px 12px", cursor: "pointer", fontFamily: "inherit",
                 }}>Today</button>
               )}
               <button onClick={() => setWeekOffset(o => Math.min(0, o + 4))} className="btn-press"
                 disabled={weekOffset >= 0}
                 style={{
-                  background: "none", border: "1px solid var(--c-border)", borderRadius: 6,
-                  color: weekOffset >= 0 ? C.mutedDim : C.muted, fontSize: 13, padding: "2px 8px",
+                  background: C.surface2, border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)",
+                  color: weekOffset >= 0 ? C.mutedDim : C.muted, fontSize: 13, padding: "4px 10px",
                   cursor: weekOffset >= 0 ? "default" : "pointer", fontFamily: "inherit", opacity: weekOffset >= 0 ? 0.3 : 1,
                 }}>›</button>
             </div>
@@ -228,7 +229,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                       }}
                       onMouseLeave={() => setTooltip(null)}
                       style={{
-                        flex: 1, aspectRatio: "1/1", borderRadius: 3,
+                        flex: 1, aspectRatio: "1/1", borderRadius: 5,
                         background: isFuture ? "transparent" : heatColor(count, maxActivity),
                         border: isToday ? `1.5px solid ${C.accent}` : "1.5px solid transparent",
                         transition: "background 0.2s",
@@ -246,7 +247,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
           <span style={{ fontSize: 11, color: C.mutedDim }}>Less</span>
           {[0, 0.2, 0.4, 0.7, 1].map(pct => (
-            <div key={pct} style={{ width: 12, height: 12, borderRadius: 2, background: heatColor(pct * maxActivity, maxActivity) }} />
+            <div key={pct} style={{ width: 12, height: 12, borderRadius: 4, background: heatColor(pct * maxActivity, maxActivity) }} />
           ))}
           <span style={{ fontSize: 11, color: C.mutedDim }}>More</span>
         </div>
@@ -260,12 +261,12 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
           transform: "translate(-50%, -100%)",
           background: "var(--c-card-bg)",
           border: "1px solid var(--c-border)",
-          borderRadius: 8, padding: "7px 11px",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.45)",
+          borderRadius: "var(--r-card)", padding: "8px 12px",
+          boxShadow: "var(--c-card-shadow)",
           pointerEvents: "none", zIndex: 999,
           fontSize: 13, whiteSpace: "nowrap",
         }}>
-          <div style={{ fontWeight: 600, color: C.text, marginBottom: 2 }}>
+          <div style={{ fontWeight: 600, color: C.text, marginBottom: 2, letterSpacing: -0.3 }}>
             {tooltip.count > 0 ? `${tooltip.count} question${tooltip.count !== 1 ? "s" : ""}` : "No activity"}
           </div>
           <div style={{ color: C.muted }}>
@@ -276,7 +277,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
 
       {/* Stat rings */}
       {(() => {
-        const R = 52, SW = 5, CIRC = 2 * Math.PI * R, SIZE = (R + SW) * 2;
+        const R = 48, SW = 7, CIRC = 2 * Math.PI * R, SIZE = (R + SW) * 2;
         const goalCol = todayCount >= goalTarget ? C.success : todayCount >= goalTarget * 0.7 ? C.warning : C.accent;
         const rings = [
           {
@@ -300,15 +301,20 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         ];
         return (
           <div style={{
-            display: "flex", justifyContent: "space-around", alignItems: "center",
-            marginTop: 16,
+            display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12,
+            marginTop: 4,
             animation: "sweep-reveal 0.75s cubic-bezier(0.25,0.46,0.45,0.94) 0.3s both",
           }}>
             {rings.map((ring, ri) => {
               const dashOffset = CIRC * (1 - ring.progress);
               return (
                 <div key={ring.label} style={{
-                  display: "flex", flexDirection: "column", alignItems: "center", gap: 12,
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+                  background: "var(--c-card-bg)",
+                  borderRadius: "var(--r-panel)",
+                  padding: "22px 12px 18px",
+                  border: "1px solid var(--c-border)",
+                  boxShadow: "var(--c-card-shadow)",
                   animation: `spring-pop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${ring.delay} both`,
                 }}>
                   <div style={{ position: "relative", width: SIZE, height: SIZE }}>
@@ -319,7 +325,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                         </filter>
                       </defs>
                       {/* Track */}
-                      <circle cx={R+SW} cy={R+SW} r={R} fill="none" stroke="var(--c-border)" strokeWidth={SW+1} />
+                      <circle cx={R+SW} cy={R+SW} r={R} fill="none" stroke="var(--c-surface3)" strokeWidth={SW+1} />
                       {/* Glow */}
                       {ring.progress > 0 && (
                         <circle cx={R+SW} cy={R+SW} r={R} fill="none"
@@ -327,7 +333,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                           strokeDasharray={CIRC} strokeDashoffset={ringsReady ? dashOffset : CIRC}
                           strokeLinecap="round"
                           transform={`rotate(-90 ${R+SW} ${R+SW})`}
-                          opacity={0.3} filter={`url(#glow-${ri})`}
+                          opacity={0.25} filter={`url(#glow-${ri})`}
                           style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1)" }}
                         />
                       )}
@@ -345,14 +351,14 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                       position: "absolute", inset: 0,
                       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                     }}>
-                      <div style={{ fontSize: 22, fontWeight: 300, color: ring.color, letterSpacing: -0.5, lineHeight: 1 }}>
+                      <div style={{ fontSize: 22, fontWeight: 600, color: ring.color, letterSpacing: -0.8, lineHeight: 1 }}>
                         {ring.display}
                       </div>
                     </div>
                   </div>
                   {/* Label */}
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: C.text }}>{ring.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: C.text, letterSpacing: -0.3 }}>{ring.label}</div>
                     {ri === 1 ? (
                       editingGoal ? (
                         <form onSubmit={e => {
@@ -397,12 +403,12 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button onClick={() => setView(V.STATS)} className="btn-press" style={{
           background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-          fontSize: 13, color: C.muted, display: "flex", alignItems: "center", gap: 4,
+          fontSize: 13, color: "var(--c-on-field-soft)", display: "flex", alignItems: "center", gap: 4,
           padding: "2px 0",
           transition: "color 0.15s",
         }}
-          onMouseEnter={e => e.currentTarget.style.color = C.accent}
-          onMouseLeave={e => e.currentTarget.style.color = C.muted}
+          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
+          onMouseLeave={e => e.currentTarget.style.color = "var(--c-on-field-soft)"}
         >
           View detailed stats →
         </button>
@@ -412,15 +418,15 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
         {modes.map((m, i) => (
           <button key={m.k} onClick={() => setView(m.k)} className="hover-lift btn-press" style={{
-            background: "var(--c-card-bg)", borderRadius: 12,
-            padding: "16px 14px", textAlign: "center",
-            border: "1px solid var(--c-border)",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+            background: "rgba(255,255,255,0.14)", borderRadius: "var(--r-pill)",
+            padding: "18px 16px", textAlign: "center",
+            border: "1.5px solid rgba(255,255,255,0.35)",
+            boxShadow: "0 12px 28px rgba(15,27,61,0.15)",
             cursor: "pointer", fontFamily: "inherit",
             animation: `rise-blur 0.55s cubic-bezier(0.22,1,0.36,1) ${0.7 + i * 0.07}s both`,
           }}>
-            <div style={{ fontSize: 20, color: m.col, marginBottom: 8 }}>{m.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, lineHeight: 1.3 }}>{m.label}</div>
+            <div style={{ fontSize: 22, color: "#fff", marginBottom: 8 }}>{m.icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", lineHeight: 1.3, letterSpacing: -0.3 }}>{m.label}</div>
           </button>
         ))}
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 const MODES = {
-  work:       { label: "Focus",        duration: 25 * 60, color: "#4d8ef5", dim: "rgba(77,142,245,0.15)" },
+  work:       { label: "Focus",        duration: 25 * 60, color: "#3562f5", dim: "rgba(53,98,245,0.15)" },
   shortBreak: { label: "Short Break",  duration:  5 * 60, color: "#3ecf8e", dim: "rgba(62,207,142,0.15)" },
   longBreak:  { label: "Long Break",   duration: 15 * 60, color: "#f6c54d", dim: "rgba(246,197,77,0.15)"  },
 };
@@ -161,7 +161,7 @@ export default function PomodoroTimer() {
         {/* Time + status */}
         <div style={{ flex: 1 }}>
           <div style={{
-            fontSize: 22, fontWeight: 300, letterSpacing: -0.5, lineHeight: 1,
+            fontSize: 22, fontWeight: 500, letterSpacing: -0.5, lineHeight: 1,
             color: "var(--c-nav-text)",
             fontVariantNumeric: "tabular-nums",
           }}>{mins}:{secs}</div>

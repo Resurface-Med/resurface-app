@@ -81,7 +81,7 @@ export const passcodeStore = {
 };
 
 export const themeStore = {
-  get: () => { try { return localStorage.getItem('pq_theme') || 'dark'; } catch { return 'dark'; } },
+  get: () => { try { return localStorage.getItem('pq_theme') || 'light'; } catch { return 'light'; } },
   set: (t) => { try { localStorage.setItem('pq_theme', t); } catch {} },
 };
 

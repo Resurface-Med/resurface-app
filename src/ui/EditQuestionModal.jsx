@@ -6,7 +6,7 @@ const LETTERS = ["A", "B", "C", "D", "E"];
 
 const inputStyle = {
   width: "100%", background: "var(--c-surface2)",
-  border: "1px solid var(--c-border)", borderRadius: 8,
+  border: "1px solid var(--c-border)", borderRadius: "var(--r-card)",
   padding: "8px 12px", color: "var(--c-text)", fontSize: 13,
   fontFamily: "inherit", outline: "none", boxSizing: "border-box",
   resize: "vertical",
@@ -14,7 +14,7 @@ const inputStyle = {
 
 const labelStyle = {
   fontSize: 11, fontWeight: 600, color: "var(--c-muted)",
-  letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 6, display: "block",
+  letterSpacing: -0.1, textTransform: "uppercase", marginBottom: 6, display: "block",
 };
 
 export default function EditQuestionModal({ q, onClose, onSave }) {
@@ -44,23 +44,23 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 1500,
-      background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+      background: "rgba(26, 47, 122, 0.55)", backdropFilter: "blur(4px)",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: 20,
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
         background: "var(--c-card-bg)",
         border: "1px solid var(--c-border)",
-        borderRadius: 20, padding: "28px 28px",
+        borderRadius: "var(--r-panel)", padding: "28px 28px",
         width: "100%", maxWidth: 640,
         maxHeight: "calc(var(--app-vh) * 0.9)", overflowY: "auto",
-        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        boxShadow: "var(--c-card-shadow)",
         display: "flex", flexDirection: "column", gap: 20,
       }}>
 
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--c-text)" }}>Edit Question</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--c-text)", letterSpacing: -0.3 }}>Edit Question</div>
           <button onClick={onClose} style={{
             background: "none", border: "none", cursor: "pointer",
             color: C.muted, fontSize: 20, lineHeight: 1, padding: "2px 6px",
@@ -150,7 +150,7 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
             Save &amp; Reload
           </button>
           <button onClick={onClose} className="btn-press" style={{
-            padding: "11px 20px", borderRadius: 12,
+            padding: "11px 20px", borderRadius: "var(--r-pill)",
             border: "1px solid var(--c-border)", background: "transparent",
             color: C.muted, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
           }}>Cancel</button>
