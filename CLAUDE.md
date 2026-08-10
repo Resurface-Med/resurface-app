@@ -51,10 +51,26 @@ source — hand-edited, changed far more often than the app, and 294KB of the
 "principles-quiz" and invisible to users. Renaming them silently wipes
 everyone's spaced-repetition progress for zero benefit.
 
-**Vercel, not Railway** — decided 2026-08-07. Generation now lives in
-`resurface-backend` (Next 16 on Vercel), not in this repo. The app reaches it
-via `VITE_API_BASE`, so the two are separate origins and the backend keeps a
-CORS allowlist (`ALLOWED_ORIGINS`).
+**Vercel, not Railway** — decided 2026-08-07. Generation lives in
+`resurface-backend` (Next 16), reached via `VITE_API_BASE`, so the two are
+separate origins and the backend keeps a CORS allowlist (`ALLOWED_ORIGINS`).
+
+**Server-first, not local-first** — decided 2026-08-10, and the user was right
+to push back on the offline argument: without a service worker the app cannot
+load offline at all, so local-first was protecting a case that mostly cannot
+happen. Postgres is the single source of truth, which is why none of the merge
+rules a local-first design needs exist here. localStorage keeps only the theme
+and a queue of writes that failed mid-session.
+
+**Repos are public** — Vercel's Hobby plan refuses to connect org-owned private
+repositories, so the question bank is publicly readable. Moving the repos to a
+personal account would allow private and stay free, at the cost of the org.
+
+**The Supabase URL and publishable key are committed** in `src/lib/supabase.js`.
+They compile into the bundle regardless and RLS is the real boundary, so making
+them env vars bought nothing but a deploy that silently built into "sign-in
+isn't configured". Env vars still take precedence. The service_role key must
+never appear there — anything `VITE_` is inlined into the build.
 
 ## Structure (applied)
 
@@ -93,10 +109,10 @@ makes best-effort. A login page is the intended fix. Both live in
 
 ## Not built yet, roughly in priority order
 
-1. **Export/import.** Everything is localStorage. One cleared browser wipes
-   months of progress — the likeliest way to lose a user's trust.
-2. Storage tests. `sm2.js` and question-bank integrity are covered; `storage.js`
-   is not, because it needs a jsdom environment for `localStorage`.
+1. **Google sign-in** is coded but disabled — Supabase reports `google: false`
+   until OAuth credentials are configured. Email and password work.
+2. **No migration of old `pq_*` data** into accounts. Deliberate: it is only the
+   author's own test progress, and an importer was not worth writing unasked.
 3. PWA manifest — med students study on iPads; this is how they install it.
 4. Lazy-load decks. `src/data/index.js` imports all nine eagerly; making it
    async is the change, and App.jsx consumes `QUESTIONS` synchronously today.
