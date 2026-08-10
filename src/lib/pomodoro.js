@@ -18,10 +18,13 @@ function playTone() {
   } catch {}
 }
 
+// `color` is for panels and the dark nav. `onField` is for the blue field,
+// where Focus's #3562F5 is literally the background colour — the ring, the
+// label and the play button all vanished into it.
 export const POMODORO_MODES = {
-  work:       { label: "Focus",       duration: 25 * 60, color: "#3562F5", glow: "rgba(53,98,245,0.28)"  },
-  shortBreak: { label: "Short Break", duration:  5 * 60, color: "#3ecf8e", glow: "rgba(62,207,142,0.3)"  },
-  longBreak:  { label: "Long Break",  duration: 15 * 60, color: "#f6c54d", glow: "rgba(246,197,77,0.3)"  },
+  work:       { label: "Focus",       duration: 25 * 60, color: "#3562F5", glow: "rgba(53,98,245,0.28)", onField: "#ffffff",           onFieldGlow: "rgba(255,255,255,0.35)" },
+  shortBreak: { label: "Short Break", duration:  5 * 60, color: "#3ecf8e", glow: "rgba(62,207,142,0.3)", onField: "var(--c-of-pos)",   onFieldGlow: "rgba(127,240,180,0.45)" },
+  longBreak:  { label: "Long Break",  duration: 15 * 60, color: "#f6c54d", glow: "rgba(246,197,77,0.3)", onField: "var(--c-of-warn)",  onFieldGlow: "rgba(255,214,126,0.45)" },
 };
 
 

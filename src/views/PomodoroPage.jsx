@@ -1,4 +1,4 @@
-import { C, pageWrap, h1, pageSub } from "../ui/theme";
+import { C, pageWrap, h1, pageSub, OF } from "../ui/theme";
 import { POMODORO_MODES } from "../lib/pomodoro";
 
 const R  = 108;
@@ -7,7 +7,7 @@ const SIZE = (R + SW) * 2;
 const CIRC = 2 * Math.PI * R;
 
 export default function PomodoroPage({ mode, timeLeft, running, count, toggle, reset, skip, switchMode }) {
-  const { color, glow, label, duration } = POMODORO_MODES[mode];
+  const { label, duration, onField, onFieldGlow } = POMODORO_MODES[mode];
   const progress   = timeLeft / duration;
   const dashOffset = CIRC * (1 - progress);
 
@@ -63,17 +63,17 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
 
             {/* Track */}
             <circle cx={R + SW} cy={R + SW} r={R}
-              fill="none" stroke="var(--c-border)" strokeWidth={SW + 1} />
+              fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth={SW + 1} />
 
             {/* Glow layers — blurry copies of the full ring, drawn behind the arc */}
             {running && <>
               <circle cx={R + SW} cy={R + SW} r={R}
-                fill="none" stroke={color} strokeWidth={SW + 2}
+                fill="none" stroke={onField} strokeWidth={SW + 2}
                 opacity={0.45} filter="url(#ring-glow)"
                 style={{ animation: "pulse-glow-pomo 3s ease-in-out infinite" }}
               />
               <circle cx={R + SW} cy={R + SW} r={R}
-                fill="none" stroke={color} strokeWidth={SW}
+                fill="none" stroke={onField} strokeWidth={SW}
                 opacity={0.2} filter="url(#ring-glow-soft)"
                 style={{ animation: "pulse-glow-pomo 3s ease-in-out infinite" }}
               />
@@ -81,7 +81,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
 
             {/* Progress arc */}
             <circle cx={R + SW} cy={R + SW} r={R}
-              fill="none" stroke={color} strokeWidth={SW}
+              fill="none" stroke={onField} strokeWidth={SW}
               strokeDasharray={CIRC} strokeDashoffset={dashOffset}
               strokeLinecap="round"
               transform={`rotate(-90 ${R + SW} ${R + SW})`}
@@ -98,15 +98,15 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
           }}>
             <div style={{
               fontSize: 56, fontWeight: 200, letterSpacing: -2,
-              color: C.text, lineHeight: 1,
+              color: OF.text, lineHeight: 1,
               fontVariantNumeric: "tabular-nums",
               transition: "color 0.3s",
             }}>{mins}:{secs}</div>
             <div style={{
               fontSize: 12, fontWeight: 600, letterSpacing: 1.5,
-              color, textTransform: "uppercase", opacity: 0.9,
+              color: onField, textTransform: "uppercase", opacity: 0.95,
             }}>{label}</div>
-            <div style={{ fontSize: 12, color: C.mutedDim, letterSpacing: 0.5, marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: OF.soft, letterSpacing: 0.5, marginTop: 2 }}>
               {status}
             </div>
           </div>
@@ -120,8 +120,8 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
             width: i < count % 4 ? 14 : 10,
             height: i < count % 4 ? 14 : 10,
             borderRadius: 99,
-            background: i < count % 4 ? color : "var(--c-border)",
-            boxShadow: i < count % 4 ? `0 0 8px ${glow}` : "none",
+            background: i < count % 4 ? onField : "rgba(255,255,255,0.28)",
+            boxShadow: i < count % 4 ? `0 0 10px ${onFieldGlow}` : "none",
             transition: "all 0.35s cubic-bezier(0.34,1.56,0.64,1)",
           }} />
         ))}
@@ -132,7 +132,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
         <button type="button" onClick={reset} className="btn-press" style={{
           width: 48, height: 48, borderRadius: "var(--r-pill)",
           background: "var(--c-card-bg)", border: "1px solid var(--c-border)",
-          cursor: "pointer", fontSize: 18, color: C.muted,
+          cursor: "pointer", fontSize: 18, color: C.sub,
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "var(--c-card-shadow)",
           transition: "border-color 0.2s, color 0.2s",
@@ -141,10 +141,10 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
         <button type="button" onClick={toggle} className="btn-press" style={{
           width: 72, height: 72, borderRadius: "var(--r-pill)", border: "none",
           cursor: "pointer", fontSize: running ? 22 : 20,
-          background: color,
-          color: "#fff",
+          background: "#fff",
+          color: "var(--blue, #3562f5)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: `0 12px 30px ${glow}`,
+          boxShadow: "0 12px 30px rgba(15,27,61,0.28)",
           transition: "background 0.25s, box-shadow 0.25s, transform 0.1s",
         }} title={running ? "Pause" : "Start"}>
           {running ? "⏸" : "▷"}
@@ -153,7 +153,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
         <button type="button" onClick={skip} className="btn-press" style={{
           width: 48, height: 48, borderRadius: "var(--r-pill)",
           background: "var(--c-card-bg)", border: "1px solid var(--c-border)",
-          cursor: "pointer", fontSize: 16, color: C.muted,
+          cursor: "pointer", fontSize: 16, color: C.sub,
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "var(--c-card-shadow)",
           transition: "border-color 0.2s, color 0.2s",
@@ -162,7 +162,7 @@ export default function PomodoroPage({ mode, timeLeft, running, count, toggle, r
 
       {/* Tips */}
       <div className="anim-fade-up delay-300" style={{
-        textAlign: "center", fontSize: 14, color: C.mutedDim, lineHeight: 1.7,
+        textAlign: "center", fontSize: 14, color: OF.soft, lineHeight: 1.7,
       }}>
         {mode === "work"
           ? "Stay focused. Close other tabs, silence your phone."
