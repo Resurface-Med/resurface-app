@@ -282,15 +282,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         })}
       </div>
 
-      {/* Keyboard hint */}
-      {!answered && (
-        <div style={{ marginTop: 10, fontSize: 11, color: C.mutedDim, textAlign: "center", letterSpacing: 0.2 }}>
-          {pending !== null
-            ? "Enter to submit · → to skip"
-            : "↑↓ to select · 1–5 · Enter to submit · → skip · ← back"}
-        </div>
-      )}
-
       {/* Submit button */}
       {!answered && pending !== null && (
         <button className="anim-fade-up hover-lift btn-press" style={{ ...primaryBtn, width: "100%", marginTop: 12 }} onClick={() => onAnswer(pending)}>
