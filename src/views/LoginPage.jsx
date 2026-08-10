@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { C, cardSolid, primaryBtn, OF } from "../ui/theme";
+import { C, OF } from "../ui/theme";
 import { useAuth } from "../lib/auth";
+
+// Two panels: the blue field carries the brand, the white sheet carries the
+// form. Same split the landing page uses, so arriving here from the marketing
+// site doesn't feel like a different product. Below 900px the brand panel is
+// dropped rather than stacked — on a phone, nobody needs the pitch twice.
 
 const field = {
   width: "100%",
-  padding: "12px 16px",
+  padding: "12px 15px",
   fontSize: 15,
   fontFamily: "inherit",
   color: "var(--c-text)",
@@ -13,6 +18,12 @@ const field = {
   borderRadius: "var(--r-ctrl)",
   outline: "none",
 };
+
+const POINTS = [
+  "Questions that resurface right before you forget them",
+  "Nine subjects, following the topics on your course",
+  "Turn your own lecture slides into practice questions",
+];
 
 export default function LoginPage() {
   const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
@@ -23,6 +34,10 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  function go(next) {
+    setMode(next); setError(""); setNotice("");
+  }
 
   async function submit(e) {
     e.preventDefault();
@@ -48,47 +63,84 @@ export default function LoginPage() {
     }
   }
 
-  const title = mode === "signup" ? "Create your account" : mode === "reset" ? "Reset your password" : "Welcome back";
-  const cta   = mode === "signup" ? "Create account" : mode === "reset" ? "Send reset link" : "Sign in";
+  const heading = mode === "signup" ? "Create your account"
+    : mode === "reset" ? "Reset your password"
+    : "Welcome back";
+
+  const cta = mode === "signup" ? "Create account"
+    : mode === "reset" ? "Send reset link"
+    : "Sign in";
 
   return (
-    <div style={{
-      minHeight: "var(--app-vh)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 24,
-    }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
+    <div className="login-split">
+      {/* ── Brand panel ─────────────────────────────────────────────── */}
+      <aside className="login-brand">
+        <span className="login-blob b1" aria-hidden="true" />
+        <span className="login-blob b2" aria-hidden="true" />
+
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 420 }}>
+          <img
+            src="/logo-lockup-white.png"
+            alt="Resurface"
+            width="720" height="190"
+            style={{ width: 210, height: "auto", display: "block" }}
+          />
+
+          <h2 style={{
+            marginTop: 34, fontSize: 34, fontWeight: 600, lineHeight: 1.12,
+            letterSpacing: -1.3, color: OF.text,
+          }}>
+            Don't let the lecture sink.
+          </h2>
+
+          <ul style={{ listStyle: "none", margin: "26px 0 0", padding: 0, display: "grid", gap: 13 }}>
+            {POINTS.map(p => (
+              <li key={p} style={{ display: "flex", gap: 11, alignItems: "flex-start", fontSize: 15, color: OF.soft, lineHeight: 1.5 }}>
+                <svg viewBox="0 0 20 20" width="19" height="19" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true">
+                  <circle cx="10" cy="10" r="9" fill="rgba(255,255,255,0.22)" />
+                  <path d="M6 10.2l2.6 2.6L14 7.4" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         <img
-          src="/logo-lockup-white.png"
-          alt="Resurface"
-          width="720" height="190"
-          style={{ width: 190, height: "auto", margin: "0 auto 28px", display: "block" }}
+          src="/books.webp" alt="" aria-hidden="true"
+          className="login-books"
+          width="580" height="839"
         />
+      </aside>
 
-        <div className="anim-fade-up" style={{ ...cardSolid, padding: "30px 28px" }}>
-          <h1 style={{ fontSize: 23, fontWeight: 600, letterSpacing: -0.7, color: C.text }}>{title}</h1>
-          <p style={{ fontSize: 14.5, color: C.sub, marginTop: 6 }}>
+      {/* ── Form panel ──────────────────────────────────────────────── */}
+      <main className="login-form-panel">
+        <div style={{ width: "100%", maxWidth: 380 }}>
+          <img
+            src="/logo-lockup.png"
+            alt="Resurface"
+            width="560" height="131"
+            className="login-form-logo"
+          />
+
+          <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: -0.9, color: C.text }}>{heading}</h1>
+          <p style={{ fontSize: 14.5, color: C.sub, marginTop: 7, lineHeight: 1.5 }}>
             {mode === "reset"
               ? "We'll email you a link to set a new one."
               : "Your progress, flashcards and generated questions follow you everywhere."}
           </p>
 
-          <form onSubmit={submit} style={{ marginTop: 22, display: "flex", flexDirection: "column", gap: 12 }}>
+          <form onSubmit={submit} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
             <div>
-              <label htmlFor="email" style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.sub, marginBottom: 7 }}>
-                Email
-              </label>
-              <input id="email" type="email" required autoComplete="email"
+              <label htmlFor="email" style={labelStyle}>Email</label>
+              <input id="email" type="email" required autoComplete="email" autoFocus
                 value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="you@university.ac.uk" style={field} />
             </div>
 
             {mode !== "reset" && (
               <div>
-                <label htmlFor="password" style={{ display: "block", fontSize: 13, fontWeight: 600, color: C.sub, marginBottom: 7 }}>
-                  Password
-                </label>
+                <label htmlFor="password" style={labelStyle}>Password</label>
                 <input id="password" type="password" required minLength={6}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   value={password} onChange={e => setPassword(e.target.value)}
@@ -110,27 +162,32 @@ export default function LoginPage() {
               }}>{notice}</div>
             )}
 
-            <button type="submit" disabled={busy} className="btn-press"
-              style={{ ...primaryBtn, width: "100%", marginTop: 4, opacity: busy ? 0.6 : 1 }}>
+            <button type="submit" disabled={busy} className="btn-press" style={{
+              width: "100%", marginTop: 3, padding: "13px 26px",
+              background: busy ? "var(--c-accent-lt)" : "var(--c-accent)",
+              color: "#fff", border: "none", borderRadius: "var(--r-pill)",
+              fontWeight: 600, fontSize: 15, fontFamily: "inherit",
+              cursor: busy ? "default" : "pointer",
+              boxShadow: "0 12px 30px rgba(20, 44, 130, 0.22)",
+            }}>
               {busy ? "Working…" : cta}
             </button>
           </form>
 
           {mode !== "reset" && (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0 15px" }}>
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
                 <span style={{ fontSize: 12, color: C.muted }}>or</span>
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
               </div>
 
-              <button type="button" onClick={signInWithGoogle} className="btn-press"
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                  padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
-                  color: C.text, background: "var(--c-card-solid)",
-                  border: "1.5px solid var(--c-border)", borderRadius: "var(--r-pill)", cursor: "pointer",
-                }}>
+              <button type="button" onClick={signInWithGoogle} className="btn-press" style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
+                color: C.text, background: "var(--c-card-solid)",
+                border: "1.5px solid var(--c-border)", borderRadius: "var(--r-pill)", cursor: "pointer",
+              }}>
                 <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
                   <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z"/>
                   <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z"/>
@@ -142,33 +199,31 @@ export default function LoginPage() {
             </>
           )}
 
-          <div style={{ marginTop: 20, fontSize: 14, color: C.sub, textAlign: "center" }}>
-            {mode === "signin" && (
+          <div style={{ marginTop: 22, fontSize: 14, color: C.sub, textAlign: "center" }}>
+            {mode === "signin" ? (
               <>
-                <button type="button" onClick={() => { setMode("signup"); setError(""); setNotice(""); }} style={linkBtn}>
-                  Create an account
-                </button>
-                {" · "}
-                <button type="button" onClick={() => { setMode("reset"); setError(""); setNotice(""); }} style={linkBtn}>
-                  Forgot password?
-                </button>
+                <button type="button" onClick={() => go("signup")} style={linkBtn}>Create an account</button>
+                <span style={{ color: C.mutedDim, margin: "0 8px" }}>·</span>
+                <button type="button" onClick={() => go("reset")} style={linkBtn}>Forgot password?</button>
               </>
-            )}
-            {mode !== "signin" && (
-              <button type="button" onClick={() => { setMode("signin"); setError(""); setNotice(""); }} style={linkBtn}>
-                ← Back to sign in
-              </button>
+            ) : (
+              <button type="button" onClick={() => go("signin")} style={linkBtn}>← Back to sign in</button>
             )}
           </div>
-        </div>
 
-        <p style={{ textAlign: "center", fontSize: 13, color: OF.soft, marginTop: 18 }}>
-          Free while it's in testing.
-        </p>
-      </div>
+          <p style={{ textAlign: "center", fontSize: 12.5, color: C.muted, marginTop: 26 }}>
+            Free while it's in testing.
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
+
+const labelStyle = {
+  display: "block", fontSize: 13, fontWeight: 600,
+  color: "var(--c-sub)", marginBottom: 7,
+};
 
 const linkBtn = {
   background: "none", border: "none", padding: 0, cursor: "pointer",

@@ -473,3 +473,71 @@ select {
     animation: none !important;
   }
 }
+
+/* ─── Login ─────────────────────────────────────────────────────── */
+/* The brand panel is the blue field and the form panel is the white sheet, so
+   arriving from the landing page doesn't feel like a different product. */
+
+.login-split {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: var(--app-vh);
+}
+
+.login-brand {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(40px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-blob {
+  position: absolute;
+  display: block;
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 58% 42% 47% 53% / 45% 51% 49% 55%;
+}
+.login-blob.b1 { width: 560px; height: 500px; top: -80px; right: -160px; }
+.login-blob.b2 {
+  width: 420px; height: 400px; bottom: -120px; left: -100px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 44% 56% 62% 38% / 55% 42% 58% 45%;
+}
+
+/* Decorative, and it must never push the copy around. */
+.login-books {
+  position: absolute;
+  right: -60px;
+  bottom: -70px;
+  width: 300px;
+  height: auto;
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.login-form-panel {
+  background: var(--c-card-solid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(32px, 5vw, 56px) clamp(24px, 4vw, 48px);
+}
+
+/* Shown only when the brand panel is gone, so the page still identifies itself. */
+.login-form-logo {
+  display: none;
+  width: 168px;
+  height: auto;
+  margin-bottom: 26px;
+}
+
+@media (max-width: 900px) {
+  .login-split { grid-template-columns: 1fr; }
+  .login-brand { display: none; }
+  .login-form-logo { display: block; }
+}
