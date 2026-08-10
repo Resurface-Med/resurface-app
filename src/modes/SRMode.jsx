@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { isDue, getNextIntervals } from "../lib/sm2";
@@ -102,8 +102,8 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
             </div>
           )}
           <div className="anim-fade-up delay-700" style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 28 }}>
-            {moreLeft && <button className="hover-lift btn-press" style={fieldBtn} onClick={() => setSessionQueue(null)}>Keep Going</button>}
-            {!moreLeft && <button className="hover-lift btn-press" style={fieldBtn} onClick={() => setSessionQueue(null)}>Done</button>}
+            {moreLeft && <button className="hover-lift btn-press" style={primaryBtn} onClick={() => setSessionQueue(null)}>Keep Going</button>}
+            {!moreLeft && <button className="hover-lift btn-press" style={primaryBtn} onClick={() => setSessionQueue(null)}>Done</button>}
           </div>
         </div>
       </div>
@@ -139,7 +139,7 @@ export default function SRMode({ pStats, srCards, bookmarks, onReview, onToggleB
               })}
             </div>
           </div>
-          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...fieldBtn, width: "100%", opacity: filteredDue.length === 0 ? 0.5 : 1 }} onClick={startSession} disabled={filteredDue.length === 0}>
+          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...primaryBtn, width: "100%", opacity: filteredDue.length === 0 ? 0.5 : 1 }} onClick={startSession} disabled={filteredDue.length === 0}>
             Start Session →
           </button>
         </div>

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { C, pageWrap, card, h1, primaryBtn, fieldBtn, selectBtn, label as labelStyle, pageSub } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, selectBtn, label as labelStyle, pageSub } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import ProgressBar from "../ui/ProgressBar";
@@ -75,7 +75,7 @@ export default function WrongAnswers({ pStats, bookmarks, onAnswer, onToggleBook
           <div className="anim-pop delay-200" style={{ fontSize: 56, color: C.success }}>✓</div>
           <div className="anim-fade-up delay-300" style={{ fontSize: 18, color: C.text, marginTop: 12, fontWeight: 600, letterSpacing: -0.3 }}>All cleared!</div>
           <div className="anim-fade-up delay-400" style={{ fontSize: 14, color: C.muted, marginTop: 6 }}>Every question is now above 60% accuracy.</div>
-          <button className="anim-fade-up delay-500 hover-lift btn-press" style={{ ...fieldBtn, marginTop: 24 }} onClick={() => setAllCleared(false)}>
+          <button className="anim-fade-up delay-500 hover-lift btn-press" style={{ ...primaryBtn, marginTop: 24 }} onClick={() => setAllCleared(false)}>
             Back to Menu
           </button>
         </div>

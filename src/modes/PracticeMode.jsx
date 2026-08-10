@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { C, pageWrap, card, h1, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive, label as labelStyle, pageSub } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive, label as labelStyle, pageSub } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import ProgressBar from "../ui/ProgressBar";
@@ -286,7 +286,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               })}
             </div>
           </div>
-          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...fieldBtn, width: "100%", opacity: baseCount === 0 ? 0.5 : 1 }} onClick={start} disabled={baseCount === 0}>
+          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...primaryBtn, width: "100%", opacity: baseCount === 0 ? 0.5 : 1 }} onClick={start} disabled={baseCount === 0}>
             Start Practice →
           </button>
         </div>

@@ -195,7 +195,7 @@ export const selectBtn = {
   gap: 10,
   padding: "13px 18px",
   background: "var(--c-card-solid)",
-  border: "1px solid rgba(255,255,255,0.55)",
+  border: "1.5px solid var(--c-border)",
   borderRadius: "var(--r-card)",
   color: C.text,
   fontSize: 15,
@@ -204,21 +204,36 @@ export const selectBtn = {
   boxShadow: "0 8px 20px rgba(15, 27, 61, 0.12)",
 };
 
+/**
+ * Controls come in two surface flavours. The panel versions are the default
+ * because most of them live inside a card; the field versions are for the few
+ * that sit on the blue. Getting this backwards makes white-on-white controls
+ * that are invisible until you click them.
+ */
+
+/** Field label inside a card. */
 export const label = {
   display: "block",
   fontSize: 13,
   fontWeight: 600,
-  color: "var(--c-on-field-soft)",
+  color: C.sub,
   marginBottom: 10,
   letterSpacing: -0.15,
 };
 
+/** Field label sitting on the blue. */
+export const labelField = {
+  ...label,
+  color: OF.soft,
+};
+
+/** Chip inside a card: white pill on the panel, accent fill when chosen. */
 export const chipBtn = {
   padding: "10px 18px",
-  background: "rgba(255,255,255,0.14)",
-  border: "1.5px solid rgba(255,255,255,0.35)",
+  background: "var(--c-card-solid)",
+  border: "1.5px solid var(--c-border)",
   borderRadius: "var(--r-pill)",
-  color: "#fff",
+  color: C.sub,
   fontSize: 14,
   fontWeight: 500,
   cursor: "pointer",
@@ -229,6 +244,23 @@ export const chipBtn = {
 
 export const chipBtnActive = {
   ...chipBtn,
+  background: "var(--c-accent)",
+  border: "1.5px solid var(--c-accent)",
+  color: "#fff",
+  boxShadow: "0 8px 20px rgba(20, 44, 130, 0.22)",
+  fontWeight: 600,
+};
+
+/** Chip on the blue field: frosted, white fill when chosen. */
+export const chipField = {
+  ...chipBtn,
+  background: "rgba(255,255,255,0.14)",
+  border: "1.5px solid rgba(255,255,255,0.35)",
+  color: "#fff",
+};
+
+export const chipFieldActive = {
+  ...chipField,
   background: "#fff",
   border: "1.5px solid #fff",
   color: "var(--blue, #3562f5)",

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, pageWrap, card, h1, chipBtn, chipBtnActive, pageSub } from "../ui/theme";
+import { C, pageWrap, card, h1, chipField, chipFieldActive, pageSub } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import CatTag from "../ui/CatTag";
 import BmBtn from "../ui/BmBtn";
@@ -20,7 +20,7 @@ export default function BookmarksView({ bookmarks, pStats, onToggleBookmark }) {
       {bqs.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {["All", ...cats].map((c, i) => (
-            <button key={c} className={`anim-fade-up delay-${Math.min(100 + i * 50, 500)} hover-lift btn-press`} style={{ ...chipBtn, ...(c === filter ? chipBtnActive : {}) }} onClick={() => setFilter(c)}>{c}</button>
+            <button key={c} className={`anim-fade-up delay-${Math.min(100 + i * 50, 500)} hover-lift btn-press`} style={{ ...chipField, ...(c === filter ? chipFieldActive : {}) }} onClick={() => setFilter(c)}>{c}</button>
           ))}
         </div>
       )}

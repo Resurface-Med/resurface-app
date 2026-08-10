@@ -43,18 +43,19 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
         padding: "18px 16px 16px",
         borderBottom: "1px solid var(--c-nav-border)",
       }}>
-        {/* The lockup is blue-on-transparent, which disappears against the
-            blue nav. Rather than box it in a white bubble, flip it to solid
-            white — the nav is dark in both themes, so white always reads. */}
+        {/* White lockup with a transparent background, so it sits straight
+            on the nav with no bubble. The source art was white-on-black with
+            a heavy bloom; its luminance became the alpha channel. */}
         <img
-          src="/logo-lockup.png"
+          src="/logo-lockup-white.png"
           alt="Resurface"
+          width="720"
+          height="190"
           style={{
             width: "100%",
-            maxWidth: 164,
+            maxWidth: 172,
             height: "auto",
             display: "block",
-            filter: "brightness(0) invert(1)",
           }}
         />
       </div>

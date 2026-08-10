@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { C, pageWrap, card, h1, fieldBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
+import { C, pageWrap, card, h1, primaryBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { timedBestStore } from "../lib/storage";
 import QuestionCard from "../ui/QuestionCard";
@@ -126,7 +126,7 @@ export default function TimedMode({ pStats, onAnswer, launchFilter }) {
               ))}
             </div>
           </div>
-          <button className="anim-fade-up delay-500 hover-lift btn-press" style={{ ...fieldBtn, width: "100%", opacity: baseCount === 0 ? 0.5 : 1 }} onClick={start} disabled={baseCount === 0}>
+          <button className="anim-fade-up delay-500 hover-lift btn-press" style={{ ...primaryBtn, width: "100%", opacity: baseCount === 0 ? 0.5 : 1 }} onClick={start} disabled={baseCount === 0}>
             Start Challenge →
           </button>
         </div>
