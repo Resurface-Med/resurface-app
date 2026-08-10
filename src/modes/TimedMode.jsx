@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { C, pageWrap, card, h1, primaryBtn, chipBtn, chipBtnActive, label as labelStyle, pageSub, OF } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
-import { timedBestStore } from "../lib/storage";
+import { remote } from "../lib/remote";
+import { useAuth } from "../lib/auth";
 import QuestionCard from "../ui/QuestionCard";
 import GhostBtn from "../ui/GhostBtn";
 import FilterPanel, { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
@@ -9,7 +10,8 @@ import SessionSummary from "../ui/SessionSummary";
 
 const COUNT_OPTIONS = [10, 20, 50, "All"];
 
-export default function TimedMode({ pStats, onAnswer, launchFilter }) {
+export default function TimedMode({ pStats, onAnswer, launchFilter, timedBests = {} }) {
+  const { user } = useAuth();
   const [filter, setFilter] = useState(launchFilter
     ? { year: ["All"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
     : defaultFilter
@@ -77,11 +79,12 @@ export default function TimedMode({ pStats, onAnswer, launchFilter }) {
 
   if (fin) {
     const pct = Math.round(sC / sT * 100);
-    const bests = timedBestStore.load();
+    // Postgres keeps the best per scope; sending every result and letting the
+    // row hold the max would need a merge, so only send when it improves on
+    // what this session started with.
     const key = `${filter.deck}__${limit}s`;
-    if (!bests[key] || pct > bests[key].pct) {
-      timedBestStore.save({ ...bests, [key]: { pct, score: sC, total: sT } });
-    }
+    const bestPct = timedBests[key];
+    if (user && pct > (bestPct ?? -1)) remote.timedBest(user.id, key, pct);
     return (
       <SessionSummary
         title="Timed Challenge"

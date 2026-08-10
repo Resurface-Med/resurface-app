@@ -10,7 +10,7 @@ function fmtTime(s) {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro }) {
+export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro, email, onSignOut }) {
   const navRef  = useRef(null);
   const itemRefs = useRef([]);
   const [pill, setPill] = useState({ top: 12, height: 40 });
@@ -158,9 +158,19 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
         })}
       </nav>
 
-      <div style={{ padding: "14px 20px", borderTop: "1px solid var(--c-nav-border)" }}>
-        <div style={{ color: NAV_MUTDIM, fontSize: 12, letterSpacing: -0.1, fontWeight: 500 }}>
-          © Resurface 2026
+      <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c-nav-border)" }}>
+        {email && (
+          <div style={{
+            fontSize: 12, color: NAV_SUB, fontWeight: 500,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }} title={email}>{email}</div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
+          <span style={{ color: NAV_MUTDIM, fontSize: 11.5, fontWeight: 500 }}>© Resurface 2026</span>
+          <button onClick={onSignOut} className="btn-press" style={{
+            background: "none", border: "none", padding: 0, cursor: "pointer",
+            fontFamily: "inherit", fontSize: 12, fontWeight: 600, color: NAV_SUB,
+          }}>Sign out</button>
         </div>
       </div>
     </aside>

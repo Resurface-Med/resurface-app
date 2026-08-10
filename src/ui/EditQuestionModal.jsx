@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { C, primaryBtn } from "./theme";
-import { questionEditsStore } from "../lib/storage";
+import { remote } from "../lib/remote";
+import { useAuth } from "../lib/auth";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
@@ -18,6 +19,7 @@ const labelStyle = {
 };
 
 export default function EditQuestionModal({ q, onClose, onSave }) {
+  const { user } = useAuth();
   const [question, setQuestion]   = useState(q.q);
   const [opts, setOpts]           = useState([...q.opts]);
   const [ans, setAns]             = useState(q.ans);
@@ -37,7 +39,7 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
       exp: exp.trim(),
       optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
     };
-    questionEditsStore.set(q.id, updated);
+    if (user) remote.questionEdit(user.id, q.id, updated);
     onSave({ ...q, ...updated });
   }
 

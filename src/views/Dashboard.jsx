@@ -1,7 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { C, V, pageWrap, h1, cardSolid } from "../ui/theme";
 import { QUESTIONS } from "../data";
-import { goalStore } from "../lib/storage";
 import GhostBtn from "../ui/GhostBtn";
 
 const WEEKS = 26;
@@ -71,7 +70,7 @@ function useCountUp(target, duration = 420, delay = 0) {
   return val;
 }
 
-export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, onClearP, onClearSR }) {
+export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, dailyGoal = 20, onGoalChange, onClearP, onClearSR }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
@@ -80,7 +79,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const animSeen = useCountUp(Object.keys(pStats).length, 420, 160);
 
   const [weekOffset, setWeekOffset] = useState(0);
-  const [goalTarget, setGoalTarget] = useState(() => goalStore.get());
+  const goalTarget = dailyGoal;
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
   const [tooltip, setTooltip] = useState(null); // { x, y, date, count }
@@ -204,7 +203,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                     <form onSubmit={e => {
                       e.preventDefault();
                       const n = parseInt(goalDraft);
-                      if (n > 0) { goalStore.set(n); setGoalTarget(n); }
+                      if (n > 0) onGoalChange?.(n);
                       setEditingGoal(false);
                     }}>
                       <input autoFocus type="number" min="1" max="500"

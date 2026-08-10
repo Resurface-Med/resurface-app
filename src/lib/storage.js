@@ -1,114 +1,34 @@
-const KEYS = {
-  practice: "pq_practice",
-  sr: "pq_sr",
-  bookmarks: "pq_bookmarks",
-  streak: "pq_streak",
-  timedBest: "pq_timed_best",
-  activity: "pq_activity",
-  generated: "pq_generated",
-  passcode: "pq_passcode",
-  questionEdits: "pq_question_edits",
-};
+// What's left of local storage.
+//
+// Study data lives in Postgres now (see lib/remote.js). Two things stay local:
+// the theme, which has to be known before auth resolves so the page doesn't
+// paint the wrong colour for a frame, and the failed-write queue in remote.js.
+//
+// Keys keep their historic pq_ prefix — it's invisible to users, and renaming
+// it would strand the theme of anyone who has already set one.
 
-function load(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
-  catch { return fallback; }
-}
-function save(key, val) {
-  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
-}
-
-export const practiceStore = {
-  load: () => load(KEYS.practice, {}),
-  save: (v) => save(KEYS.practice, v),
-  clear: () => save(KEYS.practice, {}),
-};
-
-export const srStore = {
-  load: () => load(KEYS.sr, {}),
-  save: (v) => save(KEYS.sr, v),
-  clear: () => save(KEYS.sr, {}),
-};
-
-export const bookmarkStore = {
-  load: () => load(KEYS.bookmarks, []),
-  save: (v) => save(KEYS.bookmarks, v),
-};
-
-export const timedBestStore = {
-  load: () => load(KEYS.timedBest, {}),
-  save: (v) => save(KEYS.timedBest, v),
-};
-
-export const generatedStore = {
-  load: () => load(KEYS.generated, []),
-  save: (v) => save(KEYS.generated, v),
-  add: (questions) => {
-    const existing = load(KEYS.generated, []);
-    const maxId = existing.reduce((m, q) => Math.max(m, q.id), 9999);
-    const withIds = questions.map((q, i) => ({ ...q, id: maxId + 1 + i }));
-    save(KEYS.generated, [...existing, ...withIds]);
-    return existing.length + withIds.length;
-  },
-  clear: () => save(KEYS.generated, []),
-};
-
-export const goalStore = {
-  get: () => { try { return parseInt(localStorage.getItem("pq_daily_goal") || "20"); } catch { return 20; } },
-  set: (n) => { try { localStorage.setItem("pq_daily_goal", String(n)); } catch {} },
-};
-
-export const questionEditsStore = {
-  load: () => load(KEYS.questionEdits, {}),
-  set: (id, q) => {
-    const all = load(KEYS.questionEdits, {});
-    all[id] = q;
-    save(KEYS.questionEdits, all);
-  },
-  clear: (id) => {
-    const all = load(KEYS.questionEdits, {});
-    delete all[id];
-    save(KEYS.questionEdits, all);
-  },
-};
-
-// Shared access code for /api/generate. Not a security boundary — it just
-// stops a forwarded link from running up the API bill.
-export const passcodeStore = {
-  get: () => { try { return localStorage.getItem(KEYS.passcode) || ""; } catch { return ""; } },
-  set: (k) => { try { localStorage.setItem(KEYS.passcode, k); } catch {} },
-  clear: () => { try { localStorage.removeItem(KEYS.passcode); } catch {} },
-};
+const THEME_KEY = "pq_theme";
 
 export const themeStore = {
-  get: () => { try { return localStorage.getItem('pq_theme') || 'light'; } catch { return 'light'; } },
-  set: (t) => { try { localStorage.setItem('pq_theme', t); } catch {} },
+  get: () => { try { return localStorage.getItem(THEME_KEY) || "light"; } catch { return "light"; } },
+  set: (t) => { try { localStorage.setItem(THEME_KEY, t); } catch {} },
 };
 
-export const activityStore = {
-  load: () => load(KEYS.activity, {}),
-  record: (n = 1) => {
-    const d = new Date();
-    const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const data = load(KEYS.activity, {});
-    data[today] = (data[today] || 0) + n;
-    save(KEYS.activity, data);
-    return data;
-  },
-};
-
-export function updateStreak() {
-  const today = new Date().toDateString();
-  const s = load(KEYS.streak, { streak: 0, lastDate: null, longest: 0 });
-  if (s.lastDate === today) return s;
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  const streak = s.lastDate === yesterday ? s.streak + 1 : 1;
-  const longest = Math.max(streak, s.longest || 0);
-  const next = { streak, lastDate: today, longest };
-  save(KEYS.streak, next);
-  return next;
+/** Local calendar day, YYYY-MM-DD. Not UTC: the heatmap is drawn where you are. */
+export function todayKey(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function loadStreak() {
-  return load(KEYS.streak, { streak: 0, lastDate: null, longest: 0 });
+/**
+ * Advances a streak for a day of study. Pure, so the caller can tell whether
+ * anything changed: it returns the same object when today is already counted,
+ * which is what lets callers skip a pointless write.
+ */
+export function nextStreak(prev) {
+  const today = todayKey();
+  if (prev.lastDate === today) return prev;
+
+  const yesterday = todayKey(new Date(Date.now() - 86400000));
+  const streak = prev.lastDate === yesterday ? (prev.streak || 0) + 1 : 1;
+  return { streak, lastDate: today, longest: Math.max(streak, prev.longest || 0) };
 }

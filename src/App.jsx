@@ -25,7 +25,10 @@ class ErrorBoundary extends Component {
 import { V, C, card, primaryBtn } from "./ui/theme";
 import { QUESTIONS } from "./data";
 import { sm2Review, isDue } from "./lib/sm2";
-import { practiceStore, srStore, bookmarkStore, activityStore, updateStreak, loadStreak, themeStore } from "./lib/storage";
+import { themeStore, todayKey, nextStreak } from "./lib/storage";
+import { useAuth } from "./lib/auth";
+import { loadAll, remote, flushQueue } from "./lib/remote";
+import LoginPage from "./views/LoginPage";
 import { usePomodoro } from "./lib/pomodoro";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
@@ -43,13 +46,25 @@ import PomodoroToast from "./views/PomodoroToast";
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
 export default function App() {
+  const { user, loading: authLoading, configured, signOut } = useAuth();
+
   const [view, setView] = useState(V.DASH);
   const [pendingView, setPendingView] = useState(null);
   const [practiceSessionActive, setPracticeSessionActive] = useState(false);
-  const [pStats, setPStats] = useState(() => practiceStore.load());
-  const [srCards, setSrCards] = useState(() => srStore.load());
-  const [bookmarks, setBookmarks] = useState(() => bookmarkStore.load());
-  const [streak, setStreak] = useState(() => loadStreak());
+
+  // Server-first: these start empty and are filled from Postgres on sign-in.
+  const [pStats, setPStats] = useState({});
+  const [srCards, setSrCards] = useState({});
+  const [bookmarks, setBookmarks] = useState([]);
+  const [streak, setStreak] = useState({ streak: 0, longest: 0, lastDate: null });
+  const [activity, setActivity] = useState({});
+  const [dailyGoal, setDailyGoal] = useState(20);
+  const [timedBests, setTimedBests] = useState({});
+  const [generated, setGenerated] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  // Theme is the one thing still read locally, so the page doesn't paint the
+  // wrong colour for a frame while auth resolves.
   const [theme, setTheme] = useState(() => themeStore.get());
 
   useEffect(() => {
@@ -61,29 +76,82 @@ export default function App() {
     setTheme(t => t === 'dark' ? 'light' : 'dark');
   }
 
-  useEffect(() => { bookmarkStore.save(bookmarks); }, [bookmarks]);
+  // Pull the snapshot once per sign-in, and retry anything a dropped
+  // connection parked earlier.
+  useEffect(() => {
+    if (!user) { setDataLoading(false); return; }
+    let cancelled = false;
+    setDataLoading(true);
+    (async () => {
+      await flushQueue();
+      const d = await loadAll(user.id);
+      if (cancelled) return;
+      setPStats(d.pStats);
+      setSrCards(d.srCards);
+      setBookmarks(d.bookmarks);
+      setStreak(d.streak);
+      setActivity(d.activity);
+      setDailyGoal(d.dailyGoal);
+      setTimedBests(d.timedBests);
+      setGenerated(d.generated);
+      setDataLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
+  // A tab that was open while the network went out gets a chance to catch up.
+  useEffect(() => {
+    if (!user) return;
+    const onBack = () => { if (document.visibilityState === "visible") flushQueue(); };
+    document.addEventListener("visibilitychange", onBack);
+    window.addEventListener("online", onBack);
+    return () => {
+      document.removeEventListener("visibilitychange", onBack);
+      window.removeEventListener("online", onBack);
+    };
+  }, [user]);
+
+  /** Every answer counts once toward today's activity and the streak. */
+  function countStudied() {
+    const day = todayKey();
+    setActivity(prev => {
+      const next = { ...prev, [day]: (prev[day] || 0) + 1 };
+      remote.activity(user.id, day, next[day]);
+      return next;
+    });
+    setStreak(prev => {
+      const next = nextStreak(prev);
+      if (next !== prev) remote.streak(user.id, next);
+      return next;
+    });
+  }
 
   function recordAnswer(id, correct) {
     setPStats(prev => {
       const s = prev[id] || { correct: 0, total: 0 };
-      const next = { ...prev, [id]: { correct: s.correct + (correct ? 1 : 0), total: s.total + 1 } };
-      practiceStore.save(next); return next;
+      const row = { correct: s.correct + (correct ? 1 : 0), total: s.total + 1 };
+      remote.practice(user.id, id, row.correct, row.total);
+      return { ...prev, [id]: row };
     });
-    activityStore.record();
-    setStreak(updateStreak());
+    countStudied();
   }
 
   function recordSR(id, quality) {
     setSrCards(prev => {
-      const next = { ...prev, [id]: sm2Review(prev[id], quality) };
-      srStore.save(next); return next;
+      const card = sm2Review(prev[id], quality);
+      remote.sr(user.id, id, card);
+      return { ...prev, [id]: card };
     });
-    activityStore.record();
-    setStreak(updateStreak());
+    countStudied();
   }
 
   function toggleBookmark(id) {
-    setBookmarks(b => b.includes(id) ? b.filter(x => x !== id) : [...b, id]);
+    setBookmarks(b => {
+      const has = b.includes(id);
+      if (has) remote.removeBookmark(user.id, id);
+      else remote.addBookmark(user.id, id);
+      return has ? b.filter(x => x !== id) : [...b, id];
+    });
   }
 
   const pomodoro = usePomodoro();
@@ -101,7 +169,36 @@ export default function App() {
     setView(newView);
   }
 
-  const nav = { view, setView: handleNav, dueCount, bmCount: bookmarks.length, wrongCount, pomodoro };
+  const nav = { view, setView: handleNav, dueCount, bmCount: bookmarks.length, wrongCount, pomodoro,
+    email: user?.email, onSignOut: signOut };
+
+  // Auth gates the whole app. `configured` is false when the Supabase env vars
+  // are missing, in which case sign-in can't work at all and saying so beats
+  // an empty login form that silently fails.
+  if (!configured) {
+    return (
+      <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center", padding: 32 }}>
+        <div style={{ ...card, maxWidth: 460, textAlign: "center" }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: C.text, marginBottom: 8 }}>Sign-in isn't configured</div>
+          <div style={{ fontSize: 14.5, color: C.sub, lineHeight: 1.6 }}>
+            Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>, then reload.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (authLoading || (user && dataLoading)) {
+    return (
+      <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center" }}>
+        <div style={{ color: "var(--c-on-field)", fontSize: 15, fontWeight: 500, opacity: 0.9 }}>
+          Loading your progress…
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return <LoginPage />;
 
   return (
     <ErrorBoundary>
@@ -164,17 +261,19 @@ export default function App() {
       }}>
         <div style={{ flex: 1, overflowY: "auto" }}>
           {view === V.DASH && <Dashboard pStats={pStats} srCards={srCards} streak={streak} dueCount={dueCount} bmCount={bookmarks.length} setView={setView}
-            activity={activityStore.load()}
-            onClearP={() => { practiceStore.clear(); setPStats({}); }}
-            onClearSR={() => { srStore.clear(); setSrCards({}); }} />}
+            activity={activity}
+            dailyGoal={dailyGoal}
+            onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
+            onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
+            onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
           {view === V.SUBJECTS && <SubjectsPage pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
           {view === V.PRACTICE && <PracticeMode pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
           {view === V.SR && <SRMode pStats={pStats} srCards={srCards} bookmarks={bookmarks} onReview={recordSR} onToggleBookmark={toggleBookmark} launchFilter={launchFilter} />}
-          {view === V.TIMED && <TimedMode pStats={pStats} onAnswer={recordAnswer} launchFilter={launchFilter} />}
+          {view === V.TIMED && <TimedMode pStats={pStats} onAnswer={recordAnswer} launchFilter={launchFilter} timedBests={timedBests} />}
           {view === V.WRONG && <WrongAnswers pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} />}
           {view === V.STATS && <StatsView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
           {view === V.BOOKMARKS && <BookmarksView bookmarks={bookmarks} pStats={pStats} onToggleBookmark={toggleBookmark} />}
-          {view === V.GENERATE && <GenerateMode />}
+          {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
           {view === V.POMODORO && <PomodoroPage {...pomodoro} />}
         </div>
       </div>

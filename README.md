@@ -1,7 +1,8 @@
 # resurface-app
 
-Spaced-repetition study app for Year 1 MBChB. React 18 + Vite, all state in the
-browser, with AI question generation behind a server-side proxy.
+Spaced-repetition study app for Year 1 MBChB. React 18 + Vite, with accounts
+and study data in Supabase, and AI question generation behind a server-side
+proxy.
 
 Related repos: `resurface-backend`, `resurface-landing`.
 
@@ -10,16 +11,18 @@ Related repos: `resurface-backend`, `resurface-landing`.
 ## Where this sits
 
 ```
-                       ┌─ practice / timed / spaced repetition
-   content/decks/*.json ┤
-   (497 questions)      └─ progress + SR schedule → localStorage
+   content/decks/*.json ── the question bank, bundled with the app
+                        │
+   sign in ─────────────┴─▶ Supabase ── progress, SR schedule, bookmarks,
+   (email or Google)         (RLS)      streaks, generated questions
 
    Generate mode → resurface-backend → Claude (key stays server-side)
-                                     └─ new questions → localStorage
 ```
 
-Everything except question generation works offline. There is no database and
-no accounts yet — a user's progress lives in the browser they studied in.
+The server is the source of truth. Postgres enforces per-user access through
+row level security rather than app code, so the browser holding an anon key
+grants nothing on its own. localStorage keeps only the theme and a queue of
+writes that failed, which is retried when the connection returns.
 
 ## Running locally
 
@@ -68,9 +71,11 @@ npm run lint         npm test             npm run test:watch
 
 ## Known gaps
 
-- **No export or import.** Everything is in localStorage, so clearing a browser
-  loses every streak and review schedule. Highest-priority gap.
-- **No accounts or sync**, so progress does not follow a user between devices.
+- **No offline support.** Without a service worker the app cannot load without
+  a network, and every write goes to the server. A dropped connection mid-session
+  is covered by the retry queue; a cold start is not.
+- **Google sign-in needs OAuth credentials** configured in Supabase before the
+  button works. Email and password work today.
 - `react-hooks` lint warnings (14) are unfixed — effect dependencies and
   set-state-in-effect, visible in `npm run lint`.
 - One 655KB bundle. Decks are eagerly imported; lazy-loading them per subject

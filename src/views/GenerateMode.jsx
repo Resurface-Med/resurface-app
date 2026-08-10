@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import JSZip from "jszip";
 import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn, chipBtn, chipBtnActive, pageSub } from "../ui/theme";
 import { DECK_MAP } from "../data";
-import { generatedStore, passcodeStore } from "../lib/storage";
+import { remote } from "../lib/remote";
+import { useAuth } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 
 // Generation lives in resurface-backend; this is the only place the app talks
 // to it. Falls back to the backend's local dev port.
@@ -89,11 +91,13 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
   if (!userContent.length) throw new Error("No content to generate from.");
 
+  const { data: { session } } = await supabase.auth.getSession();
+
   const res = await fetch(`${API_BASE}/api/generate`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-resurface-passcode": passcodeStore.get(),
+      authorization: `Bearer ${session?.access_token ?? ""}`,
     },
     body: JSON.stringify({ userContent, difficulty, count }),
   });
@@ -279,7 +283,8 @@ function GeneratingScreen({ count }) {
 
 // ── Component ───────────────────────────────────────────────────────────────
 
-export default function GenerateMode() {
+export default function GenerateMode({ savedGenerated = [], onGeneratedChange }) {
+  const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
   const [deck, setDeck] = useState(Object.keys(DECK_MAP)[0]);
@@ -295,20 +300,19 @@ export default function GenerateMode() {
   const [countRaw, setCountRaw] = useState("10"); // string so user can clear and retype
   const fileRef = useRef();
 
-  const [savedQs, setSavedQs] = useState(() => generatedStore.load());
+  const [savedQs, setSavedQs] = useState(savedGenerated);
   const [bankOpen, setBankOpen] = useState(false);
-  const [needsCode, setNeedsCode] = useState(false);
-  const [codeInput, setCodeInput] = useState(() => passcodeStore.get());
 
   function deleteQuestion(id) {
     const updated = savedQs.filter(q => q.id !== id);
-    generatedStore.save(updated);
     setSavedQs(updated);
+    onGeneratedChange?.(updated);
   }
 
   function clearAll() {
-    generatedStore.clear();
+    if (user) remote.clearGenerated(user.id);
     setSavedQs([]);
+    onGeneratedChange?.([]);
   }
 
   const decks = Object.keys(DECK_MAP);
@@ -370,8 +374,11 @@ export default function GenerateMode() {
         <div style={{ display: "flex", gap: 10, position: "sticky", bottom: 20 }}>
           <button className="hover-lift btn-press" style={{ ...primaryBtn, flex: 1 }}
             disabled={keptList.length === 0}
-            onClick={() => {
-              generatedStore.add(keptList);
+            onClick={async () => {
+              if (user) await remote.addGenerated(user.id, keptList);
+              const merged = [...savedQs, ...keptList];
+              setSavedQs(merged);
+              onGeneratedChange?.(merged);
               setPhase("done");
             }}>
             Add {keptList.length} Question{keptList.length !== 1 ? "s" : ""} to Bank →
@@ -558,38 +565,6 @@ export default function GenerateMode() {
         </div>
       )}
 
-      {needsCode && (
-        <div style={card}>
-          <div style={{ fontSize: 14, color: C.muted, marginBottom: 10 }}>
-            Enter the access code to use question generation.
-          </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <input
-              type="password"
-              value={codeInput}
-              onChange={e => setCodeInput(e.target.value)}
-              placeholder="Access code"
-              style={{
-                flex: 1, padding: "10px 14px", borderRadius: "var(--r-card)", fontSize: 14,
-                background: C.surface2, color: C.text, fontFamily: "inherit",
-                border: `1px solid ${C.border}`,
-              }}
-            />
-            <button
-              className="btn-press"
-              style={{ ...primaryBtn, width: "auto", paddingLeft: 20, paddingRight: 20 }}
-              onClick={() => {
-                passcodeStore.set(codeInput.trim());
-                setNeedsCode(false);
-                setError("");
-              }}
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
-
       <button
         className="hover-lift btn-press"
         style={{ ...fieldBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
@@ -603,7 +578,6 @@ export default function GenerateMode() {
             setKept(new Set(qs.map((_, i) => i)));
             setPhase("review");
           } catch (e) {
-            if (e.status === 401) setNeedsCode(true);
             setError(e.message || "Something went wrong.");
             setPhase("setup");
           }
