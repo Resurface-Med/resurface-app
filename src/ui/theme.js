@@ -63,7 +63,7 @@ export function shuffleOptions(q) {
 export const card = {
   background: "var(--c-card-bg)",
   borderRadius: "var(--r-panel)",
-  padding: 28,
+  padding: "clamp(20px, 2.6vw, 28px)",
   border: "1px solid var(--c-border)",
   boxShadow: "var(--c-card-shadow)",
 };
@@ -75,12 +75,16 @@ export const cardSolid = {
 };
 
 export const pageWrap = {
-  maxWidth: 760,
+  // The landing breathes at 1180 and scales its vertical rhythm with the
+  // viewport. 760 with fixed padding was the single biggest reason the app
+  // felt cramped next to it.
+  maxWidth: 1080,
   margin: "0 auto",
-  padding: "36px 28px 48px",
+  padding: "clamp(28px, 5vh, 52px) clamp(20px, 3vw, 40px) 64px",
   display: "flex",
   flexDirection: "column",
-  gap: 20,
+  gap: "clamp(18px, 2.6vh, 28px)",
+  width: "100%",
 };
 
 /**
@@ -99,12 +103,65 @@ export const OF = {
   neg:   "var(--c-of-neg)",
 };
 
+/**
+ * Type scale lifted from the landing page.
+ *
+ * Everything is weight 600 with tight negative tracking that grows with size —
+ * that pairing is most of what makes the landing read as designed rather than
+ * defaulted. Sizes are fluid for the same reason the landing's are: a heading
+ * that doesn't move with the viewport looks wrong at both ends.
+ */
 export const h1 = {
-  fontSize: 36,
+  fontSize: "clamp(30px, 3.6vw, 42px)",
   fontWeight: 600,
   color: OF.text,
-  letterSpacing: -1.2,
-  lineHeight: 1.15,
+  letterSpacing: "-1.1px",
+  lineHeight: 1.14,
+};
+
+/** Section title on a panel — the landing's .section-h. */
+export const sectionH = {
+  fontSize: "clamp(19px, 1.7vw, 23px)",
+  fontWeight: 600,
+  color: C.text,
+  letterSpacing: "-0.6px",
+  lineHeight: 1.2,
+};
+
+/** Small blue label above a section — the landing's .pill eyebrow. */
+export const eyebrow = {
+  display: "inline-block",
+  fontSize: 13,
+  fontWeight: 600,
+  color: C.accent,
+  background: "var(--c-wash)",
+  padding: "7px 16px",
+  borderRadius: "var(--r-pill)",
+  letterSpacing: "-0.1px",
+};
+
+/** The same pill sitting on the blue field. */
+export const eyebrowField = {
+  ...eyebrow,
+  color: "#fff",
+  background: "rgba(255,255,255,0.16)",
+};
+
+/** Body copy inside a panel. */
+export const body = {
+  fontSize: 15,
+  fontWeight: 400,
+  color: C.sub,
+  lineHeight: 1.55,
+  letterSpacing: "-0.1px",
+};
+
+/** Meta and captions. */
+export const meta = {
+  fontSize: 13.5,
+  fontWeight: 500,
+  color: C.muted,
+  letterSpacing: "-0.1px",
 };
 
 /** The line under a page title. Always on the field, so never ink. */
@@ -164,7 +221,7 @@ export const fieldBtn = {
   fontSize: 15,
   cursor: "pointer",
   fontFamily: "inherit",
-  boxShadow: "0 12px 30px rgba(20, 44, 130, 0.22)",
+  boxShadow: "var(--c-cta-shadow)",
   letterSpacing: -0.15,
   transition: "transform 0.16s ease, box-shadow 0.16s ease",
 };
@@ -183,7 +240,7 @@ export const primaryBtn = {
   fontSize: 15,
   cursor: "pointer",
   fontFamily: "inherit",
-  boxShadow: "0 12px 30px rgba(20, 44, 130, 0.22)",
+  boxShadow: "var(--c-cta-shadow)",
   letterSpacing: -0.15,
   transition: "background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease",
 };
@@ -201,7 +258,7 @@ export const selectBtn = {
   fontSize: 15,
   cursor: "pointer",
   fontFamily: "inherit",
-  boxShadow: "0 8px 20px rgba(15, 27, 61, 0.12)",
+  boxShadow: "var(--c-card-shadow)",
 };
 
 /**

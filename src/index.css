@@ -66,7 +66,10 @@
   /* Soft panel islands by default; true white for focus surfaces */
   --c-card-bg: #f3f6fe;
   --c-card-solid: #ffffff;
-  --c-card-shadow: 0 4px 16px rgba(20, 44, 130, 0.1), 0 22px 48px rgba(20, 44, 130, 0.18);
+  /* Matches the landing exactly. Cards rest on the page; they don't hover. */
+  --c-card-shadow: 0 10px 28px rgba(20, 44, 130, 0.06);
+  --c-card-shadow-lift: 0 16px 40px rgba(20, 44, 130, 0.1);
+  --c-cta-shadow: 0 12px 30px rgba(20, 44, 130, 0.22);
   --c-nav-bg: rgba(255, 255, 255, 0.12);
   --c-nav-border: rgba(255, 255, 255, 0.22);
   --c-nav-text: #ffffff;
@@ -124,7 +127,9 @@
   --c-orange-brd: rgba(249, 123, 61, 0.3);
   --c-card-bg: #1c2f63;
   --c-card-solid: #243975;
-  --c-card-shadow: 0 8px 28px rgba(0, 8, 30, 0.35), 0 2px 8px rgba(0, 8, 30, 0.2);
+  --c-card-shadow: 0 10px 28px rgba(0, 8, 30, 0.28);
+  --c-card-shadow-lift: 0 16px 40px rgba(0, 8, 30, 0.36);
+  --c-cta-shadow: 0 12px 30px rgba(0, 8, 30, 0.4);
   --c-nav-bg: rgba(255, 255, 255, 0.08);
   --c-nav-border: rgba(255, 255, 255, 0.14);
   --c-nav-text: #eef2ff;

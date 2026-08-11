@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { C, V, pageWrap, h1, cardSolid } from "../ui/theme";
+import { C, V, pageWrap, h1, cardSolid, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import GhostBtn from "../ui/GhostBtn";
 
@@ -38,14 +38,15 @@ function heatColor(count, max = 1) {
 }
 
 /** Frosted tile floating on the blue field — the landing's glass card. */
+// The landing's frosted cards have no rim at all — the blurred backdrop is
+// what you see, not a fill and a border. 0.10 is measured off the same comp.
 const glassTile = {
-  background: "rgba(255,255,255,0.14)",
-  border: "1.5px solid rgba(255,255,255,0.32)",
+  background: "rgba(255,255,255,0.10)",
+  border: "none",
   borderRadius: "var(--r-card)",
-  padding: "16px 18px",
-  boxShadow: "0 12px 28px rgba(15,27,61,0.15)",
-  backdropFilter: "blur(14px) saturate(160%)",
-  WebkitBackdropFilter: "blur(14px) saturate(160%)",
+  padding: "clamp(16px, 2vw, 22px)",
+  backdropFilter: "blur(16px) saturate(160%)",
+  WebkitBackdropFilter: "blur(16px) saturate(160%)",
 };
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -138,39 +139,48 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <div style={pageWrap}>
 
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-        <div style={{ animation: "dash-left 0.26s cubic-bezier(0.22,1,0.36,1) both" }}>
-          <h1 style={h1}>{greeting}.</h1>
-          <p style={{ color: "var(--c-on-field-soft)", marginTop: 5, fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>
-            {totalT === 0 ? "Start practising to track your progress." : `${totalT} questions answered · ${acc ?? 0}% accuracy`}
+      {/* Header — eyebrow, headline, supporting line: the landing's section
+          opening, applied to a page rather than a marketing band. */}
+      <header style={{
+        display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+        gap: 20, flexWrap: "wrap",
+        animation: "dash-left 0.26s cubic-bezier(0.22,1,0.36,1) both",
+      }}>
+        <div>
+          <span style={eyebrowField}>{todayLabel}</span>
+          <h1 style={{ ...h1, marginTop: 14 }}>{greeting}.</h1>
+          <p style={{ color: OF.soft, marginTop: 8, fontSize: 16, fontWeight: 400, letterSpacing: -0.2, lineHeight: 1.5 }}>
+            {totalT === 0
+              ? "Start practising and your progress shows up here."
+              : `${totalT} questions answered · ${acc ?? 0}% accuracy`}
           </p>
         </div>
+
         {streak.streak > 0 && (
           <div style={{
-            display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
-            background: "rgba(255,255,255,0.16)", borderRadius: "var(--r-pill)",
-            padding: "6px 14px 6px 10px",
-            border: "1px solid rgba(255,255,255,0.28)",
-            boxShadow: "0 10px 24px rgba(15,27,61,0.15)",
-            animation: "spring-pop 0.3s cubic-bezier(0.34,1.56,0.64,1) 0.15s both",
+            display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0,
+            animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.06s both",
           }}>
-            <span style={{ fontSize: 14 }}>🔥</span>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#fff", letterSpacing: -0.3 }}>{streak.streak}</span>
-            <span style={{ fontSize: 13, color: "var(--c-on-field-soft)" }}>day streak</span>
+            <span style={{ fontSize: "clamp(30px, 3vw, 38px)", fontWeight: 700, color: OF.text, letterSpacing: -1.6, lineHeight: 1 }}>
+              {streak.streak}
+            </span>
+            <span style={{ fontSize: 14, color: OF.soft, fontWeight: 500 }}>
+              day{streak.streak === 1 ? "" : "s"} in a row
+            </span>
           </div>
         )}
-      </div>
+      </header>
 
       {/* Glass tiles on the field */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-        gap: 10,
+        gridTemplateColumns: "repeat(auto-fit, minmax(168px, 1fr))",
+        gap: 12,
         animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.25s both",
       }}>
         {[
@@ -180,11 +190,11 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
           { label: "Today", value: String(todayCount), foot: null, goal: true },
         ].map(tile => (
           <div key={tile.label} style={glassTile}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--c-on-field-soft)", letterSpacing: 0.3, textTransform: "uppercase" }}>
-              {tile.label}
-            </div>
-            <div style={{ fontSize: 30, fontWeight: 700, color: "#fff", letterSpacing: -1.2, lineHeight: 1.15, marginTop: 6 }}>
+            <div style={{ fontSize: "clamp(28px, 3vw, 36px)", fontWeight: 700, color: OF.text, letterSpacing: -1.5, lineHeight: 1.05 }}>
               {tile.value}
+            </div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: OF.soft, marginTop: 8, letterSpacing: -0.1 }}>
+              {tile.label}
             </div>
 
             {tile.goal ? (
@@ -228,7 +238,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
                 </div>
               </>
             ) : (
-              <div style={{ fontSize: 12, color: "var(--c-on-field-soft)", marginTop: 7 }}>
+              <div style={{ fontSize: 13, color: OF.faint, marginTop: 4 }}>
                 {tile.foot}
               </div>
             )}
@@ -237,11 +247,13 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       </div>
 
       {/* Heatmap */}
-      <div style={{ ...cardSolid, padding: "20px 22px", animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>Activity</span>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 13, color: C.muted }}>{totalThisWeek} this week</span>
+      <div style={{ ...cardSolid, animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <h2 style={sectionH}>Your activity</h2>
+            <p style={{ ...meta, marginTop: 4 }}>{totalThisWeek} question{totalThisWeek === 1 ? "" : "s"} this week</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ display: "flex", gap: 4 }}>
               <button onClick={() => setWeekOffset(o => o - 4)} className="btn-press" style={{
                 background: C.surface2, border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)",
@@ -356,28 +368,29 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         </div>
       )}
 
-      {/* Stats link */}
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      {/* Where to go next — the landing's numbered steps, as buttons */}
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "baseline",
+        gap: 16, flexWrap: "wrap", marginTop: 8,
+      }}>
+        <h2 style={{ ...h1, fontSize: "clamp(22px, 2.2vw, 28px)", letterSpacing: -0.9 }}>
+          Where to next?
+        </h2>
         <button onClick={() => setView(V.STATS)} className="btn-press" style={{
           background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-          fontSize: 13, color: "var(--c-on-field-soft)", display: "flex", alignItems: "center", gap: 4,
-          padding: "2px 0",
-          transition: "color 0.15s",
-        }}
-          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-          onMouseLeave={e => e.currentTarget.style.color = "var(--c-on-field-soft)"}
-        >
-          View detailed stats →
+          fontSize: 14.5, fontWeight: 500, color: OF.soft,
+          display: "flex", alignItems: "center", gap: 5, padding: 0,
+        }}>
+          View detailed stats <span aria-hidden="true">→</span>
         </button>
       </div>
 
-      {/* Where to go next — the landing's numbered steps, as buttons */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
         {modes.map((m, i) => (
           <button key={m.k} onClick={() => setView(m.k)} className="hover-lift btn-press" style={{
             ...cardSolid,
             position: "relative",
-            padding: "20px 20px 18px",
+            padding: "clamp(20px, 2.4vw, 26px)",
             textAlign: "left",
             cursor: "pointer",
             fontFamily: "inherit",
@@ -385,12 +398,12 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
             animation: `rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) ${0.16 + i * 0.035}s both`,
           }}>
             <div style={{
-              fontSize: 40, fontWeight: 700, color: C.accent, opacity: 0.22,
-              letterSpacing: -2, lineHeight: 1, marginBottom: 10,
+              fontSize: "clamp(38px, 4vw, 52px)", fontWeight: 700, color: C.accent, opacity: 0.2,
+              letterSpacing: -2.2, lineHeight: 1, marginBottom: 14,
             }}>{m.n}</div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: C.text, letterSpacing: -0.4 }}>{m.label}</span>
+              <span style={{ ...sectionH, fontSize: 17 }}>{m.label}</span>
               {m.badge && (
                 <span style={{
                   fontSize: 11.5, fontWeight: 700, color: "#fff", background: C.success,
@@ -399,13 +412,13 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
               )}
             </div>
 
-            <p style={{ marginTop: 5, fontSize: 13.5, color: C.sub, lineHeight: 1.45 }}>{m.body}</p>
+            <p style={{ marginTop: 7, fontSize: 14.5, color: C.sub, lineHeight: 1.5, letterSpacing: -0.1 }}>{m.body}</p>
           </button>
         ))}
       </div>
 
       {/* Reset links */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", animation: "rise-blur 0.22s ease 1s both" }}>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 12, animation: "rise-blur 0.22s ease 0.4s both" }}>
         <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP(); }}>Reset Practice</GhostBtn>
         <GhostBtn onClick={() => { if (window.confirm("Reset flashcard schedules?")) onClearSR(); }}>Reset Flashcards</GhostBtn>
       </div>
