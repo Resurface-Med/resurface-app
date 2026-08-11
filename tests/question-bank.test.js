@@ -7,7 +7,7 @@ import { dirname, join } from "path";
 // same shape, so a malformed question is a live risk. One bad entry crashes a
 // study session mid-review.
 
-const decksDir = join(dirname(fileURLToPath(import.meta.url)), "..", "content", "decks");
+const decksDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "decks");
 const files = readdirSync(decksDir).filter(f => f.endsWith(".json") && f !== "index.json");
 const decks = files.map(f => ({ file: f, ...JSON.parse(readFileSync(join(decksDir, f), "utf8")) }));
 const all = decks.flatMap(d => d.questions.map(q => ({ ...q, _file: d.file })));

@@ -48,11 +48,13 @@ cp .env.example .env.local
 | `src/ui/` | Shared primitives and `theme.js`, the design tokens |
 | `src/lib/` | Everything with no React in it — `sm2`, `storage`, `pomodoro` |
 | `src/data/` | Deck loader; the only module that knows how questions are stored |
-| `content/decks/` | The question bank, one JSON file per subject |
+| `public/decks/` | The question bank, one JSON file per subject, fetched at runtime |
 | `tests/` | Vitest, no browser environment needed |
 
 Questions live outside `src/` on purpose. They are content, not code — edited
-far more often than the app, and reviewed on their own terms.
+far more often than the app, and reviewed on their own terms. Serving them from
+`public/` rather than importing them keeps 386KB of JSON out of the JS bundle
+and lets the browser cache them apart from the code.
 
 ## Scripts
 
@@ -78,8 +80,8 @@ npm run lint         npm test             npm run test:watch
   button works. Email and password work today.
 - `react-hooks` lint warnings (14) are unfixed — effect dependencies and
   set-state-in-effect, visible in `npm run lint`.
-- One 655KB bundle. Decks are eagerly imported; lazy-loading them per subject
-  is the obvious win when it matters.
+- The nine decks load together. Fetching only the subject being studied would
+  cut it further, but needs the filter UI to know what it hasn't loaded yet.
 
 ## Out of scope
 

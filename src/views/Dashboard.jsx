@@ -1,6 +1,7 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, memo } from "react";
 import { C, V, pageWrap, h1, cardSolid, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import { QUESTIONS } from "../data";
+import { todayKey } from "../lib/storage";
 import GhostBtn from "../ui/GhostBtn";
 
 const WEEKS = 26;
@@ -49,6 +50,44 @@ const glassTile = {
   WebkitBackdropFilter: "blur(16px) saturate(160%)",
 };
 
+/**
+ * 182 cells, and the parent re-renders on every hover because the tooltip lives
+ * there. Memoising on the data means moving the mouse across the grid no longer
+ * rebuilds all of them — which is what made the dashboard feel sluggish.
+ */
+const HeatGrid = memo(function HeatGrid({ grid, activity, maxActivity, onHover }) {
+  // Hoisted: this used to run once per cell, allocating 182 Dates per render.
+  const now = Date.now();
+  const today = todayKey();
+
+  return (
+    <div style={{ display: "flex", gap: 3, flex: 1 }}>
+      {grid.map((week, wi) => (
+        <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1 }}>
+          {week.map((date, di) => {
+            const key = todayKey(date);
+            const count = activity[key] || 0;
+            const isFuture = date.getTime() > now;
+            return (
+              <div
+                key={di}
+                onMouseEnter={isFuture ? undefined : e => onHover(e, date, count, key)}
+                onMouseLeave={isFuture ? undefined : () => onHover(null)}
+                style={{
+                  flex: 1, aspectRatio: "1/1", borderRadius: 5,
+                  background: isFuture ? "transparent" : heatColor(count, maxActivity),
+                  border: key === today ? `1.5px solid ${C.accent}` : "1.5px solid transparent",
+                  minHeight: 8,
+                }}
+              />
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+});
+
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -87,6 +126,13 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const heatmapRef = useRef(null);
 
   const grid = useMemo(() => buildGrid(weekOffset), [weekOffset]);
+
+  // Stable, so HeatGrid's memo actually holds.
+  const handleHover = useCallback((e, date, count, localKey) => {
+    if (e === null) { setTooltip(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({ x: rect.left + rect.width / 2, y: rect.top, date, count, localKey });
+  }, []);
 
   // Month labels: find first week of each new month in current window
   const monthLabels = useMemo(() => {
@@ -302,38 +348,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
           </div>
 
           {/* Grid */}
-          <div style={{ display: "flex", gap: 3, flex: 1 }}>
-            {grid.map((week, wi) => (
-              <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1 }}>
-                {week.map((date, di) => {
-                  const localKey = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-                  const count = activity[localKey] || 0;
-                  const now = new Date();
-                  const todayKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-                  const isToday = localKey === todayKey;
-                  const isFuture = date > now;
-                  return (
-                    <div
-                      key={di}
-                      onMouseEnter={e => {
-                        if (isFuture) return;
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setTooltip({ x: rect.left + rect.width / 2, y: rect.top, date, count, localKey });
-                      }}
-                      onMouseLeave={() => setTooltip(null)}
-                      style={{
-                        flex: 1, aspectRatio: "1/1", borderRadius: 5,
-                        background: isFuture ? "transparent" : heatColor(count, maxActivity),
-                        border: isToday ? `1.5px solid ${C.accent}` : "1.5px solid transparent",
-                        transition: "background 0.2s",
-                        minHeight: 8,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <HeatGrid grid={grid} activity={activity} maxActivity={maxActivity} onHover={handleHover} />
         </div>
 
         {/* Legend */}

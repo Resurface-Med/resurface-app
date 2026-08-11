@@ -1,28 +1,38 @@
-// Loads the question bank out of content/decks/.
+// The question bank, fetched at runtime rather than compiled into the bundle.
 //
-// The decks live outside src/ because they're content, not code — hand-edited
-// far more often than the app itself, and reviewed as content in their own
-// right. This module is the only place that knows how they're stored, so
-// moving them behind an API later means changing this file and nothing else.
+// Importing the decks as modules inlined 386KB of JSON into the main chunk,
+// which every user downloaded and parsed before the app could paint — including
+// the eight subjects they weren't about to study. Serving them from public/
+// means the browser can cache them separately from the code, and a deploy that
+// changes only the app doesn't invalidate them.
+//
+// These are exported as living objects that fill in once, not as values. Every
+// consumer reads them during render, after loadDecks() has resolved, so nothing
+// observes them empty — see the loading gate in App.jsx.
 
-import anatomy from "../../content/decks/anatomy.json";
-import biochemistry from "../../content/decks/biochemistry.json";
-import embryology from "../../content/decks/embryology.json";
-import genetics from "../../content/decks/genetics.json";
-import histology from "../../content/decks/histology.json";
-import immunology from "../../content/decks/immunology.json";
-import pathology from "../../content/decks/pathology.json";
-import pharmacology from "../../content/decks/pharmacology.json";
-import physiology from "../../content/decks/physiology.json";
+export const QUESTIONS = [];
+export const DECK_MAP = {};
 
-const DECKS = [
-  biochemistry, genetics, physiology, immunology, pathology,
-  histology, pharmacology, embryology, anatomy,
-];
+let loaded = null;
 
-export const QUESTIONS = DECKS.flatMap(d => d.questions);
+/** Idempotent: repeated calls return the same in-flight or settled promise. */
+export function loadDecks() {
+  if (loaded) return loaded;
 
-// Deck name -> its categories, in the order they should appear in filters.
-export const DECK_MAP = Object.fromEntries(
-  DECKS.map(d => [d.deck, d.categories]),
-);
+  loaded = (async () => {
+    const manifest = await fetch("/decks/index.json").then(r => r.json());
+
+    const decks = await Promise.all(
+      manifest.map(entry => fetch(`/decks/${entry.file}`).then(r => r.json())),
+    );
+
+    for (const deck of decks) {
+      QUESTIONS.push(...deck.questions);
+      DECK_MAP[deck.deck] = deck.categories;
+    }
+
+    return { count: QUESTIONS.length, decks: decks.length };
+  })();
+
+  return loaded;
+}

@@ -165,10 +165,12 @@ html {
   padding: 0;
 }
 
-/* Applies to essentially every element, so this one number sets how responsive
-   the whole app feels on hover and state change. Long enough to smooth a theme
-   switch, short enough that a button reacts immediately. */
-body, button, input, select, textarea, div, span, p, h1, h2, h3 {
+/* Only things that actually change state on interaction. This used to include
+   div, span and p, which meant every one of the heatmap's 182 cells carried
+   four transitions and had to be considered on any style recalculation. The
+   theme switch still reads as a fade because the surfaces below animate. */
+body, button, input, select, textarea, a,
+[data-surface] {
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 

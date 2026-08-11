@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Component } from "react";
+import { useState, useEffect, useMemo, Component, lazy, Suspense } from "react";
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -23,7 +23,7 @@ class ErrorBoundary extends Component {
   }
 }
 import { V, C, card, primaryBtn } from "./ui/theme";
-import { QUESTIONS } from "./data";
+import { QUESTIONS, loadDecks } from "./data";
 import { sm2Review, isDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
@@ -32,16 +32,17 @@ import LoginPage from "./views/LoginPage";
 import { usePomodoro } from "./lib/pomodoro";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
-import PracticeMode from "./modes/PracticeMode";
-import SRMode from "./modes/SRMode";
-import TimedMode from "./modes/TimedMode";
-import StatsView from "./views/StatsView";
-import BookmarksView from "./views/BookmarksView";
-import WrongAnswers from "./views/WrongAnswers";
-import SubjectsPage from "./views/SubjectsPage";
-import GenerateMode from "./views/GenerateMode";
-import PomodoroPage from "./views/PomodoroPage";
 import PomodoroToast from "./views/PomodoroToast";
+
+const PracticeMode  = lazy(() => import("./modes/PracticeMode"));
+const SRMode        = lazy(() => import("./modes/SRMode"));
+const TimedMode     = lazy(() => import("./modes/TimedMode"));
+const StatsView     = lazy(() => import("./views/StatsView"));
+const BookmarksView = lazy(() => import("./views/BookmarksView"));
+const WrongAnswers  = lazy(() => import("./views/WrongAnswers"));
+const SubjectsPage  = lazy(() => import("./views/SubjectsPage"));
+const GenerateMode  = lazy(() => import("./views/GenerateMode"));
+const PomodoroPage  = lazy(() => import("./views/PomodoroPage"));
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -83,8 +84,12 @@ export default function App() {
     let cancelled = false;
     setDataLoading(true);
     (async () => {
-      await flushQueue();
-      const d = await loadAll(user.id);
+      // In parallel: the bank doesn't depend on the user, and the user's rows
+      // don't depend on the bank.
+      const [, d] = await Promise.all([
+        loadDecks(),
+        (async () => { await flushQueue(); return loadAll(user.id); })(),
+      ]);
       if (cancelled) return;
       setPStats(d.pStats);
       setSrCards(d.srCards);
@@ -260,6 +265,9 @@ export default function App() {
         overflow: "hidden",
       }}>
         <div style={{ flex: 1, overflowY: "auto" }}>
+          <Suspense fallback={
+            <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
+          }>
           {view === V.DASH && <Dashboard pStats={pStats} srCards={srCards} streak={streak} dueCount={dueCount} bmCount={bookmarks.length} setView={setView}
             activity={activity}
             dailyGoal={dailyGoal}
@@ -275,6 +283,7 @@ export default function App() {
           {view === V.BOOKMARKS && <BookmarksView bookmarks={bookmarks} pStats={pStats} onToggleBookmark={toggleBookmark} />}
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
           {view === V.POMODORO && <PomodoroPage {...pomodoro} />}
+          </Suspense>
         </div>
       </div>
     </div>
