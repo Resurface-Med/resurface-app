@@ -90,7 +90,7 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
           );
 
           const active = view === item.k;
-          const badge = item.k === V.SR ? dueCount
+          const badge = item.k === V.REVIEW ? dueCount
             : item.k === V.WRONG ? wrongCount
             : item.k === V.BOOKMARKS ? bmCount
             : 0;
@@ -146,7 +146,7 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
                   marginLeft: "auto",
                   background: active
                     ? "var(--blue, #3562f5)"
-                    : item.k === V.SR ? "var(--c-orange)"
+                    : item.k === V.REVIEW ? "var(--c-orange)"
                     : item.k === V.WRONG ? "var(--c-danger)"
                     : "rgba(255,255,255,0.22)",
                   color: "#fff", borderRadius: "var(--r-pill)", fontSize: 11,

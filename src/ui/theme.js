@@ -33,7 +33,7 @@ export const C = {
   orangeBrd:  "var(--c-orange-brd)",
 };
 
-export const V = { DASH:"dash", SUBJECTS:"subjects", PRACTICE:"practice", SR:"sr", TIMED:"timed", STATS:"stats", BOOKMARKS:"bookmarks", WRONG:"wrong", GENERATE:"generate", POMODORO:"pomodoro" };
+export const V = { DASH:"dash", SUBJECTS:"subjects", PRACTICE:"practice", REVIEW:"review", TIMED:"timed", STATS:"stats", BOOKMARKS:"bookmarks", WRONG:"wrong", GENERATE:"generate", POMODORO:"pomodoro" };
 
 export function shuffle(arr) {
   const a = [...arr];
@@ -328,7 +328,7 @@ export const chipFieldActive = {
 export const NAV = [
   { k: V.DASH,      label: "Dashboard",     icon: "⊞" },
   { k: V.PRACTICE,  label: "Practice",      icon: "▷" },
-  { k: V.SR,        label: "Flashcards",    icon: "↻" },
+  { k: V.REVIEW,    label: "Review",        icon: "↻" },
   { k: V.WRONG,     label: "Wrong Answers", icon: "✗" },
   { k: V.BOOKMARKS, label: "Bookmarks",     icon: "★" },
   null,

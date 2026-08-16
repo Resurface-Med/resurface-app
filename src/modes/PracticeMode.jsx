@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { C, pageWrap, card, h1, primaryBtn, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive, label as labelStyle, pageSub } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
+import { isDue } from "../lib/sm2";
 import ProgressBar from "../ui/ProgressBar";
 import QuestionCard from "../ui/QuestionCard";
 import FilterPanel, { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
@@ -105,7 +106,7 @@ const COUNT_OPTIONS = [10, 20, 50, "All"];
 const SESSION_KEY = "pq_practice_session";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, dueOnly = false, srCards = {} }) {
   const [filter, setFilter] = useState(launchFilter
     ? { year: ["All"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
     : defaultFilter
@@ -143,7 +144,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   function start(filterOverride) {
     const f = filterOverride ?? filter;
-    const base = filteredQuestions(f, pStats);
+    let base = filteredQuestions(f, pStats);
+    // Review is the same engine pointed at what's due, rather than a mode of
+    // its own — the platform is questions either way.
+    if (dueOnly) base = base.filter(q => isDue(srCards[q.id]));
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
     const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);

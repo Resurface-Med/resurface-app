@@ -35,7 +35,6 @@ import Dashboard from "./views/Dashboard";
 import PomodoroToast from "./views/PomodoroToast";
 
 const PracticeMode  = lazy(() => import("./modes/PracticeMode"));
-const SRMode        = lazy(() => import("./modes/SRMode"));
 const TimedMode     = lazy(() => import("./modes/TimedMode"));
 const StatsView     = lazy(() => import("./views/StatsView"));
 const BookmarksView = lazy(() => import("./views/BookmarksView"));
@@ -131,6 +130,14 @@ export default function App() {
     });
   }
 
+  /**
+   * Every answer both records the attempt and schedules the question.
+   *
+   * There is no separate flashcard rating any more, so the quality comes from
+   * the answer itself: right is a Good, wrong is an Again. That keeps the SM-2
+   * engine — questions still resurface before you forget them — without asking
+   * anyone to grade their own recall on a four-point scale.
+   */
   function recordAnswer(id, correct) {
     setPStats(prev => {
       const s = prev[id] || { correct: 0, total: 0 };
@@ -138,15 +145,13 @@ export default function App() {
       remote.practice(user.id, id, row.correct, row.total);
       return { ...prev, [id]: row };
     });
-    countStudied();
-  }
 
-  function recordSR(id, quality) {
     setSrCards(prev => {
-      const card = sm2Review(prev[id], quality);
+      const card = sm2Review(prev[id], correct ? 3 : 1);
       remote.sr(user.id, id, card);
       return { ...prev, [id]: card };
     });
+
     countStudied();
   }
 
@@ -276,7 +281,7 @@ export default function App() {
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
           {view === V.SUBJECTS && <SubjectsPage pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
           {view === V.PRACTICE && <PracticeMode pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
-          {view === V.SR && <SRMode pStats={pStats} srCards={srCards} bookmarks={bookmarks} onReview={recordSR} onToggleBookmark={toggleBookmark} launchFilter={launchFilter} />}
+          {view === V.REVIEW && <PracticeMode key="review" dueOnly srCards={srCards} pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} onSessionActive={setPracticeSessionActive} />}
           {view === V.TIMED && <TimedMode pStats={pStats} onAnswer={recordAnswer} launchFilter={launchFilter} timedBests={timedBests} />}
           {view === V.WRONG && <WrongAnswers pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} />}
           {view === V.STATS && <StatsView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}

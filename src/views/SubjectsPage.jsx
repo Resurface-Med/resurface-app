@@ -186,7 +186,7 @@ export default function SubjectsPage({ pStats, srCards, setView, setLaunchFilter
                       background: col,
                       boxShadow: `0 8px 20px ${col}33`,
                     }}>Practice</button>
-                    <button className="hover-lift btn-press" onClick={() => launch(V.SR, deck, null)} style={{
+                    <button className="hover-lift btn-press" onClick={() => launch(V.REVIEW, deck, null)} style={{
                       ...primaryBtn, padding: "7px 14px", fontSize: 13,
                       background: "var(--c-surface2)",
                       boxShadow: "none", border: "1px solid var(--c-border)",
@@ -225,7 +225,7 @@ export default function SubjectsPage({ pStats, srCards, setView, setLaunchFilter
                             background: dim, border: `1px solid ${brd}`, color: col,
                             cursor: "pointer", fontFamily: "inherit", letterSpacing: -0.1,
                           }}>Practice</button>
-                          <button className="hover-lift btn-press" onClick={() => launch(V.SR, deck, cat)} style={{
+                          <button className="hover-lift btn-press" onClick={() => launch(V.REVIEW, deck, cat)} style={{
                             padding: "4px 10px", borderRadius: "var(--r-pill)", fontSize: 12, fontWeight: 500,
                             background: "var(--c-surface2)", border: "1px solid var(--c-border)",
                             color: C.muted, cursor: "pointer", fontFamily: "inherit",

@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useCallback, memo } from "react";
-import { C, V, pageWrap, h1, cardSolid, sectionH, eyebrowField, meta, OF } from "../ui/theme";
+import { C, V, h1, card, sectionH, eyebrowField, eyebrow, meta, OF } from "../ui/theme";
+import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import { todayKey } from "../lib/storage";
 import GhostBtn from "../ui/GhostBtn";
@@ -178,8 +179,8 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   // Numbered like the landing's "How it works" steps — the order is the
   // suggested route through the app, not three equivalent buttons.
   const modes = [
-    { k: V.PRACTICE, n: "1", label: "Practice",      body: "Work a topic at your own pace." },
-    { k: V.SR,       n: "2", label: "Flashcards",    body: dueCount > 0 ? `${dueCount} due for review right now.` : "Nothing due — you're on top of it.", badge: dueCount > 0 ? dueCount : null },
+    { k: V.PRACTICE, n: "1", label: "Practice",      body: "Work through a topic at your own pace." },
+    { k: V.REVIEW,   n: "2", label: "Review",        body: dueCount > 0 ? `${dueCount} question${dueCount === 1 ? "" : "s"} due to resurface.` : "Nothing due — you're on top of it.", badge: dueCount > 0 ? dueCount : null },
     { k: V.WRONG,    n: "3", label: "Wrong answers", body: "Go back to what caught you out." },
   ];
 
@@ -187,8 +188,20 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
+  const band = {
+    maxWidth: 1080,
+    margin: "0 auto",
+    padding: "0 clamp(20px, 3vw, 40px)",
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "clamp(18px, 2.6vh, 28px)",
+  };
+
   return (
-    <div style={pageWrap}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+      {/* ── Blue band: who you are and how you're doing ────────────── */}
+      <div style={{ ...band, paddingTop: "clamp(26px, 4.5vh, 46px)", paddingBottom: "clamp(24px, 4vh, 40px)" }}>
 
       {/* Header — eyebrow, headline, supporting line: the landing's section
           opening, applied to a page rather than a marketing band. */}
@@ -292,8 +305,16 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         ))}
       </div>
 
+      </div>
+
+      <Wave from="transparent" to="var(--c-card-solid)" />
+
+      {/* ── White sheet: the working surface ───────────────────────── */}
+      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(40px, 6vh, 72px)" }}>
+        <div style={{ ...band, paddingTop: "clamp(8px, 2vh, 20px)" }}>
+
       {/* Heatmap */}
-      <div style={{ ...cardSolid, animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
+      <div style={{ animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, gap: 16, flexWrap: "wrap" }}>
           <div>
             <h2 style={sectionH}>Your activity</h2>
@@ -388,12 +409,15 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         display: "flex", justifyContent: "space-between", alignItems: "baseline",
         gap: 16, flexWrap: "wrap", marginTop: 8,
       }}>
-        <h2 style={{ ...h1, fontSize: "clamp(22px, 2.2vw, 28px)", letterSpacing: -0.9 }}>
-          Where to next?
-        </h2>
+        <div>
+          <span style={eyebrow}>Keep going</span>
+          <h2 style={{ ...sectionH, fontSize: "clamp(22px, 2.2vw, 30px)", letterSpacing: -0.9, marginTop: 12 }}>
+            Where to next?
+          </h2>
+        </div>
         <button onClick={() => setView(V.STATS)} className="btn-press" style={{
           background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-          fontSize: 14.5, fontWeight: 500, color: OF.soft,
+          fontSize: 14.5, fontWeight: 600, color: C.accent,
           display: "flex", alignItems: "center", gap: 5, padding: 0,
         }}>
           View detailed stats <span aria-hidden="true">→</span>
@@ -403,7 +427,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
         {modes.map((m, i) => (
           <button key={m.k} onClick={() => setView(m.k)} className="hover-lift btn-press" style={{
-            ...cardSolid,
+            ...card,
             position: "relative",
             padding: "clamp(20px, 2.4vw, 26px)",
             textAlign: "left",
@@ -433,11 +457,12 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       </div>
 
       {/* Reset links */}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 12, animation: "rise-blur 0.22s ease 0.4s both" }}>
-        <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP(); }}>Reset Practice</GhostBtn>
-        <GhostBtn onClick={() => { if (window.confirm("Reset flashcard schedules?")) onClearSR(); }}>Reset Flashcards</GhostBtn>
+      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 20, animation: "rise-blur 0.22s ease 0.4s both" }}>
+            <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP(); }}>Reset practice stats</GhostBtn>
+            <GhostBtn onClick={() => { if (window.confirm("Reset review schedules?")) onClearSR(); }}>Reset review schedule</GhostBtn>
+          </div>
+        </div>
       </div>
-
     </div>
   );
 }
