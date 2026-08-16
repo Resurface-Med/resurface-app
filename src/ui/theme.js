@@ -74,6 +74,29 @@ export const cardSolid = {
   background: "var(--c-card-solid)",
 };
 
+/**
+ * The landing's .qcard, verbatim. The question is the thing the whole product
+ * exists to show, so it gets its own surface rather than a generic panel: a
+ * two-layer shadow that lifts it off the page, and padding that scales.
+ */
+export const qcard = {
+  background: "var(--c-card-solid)",
+  borderRadius: 28,
+  padding: "clamp(22px, 3vw, 30px)",
+  border: "none",
+  boxShadow: "0 4px 16px rgba(20, 44, 130, 0.04), 0 24px 56px rgba(20, 44, 130, 0.1)",
+};
+
+/** The landing's .qstem. */
+export const qstem = {
+  fontSize: "clamp(18px, 2vw, 23px)",
+  fontWeight: 600,
+  letterSpacing: "-0.6px",
+  lineHeight: 1.28,
+  color: C.text,
+  maxWidth: "46ch",
+};
+
 export const pageWrap = {
   // The landing breathes at 1180 and scales its vertical rhythm with the
   // viewport. 760 with fixed padding was the single biggest reason the app
@@ -185,19 +208,6 @@ export const glassCard = {
   color: OF.text,
 };
 
-/** Secondary action on the field: outlined white pill, not muted ink. */
-export const fieldGhostBtn = {
-  padding: "11px 20px",
-  borderRadius: "var(--r-pill)",
-  border: "1.5px solid rgba(255,255,255,0.4)",
-  background: "transparent",
-  color: OF.text,
-  fontSize: 15,
-  fontWeight: 500,
-  cursor: "pointer",
-  fontFamily: "inherit",
-};
-
 export const h2 = {
   fontSize: 15,
   fontWeight: 600,
@@ -206,44 +216,72 @@ export const h2 = {
   marginTop: 8,
 };
 
-/** White CTA for actions sitting on the blue field (landing .btn-white). */
-export const fieldBtn = {
+/**
+ * Three buttons, matching the landing's .btn-white, .btn-ghost and .nav-cta.
+ *
+ * The app had ten recipes at three different sizes and weights — individually
+ * fine, collectively no system, which is most of what reads as unfinished.
+ * These share one shape: pill radius, weight 600, the same transition. Only
+ * the fill changes, and `lg` restores the landing's hero proportions for the
+ * few places that want them.
+ *
+ * The landing's own buttons are 16px/32px — right for a hero, too heavy for a
+ * toolbar — so the app default is a notch tighter and `lg` is the landing size.
+ */
+const btnBase = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: 8,
-  padding: "12px 26px",
-  background: "#fff",
-  color: "var(--blue, #3562f5)",
-  border: "none",
+  gap: 9,
+  padding: "13px 28px",
   borderRadius: "var(--r-pill)",
-  fontWeight: 600,
   fontSize: 15,
+  fontWeight: 600,
+  letterSpacing: -0.15,
   cursor: "pointer",
   fontFamily: "inherit",
-  boxShadow: "var(--c-cta-shadow)",
-  letterSpacing: -0.15,
-  transition: "transform 0.16s ease, box-shadow 0.16s ease",
+  border: "none",
+  transition: "transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease",
 };
 
-export const primaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 8,
-  padding: "12px 26px",
+export const lg = { padding: "16px 32px", fontSize: 16 };
+
+/** Blue fill, white text. The primary action on a panel. */
+export const btnBlue = {
+  ...btnBase,
   background: "var(--c-accent)",
   color: "#fff",
-  border: "none",
-  borderRadius: "var(--r-pill)",
-  fontWeight: 600,
-  fontSize: 15,
-  cursor: "pointer",
-  fontFamily: "inherit",
   boxShadow: "var(--c-cta-shadow)",
-  letterSpacing: -0.15,
-  transition: "background 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease",
 };
+
+/** White fill, blue text. The primary action on the blue field. */
+export const btnWhite = {
+  ...btnBase,
+  background: "#fff",
+  color: "var(--blue, #3562f5)",
+  boxShadow: "var(--c-cta-shadow)",
+};
+
+/** Outlined. Secondary anywhere; pass onField for the white-on-blue variant. */
+export const btnGhost = {
+  ...btnBase,
+  background: "transparent",
+  color: C.sub,
+  border: "1.5px solid var(--c-border)",
+  boxShadow: "none",
+};
+
+export const btnGhostField = {
+  ...btnGhost,
+  color: "#fff",
+  border: "1.5px solid rgba(255,255,255,0.5)",
+};
+
+// Existing call sites keep working: the old names are these three now, so the
+// whole app picks up one set of metrics without touching every file.
+export const primaryBtn = btnBlue;
+export const fieldBtn = btnWhite;
+export const fieldGhostBtn = btnGhostField;
 
 export const selectBtn = {
   width: "100%",

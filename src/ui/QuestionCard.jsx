@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { C, cardSolid, primaryBtn } from "./theme";
+import { C, qcard, qstem, primaryBtn } from "./theme";
 import CatTag from "./CatTag";
 import BmBtn from "./BmBtn";
 import EditQuestionModal from "./EditQuestionModal";
@@ -116,7 +116,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
-    <div style={cardSolid} className="anim-scale-in">
+    <div style={qcard} className="anim-scale-in">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
         <CatTag label={q.cat} />
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -165,7 +165,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         </div>
       </div>
 
-      <p className="anim-fade-up delay-0" style={{ fontSize: 20, fontWeight: 600, color: C.text, lineHeight: 1.55, marginBottom: 22, letterSpacing: -0.4 }}>{q.q}</p>
+      <p className="anim-fade-up delay-0" style={{ ...qstem, marginBottom: 22 }}>{q.q}</p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {q.opts.map((opt, i) => {
@@ -212,7 +212,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               className={`${animClass} ${extraClass}`.trim()}
               style={{
                 display: "flex", flexDirection: "column", alignItems: "stretch",
-                padding: "12px 16px", borderRadius: "var(--r-pill)",
+                padding: "11px 16px", borderRadius: "var(--r-pill)",
                 cursor: answered ? "default" : "pointer",
                 textAlign: "left", fontSize: 15, lineHeight: 1.5,
                 background: bg, border: `1.5px solid ${brd}`,
@@ -223,11 +223,16 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             >
               <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
                 <span style={{
-                  fontWeight: 700, fontSize: 12, width: 28, height: 28,
+                  fontWeight: 700, width: 28, height: 28,
                   display: "grid", placeItems: "center",
                   borderRadius: "50%", flexShrink: 0,
-                  background: answered ? "transparent" : isPending ? "var(--c-accent)" : "var(--c-wash, var(--c-surface3))",
-                  color: answered ? col : isPending ? "#fff" : C.muted,
+                  background: answered
+                    ? (ok ? "#1f9d55" : picked ? "#d64545" : "var(--c-card-solid)")
+                    : isPending ? "var(--c-accent)" : "var(--c-card-solid)",
+                  color: answered
+                    ? (ok || picked ? "#fff" : C.mutedDim)
+                    : isPending ? "#fff" : C.mutedDim,
+                  fontSize: 12.5,
                 }}>{"ABCDE"[i]}</span>
 
                 <span style={{

@@ -32,7 +32,7 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
       background: "var(--c-nav-bg)",
       border: "1px solid var(--c-nav-border)",
       borderRadius: "var(--r-panel)",
-      boxShadow: "0 18px 40px rgba(15, 27, 61, 0.18)",
+      boxShadow: "var(--c-nav-shadow)",
       backdropFilter: "blur(18px) saturate(160%)",
       WebkitBackdropFilter: "blur(18px) saturate(160%)",
       display: "flex", flexDirection: "column", flexShrink: 0,
@@ -43,11 +43,11 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
         padding: "18px 16px 16px",
         borderBottom: "1px solid var(--c-nav-border)",
       }}>
-        {/* White lockup with a transparent background, so it sits straight
-            on the nav with no bubble. The source art was white-on-black with
-            a heavy bloom; its luminance became the alpha channel. */}
+        {/* The coloured lockup, because the sidebar is a white object now —
+            the white cut-out would be invisible on it. Same asset the landing
+            uses inside its own white nav pill. */}
         <img
-          src="/logo-lockup-white.png"
+          src="/logo-lockup.png"
           alt="Resurface"
           width="720"
           height="190"
@@ -75,8 +75,8 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
           left: 8, right: 8,
           top: pill.top, height: pill.height,
           borderRadius: "var(--r-pill)",
-          background: "#fff",
-          boxShadow: "0 10px 24px rgba(15, 27, 61, 0.2)",
+          background: "var(--c-accent)",
+          boxShadow: "0 8px 20px rgba(20, 44, 130, 0.28)",
           transition: "top 0.2s cubic-bezier(0.22,1,0.36,1), height 0.15s ease",
           pointerEvents: "none", zIndex: 0,
         }} />
@@ -105,7 +105,7 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px", borderRadius: "var(--r-pill)",
                 border: "1px solid transparent", background: "transparent",
-                color: active ? "var(--blue, #3562f5)" : NAV_SUB,
+                color: active ? "#fff" : NAV_SUB,
                 fontSize: 14.5, textAlign: "left", cursor: "pointer",
                 width: "100%", fontFamily: "inherit", letterSpacing: -0.15,
                 position: "relative", zIndex: 1,
@@ -115,7 +115,7 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
               <span style={{
                 fontSize: 14, width: 18, textAlign: "center", flexShrink: 0, lineHeight: 1,
                 color: active
-                  ? "var(--blue, #3562f5)"
+                  ? "#fff"
                   : item.k === V.POMODORO && running ? pomColor : NAV_MUTED,
                 transition: "color 0.2s",
               }}>{item.icon}</span>
@@ -126,15 +126,15 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
                 <span style={{
                   marginLeft: "auto", display: "flex", alignItems: "center", gap: 4,
                   fontSize: 11, fontWeight: 700,
-                  color: active ? "var(--blue, #3562f5)" : (running ? pomColor : NAV_MUTED),
-                  background: active ? "rgba(53,98,245,0.1)" : "rgba(255,255,255,0.12)",
-                  border: `1px solid ${active ? "rgba(53,98,245,0.22)" : "rgba(255,255,255,0.2)"}`,
+                  color: active ? "#fff" : (running ? pomColor : NAV_MUTED),
+                  background: active ? "rgba(255,255,255,0.2)" : "var(--c-wash)",
+                  border: `1px solid ${active ? "rgba(255,255,255,0.3)" : "var(--c-border)"}`,
                   borderRadius: "var(--r-pill)", padding: "2px 8px",
                   fontVariantNumeric: "tabular-nums",
                 }}>
                   {running && <span style={{
                     width: 5, height: 5, borderRadius: 99,
-                    background: active ? "var(--blue, #3562f5)" : pomColor, display: "inline-block",
+                    background: active ? "#fff" : pomColor, display: "inline-block",
                     animation: "badge-pulse 1.8s ease-in-out infinite",
                   }} />}
                   {fmtTime(timeLeft)}
@@ -145,10 +145,10 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
                 <span className="anim-badge-pulse" style={{
                   marginLeft: "auto",
                   background: active
-                    ? "var(--blue, #3562f5)"
+                    ? "rgba(255,255,255,0.25)"
                     : item.k === V.REVIEW ? "var(--c-orange)"
                     : item.k === V.WRONG ? "var(--c-danger)"
-                    : "rgba(255,255,255,0.22)",
+                    : "var(--c-muted-dim)",
                   color: "#fff", borderRadius: "var(--r-pill)", fontSize: 11,
                   fontWeight: 700, padding: "2px 8px",
                 }}>{badge}</span>

@@ -70,12 +70,16 @@
   --c-card-shadow: 0 10px 28px rgba(20, 44, 130, 0.06);
   --c-card-shadow-lift: 0 16px 40px rgba(20, 44, 130, 0.1);
   --c-cta-shadow: 0 12px 30px rgba(20, 44, 130, 0.22);
-  --c-nav-bg: rgba(255, 255, 255, 0.12);
-  --c-nav-border: rgba(255, 255, 255, 0.22);
-  --c-nav-text: #ffffff;
-  --c-nav-sub: rgba(255, 255, 255, 0.78);
-  --c-nav-muted: rgba(255, 255, 255, 0.58);
-  --c-nav-muted-dim: rgba(255, 255, 255, 0.4);
+  /* The landing's rule is white objects floating on the blue field, and its
+     nav is rgba(255,255,255,0.82). The sidebar was 0.12 — a blue pane, not a
+     white object — which is what made the app read as a different product. */
+  --c-nav-bg: rgba(255, 255, 255, 0.86);
+  --c-nav-border: rgba(15, 27, 61, 0.08);
+  --c-nav-text: #0f1b3d;
+  --c-nav-sub: #5a6485;
+  --c-nav-muted: #8a93ae;
+  --c-nav-muted-dim: #b0b8cc;
+  --c-nav-shadow: 0 1px 2px rgba(15, 27, 61, 0.05), 0 8px 24px rgba(20, 44, 130, 0.12);
   --c-on-field: #ffffff;
   /* 0.94, not 0.78. White on #3562f5 is only 4.98:1, so anything dimmer
      than this fails AA for small text — secondary text earns its rank from
@@ -130,12 +134,13 @@
   --c-card-shadow: 0 10px 28px rgba(0, 8, 30, 0.28);
   --c-card-shadow-lift: 0 16px 40px rgba(0, 8, 30, 0.36);
   --c-cta-shadow: 0 12px 30px rgba(0, 8, 30, 0.4);
-  --c-nav-bg: rgba(255, 255, 255, 0.08);
-  --c-nav-border: rgba(255, 255, 255, 0.14);
+  --c-nav-bg: rgba(21, 37, 82, 0.86);
+  --c-nav-border: rgba(255, 255, 255, 0.1);
   --c-nav-text: #eef2ff;
-  --c-nav-sub: rgba(238, 242, 255, 0.78);
+  --c-nav-sub: rgba(238, 242, 255, 0.8);
   --c-nav-muted: rgba(238, 242, 255, 0.55);
   --c-nav-muted-dim: rgba(238, 242, 255, 0.35);
+  --c-nav-shadow: 0 1px 2px rgba(0, 8, 30, 0.2), 0 8px 24px rgba(0, 8, 30, 0.3);
   --c-on-field: #eef2ff;
   --c-on-field-soft: rgba(238, 242, 255, 0.84);
   --c-on-field-faint: rgba(238, 242, 255, 0.66);
