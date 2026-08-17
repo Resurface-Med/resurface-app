@@ -29,6 +29,7 @@ import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue } from "./lib/remote";
 import LoginPage from "./views/LoginPage";
+import NewPasswordPage from "./views/NewPasswordPage";
 import { usePomodoro } from "./lib/pomodoro";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
@@ -73,7 +74,7 @@ export default function App() {
   // Pull the snapshot once per sign-in, and retry anything a dropped
   // connection parked earlier.
   useEffect(() => {
-    if (!user) { setDataLoading(false); return; }
+    if (!user || recovering) { setDataLoading(false); return; }
     let cancelled = false;
     setDataLoading(true);
     (async () => {
@@ -190,6 +191,10 @@ export default function App() {
     );
   }
 
+  // Before the loading gate on purpose: a recovery session makes `user` truthy,
+  // which starts the data load, which used to replace this screen mid-flow.
+  if (user && recovering) return <NewPasswordPage />;
+
   if (authLoading || (user && dataLoading)) {
     return (
       <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center" }}>
@@ -200,10 +205,7 @@ export default function App() {
     );
   }
 
-  // A recovery session is a real session, so `user` is set the moment the code
-  // is verified. Hold the login page until the password has actually changed,
-  // or the "choose a new password" step is unmounted before it can render.
-  if (!user || recovering) return <LoginPage />;
+  if (!user) return <LoginPage />;
 
   return (
     <ErrorBoundary>

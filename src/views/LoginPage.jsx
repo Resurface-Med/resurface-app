@@ -28,17 +28,16 @@ const RESEND_SECS = 60;
 export default function LoginPage() {
   const {
     signIn, signUp, signInWithGoogle, resetPassword,
-    resendSignupCode, verifySignupCode, verifyRecoveryCode, updatePassword,
+    resendSignupCode, verifySignupCode, verifyRecoveryCode,
     beginRecovery, endRecovery,
   } = useAuth();
 
   const [mode, setMode] = useState("signin"); // signin | signup | reset
   // After signup / reset request we collect the emailed code. After a recovery
   // code verifies, we collect the new password.
-  const [step, setStep] = useState("form");   // form | code | newpass
+  const [step, setStep] = useState("form");   // form | code
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -64,7 +63,6 @@ export default function LoginPage() {
     setMode(next);
     setStep("form");
     setCode("");
-    setNewPassword("");
     setError("");
     setNotice("");
     setResendIn(0);
@@ -144,28 +142,11 @@ export default function LoginPage() {
       const { data, error: err } = await verifyRecoveryCode(email, token);
       if (err) { endRecovery(); throw err; }
       if (!data.session) { endRecovery(); throw new Error("That code didn't work. Try again."); }
-      setStep("newpass");
-      setNotice("");
+      // App swaps in NewPasswordPage as soon as `recovering` is set, so there
+      // is nothing further to do here.
     } catch (err) {
       setError(err.message || "Something went wrong.");
     } finally {
-      setBusy(false);
-    }
-  }
-
-  async function submitNewPassword(e) {
-    e.preventDefault();
-    setError(""); setNotice(""); setBusy(true);
-    try {
-      if (newPassword.length < 6) {
-        throw new Error("Password must be at least 6 characters.");
-      }
-      const { error: err } = await updatePassword(newPassword);
-      if (err) throw err;
-      setLeaving(true);
-      return;
-    } catch (err) {
-      setError(err.message || "Something went wrong.");
       setBusy(false);
     }
   }
@@ -192,18 +173,15 @@ export default function LoginPage() {
   }
 
   const heading = step === "code" ? "Enter your code"
-    : step === "newpass" ? "Choose a new password"
     : mode === "signup" ? "Create your account"
     : mode === "reset" ? "Reset your password"
     : "Welcome back";
 
   const sub = step === "code"
     ? `We sent a 6-digit code to ${email}.`
-    : step === "newpass"
-      ? "Pick something you'll remember. At least 6 characters."
-      : mode === "reset"
+    : mode === "reset"
         ? "We'll email you a code to set a new one."
-        : "Your progress and generated questions follow you everywhere.";
+      : "Your progress and generated questions follow you everywhere.";
 
   const formCta = mode === "signup" ? "Create account"
     : mode === "reset" ? "Send reset code"
@@ -314,23 +292,6 @@ export default function LoginPage() {
                   {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
                 </button>
               </div>
-            </form>
-          )}
-
-          {step === "newpass" && (
-            <form onSubmit={submitNewPassword} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
-              <div>
-                <label htmlFor="new-password" style={labelStyle}>New password</label>
-                <input id="new-password" type="password" required minLength={6} autoFocus
-                  autoComplete="new-password"
-                  value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                  placeholder="At least 6 characters" style={field} />
-              </div>
-
-              {error && <Alert kind="error">{error}</Alert>}
-              {notice && <Alert kind="ok">{notice}</Alert>}
-
-              <PrimaryButton busy={busy} label={busy ? "Saving…" : "Save password"} />
             </form>
           )}
 
