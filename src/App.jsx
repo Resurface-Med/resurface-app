@@ -30,10 +30,8 @@ import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue } from "./lib/remote";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
-import { usePomodoro } from "./lib/pomodoro";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
-import PomodoroToast from "./views/PomodoroToast";
 
 const StudyMode    = lazy(() => import("./modes/PracticeMode"));
 const ProgressView = lazy(() => import("./views/StatsView"));
@@ -158,7 +156,6 @@ export default function App() {
     });
   }
 
-  const pomodoro = usePomodoro();
 
   const [launchFilter, setLaunchFilter] = useState({ deck: "All", cat: "All" });
   const [studyScope, setStudyScope] = useState("all");
@@ -173,7 +170,7 @@ export default function App() {
     setView(newView);
   }
 
-  const nav = { view, setView: handleNav, dueCount, pomodoro, email: user?.email, onSignOut: signOut };
+  const nav = { view, setView: handleNav, dueCount, email: user?.email, onSignOut: signOut };
 
   // Auth gates the whole app. `configured` is false when the Supabase env vars
   // are missing, in which case sign-in can't work at all and saying so beats
@@ -291,11 +288,6 @@ export default function App() {
         </div>
       </div>
     </div>
-    <PomodoroToast
-      toast={pomodoro.toast}
-      onDismiss={pomodoro.dismissToast}
-      onStart={pomodoro.startFromToast}
-    />
     </ErrorBoundary>
   );
 }

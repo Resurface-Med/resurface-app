@@ -1,12 +1,11 @@
 import { useRef, useEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
-import PomodoroTimer from "./PomodoroTimer";
 
 const NAV_SUB    = "var(--c-nav-sub)";
 const NAV_MUTED  = "var(--c-nav-muted)";
 const NAV_MUTDIM = "var(--c-nav-muted-dim)";
 
-export function Sidebar({ view, setView, dueCount, pomodoro, email, onSignOut }) {
+export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
   const navRef  = useRef(null);
   const itemRefs = useRef([]);
   const [pill, setPill] = useState({ top: 12, height: 40 });
@@ -117,8 +116,6 @@ export function Sidebar({ view, setView, dueCount, pomodoro, email, onSignOut })
           );
         })}
       </nav>
-
-      <PomodoroTimer {...pomodoro} />
 
       <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c-nav-border)" }}>
         {email && (
