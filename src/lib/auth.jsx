@@ -40,12 +40,19 @@ export function AuthProvider({ children }) {
         options: { shouldCreateUser: true },
       }),
 
-    verifyEmailCode: (email, token) =>
-      supabase.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      }),
+    verifyEmailCode: async (email, token) => {
+      // New accounts get a confirmation mail (type signup). Returning users
+      // get the magic-link/OTP mail (type email / magiclink). Try all three
+      // without burning the token on a wrong type.
+      const types = ["email", "signup", "magiclink"];
+      let last = null;
+      for (const type of types) {
+        const result = await supabase.auth.verifyOtp({ email, token, type });
+        if (!result.error && result.data?.session) return result;
+        last = result;
+      }
+      return last;
+    },
 
     signInWithGoogle: () =>
       supabase.auth.signInWithOAuth({
