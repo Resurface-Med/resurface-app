@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { C, OF } from "../ui/theme";
 import { useAuth } from "../lib/auth";
 
@@ -44,7 +44,7 @@ export default function LoginPage() {
   const [notice, setNotice] = useState("");
   const [leaving, setLeaving] = useState(false);
   const [resendIn, setResendIn] = useState(0);
-  const codeRef = useRef(null);
+  const codeBoxRef = useRef(null);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -53,7 +53,7 @@ export default function LoginPage() {
   }, [resendIn]);
 
   useEffect(() => {
-    if (step === "code") codeRef.current?.focus();
+    if (step === "code") codeBoxRef.current?.focus();
   }, [step]);
 
   function go(next) {
@@ -86,7 +86,7 @@ export default function LoginPage() {
         setStep("code");
         setCode("");
         setResendIn(RESEND_SECS);
-        setNotice("Check your email for a 6-digit code.");
+        setNotice("");
       } else if (mode === "signup") {
         const { data, error: err } = await signUp(trimmed, password);
         if (err) throw err;
@@ -96,7 +96,7 @@ export default function LoginPage() {
           setStep("code");
           setCode("");
           setResendIn(RESEND_SECS);
-          setNotice("Check your email for a 6-digit confirmation code.");
+          setNotice("");
         } else {
           setLeaving(true);
           return;
@@ -126,12 +126,11 @@ export default function LoginPage() {
         setLeaving(true);
         return;
       }
-      // reset
       const { data, error: err } = await verifyRecoveryCode(email, token);
       if (err) throw err;
       if (!data.session) throw new Error("That code didn't work. Try again.");
       setStep("newpass");
-      setNotice("Choose a new password.");
+      setNotice("");
     } catch (err) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -201,7 +200,6 @@ export default function LoginPage() {
 
   return (
     <div className={`login-split${leaving ? " is-leaving" : ""}`}>
-      {/* ── Brand panel ─────────────────────────────────────────────── */}
       <aside className="login-brand">
         <span className="login-blob b1" aria-hidden="true" />
         <span className="login-blob b2" aria-hidden="true" />
@@ -221,8 +219,6 @@ export default function LoginPage() {
             Don't let the lecture sink.
           </h2>
 
-          {/* Anyone on this screen has already decided; listing features again
-              is wasted space. Who made it is the thing they don't know. */}
           <p style={{ marginTop: 22, fontSize: 16, color: OF.soft, lineHeight: 1.6, maxWidth: "40ch" }}>
             Built by a medical student, for medical students. Questions that
             follow your course, not a generic syllabus.
@@ -236,7 +232,6 @@ export default function LoginPage() {
         />
       </aside>
 
-      {/* ── Form panel ──────────────────────────────────────────────── */}
       <main className="login-form-panel">
         <div className="auth-stagger" style={{ width: "100%", maxWidth: 380 }} key={staggerKey}>
           <img
@@ -280,29 +275,7 @@ export default function LoginPage() {
 
           {step === "code" && (
             <form onSubmit={submitCode} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
-              <div>
-                <label htmlFor="code" style={labelStyle}>6-digit code</label>
-                <input
-                  id="code"
-                  ref={codeRef}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  required
-                  value={code}
-                  onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  placeholder="000000"
-                  style={{
-                    ...field,
-                    fontSize: 22,
-                    fontWeight: 600,
-                    letterSpacing: "0.35em",
-                    textAlign: "center",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                />
-              </div>
+              <CodeBoxes ref={codeBoxRef} value={code} onChange={setCode} />
 
               {error && <Alert kind="error">{error}</Alert>}
               {notice && <Alert kind="ok">{notice}</Alert>}
@@ -393,6 +366,110 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// Six cells instead of one stretched field — same tokens as the rest of the
+// form, sized for a single digit. Paste and SMS autofill land on the first box.
+const CodeBoxes = forwardRef(function CodeBoxes({ value, onChange }, ref) {
+  const cells = useRef([]);
+  const digits = Array.from({ length: 6 }, (_, i) => value[i] || "");
+
+  useImperativeHandle(ref, () => ({
+    focus: () => cells.current[0]?.focus(),
+  }));
+
+  function setAt(index, digit) {
+    const next = digits.slice();
+    next[index] = digit;
+    onChange(next.join("").slice(0, 6));
+  }
+
+  function writeMany(start, text) {
+    const chars = text.replace(/\D/g, "").slice(0, 6 - start).split("");
+    if (!chars.length) return;
+    const next = digits.slice();
+    chars.forEach((ch, i) => { next[start + i] = ch; });
+    onChange(next.join("").slice(0, 6));
+    cells.current[Math.min(start + chars.length, 5)]?.focus();
+  }
+
+  function onKeyDown(i, e) {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      if (digits[i]) setAt(i, "");
+      else if (i > 0) {
+        setAt(i - 1, "");
+        cells.current[i - 1]?.focus();
+      }
+      return;
+    }
+    if (e.key === "ArrowLeft" && i > 0) {
+      e.preventDefault();
+      cells.current[i - 1]?.focus();
+    }
+    if (e.key === "ArrowRight" && i < 5) {
+      e.preventDefault();
+      cells.current[i + 1]?.focus();
+    }
+  }
+
+  function onChangeCell(i, e) {
+    const raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 1) {
+      writeMany(i, raw);
+      return;
+    }
+    if (!raw) {
+      setAt(i, "");
+      return;
+    }
+    setAt(i, raw);
+    if (i < 5) cells.current[i + 1]?.focus();
+  }
+
+  return (
+    <div role="group" aria-label="6-digit code" style={{ display: "flex", gap: 8 }}>
+      {digits.map((d, i) => (
+        <input
+          key={i}
+          ref={el => { cells.current[i] = el; }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={i === 0 ? "one-time-code" : "off"}
+          aria-label={`Digit ${i + 1}`}
+          maxLength={i === 0 ? 6 : 1}
+          value={d}
+          onChange={e => onChangeCell(i, e)}
+          onKeyDown={e => onKeyDown(i, e)}
+          onPaste={e => {
+            e.preventDefault();
+            writeMany(i, e.clipboardData.getData("text") || "");
+          }}
+          onFocus={e => e.target.select()}
+          className="code-cell"
+          style={codeCell}
+        />
+      ))}
+    </div>
+  );
+});
+
+const codeCell = {
+  flex: "1 1 0",
+  width: 0,
+  height: 52,
+  padding: 0,
+  textAlign: "center",
+  fontSize: 22,
+  fontWeight: 600,
+  fontFamily: "inherit",
+  fontVariantNumeric: "tabular-nums",
+  color: "var(--c-text)",
+  background: "var(--c-card-solid)",
+  border: "1.5px solid var(--c-border)",
+  borderRadius: "var(--r-ctrl)",
+  outline: "none",
+  caretColor: "var(--c-accent)",
+};
 
 function PrimaryButton({ busy, label }) {
   return (

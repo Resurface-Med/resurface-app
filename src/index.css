@@ -643,6 +643,11 @@ select {
    not keep moving, so this plays once. */
 .auth-alert  { animation: auth-shake 0.4s ease both; }
 .auth-notice { animation: auth-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+.code-cell:focus {
+  border-color: var(--c-accent) !important;
+  box-shadow: 0 0 0 3px var(--c-accent-glow);
+}
 @keyframes auth-shake {
   0%, 100% { transform: translateX(0); }
   22% { transform: translateX(-7px); }
