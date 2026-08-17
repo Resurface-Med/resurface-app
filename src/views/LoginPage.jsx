@@ -28,6 +28,11 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [leaving, setLeaving] = useState(false);
+
+  // A successful sign-in lifts the screen away. Supabase fires the session
+  // change a moment later and App swaps this out, so the animation covers the
+  // handover instead of the page simply being replaced.
 
   function go(next) {
     setMode(next); setError(""); setNotice("");
@@ -49,6 +54,8 @@ export default function LoginPage() {
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;
+        setLeaving(true);
+        return;   // leave `busy` set: the screen is on its way out
       }
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -66,7 +73,7 @@ export default function LoginPage() {
     : "Sign in";
 
   return (
-    <div className="login-split">
+    <div className={`login-split${leaving ? " is-leaving" : ""}`}>
       {/* ── Brand panel ─────────────────────────────────────────────── */}
       <aside className="login-brand">
         <span className="login-blob b1" aria-hidden="true" />
@@ -104,7 +111,7 @@ export default function LoginPage() {
 
       {/* ── Form panel ──────────────────────────────────────────────── */}
       <main className="login-form-panel">
-        <div style={{ width: "100%", maxWidth: 380 }}>
+        <div className="auth-stagger" style={{ width: "100%", maxWidth: 380 }} key={mode}>
           <img
             src="/logo-lockup.png"
             alt="Resurface"
@@ -112,7 +119,7 @@ export default function LoginPage() {
             className="login-form-logo"
           />
 
-          <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: -0.9, color: C.text }}>{heading}</h1>
+          <h1 className="auth-swap" style={{ fontSize: 26, fontWeight: 600, letterSpacing: -0.9, color: C.text }}>{heading}</h1>
           <p style={{ fontSize: 14.5, color: C.sub, marginTop: 7, lineHeight: 1.5 }}>
             {mode === "reset"
               ? "We'll email you a link to set a new one."
@@ -127,25 +134,26 @@ export default function LoginPage() {
                 placeholder="you@university.ac.uk" style={field} />
             </div>
 
-            {mode !== "reset" && (
+            <div className={`auth-collapse${mode === "reset" ? " is-out" : ""}`} aria-hidden={mode === "reset"}>
               <div>
                 <label htmlFor="password" style={labelStyle}>Password</label>
-                <input id="password" type="password" required minLength={6}
+                <input id="password" type="password" required={mode !== "reset"} minLength={6}
+                  disabled={mode === "reset"}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}
                   value={password} onChange={e => setPassword(e.target.value)}
                   placeholder={mode === "signup" ? "At least 6 characters" : "••••••••"} style={field} />
               </div>
-            )}
+            </div>
 
             {error && (
-              <div role="alert" style={{
+              <div role="alert" className="auth-alert" style={{
                 fontSize: 14, color: C.danger, background: C.dangerDim,
                 border: `1px solid ${C.dangerBrd}`, borderRadius: "var(--r-ctrl)", padding: "10px 14px",
               }}>{error}</div>
             )}
 
             {notice && (
-              <div style={{
+              <div className="auth-notice" style={{
                 fontSize: 14, color: C.success, background: C.successDim,
                 border: `1px solid ${C.successBrd}`, borderRadius: "var(--r-ctrl)", padding: "10px 14px",
               }}>{notice}</div>
