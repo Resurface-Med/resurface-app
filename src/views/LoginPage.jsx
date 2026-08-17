@@ -344,6 +344,7 @@ export default function LoginPage() {
             </>
           )}
 
+
           {step === "form" && (
             <div style={{ marginTop: 22, fontSize: 14, color: C.sub, textAlign: "center" }}>
               {mode === "signin" ? (
@@ -357,10 +358,6 @@ export default function LoginPage() {
               )}
             </div>
           )}
-
-          <p style={{ textAlign: "center", fontSize: 12.5, color: C.muted, marginTop: 26 }}>
-            Free while it's in testing.
-          </p>
         </div>
       </main>
     </div>
