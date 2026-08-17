@@ -29,6 +29,7 @@ export default function LoginPage() {
   const {
     signIn, signUp, signInWithGoogle, resetPassword,
     resendSignupCode, verifySignupCode, verifyRecoveryCode, updatePassword,
+    beginRecovery, endRecovery,
   } = useAuth();
 
   const [mode, setMode] = useState("signin"); // signin | signup | reset
@@ -45,6 +46,8 @@ export default function LoginPage() {
   const [leaving, setLeaving] = useState(false);
   const [resendIn, setResendIn] = useState(0);
   const codeBoxRef = useRef(null);
+  // Last code auto-submitted, so a wrong one is not retried on every keystroke.
+  const lastTried = useRef("");
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -54,6 +57,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (step === "code") codeBoxRef.current?.focus();
+    if (step !== "code") lastTried.current = "";
   }, [step]);
 
   function go(next) {
@@ -114,8 +118,18 @@ export default function LoginPage() {
     }
   }
 
+  // Submits itself once six digits are in, so nobody types the last digit and
+  // then hunts for a button. Guarded by the code it last tried: a wrong code
+  // must not resubmit on every keystroke while the user corrects it.
+  useEffect(() => {
+    if (step !== "code" || busy) return;
+    if (code.length !== 6 || code === lastTried.current) return;
+    lastTried.current = code;
+    submitCode();
+  }, [code, step, busy]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   async function submitCode(e) {
-    e.preventDefault();
+    e?.preventDefault();
     setError(""); setNotice(""); setBusy(true);
     try {
       const token = readCode();
@@ -126,9 +140,10 @@ export default function LoginPage() {
         setLeaving(true);
         return;
       }
+      beginRecovery();          // before the await: the session lands mid-flight
       const { data, error: err } = await verifyRecoveryCode(email, token);
-      if (err) throw err;
-      if (!data.session) throw new Error("That code didn't work. Try again.");
+      if (err) { endRecovery(); throw err; }
+      if (!data.session) { endRecovery(); throw new Error("That code didn't work. Try again."); }
       setStep("newpass");
       setNotice("");
     } catch (err) {

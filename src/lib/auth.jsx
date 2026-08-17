@@ -5,6 +5,11 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
+  // True from the moment a recovery session is created until the password has
+  // actually been changed. Verifying a recovery code signs the user in, so
+  // without this the app would show the dashboard and the "choose a new
+  // password" step would never be reachable.
+  const [recovering, setRecovering] = useState(false);
   // Starts true so nothing renders against a wrong assumption: without this the
   // app flashes the login page for a moment on every reload before Supabase
   // restores the stored session.
@@ -18,7 +23,8 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === "PASSWORD_RECOVERY") setRecovering(true);
       setSession(next);
       setLoading(false);
     });
@@ -29,6 +35,9 @@ export function AuthProvider({ children }) {
   const value = {
     session,
     user: session?.user ?? null,
+    recovering,
+    beginRecovery: () => setRecovering(true),
+    endRecovery: () => setRecovering(false),
     loading,
     configured: isConfigured,
 
@@ -64,8 +73,11 @@ export function AuthProvider({ children }) {
     verifyRecoveryCode: (email, token) =>
       supabase.auth.verifyOtp({ email, token, type: "recovery" }),
 
-    updatePassword: (password) =>
-      supabase.auth.updateUser({ password }),
+    updatePassword: async (password) => {
+      const res = await supabase.auth.updateUser({ password });
+      if (!res.error) setRecovering(false);   // recovery is over; let the app in
+      return res;
+    },
 
     signOut: () => supabase.auth.signOut(),
   };

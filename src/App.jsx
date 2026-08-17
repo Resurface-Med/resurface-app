@@ -41,7 +41,7 @@ const GenerateMode = lazy(() => import("./views/GenerateMode"));
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
 export default function App() {
-  const { user, loading: authLoading, configured, signOut } = useAuth();
+  const { user, loading: authLoading, configured, signOut, recovering } = useAuth();
 
   const [view, setView] = useState(V.DASH);
   const [pendingView, setPendingView] = useState(null);
@@ -200,7 +200,10 @@ export default function App() {
     );
   }
 
-  if (!user) return <LoginPage />;
+  // A recovery session is a real session, so `user` is set the moment the code
+  // is verified. Hold the login page until the password has actually changed,
+  // or the "choose a new password" step is unmounted before it can render.
+  if (!user || recovering) return <LoginPage />;
 
   return (
     <ErrorBoundary>
