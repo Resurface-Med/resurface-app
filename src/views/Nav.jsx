@@ -1,16 +1,12 @@
 import { useRef, useEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
-import { POMODORO_MODES } from "../lib/pomodoro";
+import PomodoroTimer from "./PomodoroTimer";
 
 const NAV_SUB    = "var(--c-nav-sub)";
 const NAV_MUTED  = "var(--c-nav-muted)";
 const NAV_MUTDIM = "var(--c-nav-muted-dim)";
 
-function fmtTime(s) {
-  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
-}
-
-export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro, email, onSignOut }) {
+export function Sidebar({ view, setView, dueCount, pomodoro, email, onSignOut }) {
   const navRef  = useRef(null);
   const itemRefs = useRef([]);
   const [pill, setPill] = useState({ top: 12, height: 40 });
@@ -20,10 +16,6 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
     const el  = itemRefs.current[idx];
     if (el && navRef.current) setPill({ top: el.offsetTop, height: el.offsetHeight });
   }, [view]);
-
-  const { mode, timeLeft, running } = pomodoro || {};
-  const pomColor = mode ? POMODORO_MODES[mode].color : "#a1c0ff";
-  const isActive = running || (mode && timeLeft < POMODORO_MODES[mode].duration && timeLeft > 0);
 
   return (
     <aside style={{
@@ -90,10 +82,9 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
           );
 
           const active = view === item.k;
-          const badge = item.k === V.REVIEW ? dueCount
-            : item.k === V.WRONG ? wrongCount
-            : item.k === V.BOOKMARKS ? bmCount
-            : 0;
+          // Only Study carries a count now, and what it counts is the thing
+          // worth returning for: questions due to resurface.
+          const badge = item.k === V.STUDY ? dueCount : 0;
 
           return (
             <button
@@ -112,43 +103,12 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
                 transition: "color 0.2s",
               }}
             >
-              <span style={{
-                fontSize: 14, width: 18, textAlign: "center", flexShrink: 0, lineHeight: 1,
-                color: active
-                  ? "#fff"
-                  : item.k === V.POMODORO && running ? pomColor : NAV_MUTED,
-                transition: "color 0.2s",
-              }}>{item.icon}</span>
+              <span style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
 
-              <span style={{ fontWeight: active ? 700 : 500 }}>{item.label}</span>
-
-              {item.k === V.POMODORO && isActive && (
-                <span style={{
-                  marginLeft: "auto", display: "flex", alignItems: "center", gap: 4,
-                  fontSize: 11, fontWeight: 700,
-                  color: active ? "#fff" : (running ? pomColor : NAV_MUTED),
-                  background: active ? "rgba(255,255,255,0.2)" : "var(--c-wash)",
-                  border: `1px solid ${active ? "rgba(255,255,255,0.3)" : "var(--c-border)"}`,
-                  borderRadius: "var(--r-pill)", padding: "2px 8px",
-                  fontVariantNumeric: "tabular-nums",
-                }}>
-                  {running && <span style={{
-                    width: 5, height: 5, borderRadius: 99,
-                    background: active ? "#fff" : pomColor, display: "inline-block",
-                    animation: "badge-pulse 1.8s ease-in-out infinite",
-                  }} />}
-                  {fmtTime(timeLeft)}
-                </span>
-              )}
-
-              {item.k !== V.POMODORO && badge > 0 && (
+              {badge > 0 && (
                 <span className="anim-badge-pulse" style={{
                   marginLeft: "auto",
-                  background: active
-                    ? "rgba(255,255,255,0.25)"
-                    : item.k === V.REVIEW ? "var(--c-orange)"
-                    : item.k === V.WRONG ? "var(--c-danger)"
-                    : "var(--c-muted-dim)",
+                  background: active ? "rgba(255,255,255,0.25)" : "var(--c-accent)",
                   color: "#fff", borderRadius: "var(--r-pill)", fontSize: 11,
                   fontWeight: 700, padding: "2px 8px",
                 }}>{badge}</span>
@@ -157,6 +117,8 @@ export function Sidebar({ view, setView, dueCount, wrongCount, bmCount, pomodoro
           );
         })}
       </nav>
+
+      <PomodoroTimer {...pomodoro} />
 
       <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c-nav-border)" }}>
         {email && (

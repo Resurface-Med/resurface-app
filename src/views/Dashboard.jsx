@@ -111,7 +111,7 @@ function useCountUp(target, duration = 420, delay = 0) {
   return val;
 }
 
-export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, dailyGoal = 20, onGoalChange, onClearP, onClearSR }) {
+export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, dailyGoal = 20, onGoalChange, onStudy, onClearP, onClearSR }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
@@ -179,9 +179,9 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   // Numbered like the landing's "How it works" steps — the order is the
   // suggested route through the app, not three equivalent buttons.
   const modes = [
-    { k: V.PRACTICE, n: "1", label: "Practice",      body: "Work through a topic at your own pace." },
-    { k: V.REVIEW,   n: "2", label: "Review",        body: dueCount > 0 ? `${dueCount} question${dueCount === 1 ? "" : "s"} due to resurface.` : "Nothing due — you're on top of it.", badge: dueCount > 0 ? dueCount : null },
-    { k: V.WRONG,    n: "3", label: "Wrong answers", body: "Go back to what caught you out." },
+    { scope: "due",   n: "1", label: "Review what's due", body: dueCount > 0 ? `${dueCount} question${dueCount === 1 ? "" : "s"} ready to resurface.` : "Nothing due — you're on top of it.", badge: dueCount > 0 ? dueCount : null },
+    { scope: "all",   n: "2", label: "Practice anything", body: "Work through a topic at your own pace." },
+    { scope: "wrong", n: "3", label: "Fix what you missed", body: "Go back to the ones that caught you out." },
   ];
 
   const hour = new Date().getHours();
@@ -415,18 +415,18 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
             Where to next?
           </h2>
         </div>
-        <button onClick={() => setView(V.STATS)} className="btn-press" style={{
+        <button onClick={() => setView(V.PROGRESS)} className="btn-press" style={{
           background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
           fontSize: 14.5, fontWeight: 600, color: C.accent,
           display: "flex", alignItems: "center", gap: 5, padding: 0,
         }}>
-          View detailed stats <span aria-hidden="true">→</span>
+          See your progress <span aria-hidden="true">→</span>
         </button>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
         {modes.map((m, i) => (
-          <button key={m.k} onClick={() => setView(m.k)} className="hover-lift btn-press" style={{
+          <button key={m.scope} onClick={() => onStudy?.(m.scope)} className="hover-lift btn-press" style={{
             ...card,
             position: "relative",
             padding: "clamp(20px, 2.4vw, 26px)",

@@ -34,14 +34,9 @@ import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
 import PomodoroToast from "./views/PomodoroToast";
 
-const PracticeMode  = lazy(() => import("./modes/PracticeMode"));
-const TimedMode     = lazy(() => import("./modes/TimedMode"));
-const StatsView     = lazy(() => import("./views/StatsView"));
-const BookmarksView = lazy(() => import("./views/BookmarksView"));
-const WrongAnswers  = lazy(() => import("./views/WrongAnswers"));
-const SubjectsPage  = lazy(() => import("./views/SubjectsPage"));
-const GenerateMode  = lazy(() => import("./views/GenerateMode"));
-const PomodoroPage  = lazy(() => import("./views/PomodoroPage"));
+const StudyMode    = lazy(() => import("./modes/PracticeMode"));
+const ProgressView = lazy(() => import("./views/StatsView"));
+const GenerateMode = lazy(() => import("./views/GenerateMode"));
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -59,7 +54,6 @@ export default function App() {
   const [streak, setStreak] = useState({ streak: 0, longest: 0, lastDate: null });
   const [activity, setActivity] = useState({});
   const [dailyGoal, setDailyGoal] = useState(20);
-  const [timedBests, setTimedBests] = useState({});
   const [generated, setGenerated] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -96,7 +90,6 @@ export default function App() {
       setStreak(d.streak);
       setActivity(d.activity);
       setDailyGoal(d.dailyGoal);
-      setTimedBests(d.timedBests);
       setGenerated(d.generated);
       setDataLoading(false);
     })();
@@ -167,20 +160,19 @@ export default function App() {
   const pomodoro = usePomodoro();
 
   const [launchFilter, setLaunchFilter] = useState({ deck: "All", cat: "All" });
+  const [studyScope, setStudyScope] = useState("all");
 
   const dueCount = useMemo(() => QUESTIONS.filter(q => isDue(srCards[q.id])).length, [srCards]);
-  const wrongCount = useMemo(() => QUESTIONS.filter(q => { const s = pStats[q.id]; return s && s.total > 0 && (s.correct / s.total) < 0.6; }).length, [pStats]);
 
   function handleNav(newView) {
-    if (view === V.PRACTICE && newView !== V.PRACTICE && practiceSessionActive) {
+    if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
       setPendingView(newView);
       return;
     }
     setView(newView);
   }
 
-  const nav = { view, setView: handleNav, dueCount, bmCount: bookmarks.length, wrongCount, pomodoro,
-    email: user?.email, onSignOut: signOut };
+  const nav = { view, setView: handleNav, dueCount, pomodoro, email: user?.email, onSignOut: signOut };
 
   // Auth gates the whole app. `configured` is false when the Supabase env vars
   // are missing, in which case sign-in can't work at all and saying so beats
@@ -273,21 +265,23 @@ export default function App() {
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>
-          {view === V.DASH && <Dashboard pStats={pStats} srCards={srCards} streak={streak} dueCount={dueCount} bmCount={bookmarks.length} setView={setView}
+          {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
             activity={activity}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
+            onStudy={s => { setStudyScope(s); setView(V.STUDY); }}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
-          {view === V.SUBJECTS && <SubjectsPage pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
-          {view === V.PRACTICE && <PracticeMode pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
-          {view === V.REVIEW && <PracticeMode key="review" dueOnly srCards={srCards} pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} onSessionActive={setPracticeSessionActive} />}
-          {view === V.TIMED && <TimedMode pStats={pStats} onAnswer={recordAnswer} launchFilter={launchFilter} timedBests={timedBests} />}
-          {view === V.WRONG && <WrongAnswers pStats={pStats} bookmarks={bookmarks} onAnswer={recordAnswer} onToggleBookmark={toggleBookmark} />}
-          {view === V.STATS && <StatsView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
-          {view === V.BOOKMARKS && <BookmarksView bookmarks={bookmarks} pStats={pStats} onToggleBookmark={toggleBookmark} />}
+
+          {view === V.STUDY && <StudyMode key={studyScope} scope={studyScope}
+            pStats={pStats} srCards={srCards} bookmarks={bookmarks}
+            onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
+            launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
+
+          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
+
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
-          {view === V.POMODORO && <PomodoroPage {...pomodoro} />}
+
           </Suspense>
         </div>
       </div>

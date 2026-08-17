@@ -103,10 +103,43 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
 }
 
 const COUNT_OPTIONS = [10, 20, 50, "All"];
+
+const SCOPES = [
+  { k: "all",   label: "Everything" },
+  { k: "due",   label: "Due now" },
+  { k: "wrong", label: "Got wrong" },
+  { k: "saved", label: "Saved" },
+];
+
+const SCOPE_COPY = {
+  all:   "Work through questions at your own pace.",
+  due:   "Questions due to resurface, before you forget them.",
+  wrong: "The ones that caught you out.",
+  saved: "Questions you bookmarked.",
+};
 const SESSION_KEY = "pq_practice_session";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, dueOnly = false, srCards = {} }) {
+/**
+ * The one place questions get answered.
+ *
+ * Practice, Review, Wrong Answers, Bookmarks and Timed were five destinations
+ * for this same screen with a different WHERE clause. They are now scopes,
+ * picked here, so the nav describes the task rather than the implementation.
+ */
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, srCards = {}, scope: initialScope = "all" }) {
+  const [scope, setScope] = useState(initialScope);
+
+  /** Live counts, so a scope with nothing in it says so before you pick it. */
+  function scopeCount(k) {
+    if (k === "due")   return QUESTIONS.filter(q => isDue(srCards[q.id])).length;
+    if (k === "saved") return bookmarks.length;
+    if (k === "wrong") return QUESTIONS.filter(q => {
+      const s = pStats[q.id];
+      return s && s.total > 0 && s.correct / s.total < 0.6;
+    }).length;
+    return QUESTIONS.length;
+  }
   const [filter, setFilter] = useState(launchFilter
     ? { year: ["All"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
     : defaultFilter
@@ -145,9 +178,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   function start(filterOverride) {
     const f = filterOverride ?? filter;
     let base = filteredQuestions(f, pStats);
-    // Review is the same engine pointed at what's due, rather than a mode of
-    // its own — the platform is questions either way.
-    if (dueOnly) base = base.filter(q => isDue(srCards[q.id]));
+
+    // The scope is the only thing that separates what used to be five modes.
+    if (scope === "due")   base = base.filter(q => isDue(srCards[q.id]));
+    if (scope === "saved") base = base.filter(q => bookmarks.includes(q.id));
+    if (scope === "wrong") base = base.filter(q => {
+      const s = pStats[q.id];
+      return s && s.total > 0 && s.correct / s.total < 0.6;
+    });
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
     const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);
@@ -271,6 +309,28 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         })()}
 
         <div className="anim-fade-up delay-100" style={card}>
+          <div style={{ marginBottom: 22 }}>
+            <div style={labelStyle}>What do you want to work on?</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {SCOPES.map(s => {
+                const n = scopeCount(s.k);
+                const disabled = n === 0 && s.k !== "all";
+                return (
+                  <button key={s.k} className="btn-press"
+                    onClick={() => !disabled && setScope(s.k)}
+                    style={{
+                      ...chipBtn,
+                      ...(scope === s.k ? chipBtnActive : {}),
+                      opacity: disabled ? 0.4 : 1,
+                      cursor: disabled ? "not-allowed" : "pointer",
+                    }}>
+                    {s.label}{s.k !== "all" && ` (${n})`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{ marginBottom: 20 }}>
             <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
           </div>

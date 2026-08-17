@@ -1,103 +1,19 @@
-import { useState, useEffect, useRef } from "react";
-
-const MODES = {
-  work:       { label: "Focus",        duration: 25 * 60, color: "#3562f5", dim: "rgba(53,98,245,0.15)" },
-  shortBreak: { label: "Short Break",  duration:  5 * 60, color: "#3ecf8e", dim: "rgba(62,207,142,0.15)" },
-  longBreak:  { label: "Long Break",   duration: 15 * 60, color: "#f6c54d", dim: "rgba(246,197,77,0.15)"  },
-};
+import { POMODORO_MODES as MODES } from "../lib/pomodoro";
 
 const R  = 22;
 const SW = 2.5;
 const CIRC = 2 * Math.PI * R;
 const SIZE = (R + SW) * 2;
 
-export default function PomodoroTimer() {
-  const [mode, setMode]       = useState("work");
-  const [timeLeft, setTimeLeft] = useState(MODES.work.duration);
-  const [running, setRunning] = useState(false);
-  const [count, setCount]     = useState(0); // completed work sessions
-  const [flash, setFlash]     = useState(false);
-
-  // Refs so advance() never captures stale closure values
-  const modeRef  = useRef("work");
-  const countRef = useRef(0);
-  modeRef.current  = mode;
-  countRef.current = count;
-
-  // Wall-clock-based tick so background throttling doesn't drift the timer
-  const startedAtRef  = useRef(null); // Date.now() when running started
-  const startLeftRef  = useRef(null); // timeLeft when running started
-
-  useEffect(() => {
-    if (!running) return;
-    startedAtRef.current = Date.now();
-    startLeftRef.current = timeLeft;
-
-    const id = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startedAtRef.current) / 1000);
-      const next = Math.max(0, startLeftRef.current - elapsed);
-      setTimeLeft(next);
-      if (next === 0) {
-        clearInterval(id);
-        setRunning(false);
-        doAdvance();
-      }
-    }, 500); // poll twice/sec for accuracy
-
-    return () => clearInterval(id);
-  }, [running]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function doAdvance() {
-    // Browser notification
-    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-      const m = modeRef.current;
-      new Notification(m === "work" ? "Break time! 🎉" : "Back to work! 💪", {
-        body: m === "work" ? "Great session. Take a breather." : "Focus session starting.",
-        silent: false,
-      });
-    }
-    // Flash
-    setFlash(true);
-    setTimeout(() => setFlash(false), 1200);
-
-    const m = modeRef.current;
-    if (m === "work") {
-      const nc = countRef.current + 1;
-      setCount(nc);
-      const next = nc % 4 === 0 ? "longBreak" : "shortBreak";
-      setMode(next);
-      setTimeLeft(MODES[next].duration);
-    } else {
-      setMode("work");
-      setTimeLeft(MODES.work.duration);
-    }
-  }
-
-  function toggle() {
-    if (timeLeft === 0) return;
-    if (!running && typeof Notification !== "undefined" && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-    setRunning(r => !r);
-  }
-
-  function reset() {
-    setRunning(false);
-    setTimeLeft(MODES[mode].duration);
-  }
-
-  function skip() {
-    setRunning(false);
-    setTimeLeft(0);
-    doAdvance();
-  }
-
-  function switchMode(m) {
-    setRunning(false);
-    setMode(m);
-    setTimeLeft(MODES[m].duration);
-  }
-
+/**
+ * The timer, in the sidebar footer.
+ *
+ * It used to run its own state, its own wall-clock tick and its own copy of the
+ * mode table, none of which were ever rendered — the file was written for this
+ * slot and never wired up. It now takes the shared timer from usePomodoro, so
+ * there is exactly one clock in the app.
+ */
+export default function PomodoroTimer({ mode = "work", timeLeft = 0, running = false, count = 0, flash = false, toggle, reset, skip, switchMode }) {
   const { color, dim } = MODES[mode];
   const total    = MODES[mode].duration;
   const progress = timeLeft / total;

@@ -33,7 +33,18 @@ export const C = {
   orangeBrd:  "var(--c-orange-brd)",
 };
 
-export const V = { DASH:"dash", SUBJECTS:"subjects", PRACTICE:"practice", REVIEW:"review", TIMED:"timed", STATS:"stats", BOOKMARKS:"bookmarks", WRONG:"wrong", GENERATE:"generate", POMODORO:"pomodoro" };
+/**
+ * Four destinations.
+ *
+ * Practice, Review, Wrong Answers, Bookmarks and Timed were five nav items for
+ * one activity — a question queue with a filter on it. They are now modes of
+ * STUDY, chosen on its setup screen. Subjects and Stats merge into PROGRESS,
+ * which also rescues Subjects: nothing linked to it, so it was unreachable.
+ */
+export const V = { DASH:"dash", STUDY:"study", PROGRESS:"progress", GENERATE:"generate" };
+
+/** What STUDY draws from. Set before opening it. */
+export const SCOPE = { ALL:"all", DUE:"due", WRONG:"wrong", SAVED:"saved" };
 
 export function shuffle(arr) {
   const a = [...arr];
@@ -363,13 +374,13 @@ export const chipFieldActive = {
   fontWeight: 600,
 };
 
+// No icons. The landing's nav is text and a CTA, and the glyphs this used to
+// carry (⊞ ▷ ↻ ✗ ★ ✦ ◉) were typographic symbols rather than an icon set —
+// rendering differently on every platform and reading as leftovers beside the
+// landing's illustrations. Four labelled items need no legend.
 export const NAV = [
-  { k: V.DASH,      label: "Dashboard",     icon: "⊞" },
-  { k: V.PRACTICE,  label: "Practice",      icon: "▷" },
-  { k: V.REVIEW,    label: "Review",        icon: "↻" },
-  { k: V.WRONG,     label: "Wrong Answers", icon: "✗" },
-  { k: V.BOOKMARKS, label: "Bookmarks",     icon: "★" },
-  null,
-  { k: V.GENERATE,  label: "AI Generate",   icon: "✦" },
-  { k: V.POMODORO,  label: "Pomodoro",      icon: "◉" },
+  { k: V.DASH,     label: "Home" },
+  { k: V.STUDY,    label: "Study" },
+  { k: V.PROGRESS, label: "Progress" },
+  { k: V.GENERATE, label: "Generate" },
 ];

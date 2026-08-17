@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { C, pageWrap, card, h1, h2 } from "../ui/theme";
+import { C, V, pageWrap, card, h1, h2, pageSub } from "../ui/theme";
 import { QUESTIONS, DECK_MAP } from "../data";
 import ProgressBar from "../ui/ProgressBar";
 
@@ -171,7 +171,7 @@ export default function StatsView({ pStats, srCards, setView, setLaunchFilter })
 
   function handlePractice(deck, cat) {
     setLaunchFilter({ deck, cat });
-    setView("practice");
+    setView(V.STUDY);
   }
 
   function toggleDeck(deck) {
@@ -236,7 +236,8 @@ export default function StatsView({ pStats, srCards, setView, setLaunchFilter })
   return (
     <div style={pageWrap}>
       {/* Title */}
-      <h1 className="anim-fade-up delay-0" style={h1}>Statistics</h1>
+      <h1 className="anim-fade-up delay-0" style={h1}>Progress</h1>
+      <p className="anim-fade-up delay-50" style={pageSub}>Where you're strong, and where to spend the next session.</p>
 
       {/* Header — circle indicator */}
       <div className="anim-scale-in delay-100" style={{ ...card, display: "flex", alignItems: "center", gap: 28 }}>
