@@ -8,7 +8,10 @@ import { supabase } from "../lib/supabase";
 
 // Generation lives in resurface-backend; this is the only place the app talks
 // to it. Falls back to the backend's local dev port.
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:3001";
+// Falls back to production rather than localhost: a deploy that forgets the
+// env var should still work, and only a dev machine wants :3001.
+const API_BASE = import.meta.env.VITE_API_BASE
+  || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
 
 // Vercel serverless functions cap request bodies at 4.5MB, and base64 inflates
 // a file by ~33%, so anything over ~3MB will be rejected at the edge.
