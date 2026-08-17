@@ -110,8 +110,9 @@ makes best-effort. A login page is the intended fix. Both live in
 ## Not built yet, roughly in priority order
 
 1. **Google sign-in** is coded but disabled — Supabase reports `google: false`
-   until OAuth credentials are configured. Email sign-in uses a 6-digit
-   code; Google is the fast path.
+   until OAuth credentials are configured. Email + password for day-to-day
+   sign-in; a 6-digit email code confirms new signups and password resets.
+   Google is the fast path.
 2. **No migration of old `pq_*` data** into accounts. Deliberate: it is only the
    author's own test progress, and an importer was not worth writing unasked.
 3. PWA manifest — med students study on iPads; this is how they install it.

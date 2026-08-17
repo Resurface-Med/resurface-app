@@ -32,33 +32,40 @@ export function AuthProvider({ children }) {
     loading,
     configured: isConfigured,
 
-    // Passwordless: email a 6-digit code (Magic Link template must include
-    // {{ .Token }} and must not rely on {{ .ConfirmationURL }}).
-    sendEmailCode: (email) =>
-      supabase.auth.signInWithOtp({
+    signUp: (email, password) =>
+      supabase.auth.signUp({
         email,
-        options: { shouldCreateUser: true },
+        password,
+        options: { emailRedirectTo: window.location.origin },
       }),
 
-    verifyEmailCode: async (email, token) => {
-      // New accounts get a confirmation mail (type signup). Returning users
-      // get the magic-link/OTP mail (type email / magiclink). Try all three
-      // without burning the token on a wrong type.
-      const types = ["email", "signup", "magiclink"];
-      let last = null;
-      for (const type of types) {
-        const result = await supabase.auth.verifyOtp({ email, token, type });
-        if (!result.error && result.data?.session) return result;
-        last = result;
-      }
-      return last;
-    },
+    signIn: (email, password) =>
+      supabase.auth.signInWithPassword({ email, password }),
 
     signInWithGoogle: () =>
       supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: window.location.origin },
       }),
+
+    // Recovery template must use {{ .Token }} (no ConfirmationURL) so the
+    // student gets a code instead of a link that mail apps burn.
+    resetPassword: (email) =>
+      supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      }),
+
+    resendSignupCode: (email) =>
+      supabase.auth.resend({ type: "signup", email }),
+
+    verifySignupCode: (email, token) =>
+      supabase.auth.verifyOtp({ email, token, type: "signup" }),
+
+    verifyRecoveryCode: (email, token) =>
+      supabase.auth.verifyOtp({ email, token, type: "recovery" }),
+
+    updatePassword: (password) =>
+      supabase.auth.updateUser({ password }),
 
     signOut: () => supabase.auth.signOut(),
   };

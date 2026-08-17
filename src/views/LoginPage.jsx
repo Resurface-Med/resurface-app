@@ -7,9 +7,9 @@ import { useAuth } from "../lib/auth";
 // site doesn't feel like a different product. Below 900px the brand panel is
 // dropped rather than stacked — on a phone, nobody needs the pitch twice.
 //
-// Auth is passwordless: email → 6-digit code → in. Google stays as the fast
-// path. Codes live in the email client the student already has open, so a
-// mail-app prefetch can't burn a one-click link in a different browser.
+// Day-to-day auth is email + password (+ Google). A 6-digit email code is only
+// used to confirm a new signup, and to prove ownership before a password reset
+// — so mail apps that prefetch links can't burn the session.
 
 const field = {
   width: "100%",
@@ -26,10 +26,18 @@ const field = {
 const RESEND_SECS = 60;
 
 export default function LoginPage() {
-  const { sendEmailCode, verifyEmailCode, signInWithGoogle } = useAuth();
+  const {
+    signIn, signUp, signInWithGoogle, resetPassword,
+    resendSignupCode, verifySignupCode, verifyRecoveryCode, updatePassword,
+  } = useAuth();
 
-  const [step, setStep] = useState("email"); // email | code
+  const [mode, setMode] = useState("signin"); // signin | signup | reset
+  // After signup / reset request we collect the emailed code. After a recovery
+  // code verifies, we collect the new password.
+  const [step, setStep] = useState("form");   // form | code | newpass
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -48,22 +56,57 @@ export default function LoginPage() {
     if (step === "code") codeRef.current?.focus();
   }, [step]);
 
-  async function sendCode(to) {
-    const { error: err } = await sendEmailCode(to);
-    if (err) throw err;
-    setResendIn(RESEND_SECS);
+  function go(next) {
+    setMode(next);
+    setStep("form");
+    setCode("");
+    setNewPassword("");
+    setError("");
+    setNotice("");
+    setResendIn(0);
   }
 
-  async function submitEmail(e) {
+  function readCode() {
+    const token = code.replace(/\s/g, "");
+    if (!/^\d{6}$/.test(token)) {
+      throw new Error("Enter the 6-digit code from your email.");
+    }
+    return token;
+  }
+
+  async function submitForm(e) {
     e.preventDefault();
     setError(""); setNotice(""); setBusy(true);
     try {
       const trimmed = email.trim();
-      await sendCode(trimmed);
-      setEmail(trimmed);
-      setStep("code");
-      setCode("");
-      setNotice("Check your email for a 6-digit code.");
+      if (mode === "reset") {
+        const { error: err } = await resetPassword(trimmed);
+        if (err) throw err;
+        setEmail(trimmed);
+        setStep("code");
+        setCode("");
+        setResendIn(RESEND_SECS);
+        setNotice("Check your email for a 6-digit code.");
+      } else if (mode === "signup") {
+        const { data, error: err } = await signUp(trimmed, password);
+        if (err) throw err;
+        setEmail(trimmed);
+        // With email confirmation on, Supabase returns a user but no session.
+        if (!data.session) {
+          setStep("code");
+          setCode("");
+          setResendIn(RESEND_SECS);
+          setNotice("Check your email for a 6-digit confirmation code.");
+        } else {
+          setLeaving(true);
+          return;
+        }
+      } else {
+        const { error: err } = await signIn(trimmed, password);
+        if (err) throw err;
+        setLeaving(true);
+        return;
+      }
     } catch (err) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -75,13 +118,36 @@ export default function LoginPage() {
     e.preventDefault();
     setError(""); setNotice(""); setBusy(true);
     try {
-      const token = code.replace(/\s/g, "");
-      if (!/^\d{6}$/.test(token)) {
-        throw new Error("Enter the 6-digit code from your email.");
+      const token = readCode();
+      if (mode === "signup") {
+        const { data, error: err } = await verifySignupCode(email, token);
+        if (err) throw err;
+        if (!data.session) throw new Error("That code didn't work. Try again.");
+        setLeaving(true);
+        return;
       }
-      const { data, error: err } = await verifyEmailCode(email, token);
+      // reset
+      const { data, error: err } = await verifyRecoveryCode(email, token);
       if (err) throw err;
       if (!data.session) throw new Error("That code didn't work. Try again.");
+      setStep("newpass");
+      setNotice("Choose a new password.");
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitNewPassword(e) {
+    e.preventDefault();
+    setError(""); setNotice(""); setBusy(true);
+    try {
+      if (newPassword.length < 6) {
+        throw new Error("Password must be at least 6 characters.");
+      }
+      const { error: err } = await updatePassword(newPassword);
+      if (err) throw err;
       setLeaving(true);
       return;
     } catch (err) {
@@ -94,7 +160,14 @@ export default function LoginPage() {
     if (resendIn > 0 || busy) return;
     setError(""); setNotice(""); setBusy(true);
     try {
-      await sendCode(email);
+      if (mode === "signup") {
+        const { error: err } = await resendSignupCode(email);
+        if (err) throw err;
+      } else {
+        const { error: err } = await resetPassword(email);
+        if (err) throw err;
+      }
+      setResendIn(RESEND_SECS);
       setNotice("Sent a new code.");
       setCode("");
     } catch (err) {
@@ -104,17 +177,27 @@ export default function LoginPage() {
     }
   }
 
-  function backToEmail() {
-    setStep("email");
-    setCode("");
-    setError("");
-    setNotice("");
-  }
+  const heading = step === "code" ? "Enter your code"
+    : step === "newpass" ? "Choose a new password"
+    : mode === "signup" ? "Create your account"
+    : mode === "reset" ? "Reset your password"
+    : "Welcome back";
 
-  const heading = step === "code" ? "Enter your code" : "Welcome back";
   const sub = step === "code"
     ? `We sent a 6-digit code to ${email}.`
-    : "Your progress and generated questions follow you everywhere.";
+    : step === "newpass"
+      ? "Pick something you'll remember. At least 6 characters."
+      : mode === "reset"
+        ? "We'll email you a code to set a new one."
+        : "Your progress and generated questions follow you everywhere.";
+
+  const formCta = mode === "signup" ? "Create account"
+    : mode === "reset" ? "Send reset code"
+    : "Sign in";
+
+  const staggerKey = `${mode}-${step}`;
+  const showGoogle = step === "form" && mode !== "reset";
+  const hidePassword = mode === "reset" && step === "form";
 
   return (
     <div className={`login-split${leaving ? " is-leaving" : ""}`}>
@@ -155,7 +238,7 @@ export default function LoginPage() {
 
       {/* ── Form panel ──────────────────────────────────────────────── */}
       <main className="login-form-panel">
-        <div className="auth-stagger" style={{ width: "100%", maxWidth: 380 }} key={step}>
+        <div className="auth-stagger" style={{ width: "100%", maxWidth: 380 }} key={staggerKey}>
           <img
             src="/logo-lockup.png"
             alt="Resurface"
@@ -168,8 +251,8 @@ export default function LoginPage() {
             {sub}
           </p>
 
-          {step === "email" ? (
-            <form onSubmit={submitEmail} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
+          {step === "form" && (
+            <form onSubmit={submitForm} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
               <div>
                 <label htmlFor="email" style={labelStyle}>Email</label>
                 <input id="email" type="email" required autoComplete="email" autoFocus
@@ -177,12 +260,25 @@ export default function LoginPage() {
                   placeholder="you@university.ac.uk" style={field} />
               </div>
 
+              <div className={`auth-collapse${hidePassword ? " is-out" : ""}`} aria-hidden={hidePassword}>
+                <div>
+                  <label htmlFor="password" style={labelStyle}>Password</label>
+                  <input id="password" type="password" required={!hidePassword} minLength={6}
+                    disabled={hidePassword}
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    value={password} onChange={e => setPassword(e.target.value)}
+                    placeholder={mode === "signup" ? "At least 6 characters" : "••••••••"} style={field} />
+                </div>
+              </div>
+
               {error && <Alert kind="error">{error}</Alert>}
               {notice && <Alert kind="ok">{notice}</Alert>}
 
-              <PrimaryButton busy={busy} label={busy ? "Sending…" : "Email me a code"} />
+              <PrimaryButton busy={busy} label={busy ? "Working…" : formCta} />
             </form>
-          ) : (
+          )}
+
+          {step === "code" && (
             <form onSubmit={submitCode} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
               <div>
                 <label htmlFor="code" style={labelStyle}>6-digit code</label>
@@ -211,10 +307,12 @@ export default function LoginPage() {
               {error && <Alert kind="error">{error}</Alert>}
               {notice && <Alert kind="ok">{notice}</Alert>}
 
-              <PrimaryButton busy={busy} label={busy ? "Checking…" : "Sign in"} />
+              <PrimaryButton busy={busy} label={busy ? "Checking…" : (mode === "reset" ? "Continue" : "Confirm email")} />
 
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 4 }}>
-                <button type="button" onClick={backToEmail} style={linkBtn}>← Different email</button>
+                <button type="button" onClick={() => { setStep("form"); setCode(""); setError(""); setNotice(""); }} style={linkBtn}>
+                  ← Back
+                </button>
                 <button
                   type="button"
                   onClick={resend}
@@ -231,7 +329,24 @@ export default function LoginPage() {
             </form>
           )}
 
-          {step === "email" && (
+          {step === "newpass" && (
+            <form onSubmit={submitNewPassword} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
+              <div>
+                <label htmlFor="new-password" style={labelStyle}>New password</label>
+                <input id="new-password" type="password" required minLength={6} autoFocus
+                  autoComplete="new-password"
+                  value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                  placeholder="At least 6 characters" style={field} />
+              </div>
+
+              {error && <Alert kind="error">{error}</Alert>}
+              {notice && <Alert kind="ok">{notice}</Alert>}
+
+              <PrimaryButton busy={busy} label={busy ? "Saving…" : "Save password"} />
+            </form>
+          )}
+
+          {showGoogle && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0 15px" }}>
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
@@ -254,6 +369,20 @@ export default function LoginPage() {
                 Continue with Google
               </button>
             </>
+          )}
+
+          {step === "form" && (
+            <div style={{ marginTop: 22, fontSize: 14, color: C.sub, textAlign: "center" }}>
+              {mode === "signin" ? (
+                <>
+                  <button type="button" onClick={() => go("signup")} style={linkBtn}>Create an account</button>
+                  <span style={{ color: C.mutedDim, margin: "0 8px" }}>·</span>
+                  <button type="button" onClick={() => go("reset")} style={linkBtn}>Forgot password?</button>
+                </>
+              ) : (
+                <button type="button" onClick={() => go("signin")} style={linkBtn}>← Back to sign in</button>
+              )}
+            </div>
           )}
 
           <p style={{ textAlign: "center", fontSize: 12.5, color: C.muted, marginTop: 26 }}>
