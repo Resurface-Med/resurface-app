@@ -626,8 +626,7 @@ select {
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* The password field is absent in reset mode. Animating the row keeps the
-   panel from jumping when it comes and goes. */
+/* Collapsible form rows (kept for mode swaps that hide a field). */
 .auth-collapse {
   display: grid;
   grid-template-rows: 1fr;

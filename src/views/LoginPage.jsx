@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { C, OF } from "../ui/theme";
 import { useAuth } from "../lib/auth";
 
@@ -6,6 +6,10 @@ import { useAuth } from "../lib/auth";
 // form. Same split the landing page uses, so arriving here from the marketing
 // site doesn't feel like a different product. Below 900px the brand panel is
 // dropped rather than stacked — on a phone, nobody needs the pitch twice.
+//
+// Auth is passwordless: email → 6-digit code → in. Google stays as the fast
+// path. Codes live in the email client the student already has open, so a
+// mail-app prefetch can't burn a one-click link in a different browser.
 
 const field = {
   width: "100%",
@@ -19,44 +23,47 @@ const field = {
   outline: "none",
 };
 
-export default function LoginPage() {
-  const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth();
+const RESEND_SECS = 60;
 
-  const [mode, setMode] = useState("signin");   // signin | signup | reset
+export default function LoginPage() {
+  const { sendEmailCode, verifyEmailCode, signInWithGoogle } = useAuth();
+
+  const [step, setStep] = useState("email"); // email | code
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [leaving, setLeaving] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
+  const codeRef = useRef(null);
 
-  // A successful sign-in lifts the screen away. Supabase fires the session
-  // change a moment later and App swaps this out, so the animation covers the
-  // handover instead of the page simply being replaced.
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
-  function go(next) {
-    setMode(next); setError(""); setNotice("");
+  useEffect(() => {
+    if (step === "code") codeRef.current?.focus();
+  }, [step]);
+
+  async function sendCode(to) {
+    const { error: err } = await sendEmailCode(to);
+    if (err) throw err;
+    setResendIn(RESEND_SECS);
   }
 
-  async function submit(e) {
+  async function submitEmail(e) {
     e.preventDefault();
     setError(""); setNotice(""); setBusy(true);
     try {
-      if (mode === "reset") {
-        const { error } = await resetPassword(email);
-        if (error) throw error;
-        setNotice("Check your email for a reset link.");
-      } else if (mode === "signup") {
-        const { data, error } = await signUp(email, password);
-        if (error) throw error;
-        // With email confirmation on, Supabase returns a user but no session.
-        if (!data.session) setNotice("Check your email to confirm your account.");
-      } else {
-        const { error } = await signIn(email, password);
-        if (error) throw error;
-        setLeaving(true);
-        return;   // leave `busy` set: the screen is on its way out
-      }
+      const trimmed = email.trim();
+      await sendCode(trimmed);
+      setEmail(trimmed);
+      setStep("code");
+      setCode("");
+      setNotice("Check your email for a 6-digit code.");
     } catch (err) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -64,13 +71,50 @@ export default function LoginPage() {
     }
   }
 
-  const heading = mode === "signup" ? "Create your account"
-    : mode === "reset" ? "Reset your password"
-    : "Welcome back";
+  async function submitCode(e) {
+    e.preventDefault();
+    setError(""); setNotice(""); setBusy(true);
+    try {
+      const token = code.replace(/\s/g, "");
+      if (!/^\d{6}$/.test(token)) {
+        throw new Error("Enter the 6-digit code from your email.");
+      }
+      const { data, error: err } = await verifyEmailCode(email, token);
+      if (err) throw err;
+      if (!data.session) throw new Error("That code didn't work. Try again.");
+      setLeaving(true);
+      return;
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+      setBusy(false);
+    }
+  }
 
-  const cta = mode === "signup" ? "Create account"
-    : mode === "reset" ? "Send reset link"
-    : "Sign in";
+  async function resend() {
+    if (resendIn > 0 || busy) return;
+    setError(""); setNotice(""); setBusy(true);
+    try {
+      await sendCode(email);
+      setNotice("Sent a new code.");
+      setCode("");
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function backToEmail() {
+    setStep("email");
+    setCode("");
+    setError("");
+    setNotice("");
+  }
+
+  const heading = step === "code" ? "Enter your code" : "Welcome back";
+  const sub = step === "code"
+    ? `We sent a 6-digit code to ${email}.`
+    : "Your progress and generated questions follow you everywhere.";
 
   return (
     <div className={`login-split${leaving ? " is-leaving" : ""}`}>
@@ -97,7 +141,7 @@ export default function LoginPage() {
           {/* Anyone on this screen has already decided; listing features again
               is wasted space. Who made it is the thing they don't know. */}
           <p style={{ marginTop: 22, fontSize: 16, color: OF.soft, lineHeight: 1.6, maxWidth: "40ch" }}>
-            Built by a medical student, for medical students — questions that
+            Built by a medical student, for medical students. Questions that
             follow your course, not a generic syllabus.
           </p>
         </div>
@@ -111,7 +155,7 @@ export default function LoginPage() {
 
       {/* ── Form panel ──────────────────────────────────────────────── */}
       <main className="login-form-panel">
-        <div className="auth-stagger" style={{ width: "100%", maxWidth: 380 }} key={mode}>
+        <div className="auth-stagger" style={{ width: "100%", maxWidth: 380 }} key={step}>
           <img
             src="/logo-lockup.png"
             alt="Resurface"
@@ -121,57 +165,73 @@ export default function LoginPage() {
 
           <h1 className="auth-swap" style={{ fontSize: 26, fontWeight: 600, letterSpacing: -0.9, color: C.text }}>{heading}</h1>
           <p style={{ fontSize: 14.5, color: C.sub, marginTop: 7, lineHeight: 1.5 }}>
-            {mode === "reset"
-              ? "We'll email you a link to set a new one."
-              : "Your progress, flashcards and generated questions follow you everywhere."}
+            {sub}
           </p>
 
-          <form onSubmit={submit} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
-            <div>
-              <label htmlFor="email" style={labelStyle}>Email</label>
-              <input id="email" type="email" required autoComplete="email" autoFocus
-                value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="you@university.ac.uk" style={field} />
-            </div>
-
-            <div className={`auth-collapse${mode === "reset" ? " is-out" : ""}`} aria-hidden={mode === "reset"}>
+          {step === "email" ? (
+            <form onSubmit={submitEmail} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
               <div>
-                <label htmlFor="password" style={labelStyle}>Password</label>
-                <input id="password" type="password" required={mode !== "reset"} minLength={6}
-                  disabled={mode === "reset"}
-                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                  value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder={mode === "signup" ? "At least 6 characters" : "••••••••"} style={field} />
+                <label htmlFor="email" style={labelStyle}>Email</label>
+                <input id="email" type="email" required autoComplete="email" autoFocus
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="you@university.ac.uk" style={field} />
               </div>
-            </div>
 
-            {error && (
-              <div role="alert" className="auth-alert" style={{
-                fontSize: 14, color: C.danger, background: C.dangerDim,
-                border: `1px solid ${C.dangerBrd}`, borderRadius: "var(--r-ctrl)", padding: "10px 14px",
-              }}>{error}</div>
-            )}
+              {error && <Alert kind="error">{error}</Alert>}
+              {notice && <Alert kind="ok">{notice}</Alert>}
 
-            {notice && (
-              <div className="auth-notice" style={{
-                fontSize: 14, color: C.success, background: C.successDim,
-                border: `1px solid ${C.successBrd}`, borderRadius: "var(--r-ctrl)", padding: "10px 14px",
-              }}>{notice}</div>
-            )}
+              <PrimaryButton busy={busy} label={busy ? "Sending…" : "Email me a code"} />
+            </form>
+          ) : (
+            <form onSubmit={submitCode} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
+              <div>
+                <label htmlFor="code" style={labelStyle}>6-digit code</label>
+                <input
+                  id="code"
+                  ref={codeRef}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  required
+                  value={code}
+                  onChange={e => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="000000"
+                  style={{
+                    ...field,
+                    fontSize: 22,
+                    fontWeight: 600,
+                    letterSpacing: "0.35em",
+                    textAlign: "center",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                />
+              </div>
 
-            <button type="submit" disabled={busy} className="btn-press" style={{
-              width: "100%", marginTop: 3, padding: "13px 26px",
-              background: busy ? "var(--c-accent-lt)" : "var(--c-accent)",
-              color: "#fff", border: "none", borderRadius: "var(--r-pill)",
-              fontWeight: 600, fontSize: 15, fontFamily: "inherit",
-              cursor: busy ? "default" : "pointer",
-              boxShadow: "0 12px 30px rgba(20, 44, 130, 0.22)",
-            }}>
-              {busy ? "Working…" : cta}
-            </button>
-          </form>
+              {error && <Alert kind="error">{error}</Alert>}
+              {notice && <Alert kind="ok">{notice}</Alert>}
 
-          {mode !== "reset" && (
+              <PrimaryButton busy={busy} label={busy ? "Checking…" : "Sign in"} />
+
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginTop: 4 }}>
+                <button type="button" onClick={backToEmail} style={linkBtn}>← Different email</button>
+                <button
+                  type="button"
+                  onClick={resend}
+                  disabled={resendIn > 0 || busy}
+                  style={{
+                    ...linkBtn,
+                    color: resendIn > 0 || busy ? "var(--c-muted)" : "var(--c-accent)",
+                    cursor: resendIn > 0 || busy ? "default" : "pointer",
+                  }}
+                >
+                  {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {step === "email" && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0 15px" }}>
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
@@ -196,23 +256,46 @@ export default function LoginPage() {
             </>
           )}
 
-          <div style={{ marginTop: 22, fontSize: 14, color: C.sub, textAlign: "center" }}>
-            {mode === "signin" ? (
-              <>
-                <button type="button" onClick={() => go("signup")} style={linkBtn}>Create an account</button>
-                <span style={{ color: C.mutedDim, margin: "0 8px" }}>·</span>
-                <button type="button" onClick={() => go("reset")} style={linkBtn}>Forgot password?</button>
-              </>
-            ) : (
-              <button type="button" onClick={() => go("signin")} style={linkBtn}>← Back to sign in</button>
-            )}
-          </div>
-
           <p style={{ textAlign: "center", fontSize: 12.5, color: C.muted, marginTop: 26 }}>
             Free while it's in testing.
           </p>
         </div>
       </main>
+    </div>
+  );
+}
+
+function PrimaryButton({ busy, label }) {
+  return (
+    <button type="submit" disabled={busy} className="btn-press" style={{
+      width: "100%", marginTop: 3, padding: "13px 26px",
+      background: busy ? "var(--c-accent-lt)" : "var(--c-accent)",
+      color: "#fff", border: "none", borderRadius: "var(--r-pill)",
+      fontWeight: 600, fontSize: 15, fontFamily: "inherit",
+      cursor: busy ? "default" : "pointer",
+      boxShadow: "0 12px 30px rgba(20, 44, 130, 0.22)",
+    }}>
+      {label}
+    </button>
+  );
+}
+
+function Alert({ kind, children }) {
+  const ok = kind === "ok";
+  return (
+    <div
+      role={ok ? undefined : "alert"}
+      className={ok ? "auth-notice" : "auth-alert"}
+      style={{
+        fontSize: 14,
+        color: ok ? C.success : C.danger,
+        background: ok ? C.successDim : C.dangerDim,
+        border: `1px solid ${ok ? C.successBrd : C.dangerBrd}`,
+        borderRadius: "var(--r-ctrl)",
+        padding: "10px 14px",
+      }}
+    >
+      {children}
     </div>
   );
 }

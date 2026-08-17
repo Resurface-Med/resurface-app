@@ -32,25 +32,25 @@ export function AuthProvider({ children }) {
     loading,
     configured: isConfigured,
 
-    signUp: (email, password) =>
-      supabase.auth.signUp({
+    // Passwordless: email a 6-digit code (Magic Link template must include
+    // {{ .Token }} and must not rely on {{ .ConfirmationURL }}).
+    sendEmailCode: (email) =>
+      supabase.auth.signInWithOtp({
         email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
+        options: { shouldCreateUser: true },
       }),
 
-    signIn: (email, password) =>
-      supabase.auth.signInWithPassword({ email, password }),
+    verifyEmailCode: (email, token) =>
+      supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "email",
+      }),
 
     signInWithGoogle: () =>
       supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: window.location.origin },
-      }),
-
-    resetPassword: (email) =>
-      supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin,
       }),
 
     signOut: () => supabase.auth.signOut(),

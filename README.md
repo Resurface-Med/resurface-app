@@ -77,7 +77,7 @@ npm run lint         npm test             npm run test:watch
   a network, and every write goes to the server. A dropped connection mid-session
   is covered by the retry queue; a cold start is not.
 - **Google sign-in needs OAuth credentials** configured in Supabase before the
-  button works. Email and password work today.
+  button works. Email sign-in uses a 6-digit code; Google is the fast path.
 - `react-hooks` lint warnings (14) are unfixed — effect dependencies and
   set-state-in-effect, visible in `npm run lint`.
 - The nine decks load together. Fetching only the subject being studied would
