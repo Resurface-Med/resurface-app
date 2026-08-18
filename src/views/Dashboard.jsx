@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { C, V, h1, sectionH, eyebrowField, OF } from "../ui/theme";
+import { C, V, h1, sectionH, eyebrowField, meta, body, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
@@ -19,9 +19,17 @@ import { QUESTIONS } from "../data";
  * competing rectangles; nine rows read as one object.
  */
 
+// Below this, a topic's percentage is noise rather than signal.
+const MIN_ATTEMPTS = 3;
+
+/** Categories are often prefixed with their own deck; the panel already says it. */
+function topicLabel(cat, deck) {
+  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
+}
+
 export default function Dashboard({
   pStats, streak, dueCount, setView,
-  activity = {}, dailyGoal = 20, onGoalChange, onStudy, onStudyDeck,
+  activity = {}, dailyGoal = 20, onGoalChange, onStudy, onStudyTopic,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
@@ -37,16 +45,33 @@ export default function Dashboard({
     return activity[key] || 0;
   }, [activity]);
 
-  // Coverage per subject, in the manifest's own order.
-  const subjects = useMemo(() => {
+  /**
+   * The weakest topics you have actually attempted.
+   *
+   * Coverage — "62 of 153 seen" — was the wrong number. It says where you have
+   * been, not what you do not know, and students do not make study decisions
+   * from it. Accuracy per topic is what they act on: run questions to find the
+   * gaps, then go at the gaps.
+   *
+   * Topics, not subjects: "Glycolysis & Bioenergetics at 45%" tells you what to
+   * open tonight, "Biochemistry" does not. MIN_ATTEMPTS keeps a single unlucky
+   * question from parking a topic at the top of the list.
+   */
+  const weakest = useMemo(() => {
     const by = new Map();
     for (const q of QUESTIONS) {
-      let s = by.get(q.deck);
-      if (!s) { s = { deck: q.deck, total: 0, seen: 0 }; by.set(q.deck, s); }
-      s.total += 1;
-      if (pStats[q.id]) s.seen += 1;
+      const s = pStats[q.id];
+      if (!s || !s.total) continue;
+      let row = by.get(q.cat);
+      if (!row) { row = { cat: q.cat, deck: q.deck, correct: 0, total: 0 }; by.set(q.cat, row); }
+      row.correct += s.correct;
+      row.total += s.total;
     }
-    return [...by.values()].sort((a, b) => b.total - a.total);
+    return [...by.values()]
+      .filter(r => r.total >= MIN_ATTEMPTS)
+      .map(r => ({ ...r, pct: Math.round((r.correct / r.total) * 100) }))
+      .sort((a, b) => a.pct - b.pct)
+      .slice(0, 5);
   }, [pStats]);
 
   const hour = new Date().getHours();
@@ -142,38 +167,76 @@ export default function Dashboard({
           <div className="dash-split">
 
             <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.14s both" }}>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-                <h2 style={sectionH}>Your bank</h2>
-                <span style={{ fontSize: 13.5, color: C.mutedDim }}>
-                  {seen} of {QUESTIONS.length} seen
-                </span>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
+                <h2 style={sectionH}>Where to focus</h2>
+                {weakest.length > 0 && (
+                  <button
+                    onClick={() => setView(V.PROGRESS)}
+                    className="btn-press"
+                    style={{
+                      background: "none", border: "none", padding: 0, cursor: "pointer",
+                      fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: C.accent,
+                    }}
+                  >All topics →</button>
+                )}
               </div>
 
-              <div>
-                {subjects.map(s => {
-                  const pct = s.total > 0 ? (s.seen / s.total) * 100 : 0;
-                  return (
+              {weakest.length > 0 ? (
+                <>
+                  <p style={{ ...meta, marginBottom: 14 }}>
+                    Your lowest-scoring topics so far. Tap one to drill it.
+                  </p>
+
+                  {weakest.map(w => (
                     <button
-                      key={s.deck}
-                      onClick={() => onStudyDeck?.(s.deck)}
+                      key={w.cat}
+                      onClick={() => onStudyTopic?.(w.deck, w.cat)}
                       className="subject-row"
-                      title={`Practise ${s.deck}`}
+                      title={`Practise ${topicLabel(w.cat, w.deck)}`}
                     >
-                      <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 500, color: C.text, letterSpacing: -0.15, textAlign: "left" }}>
-                        {s.deck}
+                      <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                        <span style={{ display: "block", fontSize: 14.5, fontWeight: 500, color: C.text, letterSpacing: -0.15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {topicLabel(w.cat, w.deck)}
+                        </span>
+                        <span style={{ display: "block", fontSize: 12.5, color: C.mutedDim, marginTop: 1 }}>
+                          {w.deck} · {w.total} answered
+                        </span>
                       </span>
 
-                      <span style={{ width: "clamp(52px, 8vw, 96px)", height: 4, borderRadius: 99, background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0 }}>
-                        <span style={{ display: "block", height: "100%", width: `${pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
+                      {/* Accent, never red. A wrong-answer list rendered in alarm
+                          colours is the thing that makes students protect their
+                          percentage instead of attacking their gaps. */}
+                      <span style={{ width: "clamp(44px, 6vw, 74px)", height: 4, borderRadius: 99, background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0 }}>
+                        <span style={{ display: "block", height: "100%", width: `${w.pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
                       </span>
 
-                      <span style={{ width: 62, textAlign: "right", fontSize: 13, color: C.sub, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
-                        {s.seen}/{s.total}
+                      <span style={{ width: 40, textAlign: "right", fontSize: 13.5, fontWeight: 600, color: C.sub, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+                        {w.pct}%
                       </span>
                     </button>
-                  );
-                })}
-              </div>
+                  ))}
+                </>
+              ) : (
+                <div style={{ marginTop: 10 }}>
+                  <p style={{ ...body, color: C.sub, maxWidth: "42ch" }}>
+                    {seen === 0
+                      ? "Answer a few questions and this becomes a map of what to revise — the topics you score lowest on, ranked."
+                      : `Keep going — once a topic has ${MIN_ATTEMPTS} answers behind it, it shows up here so you can see where you stand.`}
+                  </p>
+                  <button
+                    onClick={() => onStudy?.("all")}
+                    className="btn-press"
+                    style={{
+                      marginTop: 16, background: "transparent", color: C.accent,
+                      border: "1px solid var(--c-accent-brd)", borderRadius: "var(--r-pill)",
+                      padding: "10px 20px", fontFamily: "inherit", fontSize: 14.5,
+                      fontWeight: 600, cursor: "pointer",
+                    }}
+                  >
+                    Find my gaps →
+                  </button>
+                </div>
+              )}
             </section>
 
             <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.22s both" }}>

@@ -275,7 +275,7 @@ export default function App() {
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
             onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); setView(V.STUDY); }}
-            onStudyDeck={deck => { setLaunchFilter({ deck, cat: "All" }); setStudyScope("all"); setView(V.STUDY); }} />}
+            onStudyTopic={(deck, cat) => { setLaunchFilter({ deck, cat }); setStudyScope("all"); setView(V.STUDY); }} />}
 
           {view === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
