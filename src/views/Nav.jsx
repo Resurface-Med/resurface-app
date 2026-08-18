@@ -34,23 +34,8 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
   const activeProfile = view === V.PROFILE;
 
   return (
-    <aside className="app-nav" style={{
-      width: 248,
-      margin: "14px 0 14px 14px",
-      background: "var(--c-nav-bg)",
-      border: "1px solid var(--c-nav-border)",
-      borderRadius: "var(--r-panel)",
-      boxShadow: "var(--c-nav-shadow)",
-      backdropFilter: "blur(18px) saturate(160%)",
-      WebkitBackdropFilter: "blur(18px) saturate(160%)",
-      display: "flex", flexDirection: "column", flexShrink: 0,
-      position: "sticky", top: 14, height: "calc(var(--app-vh) - 28px)",
-      overflow: "hidden",
-    }}>
-      <div className="app-nav__brand" style={{
-        padding: "18px 16px 16px",
-        borderBottom: "1px solid var(--c-nav-border)",
-      }}>
+    <aside className="app-nav">
+      <div className="app-nav__brand">
         <img
           src="/logo-lockup.png"
           alt="Resurface"
@@ -80,15 +65,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         />
       </div>
 
-      <nav ref={navRef} className="app-nav__list" style={{
-        padding: "12px 10px",
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        position: "relative",
-        overflowY: "auto",
-      }}>
+      <nav ref={navRef} className="app-nav__list">
         <div style={{
           position: "absolute",
           left: 8, right: 8, top: 0,
@@ -122,16 +99,6 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
               onClick={() => setView(item.k)}
               className={`btn-press app-nav__item${active ? " is-active" : ""}`}
               aria-current={active ? "page" : undefined}
-              style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "11px 14px", borderRadius: "var(--r-pill)",
-                border: "1px solid transparent", background: "transparent",
-                color: active ? "#fff" : NAV_SUB,
-                fontSize: 14.5, textAlign: "left", cursor: "pointer",
-                width: "100%", fontFamily: "inherit", letterSpacing: -0.15,
-                position: "relative", zIndex: 1,
-                transition: "color 0.2s",
-              }}
             >
               <span className="app-nav__label" style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
 
@@ -148,35 +115,15 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         })}
       </nav>
 
-      <div className="app-nav__foot" style={{ padding: "12px 12px 14px", borderTop: "1px solid var(--c-nav-border)" }}>
+      <div className="app-nav__foot">
         <button
           type="button"
           onClick={() => setView(V.PROFILE)}
           className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
           title="Profile"
           aria-current={activeProfile ? "page" : undefined}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "8px 10px",
-            borderRadius: "var(--r-pill)",
-            border: activeProfile ? "1px solid var(--c-accent-brd)" : "1px solid transparent",
-            background: activeProfile ? "var(--c-accent-dim)" : "transparent",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            textAlign: "left",
-            color: NAV_SUB,
-          }}
         >
-          <span style={{
-            width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-            display: "grid", placeItems: "center",
-            background: "var(--c-accent)",
-            color: "#fff",
-            fontSize: 12, fontWeight: 700, letterSpacing: -0.2,
-          }}>
+          <span className="app-nav__avatar">
             {initials(displayName, email)}
           </span>
           <span className="app-nav__profile-text" style={{ minWidth: 0, flex: 1 }}>
