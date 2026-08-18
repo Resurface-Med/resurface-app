@@ -104,10 +104,19 @@ export default function ActivityHeatmap({ activity = {} }) {
   const today = todayKey();
   const now = Date.now();
 
+  // offsetLeft/offsetTop, measured against the positioned <section>, rather
+  // than getBoundingClientRect against the viewport. #root carries
+  // `zoom: var(--app-scale)`: rects come back already multiplied by the zoom,
+  // while a `position: fixed` child of the zoomed tree has its own left/top
+  // multiplied again — so the tooltip landed ~12% right of and below the cell,
+  // hovering over a different square, and on the right-hand columns it spilled
+  // past the viewport and flickered a scrollbar in and out. Offsets are plain
+  // layout pixels in the same space the tooltip is positioned in, so the two
+  // cannot disagree no matter what --app-scale is set to.
   const onHover = useCallback((e, date, count) => {
     if (e === null) return setTip(null);
-    const r = e.currentTarget.getBoundingClientRect();
-    setTip({ x: r.left + r.width / 2, y: r.top, date, count });
+    const el = e.currentTarget;
+    setTip({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop, date, count });
   }, []);
 
   // A month is labelled on the first column whose Monday falls in it.
@@ -132,7 +141,7 @@ export default function ActivityHeatmap({ activity = {} }) {
   );
 
   return (
-    <section>
+    <section style={{ position: "relative" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
         <div>
           <h2 style={sectionH}>Your activity</h2>
@@ -182,7 +191,7 @@ export default function ActivityHeatmap({ activity = {} }) {
 
       {tip && (
         <div style={{
-          position: "fixed", left: tip.x, top: tip.y - 10,
+          position: "absolute", left: tip.x, top: tip.y - 10,
           transform: "translate(-50%, -100%)",
           background: "var(--c-card-solid)",
           border: "1px solid var(--c-border)",
