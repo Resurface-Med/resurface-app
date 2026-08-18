@@ -160,11 +160,10 @@ export default function App() {
   const [launchFilter, setLaunchFilter] = useState({ deck: "All", cat: "All" });
   const [studyScope, setStudyScope] = useState("all");
 
-  // Two different numbers that used to be one. `dueCount` is scheduled reviews;
-  // `newCount` is questions never attempted. Collapsing them meant a new account
-  // was told 497 questions were "ready to review".
+  // Scheduled reviews only. isDue() calls an unseen card due, which is right
+  // for the study queue but told a brand-new account that 497 questions were
+  // "ready to review" directly beneath "Seen: 0".
   const dueCount = useMemo(() => QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length, [srCards]);
-  const newCount = useMemo(() => QUESTIONS.filter(q => !srCards[q.id]).length, [srCards]);
 
   function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
@@ -273,12 +272,12 @@ export default function App() {
           }>
           {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
             activity={activity}
-            newCount={newCount}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
-            onStudy={s => { setStudyScope(s); setView(V.STUDY); }} />}
+            onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); setView(V.STUDY); }}
+            onStudyDeck={deck => { setLaunchFilter({ deck, cat: "All" }); setStudyScope("all"); setView(V.STUDY); }} />}
 
-          {view === V.STUDY && <StudyMode key={studyScope} scope={studyScope}
+          {view === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}

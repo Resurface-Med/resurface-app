@@ -5,22 +5,23 @@ import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
 
 /**
- * The home screen: one question on the left, one on the right.
+ * The home screen: three zones, not eight.
  *
- * Left is "what do I do now" and carries exactly one primary action. Right is
- * "am I keeping up" and is deliberately quiet — it is reference, not a call to
- * act. The previous version asked "how am I doing" four different ways in four
- * identically-weighted tiles above the fold, and answered "what do I do now"
- * last, which is backwards for an app you open in order to study.
+ * The previous versions kept growing modules — a hero, a wave, four stat
+ * tiles, a big accent card, two outlined cards, a goal bar, a heatmap, a
+ * stats line — each individually reasonable and collectively exhausting.
+ * The fix is fewer objects, not quieter ones: the blue field carries the
+ * greeting *and* the actions (so there is exactly one accent moment on the
+ * page), and the sheet below holds the two things a question bank owes you —
+ * what's in the bank, and what you've done with it.
  *
- * The blue field stays, but it now carries only the greeting and the streak.
- * Its job is to say whose app this is; the numbers moved down onto the sheet
- * where white space can separate them.
+ * The subject list is deliberately a list. Nine cards would have been nine
+ * competing rectangles; nine rows read as one object.
  */
 
 export default function Dashboard({
-  pStats, streak, dueCount, newCount = 0, setView,
-  activity = {}, dailyGoal = 20, onGoalChange, onStudy,
+  pStats, streak, dueCount, setView,
+  activity = {}, dailyGoal = 20, onGoalChange, onStudy, onStudyDeck,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
@@ -36,46 +37,33 @@ export default function Dashboard({
     return activity[key] || 0;
   }, [activity]);
 
+  // Coverage per subject, in the manifest's own order.
+  const subjects = useMemo(() => {
+    const by = new Map();
+    for (const q of QUESTIONS) {
+      let s = by.get(q.deck);
+      if (!s) { s = { deck: q.deck, total: 0, seen: 0 }; by.set(q.deck, s); }
+      s.total += 1;
+      if (pStats[q.id]) s.seen += 1;
+    }
+    return [...by.values()].sort((a, b) => b.total - a.total);
+  }, [pStats]);
+
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  // The single most useful thing to do right now. Reviews come first because a
-  // lapsed interval is the one thing in spaced repetition that actually decays;
-  // new material is what you do once nothing is owed.
+  // Reviews first — a lapsed interval is the only thing here that actually
+  // decays. Everything else is still there tomorrow.
   const primary =
     dueCount > 0
-      ? {
-          scope: "due",
-          value: dueCount,
-          unit: dueCount === 1 ? "question" : "questions",
-          title: "due for review",
-          body: "These are the ones your memory is about to let go of.",
-          cta: "Start review",
-        }
-      : newCount > 0
-        ? {
-            scope: "all",
-            value: newCount,
-            unit: newCount === 1 ? "question" : "questions",
-            title: seen === 0 ? "waiting for you" : "you haven't seen yet",
-            body: seen === 0
-              ? "Nothing is scheduled yet — answer a few and Resurface starts planning your reviews."
-              : "Nothing is due, so this is a good moment for new material.",
-            cta: seen === 0 ? "Start studying" : "Learn something new",
-          }
-        : {
-            scope: "all",
-            value: null,
-            title: "You're all caught up",
-            body: "Nothing due and nothing new. Practise anything you like.",
-            cta: "Practise anything",
-          };
+      ? { scope: "due", label: `Review ${dueCount} due` }
+      : { scope: "all", label: seen === 0 ? "Start studying" : "Practice anything" };
 
   const secondary = [
-    { scope: "all",   label: "Practice anything",   body: "Any topic, at your own pace." },
-    { scope: "wrong", label: "Fix what you missed", body: "The ones that caught you out." },
-  ];
+    dueCount > 0 && { scope: "all",   label: "Practice anything" },
+    seen > 0     && { scope: "wrong", label: "Fix what you missed" },
+  ].filter(Boolean);
 
   const band = {
     maxWidth: 1180,
@@ -84,12 +72,10 @@ export default function Dashboard({
     width: "100%",
   };
 
-  const goalPct = Math.min(todayCount / dailyGoal, 1) * 100;
-
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      {/* ── Blue field: whose app this is ──────────────────────────── */}
-      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 38px)", paddingBottom: "clamp(20px, 3vh, 32px)" }}>
+      {/* ── Blue field: who you are, and the one thing to do ───────── */}
+      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
         <header style={{
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           gap: 20, flexWrap: "wrap",
@@ -101,11 +87,8 @@ export default function Dashboard({
           </div>
 
           {streak.streak > 0 && (
-            <div style={{
-              display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0,
-              animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.06s both",
-            }}>
-              <span style={{ fontSize: "clamp(28px, 2.8vw, 36px)", fontWeight: 700, color: OF.text, letterSpacing: -1.5, lineHeight: 1 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0 }}>
+              <span style={{ fontSize: "clamp(26px, 2.6vw, 32px)", fontWeight: 700, color: OF.text, letterSpacing: -1.4, lineHeight: 1 }}>
                 {streak.streak}
               </span>
               <span style={{ fontSize: 14, color: OF.soft, fontWeight: 500 }}>
@@ -114,99 +97,95 @@ export default function Dashboard({
             </div>
           )}
         </header>
+
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          marginTop: "clamp(16px, 2.4vh, 24px)",
+          animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.1s both",
+        }}>
+          <button
+            onClick={() => onStudy?.(primary.scope)}
+            className="btn-press"
+            style={{
+              background: "#fff", color: "var(--c-accent)", border: "none",
+              borderRadius: "var(--r-pill)", padding: "12px 26px",
+              fontFamily: "inherit", fontSize: 15.5, fontWeight: 600, cursor: "pointer",
+              boxShadow: "0 8px 20px rgba(15,27,61,0.16)",
+              display: "flex", alignItems: "center", gap: 7,
+            }}
+          >
+            {primary.label} <span aria-hidden="true">→</span>
+          </button>
+
+          {secondary.map(s => (
+            <button
+              key={s.scope}
+              onClick={() => onStudy?.(s.scope)}
+              className="btn-press"
+              style={{
+                background: "rgba(255,255,255,0.12)", color: OF.text,
+                border: "none", borderRadius: "var(--r-pill)", padding: "12px 20px",
+                fontFamily: "inherit", fontSize: 15, fontWeight: 500, cursor: "pointer",
+              }}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
-      {/* ── White sheet: act on the left, track on the right ───────── */}
-      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(28px, 4vh, 52px)" }}>
-        <div style={{ ...band, paddingTop: "clamp(14px, 2.4vh, 26px)" }}>
+      {/* ── Sheet: the bank, and what you've done with it ──────────── */}
+      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
+        <div style={{ ...band, paddingTop: "clamp(14px, 2.4vh, 24px)" }}>
           <div className="dash-split">
 
-            {/* Act */}
-            <div style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.1s both" }}>
-              <button
-                onClick={() => onStudy?.(primary.scope)}
-                className="hover-lift btn-press"
-                style={{
-                  width: "100%", textAlign: "left", cursor: "pointer",
-                  fontFamily: "inherit", border: "none",
-                  borderRadius: "var(--r-card)",
-                  padding: "clamp(22px, 2.6vw, 30px)",
-                  background: "var(--c-accent)",
-                  boxShadow: "var(--c-cta-shadow)",
-                  color: "#fff",
-                }}
-              >
-                {primary.value !== null ? (
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "clamp(40px, 4.4vw, 56px)", fontWeight: 700, letterSpacing: -2.4, lineHeight: 1 }}>
-                      {primary.value}
-                    </span>
-                    <span style={{ fontSize: 17, fontWeight: 600, opacity: 0.92 }}>
-                      {primary.unit} {primary.title}
-                    </span>
-                  </div>
-                ) : (
-                  <div style={{ fontSize: "clamp(24px, 2.4vw, 30px)", fontWeight: 700, letterSpacing: -1.1, lineHeight: 1.15 }}>
-                    {primary.title}
-                  </div>
-                )}
-
-                <p style={{ marginTop: 12, fontSize: 15, lineHeight: 1.5, opacity: 0.86, maxWidth: "38ch" }}>
-                  {primary.body}
-                </p>
-
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 7, marginTop: 20,
-                  background: "#fff", color: "var(--c-accent)",
-                  borderRadius: "var(--r-pill)", padding: "11px 22px",
-                  fontSize: 15, fontWeight: 600,
-                }}>
-                  {primary.cta} <span aria-hidden="true">→</span>
+            <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.14s both" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+                <h2 style={sectionH}>Your bank</h2>
+                <span style={{ fontSize: 13.5, color: C.mutedDim }}>
+                  {seen} of {QUESTIONS.length} seen
                 </span>
-              </button>
-
-              <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
-                {secondary.map((s, i) => (
-                  <button
-                    key={s.scope}
-                    onClick={() => onStudy?.(s.scope)}
-                    className="btn-press"
-                    style={{
-                      display: "flex", alignItems: "center", gap: 14,
-                      width: "100%", textAlign: "left", cursor: "pointer",
-                      fontFamily: "inherit",
-                      background: "transparent",
-                      border: "1px solid var(--c-border)",
-                      borderRadius: "var(--r-card)",
-                      padding: "14px 18px",
-                      animation: `rise-blur 0.26s cubic-bezier(0.22,1,0.36,1) ${0.18 + i * 0.05}s both`,
-                    }}
-                  >
-                    <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: "block", fontSize: 15.5, fontWeight: 600, color: C.text, letterSpacing: -0.2 }}>
-                        {s.label}
-                      </span>
-                      <span style={{ display: "block", fontSize: 13.5, color: C.sub, marginTop: 2 }}>
-                        {s.body}
-                      </span>
-                    </span>
-                    <span aria-hidden="true" style={{ color: C.accent, fontSize: 16, flexShrink: 0 }}>→</span>
-                  </button>
-                ))}
               </div>
-            </div>
 
-            {/* Track — reference, not a call to act, so nothing here shouts */}
-            <div style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.2s both" }}>
+              <div>
+                {subjects.map(s => {
+                  const pct = s.total > 0 ? (s.seen / s.total) * 100 : 0;
+                  return (
+                    <button
+                      key={s.deck}
+                      onClick={() => onStudyDeck?.(s.deck)}
+                      className="subject-row"
+                      title={`Practise ${s.deck}`}
+                    >
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 500, color: C.text, letterSpacing: -0.15, textAlign: "left" }}>
+                        {s.deck}
+                      </span>
+
+                      <span style={{ width: "clamp(52px, 8vw, 96px)", height: 4, borderRadius: 99, background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0 }}>
+                        <span style={{ display: "block", height: "100%", width: `${pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
+                      </span>
+
+                      <span style={{ width: 62, textAlign: "right", fontSize: 13, color: C.sub, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+                        {s.seen}/{s.total}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.22s both" }}>
+              <ActivityHeatmap activity={activity} />
+
               <div style={{
-                display: "flex", alignItems: "baseline", justifyContent: "space-between",
-                gap: 12, flexWrap: "wrap",
+                display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+                marginTop: 20, paddingTop: 15, borderTop: "1px solid var(--c-border)",
+                fontSize: 13.5, color: C.sub,
               }}>
-                <h2 style={sectionH}>Today</h2>
-                <span style={{ fontSize: 14, color: C.sub }}>
-                  {todayCount} of{" "}
+                <span>
+                  Today {todayCount} of{" "}
                   {editingGoal ? (
                     <form
                       style={{ display: "inline" }}
@@ -223,8 +202,8 @@ export default function Dashboard({
                         onChange={e => setGoalDraft(e.target.value)}
                         onBlur={() => setEditingGoal(false)}
                         style={{
-                          width: 52, background: "var(--c-surface3)", border: "1px solid var(--c-border)",
-                          borderRadius: 6, outline: "none", fontSize: 14, color: C.text,
+                          width: 50, background: "var(--c-surface3)", border: "1px solid var(--c-border)",
+                          borderRadius: 6, outline: "none", fontSize: 13.5, color: C.text,
                           fontFamily: "inherit", textAlign: "center", padding: "1px 0",
                         }}
                       />
@@ -234,47 +213,28 @@ export default function Dashboard({
                       onClick={() => { setGoalDraft(String(dailyGoal)); setEditingGoal(true); }}
                       style={{
                         background: "none", border: "none", padding: 0, cursor: "pointer",
-                        fontFamily: "inherit", fontSize: 14, fontWeight: 600, color: C.accent,
+                        fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: C.accent,
                       }}
                     >{dailyGoal}</button>
                   )}
                   {todayCount >= dailyGoal ? " ✓" : ""}
                 </span>
-              </div>
 
-              <div style={{ height: 6, borderRadius: 99, background: "var(--c-surface3)", marginTop: 10, overflow: "hidden" }}>
-                <div style={{
-                  height: "100%", width: `${goalPct}%`,
-                  background: "var(--c-accent)", borderRadius: 99,
-                  transition: "width 0.35s cubic-bezier(0.22,1,0.36,1)",
-                }} />
-              </div>
-
-              <div style={{ marginTop: 26 }}>
-                <ActivityHeatmap activity={activity} />
-              </div>
-
-              {/* The three numbers that used to be tiles, as one line of prose */}
-              <div style={{
-                display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap",
-                marginTop: 22, paddingTop: 16, borderTop: "1px solid var(--c-border)",
-                fontSize: 14, color: C.sub,
-              }}>
-                <span>{seen} of {QUESTIONS.length} seen</span>
                 {acc !== null && <><span aria-hidden="true">·</span><span>{acc}% accuracy</span></>}
+
                 <button
                   onClick={() => setView(V.PROGRESS)}
                   className="btn-press"
                   style={{
                     marginLeft: "auto", background: "none", border: "none", padding: 0,
-                    cursor: "pointer", fontFamily: "inherit", fontSize: 14,
+                    cursor: "pointer", fontFamily: "inherit", fontSize: 13.5,
                     fontWeight: 600, color: C.accent, display: "flex", alignItems: "center", gap: 5,
                   }}
                 >
                   Progress <span aria-hidden="true">→</span>
                 </button>
               </div>
-            </div>
+            </section>
 
           </div>
         </div>
