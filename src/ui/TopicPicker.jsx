@@ -50,22 +50,28 @@ function shortCat(cat, deck) {
   return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
 }
 
+/* Coverage of a subject: always show the track so empty and full read as the
+   same kind of thing. Previously only seen>0 drew a bar, so untouched subjects
+   looked like a different UI. */
 function Coverage({ seen, total, avail, dim }) {
   const pct = total > 0 ? (seen / total) * 100 : 0;
   return (
     <>
-      {seen > 0 && <span style={{
-        width: "clamp(40px, 5vw, 64px)", height: 4, borderRadius: 99,
+      <span style={{
+        width: "clamp(36px, 4.5vw, 56px)", height: 3, borderRadius: 99,
         background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0,
         opacity: dim ? 0.4 : 1,
       }}>
-        <span style={{ display: "block", height: "100%", width: `${pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
-      </span>}
+        <span style={{
+          display: "block", height: "100%", width: `${pct}%`,
+          background: "var(--c-accent)", borderRadius: 99,
+        }} />
+      </span>
       <span style={{
-        width: 58, textAlign: "right", flexShrink: 0,
+        width: 52, textAlign: "right", flexShrink: 0,
         fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums",
       }}>
-        {avail} left
+        {avail}
       </span>
     </>
   );
@@ -124,8 +130,8 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         <span style={{ flex: 1, textAlign: "left", fontSize: 15, fontWeight: 600, color: C.text }}>
           All subjects
         </span>
-        <span style={{ width: 58, textAlign: "right", fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums" }}>
-          {totalAvail} left
+        <span style={{ width: 52, textAlign: "right", fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums" }}>
+          {totalAvail}
         </span>
       </button>
       )}

@@ -131,6 +131,34 @@ const SCOPE_COPY = {
   wrong: "The ones that caught you out.",
   saved: "Questions you bookmarked.",
 };
+
+const setupLabel = {
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: "0.06em",
+  textTransform: "uppercase",
+  color: C.muted,
+  marginBottom: 8,
+};
+
+function segBtn(active, disabled) {
+  return {
+    ...chipBtn,
+    ...(active ? chipBtnActive : {
+      background: "transparent",
+      border: "1.5px solid transparent",
+      boxShadow: "none",
+    }),
+    flex: "1 1 0",
+    minWidth: 0,
+    padding: "9px 14px",
+    textAlign: "center",
+    justifyContent: "center",
+    opacity: disabled ? 0.35 : 1,
+    cursor: disabled ? "not-allowed" : "pointer",
+  };
+}
+
 const SESSION_KEY = "pq_practice_session";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
 
@@ -158,7 +186,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     ? { year: ["All"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
     : defaultFilter
   );
-  const [countOpt, setCountOpt] = useState("All");
+  const [countOpt, setCountOpt] = useState(20);
   const [topicQuery, setTopicQuery] = useState("");
   const [queue, setQueue] = useState(null);
   const [idx, setIdx] = useState(0);
@@ -306,23 +334,30 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       : null;
 
     return (
-      /* Height, not min-height. The screen is a fixed frame: the list scrolls
-         inside it and the action stays put. Previously the whole page grew with
-         the list and pushed Start past the bottom of the viewport — the one
-         control the screen exists to offer was the one you had to go looking
-         for, and every year of questions added would have pushed it further. */
+      /* Fixed frame: the list scrolls, the commit stays. One job on this
+         screen — decide what to practise and start. Everything below the
+         list is secondary and deliberately quieter than the topic choice. */
       <div style={{ display: "flex", flexDirection: "column", height: "var(--app-vh)" }}>
         <div style={{ ...band, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(14px, 2.2vh, 22px)", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)" }}>Practice</h1>
+            <div>
+              <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)" }}>Practice</h1>
+              <p style={{ marginTop: 6, fontSize: 14.5, color: OF.soft, fontWeight: 500, letterSpacing: -0.2 }}>
+                Pick a topic. Start when you're ready.
+              </p>
+            </div>
 
             {savedSession && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-                <span style={{ fontSize: 14, color: OF.soft }}>
-                  Unfinished session · {(savedSession.idx ?? 0) + 1}/{savedSession.queue?.length ?? 0}
+              <div style={{
+                display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
+                background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.28)",
+                borderRadius: "var(--r-pill)", padding: "6px 6px 6px 14px",
+              }}>
+                <span style={{ fontSize: 13.5, color: OF.soft, fontWeight: 500 }}>
+                  {(savedSession.idx ?? 0) + 1}/{savedSession.queue?.length ?? 0} left
                 </span>
-                <button className="btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
-                <button className="btn-press" style={fieldGhostBtn} onClick={discardSession}>Discard</button>
+                <button className="btn-press" style={{ ...fieldBtn, padding: "8px 16px" }} onClick={resumeSession}>Continue</button>
+                <button className="btn-press" style={{ ...fieldGhostBtn, padding: "8px 14px", border: "none" }} onClick={discardSession}>Discard</button>
               </div>
             )}
           </div>
@@ -330,88 +365,116 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
         <Wave from="transparent" to="var(--c-card-solid)" />
 
-        {/* minHeight 0 so the scroll region can actually shrink inside flex */}
         <div style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div style={{ ...band, maxWidth: 760, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 20px)" }}>
+          <div style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(16px, 2.4vh, 24px)" }}>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", flexShrink: 0 }}>
-              <h2 style={{ ...sectionH, flexShrink: 0 }}>What are you revising?</h2>
+            {/* Primary: what. Search is a tool for the list, not a peer of Start. */}
+            <div style={{ flexShrink: 0, marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
+                <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
+                <span style={{ fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                  {scoped} available
+                </span>
+              </div>
               <input
                 type="search"
                 value={topicQuery}
                 onChange={e => setTopicQuery(e.target.value)}
-                placeholder="Search topics"
-                aria-label="Search topics"
+                placeholder="Search subjects or topics"
+                aria-label="Search subjects or topics"
                 style={{
-                  marginLeft: "auto", flex: "1 1 160px", maxWidth: 240,
-                  padding: "8px 14px", fontSize: 14, fontFamily: "inherit",
+                  width: "100%", boxSizing: "border-box",
+                  padding: "11px 16px", fontSize: 14.5, fontFamily: "inherit",
                   color: C.text, background: "var(--c-surface3)",
-                  border: "1px solid transparent", borderRadius: "var(--r-pill)",
+                  border: "1.5px solid transparent", borderRadius: "var(--r-ctrl)",
                   outline: "none",
                 }}
               />
             </div>
 
-            {/* The only part that scrolls. */}
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: 10, scrollbarGutter: "stable" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: 4, scrollbarGutter: "stable" }}>
               <TopicPicker
                 value={filter}
-                onChange={next => { setFilter(f => ({ ...f, ...next })); setCountOpt("All"); }}
+                onChange={next => setFilter(f => ({ ...f, ...next }))}
                 pStats={pStats}
                 eligibleIds={eligibleIds}
                 query={topicQuery}
               />
             </div>
 
-            {/* Anchored: the refinements and the commit never leave the screen. */}
+            {/* Secondary: how. Grouped, labelled, never competing with the list. */}
             <div style={{
-              flexShrink: 0, paddingTop: "clamp(12px, 1.8vh, 18px)",
-              paddingBottom: "clamp(14px, 2.2vh, 22px)",
+              flexShrink: 0,
+              marginTop: 4,
+              paddingTop: "clamp(14px, 2vh, 18px)",
+              paddingBottom: "clamp(16px, 2.4vh, 24px)",
               borderTop: "1px solid var(--c-border)",
-              display: "flex", flexDirection: "column", gap: 12,
+              display: "flex", flexDirection: "column", gap: 16,
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                {SCOPES.map(s => {
-                  const n = scopeCount(s.k);
-                  const disabled = n === 0 && s.k !== "all";
-                  return (
-                    <button key={s.k} className="btn-press" disabled={disabled}
-                      onClick={() => !disabled && setScope(s.k)}
-                      style={{
-                        ...chipBtn, ...(scope === s.k ? chipBtnActive : {}),
-                        opacity: disabled ? 0.38 : 1,
-                        cursor: disabled ? "not-allowed" : "pointer",
-                      }}>
-                      {s.label}
-                    </button>
-                  );
-                })}
+              <div>
+                <div style={setupLabel}>From</div>
+                <div className="setup-seg" role="radiogroup" aria-label="Question pool">
+                  {SCOPES.map(s => {
+                    const n = scopeCount(s.k);
+                    const disabled = n === 0 && s.k !== "all";
+                    const active = scope === s.k;
+                    return (
+                      <button
+                        key={s.k}
+                        role="radio"
+                        aria-checked={active}
+                        className="btn-press"
+                        disabled={disabled}
+                        onClick={() => !disabled && setScope(s.k)}
+                        style={segBtn(active, disabled)}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p style={{ margin: "8px 2px 0", fontSize: 13, color: C.muted, lineHeight: 1.4 }}>
+                  {SCOPE_COPY[scope]}
+                </p>
+              </div>
 
-                <span style={{ width: 1, height: 22, background: "var(--c-border)", margin: "0 4px" }} />
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div>
+                  <div style={setupLabel}>How many</div>
+                  <div className="setup-seg" role="radiogroup" aria-label="Session length">
+                    {COUNT_OPTIONS.map(o => {
+                      const disabled = o !== "All" && o > scoped;
+                      const active = o === countOpt;
+                      return (
+                        <button
+                          key={o}
+                          role="radio"
+                          aria-checked={active}
+                          disabled={disabled}
+                          className="btn-press"
+                          style={segBtn(active, disabled)}
+                          onClick={() => !disabled && setCountOpt(o)}
+                        >
+                          {o === "All" ? "All" : o}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                {COUNT_OPTIONS.map(o => {
-                  const disabled = o !== "All" && o > scoped;
-                  return (
-                    <button key={o} disabled={disabled} className="btn-press"
-                      style={{ ...chipBtn, ...(o === countOpt ? chipBtnActive : {}), opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
-                      onClick={() => !disabled && setCountOpt(o)}>
-                      {o === "All" ? "All" : o}
-                    </button>
-                  );
-                })}
-
-                <label style={{
-                  display: "flex", alignItems: "center", gap: 8, marginLeft: "auto",
-                  fontSize: 13.5, color: C.sub, cursor: "pointer", userSelect: "none",
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={filter.unseenOnly}
-                    onChange={e => { setFilter(f => ({ ...f, unseenOnly: e.target.checked })); setCountOpt("All"); }}
-                    style={{ width: 15, height: 15, accentColor: "var(--c-accent)", cursor: "pointer" }}
-                  />
+                <button
+                  type="button"
+                  className="btn-press"
+                  onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
+                  aria-pressed={filter.unseenOnly}
+                  style={{
+                    ...chipBtn,
+                    ...(filter.unseenOnly ? chipBtnActive : {}),
+                    marginBottom: 1,
+                  }}
+                >
                   Unseen only
-                </label>
+                </button>
               </div>
 
               <button
@@ -419,14 +482,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 disabled={willAsk === 0}
                 onClick={() => start()}
                 style={{
-                  ...primaryBtn, ...lg, width: "100%",
+                  ...primaryBtn, ...lg, width: "100%", marginTop: 2,
                   opacity: willAsk === 0 ? 0.5 : 1,
                   cursor: willAsk === 0 ? "not-allowed" : "pointer",
                 }}
               >
                 {willAsk === 0
                   ? "Nothing left here — try another topic"
-                  : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"}${topicLabel ? ` from ${topicLabel}` : ""} →`}
+                  : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"}${topicLabel ? ` · ${topicLabel}` : ""} →`}
               </button>
             </div>
           </div>

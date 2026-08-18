@@ -697,15 +697,15 @@ select {
 
 /* ─── Topic picker ──────────────────────────────────────────────── */
 /* A list, not a grid of cards: nine subjects and forty-one categories as
-   rectangles would be a wall. The hairline is the only separator and the
-   selected row is the only filled one, so the current choice is legible at a
-   glance without any row shouting. */
+/* Topic list — one decision, scanned top to bottom.
+   Selected row is the only filled surface; hairlines separate the rest.
+   Counts sit right-aligned so the eye compares them as a column. */
 .topic-row {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 12px;
   background: none;
   border: none;
   border-radius: var(--r-ctrl);
@@ -724,14 +724,13 @@ select {
   box-shadow: inset 0 0 0 1.5px var(--c-accent-brd);
 }
 
-.topic-row.is-child { padding-left: 30px; }
+.topic-row.is-child { padding-left: 28px; }
 
 .topic-row.is-empty {
-  opacity: 0.4;
+  opacity: 0.38;
   cursor: not-allowed;
 }
 
-/* The row itself selects; the chevron only expands. Two targets, two jobs. */
 .topic-hit {
   display: flex;
   align-items: center;
@@ -759,4 +758,22 @@ select {
   font-size: 16px;
 }
 .topic-expand:hover { background: var(--c-overlay2); color: var(--c-text); }
+
+/* Segmented controls on the Practice setup footer — equal-weight peers
+   inside a quiet track, so From / How many read as one choice each. */
+.setup-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--c-surface3);
+  border-radius: var(--r-pill);
+  width: fit-content;
+  max-width: 100%;
+}
+.setup-seg > button {
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .setup-seg { width: 100%; }
+}
 
