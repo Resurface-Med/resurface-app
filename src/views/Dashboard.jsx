@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { C, V, h1, sectionH, eyebrowField, meta, body, OF } from "../ui/theme";
+import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
@@ -51,6 +51,27 @@ export default function Dashboard({
     () => Object.values(srCards).filter(c => (c?.interval ?? 0) >= 21).length,
     [srCards],
   );
+
+  /**
+   * What the panel will look like once there is data in it.
+   *
+   * An empty state that only explains itself asks you to imagine the payoff.
+   * Showing the real layout with real topic names from the bank makes the
+   * promise concrete — you can see it is a ranked list of your weak spots
+   * before you have earned one. Ghosted and labelled, because plausible
+   * numbers at full strength would just be a lie.
+   */
+  const previewRows = useMemo(() => {
+    const seenCats = new Set();
+    const out = [];
+    for (const q of QUESTIONS) {
+      if (seenCats.has(q.cat)) continue;
+      seenCats.add(q.cat);
+      out.push({ cat: q.cat, deck: q.deck });
+      if (out.length === 4) break;
+    }
+    return out.map((r, i) => ({ ...r, pct: 44 + i * 9, total: 12 - i * 2 }));
+  }, []);
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -260,24 +281,51 @@ export default function Dashboard({
                   ))}
                 </>
               ) : (
-                <div style={{ marginTop: 10 }}>
-                  <p style={{ ...body, color: C.sub, maxWidth: "42ch" }}>
+                <div>
+                  <p style={{ ...meta, marginBottom: 14, maxWidth: "44ch" }}>
                     {seen === 0
-                      ? "Answer a few questions and this becomes a map of what to revise — the topics you score lowest on, ranked."
-                      : `Keep going — once a topic has ${MIN_ATTEMPTS} answers behind it, it shows up here so you can see where you stand.`}
+                      ? "Your lowest-scoring topics will be ranked here, so you always know what to revise next."
+                      : `Once a topic has ${MIN_ATTEMPTS} answers behind it, it appears here with your score.`}
                   </p>
-                  <button
-                    onClick={() => onStudy?.("all")}
-                    className="btn-press"
-                    style={{
-                      marginTop: 16, background: "transparent", color: C.accent,
-                      border: "1px solid var(--c-accent-brd)", borderRadius: "var(--r-pill)",
-                      padding: "10px 20px", fontFamily: "inherit", fontSize: 14.5,
-                      fontWeight: 600, cursor: "pointer",
-                    }}
-                  >
-                    Find my gaps →
-                  </button>
+
+                  {/* The real layout, ghosted, so the promise is visible rather
+                      than described. aria-hidden and inert: none of it is true. */}
+                  <div aria-hidden="true" style={{ opacity: 0.38, pointerEvents: "none", userSelect: "none" }}>
+                    {previewRows.map(r => (
+                      <div key={r.cat} className="subject-row" style={{ cursor: "default" }}>
+                        <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                          <span style={{ display: "block", fontSize: 14.5, fontWeight: 500, color: C.text, letterSpacing: -0.15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {topicLabel(r.cat, r.deck)}
+                          </span>
+                          <span style={{ display: "block", fontSize: 12.5, color: C.mutedDim, marginTop: 1 }}>
+                            {r.deck} · {r.total} answered
+                          </span>
+                        </span>
+                        <span style={{ width: "clamp(44px, 6vw, 74px)", height: 4, borderRadius: 99, background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0 }}>
+                          <span style={{ display: "block", height: "100%", width: `${r.pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
+                        </span>
+                        <span style={{ width: 40, textAlign: "right", fontSize: 13.5, fontWeight: 600, color: C.sub, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+                          {r.pct}%
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
+                    <button
+                      onClick={() => onStudy?.("all")}
+                      className="btn-press"
+                      style={{
+                        background: "transparent", color: C.accent,
+                        border: "1px solid var(--c-accent-brd)", borderRadius: "var(--r-pill)",
+                        padding: "10px 20px", fontFamily: "inherit", fontSize: 14.5,
+                        fontWeight: 600, cursor: "pointer",
+                      }}
+                    >
+                      Find my gaps →
+                    </button>
+                    <span style={{ fontSize: 12.5, color: C.mutedDim }}>Example shown above</span>
+                  </div>
                 </div>
               )}
             </section>
