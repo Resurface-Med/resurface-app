@@ -29,12 +29,37 @@ function topicLabel(cat, deck) {
 
 export default function Dashboard({
   pStats, streak, dueCount, setView,
-  activity = {}, dailyGoal = 20, onGoalChange, onStudy, onStudyTopic,
+  activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy, onStudyTopic,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
   const seen = Object.keys(pStats).length;
+
+  /**
+   * Plain counters. No trends, because nothing here is stored with a timestamp
+   * — practice_stats holds running totals and activity holds a daily count, so
+   * "answered" and "days studied" are honest but "accuracy last week" is not
+   * reconstructable.
+   *
+   * "Mastered" is the 21-day interval Anki uses for a mature card. It is the
+   * one number here that separates questions you have retained from questions
+   * you have merely met, which is why it earns a slot over something like
+   * total time.
+   */
+  const stats = useMemo(() => {
+    const days = Object.values(activity).filter(n => n > 0).length;
+    const mastered = Object.values(srCards).filter(c => (c?.interval ?? 0) >= 21).length;
+    return [
+      { label: "Questions answered", value: totalT.toLocaleString() },
+      { label: "Correct",            value: totalC.toLocaleString() },
+      { label: "Accuracy",           value: acc === null ? "—" : `${acc}%` },
+      { label: "Of the bank seen",   value: `${seen}/${QUESTIONS.length}` },
+      { label: "Mastered",           value: mastered.toLocaleString() },
+      { label: "Days studied",       value: days.toLocaleString() },
+      { label: "Longest streak",     value: `${streak.longest || 0}` },
+    ];
+  }, [activity, srCards, totalT, totalC, acc, seen, streak.longest]);
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -283,7 +308,6 @@ export default function Dashboard({
                   {todayCount >= dailyGoal ? " ✓" : ""}
                 </span>
 
-                {acc !== null && <><span aria-hidden="true">·</span><span>{acc}% accuracy</span></>}
 
                 <button
                   onClick={() => setView(V.PROGRESS)}
@@ -299,6 +323,27 @@ export default function Dashboard({
               </div>
             </section>
 
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))",
+            gap: "clamp(12px, 2vw, 26px)",
+            marginTop: "clamp(22px, 3vh, 34px)",
+            paddingTop: "clamp(16px, 2vh, 22px)",
+            borderTop: "1px solid var(--c-border)",
+            animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.28s both",
+          }}>
+            {stats.map(s => (
+              <div key={s.label}>
+                <div style={{ fontSize: "clamp(19px, 1.8vw, 23px)", fontWeight: 700, color: C.text, letterSpacing: -0.7, lineHeight: 1.1, fontVariantNumeric: "tabular-nums" }}>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3, letterSpacing: -0.05 }}>
+                  {s.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

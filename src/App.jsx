@@ -272,6 +272,7 @@ export default function App() {
           }>
           {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
             activity={activity}
+            srCards={srCards}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
             onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); setView(V.STUDY); }}
