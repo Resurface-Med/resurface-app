@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { C, pageWrap, card, h1, primaryBtn, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive, label as labelStyle, pageSub } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
-import { isDue } from "../lib/sm2";
+import { isReviewDue } from "../lib/sm2";
 import ProgressBar from "../ui/ProgressBar";
 import QuestionCard from "../ui/QuestionCard";
 import FilterPanel, { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
@@ -132,7 +132,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
   function scopeCount(k) {
-    if (k === "due")   return QUESTIONS.filter(q => isDue(srCards[q.id])).length;
+    if (k === "due")   return QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length;
     if (k === "saved") return bookmarks.length;
     if (k === "wrong") return QUESTIONS.filter(q => {
       const s = pStats[q.id];
@@ -180,7 +180,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     let base = filteredQuestions(f, pStats);
 
     // The scope is the only thing that separates what used to be five modes.
-    if (scope === "due")   base = base.filter(q => isDue(srCards[q.id]));
+    if (scope === "due")   base = base.filter(q => isReviewDue(srCards[q.id]));
     if (scope === "saved") base = base.filter(q => bookmarks.includes(q.id));
     if (scope === "wrong") base = base.filter(q => {
       const s = pStats[q.id];

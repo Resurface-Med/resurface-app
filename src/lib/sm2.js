@@ -82,3 +82,15 @@ export function isDue(card) {
   if (!card || !card.dueDate) return true;
   return Date.now() >= card.dueDate;
 }
+
+/**
+ * Due for *review* — a card you have already studied whose interval has
+ * elapsed. Unlike isDue, a card you have never seen is not due: it is new.
+ *
+ * isDue answers "may this be served?", which is why it says yes to unseen
+ * cards. Reporting that number as "due" told a brand-new account it had 497
+ * questions ready to review, next to "Seen: 0". Two questions, two functions.
+ */
+export function isReviewDue(card) {
+  return Boolean(card && card.dueDate && Date.now() >= card.dueDate);
+}

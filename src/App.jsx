@@ -24,7 +24,7 @@ class ErrorBoundary extends Component {
 }
 import { V, C, card, primaryBtn } from "./ui/theme";
 import { QUESTIONS, loadDecks } from "./data";
-import { sm2Review, isDue } from "./lib/sm2";
+import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue } from "./lib/remote";
@@ -160,7 +160,11 @@ export default function App() {
   const [launchFilter, setLaunchFilter] = useState({ deck: "All", cat: "All" });
   const [studyScope, setStudyScope] = useState("all");
 
-  const dueCount = useMemo(() => QUESTIONS.filter(q => isDue(srCards[q.id])).length, [srCards]);
+  // Two different numbers that used to be one. `dueCount` is scheduled reviews;
+  // `newCount` is questions never attempted. Collapsing them meant a new account
+  // was told 497 questions were "ready to review".
+  const dueCount = useMemo(() => QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length, [srCards]);
+  const newCount = useMemo(() => QUESTIONS.filter(q => !srCards[q.id]).length, [srCards]);
 
   function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
@@ -269,6 +273,7 @@ export default function App() {
           }>
           {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
             activity={activity}
+            newCount={newCount}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
             onStudy={s => { setStudyScope(s); setView(V.STUDY); }} />}
