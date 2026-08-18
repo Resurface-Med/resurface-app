@@ -17,8 +17,14 @@ import { todayKey } from "../lib/storage";
 
 const WEEKS = 12;
 const DAYS = 7;
-const CELL = 15;   // px; one number, used by every track in the grid
-const GAP = 4;
+
+// One knob for the whole grid. Fluid so the map fills a desktop sheet, capped
+// so it doesn't become a wall of giant squares on a wide monitor, and floored
+// so it stays tappable on a phone. Every track — columns, rows, and the day
+// label column's line height — is derived from this, which is what keeps the
+// geometry honest.
+const CELL = "clamp(22px, 3.2vw, 38px)";
+const GAP  = "clamp(4px, 0.55vw, 7px)";
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -74,9 +80,9 @@ const Cell = memo(function Cell({ date, count, isToday, isFuture, onHover }) {
       onMouseEnter={isFuture ? undefined : (e) => onHover(e, date, count)}
       onMouseLeave={isFuture ? undefined : () => onHover(null)}
       style={{
-        width: CELL,
-        height: CELL,
-        borderRadius: 4,
+        width: "100%",
+        aspectRatio: "1 / 1",
+        borderRadius: "clamp(4px, 0.6vw, 7px)",
         background: isFuture ? "transparent" : LEVEL_BG[l],
         // Future days are outlined rather than blank, so the grid still reads
         // as a full rectangle instead of looking truncated.
@@ -143,10 +149,11 @@ export default function ActivityHeatmap({ activity = {} }) {
           style={{
             display: "grid",
             // One shared geometry: a label column, then a column per week.
-            gridTemplateColumns: `auto repeat(${WEEKS}, ${CELL}px)`,
-            gridTemplateRows: `auto repeat(${DAYS}, ${CELL}px)`,
+            gridTemplateColumns: `auto repeat(${WEEKS}, ${CELL})`,
+            gridTemplateRows: `auto repeat(${DAYS}, ${CELL})`,
             gap: GAP,
             width: "max-content",
+            maxWidth: "100%",
           }}
         >
           {/* corner */}
@@ -154,7 +161,7 @@ export default function ActivityHeatmap({ activity = {} }) {
 
           {/* month labels — same columns as the cells beneath them */}
           {grid.map((_, wi) => (
-            <div key={`m${wi}`} style={{ fontSize: 11, color: C.mutedDim, lineHeight: "14px", whiteSpace: "nowrap" }}>
+            <div key={`m${wi}`} style={{ fontSize: "clamp(11px, 0.85vw, 13px)", fontWeight: 500, color: C.muted, lineHeight: 1.2, whiteSpace: "nowrap" }}>
               {monthAt[wi] ?? ""}
             </div>
           ))}
@@ -169,7 +176,7 @@ export default function ActivityHeatmap({ activity = {} }) {
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 14, justifyContent: "flex-end" }}>
         <span style={{ fontSize: 11.5, color: C.mutedDim }}>Less</span>
         {LEVEL_BG.map((bg, i) => (
-          <div key={i} style={{ width: 12, height: 12, borderRadius: 3, background: bg }} />
+          <div key={i} style={{ width: 14, height: 14, borderRadius: 4, background: bg }} />
         ))}
         <span style={{ fontSize: 11.5, color: C.mutedDim }}>More</span>
       </div>
@@ -202,8 +209,9 @@ function Row({ d, label, grid, activity, today, now, onHover }) {
   return (
     <>
       <div style={{
-        fontSize: 11, color: C.mutedDim, lineHeight: `${CELL}px`,
-        paddingRight: 6, textAlign: "right", whiteSpace: "nowrap",
+        fontSize: "clamp(11px, 0.85vw, 13px)", fontWeight: 500, color: C.muted,
+        display: "flex", alignItems: "center", justifyContent: "flex-end",
+        paddingRight: 10, whiteSpace: "nowrap",
       }}>
         {/* Alternate days only — seven labels at this size is clutter. */}
         {d % 2 === 0 ? label : ""}
