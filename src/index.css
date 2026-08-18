@@ -455,6 +455,15 @@ select {
   width: 5px;
 }
 
+/* A 5px classic scrollbar occupies layout space, so a tall view showed one and
+   a short view did not — and every tab switch between them changed the content
+   width, reflowing and shifting the whole page sideways. That reads as jitter
+   but is a layout shift, not a dropped frame. Reserving the gutter permanently
+   means the width never changes. */
+.scroll-region {
+  scrollbar-gutter: stable;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
@@ -694,3 +703,23 @@ select {
 }
 
 
+
+/* ─── View transitions ──────────────────────────────────────────── */
+/* One animation for the whole view, not one per section.
+   The dashboard used to bring in a header and two panels on separate delays,
+   so a switch assembled itself over half a second across four independently
+   animating layers — four chances to drop a frame, and a long unsettled
+   period in which to notice. A single short move on a single layer is both
+   cheaper and reads as more deliberate. Transform and opacity only. */
+@keyframes view-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.view-enter {
+  animation: view-enter 0.17s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-enter { animation: none; }
+}
