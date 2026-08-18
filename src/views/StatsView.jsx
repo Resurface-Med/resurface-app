@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { C, V, pageWrap, card, h1, h2, pageSub } from "../ui/theme";
 import { QUESTIONS, DECK_MAP } from "../data";
 import ProgressBar from "../ui/ProgressBar";
+import GhostBtn from "../ui/GhostBtn";
 
 
 function AnimatedRing({ pct, col, size = 88 }) {
@@ -166,7 +167,7 @@ function DeckSection({ deck, cats, pStats, collapsed, onToggle, onPractice }) {
   );
 }
 
-export default function StatsView({ pStats, srCards, setView, setLaunchFilter }) {
+export default function StatsView({ pStats, srCards, setView, setLaunchFilter, onClearP, onClearSR }) {
   const [collapsed, setCollapsed] = useState(new Set(Object.keys(DECK_MAP)));
 
   function handlePractice(deck, cat) {
@@ -382,6 +383,14 @@ export default function StatsView({ pStats, srCards, setView, setLaunchFilter })
           </div>
         </>
       )}
+
+      <div style={{
+        display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap",
+        marginTop: 36, paddingTop: 24, borderTop: "1px solid var(--c-border)",
+      }}>
+        <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP?.(); }}>Reset practice stats</GhostBtn>
+        <GhostBtn onClick={() => { if (window.confirm("Reset review schedules?")) onClearSR?.(); }}>Reset review schedule</GhostBtn>
+      </div>
     </div>
   );
 }

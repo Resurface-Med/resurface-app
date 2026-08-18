@@ -206,7 +206,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div style={{ display: "flex", minHeight: "var(--app-vh)", gap: 0, background: "transparent" }}>
+    <div style={{ display: "flex", minHeight: "var(--app-vh)", gap: "clamp(8px, 1vw, 18px)", background: "transparent" }}>
       <Sidebar {...nav} />
       {pendingView && (
         <div style={{
@@ -271,16 +271,16 @@ export default function App() {
             activity={activity}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
-            onStudy={s => { setStudyScope(s); setView(V.STUDY); }}
-            onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
-            onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
+            onStudy={s => { setStudyScope(s); setView(V.STUDY); }} />}
 
           {view === V.STUDY && <StudyMode key={studyScope} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
 
-          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter} />}
+          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter}
+            onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
+            onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
 
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
 

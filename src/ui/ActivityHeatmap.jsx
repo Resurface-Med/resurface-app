@@ -18,13 +18,13 @@ import { todayKey } from "../lib/storage";
 const WEEKS = 12;
 const DAYS = 7;
 
-// One knob for the whole grid. Fluid so the map fills a desktop sheet, capped
-// so it doesn't become a wall of giant squares on a wide monitor, and floored
-// so it stays tappable on a phone. Every track — columns, rows, and the day
-// label column's line height — is derived from this, which is what keeps the
-// geometry honest.
-const CELL = "clamp(22px, 3.2vw, 38px)";
-const GAP  = "clamp(4px, 0.55vw, 7px)";
+// Cells are `1fr` and square themselves via aspect-ratio, so the map is exactly
+// as wide as whatever column it is handed and can never overflow it. Sizing off
+// `vw` measured the viewport rather than the container, which is why it spilled
+// the moment it stopped having the page to itself. MAX_W keeps it from becoming
+// a wall of giant squares on a wide monitor.
+const GAP   = "clamp(4px, 0.55vw, 7px)";
+const MAX_W = 620;
 
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -144,16 +144,15 @@ export default function ActivityHeatmap({ activity = {} }) {
         </div>
       </div>
 
-      <div style={{ overflowX: "auto", paddingBottom: 4 }}>
+      <div style={{ minWidth: 0 }}>
         <div
           style={{
             display: "grid",
             // One shared geometry: a label column, then a column per week.
-            gridTemplateColumns: `auto repeat(${WEEKS}, ${CELL})`,
-            gridTemplateRows: `auto repeat(${DAYS}, ${CELL})`,
+            gridTemplateColumns: `auto repeat(${WEEKS}, minmax(0, 1fr))`,
             gap: GAP,
-            width: "max-content",
-            maxWidth: "100%",
+            width: "100%",
+            maxWidth: MAX_W,
           }}
         >
           {/* corner */}
@@ -173,7 +172,7 @@ export default function ActivityHeatmap({ activity = {} }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 14, justifyContent: "flex-end" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 14, justifyContent: "flex-end", maxWidth: MAX_W }}>
         <span style={{ fontSize: 11.5, color: C.mutedDim }}>Less</span>
         {LEVEL_BG.map((bg, i) => (
           <div key={i} style={{ width: 14, height: 14, borderRadius: 4, background: bg }} />

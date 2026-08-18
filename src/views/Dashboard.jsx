@@ -1,9 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
-import { C, V, h1, card, sectionH, eyebrowField, eyebrow, OF } from "../ui/theme";
+import { C, V, h1, card, sectionH, eyebrowField, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
-import GhostBtn from "../ui/GhostBtn";
 
 // The landing's frosted cards have no rim — the blurred backdrop is the effect,
 // not a fill and a border. 0.10 is measured off the same comp.
@@ -11,7 +10,7 @@ const glassTile = {
   background: "rgba(255,255,255,0.10)",
   border: "none",
   borderRadius: "var(--r-card)",
-  padding: "clamp(16px, 2vw, 22px)",
+  padding: "clamp(13px, 1.5vw, 17px)",
   backdropFilter: "blur(16px) saturate(160%)",
   WebkitBackdropFilter: "blur(16px) saturate(160%)",
 };
@@ -35,7 +34,7 @@ function useCountUp(target, duration = 420, delay = 0) {
   return val;
 }
 
-export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, dailyGoal = 20, onGoalChange, onStudy, onClearP, onClearSR }) {
+export default function Dashboard({ pStats, streak, dueCount, setView, activity = {}, dailyGoal = 20, onGoalChange, onStudy }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
@@ -66,19 +65,19 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   const band = {
-    maxWidth: 1080,
+    maxWidth: 1180,
     margin: "0 auto",
     padding: "0 clamp(20px, 3vw, 40px)",
     width: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: "clamp(18px, 2.6vh, 28px)",
+    gap: "clamp(14px, 2vh, 22px)",
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       {/* ── Blue band: who you are and how you're doing ────────────── */}
-      <div style={{ ...band, paddingTop: "clamp(26px, 4.5vh, 46px)", paddingBottom: "clamp(24px, 4vh, 40px)" }}>
+      <div style={{ ...band, paddingTop: "clamp(20px, 3.4vh, 34px)", paddingBottom: "clamp(18px, 3vh, 28px)" }}>
 
       {/* Header — eyebrow, headline, supporting line: the landing's section
           opening, applied to a page rather than a marketing band. */}
@@ -89,8 +88,8 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       }}>
         <div>
           <span style={eyebrowField}>{todayLabel}</span>
-          <h1 style={{ ...h1, marginTop: 14 }}>{greeting}.</h1>
-          <p style={{ color: OF.soft, marginTop: 8, fontSize: 16, fontWeight: 400, letterSpacing: -0.2, lineHeight: 1.5 }}>
+          <h1 style={{ ...h1, marginTop: 10 }}>{greeting}.</h1>
+          <p style={{ color: OF.soft, marginTop: 6, fontSize: 15.5, fontWeight: 400, letterSpacing: -0.2, lineHeight: 1.45 }}>
             {totalT === 0
               ? "Start practising and your progress shows up here."
               : `${totalT} questions answered · ${acc ?? 0}% accuracy`}
@@ -126,10 +125,10 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
           { label: "Today", value: String(todayCount), foot: null, goal: true },
         ].map(tile => (
           <div key={tile.label} style={glassTile}>
-            <div style={{ fontSize: "clamp(28px, 3vw, 36px)", fontWeight: 700, color: OF.text, letterSpacing: -1.5, lineHeight: 1.05 }}>
+            <div style={{ fontSize: "clamp(24px, 2.4vw, 30px)", fontWeight: 700, color: OF.text, letterSpacing: -1.2, lineHeight: 1.05 }}>
               {tile.value}
             </div>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: OF.soft, marginTop: 8, letterSpacing: -0.1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: OF.soft, marginTop: 5, letterSpacing: -0.1 }}>
               {tile.label}
             </div>
 
@@ -187,24 +186,22 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       {/* ── White sheet: the working surface ───────────────────────── */}
-      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(40px, 6vh, 72px)" }}>
+      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 44px)" }}>
         <div style={{ ...band, paddingTop: "clamp(8px, 2vh, 20px)" }}>
 
-      <div style={{ animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
-        <ActivityHeatmap activity={activity} />
-      </div>
+      <div className="dash-split">
+        <div style={{ animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
+          <ActivityHeatmap activity={activity} />
+        </div>
+
+        <div>
 
       {/* Where to go next — the landing's numbered steps, as buttons */}
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "baseline",
-        gap: 16, flexWrap: "wrap", marginTop: 8,
+        gap: 16, flexWrap: "wrap", marginBottom: 16,
       }}>
-        <div>
-          <span style={eyebrow}>Keep going</span>
-          <h2 style={{ ...sectionH, fontSize: "clamp(22px, 2.2vw, 30px)", letterSpacing: -0.9, marginTop: 12 }}>
-            Where to next?
-          </h2>
-        </div>
+        <h2 style={{ ...sectionH }}>Where to next?</h2>
         <button onClick={() => setView(V.PROGRESS)} className="btn-press" style={{
           background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
           fontSize: 14.5, fontWeight: 600, color: C.accent,
@@ -214,23 +211,27 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
+      <div className="dash-next">
         {modes.map((m, i) => (
           <button key={m.scope} onClick={() => onStudy?.(m.scope)} className="hover-lift btn-press" style={{
             ...card,
             position: "relative",
-            padding: "clamp(20px, 2.4vw, 26px)",
+            padding: "clamp(16px, 1.8vw, 20px) clamp(18px, 2vw, 22px)",
             textAlign: "left",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 16,
             cursor: "pointer",
             fontFamily: "inherit",
             border: "none",
             animation: `rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) ${0.16 + i * 0.035}s both`,
           }}>
             <div style={{
-              fontSize: "clamp(38px, 4vw, 52px)", fontWeight: 700, color: C.accent, opacity: 0.2,
-              letterSpacing: -2.2, lineHeight: 1, marginBottom: 14,
+              fontSize: "clamp(30px, 3vw, 38px)", fontWeight: 700, color: C.accent, opacity: 0.2,
+              letterSpacing: -1.8, lineHeight: 0.95, flexShrink: 0,
             }}>{m.n}</div>
 
+            <div style={{ minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ ...sectionH, fontSize: 17 }}>{m.label}</span>
               {m.badge && (
@@ -241,16 +242,15 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
               )}
             </div>
 
-            <p style={{ marginTop: 7, fontSize: 14.5, color: C.sub, lineHeight: 1.5, letterSpacing: -0.1 }}>{m.body}</p>
+            <p style={{ marginTop: 5, fontSize: 14, color: C.sub, lineHeight: 1.45, letterSpacing: -0.1 }}>{m.body}</p>
+            </div>
           </button>
         ))}
       </div>
 
-      {/* Reset links */}
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 20, animation: "rise-blur 0.22s ease 0.4s both" }}>
-            <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP(); }}>Reset practice stats</GhostBtn>
-            <GhostBtn onClick={() => { if (window.confirm("Reset review schedules?")) onClearSR(); }}>Reset review schedule</GhostBtn>
-          </div>
+        </div>
+      </div>
+
         </div>
       </div>
     </div>
