@@ -47,19 +47,10 @@ export default function Dashboard({
    * you have merely met, which is why it earns a slot over something like
    * total time.
    */
-  const stats = useMemo(() => {
-    const days = Object.values(activity).filter(n => n > 0).length;
-    const mastered = Object.values(srCards).filter(c => (c?.interval ?? 0) >= 21).length;
-    return [
-      { label: "Questions answered", value: totalT.toLocaleString() },
-      { label: "Correct",            value: totalC.toLocaleString() },
-      { label: "Accuracy",           value: acc === null ? "—" : `${acc}%` },
-      { label: "Of the bank seen",   value: `${seen}/${QUESTIONS.length}` },
-      { label: "Mastered",           value: mastered.toLocaleString() },
-      { label: "Days studied",       value: days.toLocaleString() },
-      { label: "Longest streak",     value: `${streak.longest || 0}` },
-    ];
-  }, [activity, srCards, totalT, totalC, acc, seen, streak.longest]);
+  const mastered = useMemo(
+    () => Object.values(srCards).filter(c => (c?.interval ?? 0) >= 21).length,
+    [srCards],
+  );
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -144,6 +135,11 @@ export default function Dashboard({
               <span style={{ fontSize: 14, color: OF.soft, fontWeight: 500 }}>
                 day{streak.streak === 1 ? "" : "s"} in a row
               </span>
+              {streak.longest > streak.streak && (
+                <span style={{ fontSize: 13, color: OF.faint, fontWeight: 500 }}>
+                  best {streak.longest}
+                </span>
+              )}
             </div>
           )}
         </header>
@@ -192,6 +188,28 @@ export default function Dashboard({
           <div className="dash-split">
 
             <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.14s both" }}>
+              {/* Position in the bank. Three quantities, one object: mastered
+                  sits inside seen sits inside the whole bank, so a stacked bar
+                  states the nesting that three separate figures only implied. */}
+              <div style={{ marginBottom: "clamp(22px, 3vh, 32px)" }}>
+                <div style={{ display: "flex", height: 9, borderRadius: 99, overflow: "hidden", background: "var(--c-surface3)" }}>
+                  <div style={{ width: `${(mastered / QUESTIONS.length) * 100}%`, background: "var(--c-accent)" }} />
+                  <div style={{ width: `${(Math.max(seen - mastered, 0) / QUESTIONS.length) * 100}%`, background: "var(--c-accent)", opacity: 0.34 }} />
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 11, fontSize: 13, color: C.sub }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", flexShrink: 0 }} />
+                    <strong style={{ color: C.text, fontWeight: 600 }}>{mastered}</strong> mastered
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    <span style={{ width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", opacity: 0.34, flexShrink: 0 }} />
+                    <strong style={{ color: C.text, fontWeight: 600 }}>{seen}</strong> seen
+                  </span>
+                  <span style={{ marginLeft: "auto", color: C.mutedDim }}>{QUESTIONS.length} in the bank</span>
+                </div>
+              </div>
+
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
                 <h2 style={sectionH}>Where to focus</h2>
                 {weakest.length > 0 && (
@@ -272,6 +290,10 @@ export default function Dashboard({
                 marginTop: 20, paddingTop: 15, borderTop: "1px solid var(--c-border)",
                 fontSize: 13.5, color: C.sub,
               }}>
+                <span><strong style={{ color: C.text, fontWeight: 600 }}>{totalT.toLocaleString()}</strong> answered</span>
+                {acc !== null && <><span aria-hidden="true">·</span><span><strong style={{ color: C.text, fontWeight: 600 }}>{acc}%</strong> accuracy</span></>}
+                <span aria-hidden="true">·</span>
+
                 <span>
                   Today {todayCount} of{" "}
                   {editingGoal ? (
@@ -325,26 +347,6 @@ export default function Dashboard({
 
           </div>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(112px, 1fr))",
-            gap: "clamp(12px, 2vw, 26px)",
-            marginTop: "clamp(22px, 3vh, 34px)",
-            paddingTop: "clamp(16px, 2vh, 22px)",
-            borderTop: "1px solid var(--c-border)",
-            animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.28s both",
-          }}>
-            {stats.map(s => (
-              <div key={s.label}>
-                <div style={{ fontSize: "clamp(19px, 1.8vw, 23px)", fontWeight: 700, color: C.text, letterSpacing: -0.7, lineHeight: 1.1, fontVariantNumeric: "tabular-nums" }}>
-                  {s.value}
-                </div>
-                <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3, letterSpacing: -0.05 }}>
-                  {s.label}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
