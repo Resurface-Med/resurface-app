@@ -5,73 +5,56 @@ import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
 
 /**
- * The home screen: three zones, not eight.
+ * The home screen.
  *
- * The previous versions kept growing modules — a hero, a wave, four stat
- * tiles, a big accent card, two outlined cards, a goal bar, a heatmap, a
- * stats line — each individually reasonable and collectively exhausting.
- * The fix is fewer objects, not quieter ones: the blue field carries the
- * greeting *and* the actions (so there is exactly one accent moment on the
- * page), and the sheet below holds the two things a question bank owes you —
- * what's in the bank, and what you've done with it.
+ * Two panes of comparable weight below the wave: where you stand in the bank,
+ * and what you have been doing. Topic-level detail lives on Progress — this
+ * page answers "how far am I and am I keeping at it", and hands off anything
+ * that needs reading rather than glancing.
  *
- * The subject list is deliberately a list. Nine cards would have been nine
- * competing rectangles; nine rows read as one object.
+ * Every number sits inside the block it describes. The version that kept a
+ * strip of figures across the foot of the page had them belonging to nothing,
+ * which is both the reason it looked wrong and the reason nobody read it.
  */
 
-// Below this, a topic's percentage is noise rather than signal.
-const MIN_ATTEMPTS = 3;
+/** Anki's threshold for a mature card, in days. */
+const MASTERED_DAYS = 21;
 
-/** Categories are often prefixed with their own deck; the panel already says it. */
-function topicLabel(cat, deck) {
-  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
+function StatRow({ label, value, strong = false, top = false }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "baseline", justifyContent: "space-between",
+      gap: 12, padding: "9px 0",
+      borderTop: top ? "1px solid var(--c-border)" : "none",
+      marginTop: top ? 8 : 0,
+      paddingTop: top ? 15 : 9,
+    }}>
+      <span style={{ fontSize: 14, color: C.sub }}>{label}</span>
+      <span style={{
+        fontSize: strong ? 17 : 15,
+        fontWeight: strong ? 700 : 600,
+        color: C.text,
+        letterSpacing: -0.3,
+        fontVariantNumeric: "tabular-nums",
+      }}>{value}</span>
+    </div>
+  );
 }
 
 export default function Dashboard({
   pStats, streak, dueCount, setView,
-  activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy, onStudyTopic,
+  activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
   const seen = Object.keys(pStats).length;
+  const total = QUESTIONS.length;
 
-  /**
-   * Plain counters. No trends, because nothing here is stored with a timestamp
-   * — practice_stats holds running totals and activity holds a daily count, so
-   * "answered" and "days studied" are honest but "accuracy last week" is not
-   * reconstructable.
-   *
-   * "Mastered" is the 21-day interval Anki uses for a mature card. It is the
-   * one number here that separates questions you have retained from questions
-   * you have merely met, which is why it earns a slot over something like
-   * total time.
-   */
   const mastered = useMemo(
-    () => Object.values(srCards).filter(c => (c?.interval ?? 0) >= 21).length,
+    () => Object.values(srCards).filter(c => (c?.interval ?? 0) >= MASTERED_DAYS).length,
     [srCards],
   );
-
-  /**
-   * What the panel will look like once there is data in it.
-   *
-   * An empty state that only explains itself asks you to imagine the payoff.
-   * Showing the real layout with real topic names from the bank makes the
-   * promise concrete — you can see it is a ranked list of your weak spots
-   * before you have earned one. Ghosted and labelled, because plausible
-   * numbers at full strength would just be a lie.
-   */
-  const previewRows = useMemo(() => {
-    const seenCats = new Set();
-    const out = [];
-    for (const q of QUESTIONS) {
-      if (seenCats.has(q.cat)) continue;
-      seenCats.add(q.cat);
-      out.push({ cat: q.cat, deck: q.deck });
-      if (out.length === 4) break;
-    }
-    return out.map((r, i) => ({ ...r, pct: 44 + i * 9, total: 12 - i * 2 }));
-  }, []);
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -82,41 +65,11 @@ export default function Dashboard({
     return activity[key] || 0;
   }, [activity]);
 
-  /**
-   * The weakest topics you have actually attempted.
-   *
-   * Coverage — "62 of 153 seen" — was the wrong number. It says where you have
-   * been, not what you do not know, and students do not make study decisions
-   * from it. Accuracy per topic is what they act on: run questions to find the
-   * gaps, then go at the gaps.
-   *
-   * Topics, not subjects: "Glycolysis & Bioenergetics at 45%" tells you what to
-   * open tonight, "Biochemistry" does not. MIN_ATTEMPTS keeps a single unlucky
-   * question from parking a topic at the top of the list.
-   */
-  const weakest = useMemo(() => {
-    const by = new Map();
-    for (const q of QUESTIONS) {
-      const s = pStats[q.id];
-      if (!s || !s.total) continue;
-      let row = by.get(q.cat);
-      if (!row) { row = { cat: q.cat, deck: q.deck, correct: 0, total: 0 }; by.set(q.cat, row); }
-      row.correct += s.correct;
-      row.total += s.total;
-    }
-    return [...by.values()]
-      .filter(r => r.total >= MIN_ATTEMPTS)
-      .map(r => ({ ...r, pct: Math.round((r.correct / r.total) * 100) }))
-      .sort((a, b) => a.pct - b.pct)
-      .slice(0, 5);
-  }, [pStats]);
-
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  // Reviews first — a lapsed interval is the only thing here that actually
-  // decays. Everything else is still there tomorrow.
+  // Reviews first — a lapsed interval is the only thing here that decays.
   const primary =
     dueCount > 0
       ? { scope: "due", label: `Review ${dueCount} due` }
@@ -133,6 +86,9 @@ export default function Dashboard({
     padding: "0 clamp(20px, 3vw, 40px)",
     width: "100%",
   };
+
+  const pctMastered = (mastered / total) * 100;
+  const pctSeenOnly = (Math.max(seen - mastered, 0) / total) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -203,131 +159,65 @@ export default function Dashboard({
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
-      {/* ── Sheet: the bank, and what you've done with it ──────────── */}
+      {/* ── Sheet: where you stand, and what you've been doing ─────── */}
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
-        <div style={{ ...band, paddingTop: "clamp(14px, 2.4vh, 24px)" }}>
+        <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           <div className="dash-split">
 
             <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.14s both" }}>
-              {/* Position in the bank. Three quantities, one object: mastered
-                  sits inside seen sits inside the whole bank, so a stacked bar
-                  states the nesting that three separate figures only implied. */}
-              <div style={{ marginBottom: "clamp(22px, 3vh, 32px)" }}>
-                <div style={{ display: "flex", height: 9, borderRadius: 99, overflow: "hidden", background: "var(--c-surface3)" }}>
-                  <div style={{ width: `${(mastered / QUESTIONS.length) * 100}%`, background: "var(--c-accent)" }} />
-                  <div style={{ width: `${(Math.max(seen - mastered, 0) / QUESTIONS.length) * 100}%`, background: "var(--c-accent)", opacity: 0.34 }} />
-                </div>
+              <h2 style={sectionH}>Your progress</h2>
+              <p style={{ ...meta, marginTop: 4 }}>
+                {seen === 0
+                  ? `All ${total} questions are waiting.`
+                  : `${Math.round((seen / total) * 100)}% of the bank attempted.`}
+              </p>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 11, fontSize: 13, color: C.sub }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", flexShrink: 0 }} />
-                    <strong style={{ color: C.text, fontWeight: 600 }}>{mastered}</strong> mastered
-                  </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", opacity: 0.34, flexShrink: 0 }} />
-                    <strong style={{ color: C.text, fontWeight: 600 }}>{seen}</strong> seen
-                  </span>
-                  <span style={{ marginLeft: "auto", color: C.mutedDim }}>{QUESTIONS.length} in the bank</span>
-                </div>
+              {/* One object, three quantities. Mastered nests inside seen nests
+                  inside the bank, which separate figures could only imply. */}
+              <div style={{
+                display: "flex", height: 16, borderRadius: 99, overflow: "hidden",
+                background: "var(--c-surface3)", marginTop: 20,
+              }}>
+                <div style={{
+                  width: `${pctMastered}%`, background: "var(--c-accent)",
+                  transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
+                }} />
+                <div style={{
+                  width: `${pctSeenOnly}%`, background: "var(--c-accent)", opacity: 0.32,
+                  transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
+                }} />
               </div>
 
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
-                <h2 style={sectionH}>Where to focus</h2>
-                {weakest.length > 0 && (
-                  <button
-                    onClick={() => setView(V.PROGRESS)}
-                    className="btn-press"
-                    style={{
-                      background: "none", border: "none", padding: 0, cursor: "pointer",
-                      fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: C.accent,
-                    }}
-                  >All topics →</button>
-                )}
+              <div style={{ marginTop: 16 }}>
+                <StatRow
+                  strong
+                  label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", marginRight: 8 }} />Mastered</>}
+                  value={mastered.toLocaleString()}
+                />
+                <StatRow
+                  label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", opacity: 0.32, marginRight: 8 }} />Seen</>}
+                  value={seen.toLocaleString()}
+                />
+                <StatRow
+                  label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-surface3)", marginRight: 8 }} />Not yet started</>}
+                  value={(total - seen).toLocaleString()}
+                />
+
+                <StatRow top label="Questions answered" value={totalT.toLocaleString()} />
+                <StatRow label="Accuracy" value={acc === null ? "—" : `${acc}%`} />
               </div>
 
-              {weakest.length > 0 ? (
-                <>
-                  <p style={{ ...meta, marginBottom: 14 }}>
-                    Your lowest-scoring topics so far. Tap one to drill it.
-                  </p>
-
-                  {weakest.map(w => (
-                    <button
-                      key={w.cat}
-                      onClick={() => onStudyTopic?.(w.deck, w.cat)}
-                      className="subject-row"
-                      title={`Practise ${topicLabel(w.cat, w.deck)}`}
-                    >
-                      <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                        <span style={{ display: "block", fontSize: 14.5, fontWeight: 500, color: C.text, letterSpacing: -0.15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {topicLabel(w.cat, w.deck)}
-                        </span>
-                        <span style={{ display: "block", fontSize: 12.5, color: C.mutedDim, marginTop: 1 }}>
-                          {w.deck} · {w.total} answered
-                        </span>
-                      </span>
-
-                      {/* Accent, never red. A wrong-answer list rendered in alarm
-                          colours is the thing that makes students protect their
-                          percentage instead of attacking their gaps. */}
-                      <span style={{ width: "clamp(44px, 6vw, 74px)", height: 4, borderRadius: 99, background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0 }}>
-                        <span style={{ display: "block", height: "100%", width: `${w.pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
-                      </span>
-
-                      <span style={{ width: 40, textAlign: "right", fontSize: 13.5, fontWeight: 600, color: C.sub, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
-                        {w.pct}%
-                      </span>
-                    </button>
-                  ))}
-                </>
-              ) : (
-                <div>
-                  <p style={{ ...meta, marginBottom: 14, maxWidth: "44ch" }}>
-                    {seen === 0
-                      ? "Your lowest-scoring topics will be ranked here, so you always know what to revise next."
-                      : `Once a topic has ${MIN_ATTEMPTS} answers behind it, it appears here with your score.`}
-                  </p>
-
-                  {/* The real layout, ghosted, so the promise is visible rather
-                      than described. aria-hidden and inert: none of it is true. */}
-                  <div aria-hidden="true" style={{ opacity: 0.38, pointerEvents: "none", userSelect: "none" }}>
-                    {previewRows.map(r => (
-                      <div key={r.cat} className="subject-row" style={{ cursor: "default" }}>
-                        <span style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                          <span style={{ display: "block", fontSize: 14.5, fontWeight: 500, color: C.text, letterSpacing: -0.15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {topicLabel(r.cat, r.deck)}
-                          </span>
-                          <span style={{ display: "block", fontSize: 12.5, color: C.mutedDim, marginTop: 1 }}>
-                            {r.deck} · {r.total} answered
-                          </span>
-                        </span>
-                        <span style={{ width: "clamp(44px, 6vw, 74px)", height: 4, borderRadius: 99, background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0 }}>
-                          <span style={{ display: "block", height: "100%", width: `${r.pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
-                        </span>
-                        <span style={{ width: 40, textAlign: "right", fontSize: 13.5, fontWeight: 600, color: C.sub, flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
-                          {r.pct}%
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginTop: 16 }}>
-                    <button
-                      onClick={() => onStudy?.("all")}
-                      className="btn-press"
-                      style={{
-                        background: "transparent", color: C.accent,
-                        border: "1px solid var(--c-accent-brd)", borderRadius: "var(--r-pill)",
-                        padding: "10px 20px", fontFamily: "inherit", fontSize: 14.5,
-                        fontWeight: 600, cursor: "pointer",
-                      }}
-                    >
-                      Find my gaps →
-                    </button>
-                    <span style={{ fontSize: 12.5, color: C.mutedDim }}>Example shown above</span>
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={() => setView(V.PROGRESS)}
+                className="btn-press"
+                style={{
+                  marginTop: 14, background: "none", border: "none", padding: 0,
+                  cursor: "pointer", fontFamily: "inherit", fontSize: 14,
+                  fontWeight: 600, color: C.accent, display: "flex", alignItems: "center", gap: 5,
+                }}
+              >
+                Full breakdown by topic <span aria-hidden="true">→</span>
+              </button>
             </section>
 
             <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.22s both" }}>
@@ -338,10 +228,6 @@ export default function Dashboard({
                 marginTop: 20, paddingTop: 15, borderTop: "1px solid var(--c-border)",
                 fontSize: 13.5, color: C.sub,
               }}>
-                <span><strong style={{ color: C.text, fontWeight: 600 }}>{totalT.toLocaleString()}</strong> answered</span>
-                {acc !== null && <><span aria-hidden="true">·</span><span><strong style={{ color: C.text, fontWeight: 600 }}>{acc}%</strong> accuracy</span></>}
-                <span aria-hidden="true">·</span>
-
                 <span>
                   Today {todayCount} of{" "}
                   {editingGoal ? (
@@ -378,23 +264,16 @@ export default function Dashboard({
                   {todayCount >= dailyGoal ? " ✓" : ""}
                 </span>
 
-
-                <button
-                  onClick={() => setView(V.PROGRESS)}
-                  className="btn-press"
-                  style={{
-                    marginLeft: "auto", background: "none", border: "none", padding: 0,
-                    cursor: "pointer", fontFamily: "inherit", fontSize: 13.5,
-                    fontWeight: 600, color: C.accent, display: "flex", alignItems: "center", gap: 5,
-                  }}
-                >
-                  Progress <span aria-hidden="true">→</span>
-                </button>
+                {streak.streak > 0 && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>{streak.streak} day streak</span>
+                  </>
+                )}
               </div>
             </section>
 
           </div>
-
         </div>
       </div>
     </div>

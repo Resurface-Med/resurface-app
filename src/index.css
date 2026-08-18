@@ -694,23 +694,3 @@ select {
 }
 
 
-/* Nine subjects read as one list, not nine cards. The hairline is the only
-   separator; hover is the only decoration. */
-.subject-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 9px 10px;
-  margin: 0 -10px;
-  background: none;
-  border: none;
-  border-radius: var(--r-ctrl);
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-.subject-row + .subject-row { box-shadow: inset 0 1px 0 var(--c-border); }
-.subject-row:hover { background: var(--c-surface3); }
-.subject-row:hover + .subject-row,
-.subject-row:hover { box-shadow: none; }
