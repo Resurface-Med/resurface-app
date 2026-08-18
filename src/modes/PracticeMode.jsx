@@ -5,7 +5,8 @@ import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
 import Wave from "../ui/Wave";
 import QuestionCard from "../ui/QuestionCard";
-import FilterPanel, { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
+import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
+import TopicPicker from "../ui/TopicPicker";
 import SessionSummary from "../ui/SessionSummary";
 
 function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
@@ -153,11 +154,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     : defaultFilter
   );
   const [countOpt, setCountOpt] = useState("All");
-  // Open only when a launch arrived pre-filtered, so the state that produced
-  // the question count is never hidden from the person about to start.
-  const [filtersOpen, setFiltersOpen] = useState(
-    Boolean(launchFilter && (launchFilter.deck !== "All" || launchFilter.cat !== "All")),
-  );
   const [queue, setQueue] = useState(null);
   const [idx, setIdx] = useState(0);
   const [sels, setSels] = useState({});
@@ -293,10 +289,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   // Setup screen
   if (!queue) {
+    // Scope first, topic second: the scope decides which questions exist at
+    // all, so the topic rows can show how many each would actually give you.
+    const inScope = applyScope(QUESTIONS.filter(q => !filter.unseenOnly || !pStats[q.id]));
+    const eligibleIds = inScope.map(q => q.id);
     const scoped = scopedCount(filter);
-    const narrowed = !filter.deck.includes("All") || !filter.cat.includes("All")
-      || !filter.year.includes("All") || !filter.block.includes("All") || filter.unseenOnly;
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
+    const topicLabel = !filter.cat.includes("All") ? filter.cat[0]
+      : !filter.deck.includes("All") ? filter.deck[0]
+      : null;
 
     return (
       <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -328,12 +329,27 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
         <Wave from="transparent" to="var(--c-card-solid)" />
 
-        {/* ── Sheet: two decisions, then go ─────────────────────────── */}
+        {/* ── Sheet: the topic is the screen ───────────────────────── */}
         <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
-          <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 3vh, 30px)" }}>
+          <div style={{ ...band, maxWidth: 760, paddingTop: "clamp(18px, 3vh, 28px)" }}>
 
-            <h2 style={sectionH}>What do you want to work on?</h2>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
+            <h2 style={sectionH}>What are you revising?</h2>
+            <div className="topic-scroll" style={{ marginTop: 12 }}>
+              <TopicPicker
+                value={filter}
+                onChange={next => { setFilter(f => ({ ...f, ...next })); setCountOpt("All"); }}
+                pStats={pStats}
+                eligibleIds={eligibleIds}
+              />
+            </div>
+
+            {/* Refinements. Deliberately smaller and below: they modify the
+                choice above rather than competing with it. */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+              marginTop: "clamp(20px, 3vh, 28px)", paddingTop: "clamp(16px, 2.4vh, 22px)",
+              borderTop: "1px solid var(--c-border)",
+            }}>
               {SCOPES.map(s => {
                 const n = scopeCount(s.k);
                 const disabled = n === 0 && s.k !== "all";
@@ -346,15 +362,27 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       opacity: disabled ? 0.38 : 1,
                       cursor: disabled ? "not-allowed" : "pointer",
                     }}>
-                    {s.label} <span style={{ opacity: 0.65, fontVariantNumeric: "tabular-nums" }}>{n}</span>
+                    {s.label}
                   </button>
                 );
               })}
-            </div>
-            <p style={{ fontSize: 13.5, color: C.muted, marginTop: 10 }}>{SCOPE_COPY[scope]}</p>
 
-            <h2 style={{ ...sectionH, marginTop: "clamp(24px, 3.4vh, 34px)" }}>How many?</h2>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+              <label style={{
+                display: "flex", alignItems: "center", gap: 8, marginLeft: "auto",
+                fontSize: 14, color: C.sub, cursor: "pointer", userSelect: "none",
+              }}>
+                <input
+                  type="checkbox"
+                  checked={filter.unseenOnly}
+                  onChange={e => { setFilter(f => ({ ...f, unseenOnly: e.target.checked })); setCountOpt("All"); }}
+                  style={{ width: 16, height: 16, accentColor: "var(--c-accent)", cursor: "pointer" }}
+                />
+                Only ones I haven't seen
+              </label>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+              <span style={{ fontSize: 14, color: C.sub, marginRight: 4 }}>How many</span>
               {COUNT_OPTIONS.map(o => {
                 const disabled = o !== "All" && o > scoped;
                 return (
@@ -367,52 +395,21 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               })}
             </div>
 
-            {/* Most sessions are "just start". The filters are a real feature
-                but a rare one, so they fold away instead of occupying the
-                screen every time. The label states the count when anything is
-                active, so a filter left on from an earlier launch can never be
-                invisible. */}
-            <div style={{ marginTop: "clamp(24px, 3.4vh, 34px)" }}>
-              <button
-                onClick={() => setFiltersOpen(o => !o)}
-                className="btn-press"
-                aria-expanded={filtersOpen}
-                style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  background: "none", border: "none", padding: 0, cursor: "pointer",
-                  fontFamily: "inherit", fontSize: 14.5, fontWeight: 600,
-                  color: narrowed ? C.accent : C.sub,
-                }}
-              >
-                <span aria-hidden="true" style={{
-                  display: "inline-block",
-                  transform: filtersOpen ? "rotate(90deg)" : "rotate(0deg)",
-                  transition: "transform 0.15s ease",
-                }}>›</span>
-                {narrowed ? `Narrowed to ${scoped} questions` : "Narrow it down"}
-              </button>
-
-              {filtersOpen && (
-                <div style={{ marginTop: 16 }}>
-                  <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
-                </div>
-              )}
-            </div>
-
+            {/* States the outcome before you commit to it. */}
             <button
               className="btn-press"
               disabled={willAsk === 0}
               onClick={() => start()}
               style={{
                 ...primaryBtn, ...lg, width: "100%",
-                marginTop: "clamp(26px, 3.6vh, 36px)",
+                marginTop: "clamp(22px, 3vh, 30px)",
                 opacity: willAsk === 0 ? 0.5 : 1,
                 cursor: willAsk === 0 ? "not-allowed" : "pointer",
               }}
             >
               {willAsk === 0
-                ? "Nothing matches those filters"
-                : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"} →`}
+                ? "Nothing left here — try another topic"
+                : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"}${topicLabel ? ` from ${topicLabel}` : ""} →`}
             </button>
           </div>
         </div>
