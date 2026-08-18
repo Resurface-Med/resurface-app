@@ -1,47 +1,12 @@
-import { useMemo, useState, useEffect, useRef, useCallback, memo } from "react";
-import { C, V, h1, card, sectionH, eyebrowField, eyebrow, meta, OF } from "../ui/theme";
+import { useMemo, useState, useEffect } from "react";
+import { C, V, h1, card, sectionH, eyebrowField, eyebrow, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
+import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
-import { todayKey } from "../lib/storage";
 import GhostBtn from "../ui/GhostBtn";
 
-const WEEKS = 26;
-const DAY_COL_W = 18; // day-label column width + margin — must stay in sync with JSX
-
-// Build N weeks ending at (today + weekOffset*7 days from now)
-function buildGrid(weekOffset = 0) {
-  const cells = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const startOffset = today.getDay();
-  const start = new Date(today);
-  start.setDate(today.getDate() - startOffset - (WEEKS - 1) * 7 + weekOffset * 7);
-
-  for (let w = 0; w < WEEKS; w++) {
-    const week = [];
-    for (let d = 0; d < 7; d++) {
-      const date = new Date(start);
-      date.setDate(start.getDate() + w * 7 + d);
-      week.push(date);
-    }
-    cells.push(week);
-  }
-  return cells;
-}
-
-function heatColor(count, max = 1) {
-  if (!count) return "var(--c-accent-glow)";
-  // sqrt scale gives better visual spread across the actual range.
-  // Alpha varies per cell, so this is one of the few places a raw colour is
-  // unavoidable — it tracks --c-accent (#3562f5) and must move with it.
-  const pct = Math.sqrt(Math.min(count / max, 1));
-  const opacity = 0.18 + pct * 0.82;
-  return `rgba(53,98,245,${opacity.toFixed(2)})`;
-}
-
-/** Frosted tile floating on the blue field — the landing's glass card. */
-// The landing's frosted cards have no rim at all — the blurred backdrop is
-// what you see, not a fill and a border. 0.10 is measured off the same comp.
+// The landing's frosted cards have no rim — the blurred backdrop is the effect,
+// not a fill and a border. 0.10 is measured off the same comp.
 const glassTile = {
   background: "rgba(255,255,255,0.10)",
   border: "none",
@@ -50,47 +15,6 @@ const glassTile = {
   backdropFilter: "blur(16px) saturate(160%)",
   WebkitBackdropFilter: "blur(16px) saturate(160%)",
 };
-
-/**
- * 182 cells, and the parent re-renders on every hover because the tooltip lives
- * there. Memoising on the data means moving the mouse across the grid no longer
- * rebuilds all of them — which is what made the dashboard feel sluggish.
- */
-const HeatGrid = memo(function HeatGrid({ grid, activity, maxActivity, onHover }) {
-  // Hoisted: this used to run once per cell, allocating 182 Dates per render.
-  const now = Date.now();
-  const today = todayKey();
-
-  return (
-    <div style={{ display: "flex", gap: 3, flex: 1 }}>
-      {grid.map((week, wi) => (
-        <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 3, flex: 1 }}>
-          {week.map((date, di) => {
-            const key = todayKey(date);
-            const count = activity[key] || 0;
-            const isFuture = date.getTime() > now;
-            return (
-              <div
-                key={di}
-                onMouseEnter={isFuture ? undefined : e => onHover(e, date, count, key)}
-                onMouseLeave={isFuture ? undefined : () => onHover(null)}
-                style={{
-                  flex: 1, aspectRatio: "1/1", borderRadius: 5,
-                  background: isFuture ? "transparent" : heatColor(count, maxActivity),
-                  border: key === today ? `1.5px solid ${C.accent}` : "1.5px solid transparent",
-                  minHeight: 8,
-                }}
-              />
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-});
-
-const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function useCountUp(target, duration = 420, delay = 0) {
   const [val, setVal] = useState(0);
@@ -119,61 +43,14 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
   const animAcc  = useCountUp(acc, 450, 120);
   const animSeen = useCountUp(Object.keys(pStats).length, 420, 160);
 
-  const [weekOffset, setWeekOffset] = useState(0);
   const goalTarget = dailyGoal;
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
-  const [tooltip, setTooltip] = useState(null); // { x, y, date, count }
-  const heatmapRef = useRef(null);
-
-  const grid = useMemo(() => buildGrid(weekOffset), [weekOffset]);
-
-  // Stable, so HeatGrid's memo actually holds.
-  const handleHover = useCallback((e, date, count, localKey) => {
-    if (e === null) { setTooltip(null); return; }
-    const rect = e.currentTarget.getBoundingClientRect();
-    setTooltip({ x: rect.left + rect.width / 2, y: rect.top, date, count, localKey });
-  }, []);
-
-  // Month labels: find first week of each new month in current window
-  const monthLabels = useMemo(() => {
-    const labels = [];
-    grid.forEach((week, wi) => {
-      const first = week[0];
-      if (wi === 0 || first.getDate() <= 7) {
-        labels.push({ wi, label: MONTH_ABBR[first.getMonth()] });
-      }
-    });
-    // Deduplicate consecutive same months
-    return labels.filter((l, i) => i === 0 || l.label !== labels[i - 1].label);
-  }, [grid]);
-
-  const maxActivity = useMemo(() => {
-    const vals = grid.flat().map(date => {
-      const k = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-      return activity[k] || 0;
-    });
-    return Math.max(1, ...vals);
-  }, [grid, activity]);
 
   const todayCount = useMemo(() => {
     const now = new Date();
     const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     return activity[key] || 0;
-  }, [activity]);
-
-  const totalThisWeek = useMemo(() => {
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(now.getDate() - now.getDay());
-    weekStart.setHours(0, 0, 0, 0);
-    let sum = 0;
-    Object.entries(activity).forEach(([dateStr, count]) => {
-      // Parse YYYY-MM-DD as local date (not UTC)
-      const [y, m, d] = dateStr.split('-').map(Number);
-      if (new Date(y, m - 1, d) >= weekStart) sum += count;
-    });
-    return sum;
   }, [activity]);
 
   // Numbered like the landing's "How it works" steps — the order is the
@@ -313,96 +190,9 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(40px, 6vh, 72px)" }}>
         <div style={{ ...band, paddingTop: "clamp(8px, 2vh, 20px)" }}>
 
-      {/* Heatmap */}
       <div style={{ animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <h2 style={sectionH}>Your activity</h2>
-            <p style={{ ...meta, marginTop: 4 }}>{totalThisWeek} question{totalThisWeek === 1 ? "" : "s"} this week</p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ display: "flex", gap: 4 }}>
-              <button onClick={() => setWeekOffset(o => o - 4)} className="btn-press" style={{
-                background: C.surface2, border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)",
-                color: C.muted, fontSize: 13, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit",
-              }}>‹</button>
-              {weekOffset < 0 && (
-                <button onClick={() => setWeekOffset(0)} className="btn-press" style={{
-                  background: C.accentDim, border: "1px solid var(--c-accent-brd)", borderRadius: "var(--r-pill)",
-                  color: C.accent, fontSize: 12, fontWeight: 600, padding: "4px 12px", cursor: "pointer", fontFamily: "inherit",
-                }}>Today</button>
-              )}
-              <button onClick={() => setWeekOffset(o => Math.min(0, o + 4))} className="btn-press"
-                disabled={weekOffset >= 0}
-                style={{
-                  background: C.surface2, border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)",
-                  color: weekOffset >= 0 ? C.mutedDim : C.muted, fontSize: 13, padding: "4px 10px",
-                  cursor: weekOffset >= 0 ? "default" : "pointer", fontFamily: "inherit", opacity: weekOffset >= 0 ? 0.3 : 1,
-                }}>›</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Month labels — spacer matches day-label column exactly */}
-        <div style={{ display: "flex", marginBottom: 4 }}>
-          <div style={{ width: DAY_COL_W, flexShrink: 0 }} />
-          <div style={{ display: "flex", gap: 3, flex: 1 }}>
-            {grid.map((_, wi) => {
-              const ml = monthLabels.find(m => m.wi === wi);
-              return (
-                <div key={wi} style={{ flex: 1, fontSize: 11, color: C.mutedDim, minWidth: 0, overflow: "hidden" }}>
-                  {ml ? ml.label : ""}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: 0 }} ref={heatmapRef}>
-          {/* Day-of-week labels */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 3, marginRight: 6, flexShrink: 0, width: 12 }}>
-            {DAY_LABELS.map((d, i) => (
-              <div key={i} style={{ fontSize: 11, color: C.mutedDim, lineHeight: "14px", height: 14 }}>
-                {i % 2 === 1 ? d : ""}
-              </div>
-            ))}
-          </div>
-
-          {/* Grid */}
-          <HeatGrid grid={grid} activity={activity} maxActivity={maxActivity} onHover={handleHover} />
-        </div>
-
-        {/* Legend */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
-          <span style={{ fontSize: 11, color: C.mutedDim }}>Less</span>
-          {[0, 0.2, 0.4, 0.7, 1].map(pct => (
-            <div key={pct} style={{ width: 12, height: 12, borderRadius: 4, background: heatColor(pct * maxActivity, maxActivity) }} />
-          ))}
-          <span style={{ fontSize: 11, color: C.mutedDim }}>More</span>
-        </div>
+        <ActivityHeatmap activity={activity} />
       </div>
-
-      {/* Floating tooltip */}
-      {tooltip && (
-        <div style={{
-          position: "fixed",
-          left: tooltip.x, top: tooltip.y - 8,
-          transform: "translate(-50%, -100%)",
-          background: "var(--c-card-bg)",
-          border: "1px solid var(--c-border)",
-          borderRadius: "var(--r-card)", padding: "8px 12px",
-          boxShadow: "var(--c-card-shadow)",
-          pointerEvents: "none", zIndex: 999,
-          fontSize: 13, whiteSpace: "nowrap",
-        }}>
-          <div style={{ fontWeight: 600, color: C.text, marginBottom: 2, letterSpacing: -0.3 }}>
-            {tooltip.count > 0 ? `${tooltip.count} question${tooltip.count !== 1 ? "s" : ""}` : "No activity"}
-          </div>
-          <div style={{ color: C.muted }}>
-            {tooltip.date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
-          </div>
-        </div>
-      )}
 
       {/* Where to go next — the landing's numbered steps, as buttons */}
       <div style={{
