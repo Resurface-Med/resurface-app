@@ -220,23 +220,23 @@ body::after {
 /* ─── Keyframes ──────────────────────────────────────────────────── */
 
 @keyframes fadeSlideUp {
-  0%   { opacity: 0; transform: translateY(24px); filter: blur(6px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  0%   { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeSlideDown {
-  0%   { opacity: 0; transform: translateY(-18px); filter: blur(6px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  0%   { opacity: 0; transform: translateY(-18px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; filter: blur(6px); }
-  to   { opacity: 1; filter: blur(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes scaleIn {
-  0%   { opacity: 0; transform: scale(0.92) translateY(12px); filter: blur(8px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+  0%   { opacity: 0; transform: scale(0.92) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @keyframes shake {
@@ -285,8 +285,8 @@ body::after {
 }
 
 @keyframes dash-left {
-  from { opacity: 0; transform: translateX(-24px); filter: blur(6px); }
-  to   { opacity: 1; transform: translateX(0);     filter: blur(0); }
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes spring-pop {
@@ -297,14 +297,14 @@ body::after {
 }
 
 @keyframes rise-blur {
-  from { opacity: 0; transform: translateY(28px); filter: blur(8px); }
-  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes sweep-reveal {
-  0%   { clip-path: inset(0 100% 0 0); opacity: 0; filter: blur(6px); transform: scaleX(0.96); }
-  60%  { filter: blur(0); opacity: 1; }
-  100% { clip-path: inset(0 0% 0 0); opacity: 1; filter: blur(0); transform: scaleX(1); }
+  0%   { clip-path: inset(0 100% 0 0); opacity: 0; transform: scaleX(0.96); }
+  60%  { opacity: 1; }
+  100% { clip-path: inset(0 0% 0 0); opacity: 1; transform: scaleX(1); }
 }
 
 @keyframes glint {
@@ -314,8 +314,8 @@ body::after {
 }
 
 @keyframes toast-slide-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.96); filter: blur(4px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1);    filter: blur(0);   }
+  from { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1);   }
 }
 
 @keyframes pulse-glow-pomo {

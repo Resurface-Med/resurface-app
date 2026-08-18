@@ -95,6 +95,18 @@ export default function App() {
     return () => { cancelled = true; };
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    const warm = () => {
+      import("./modes/PracticeMode");
+      import("./views/StatsView");
+      import("./views/GenerateMode");
+    };
+    const ric = window.requestIdleCallback;
+    const id = ric ? ric(warm, { timeout: 3000 }) : setTimeout(warm, 1500);
+    return () => (ric ? window.cancelIdleCallback(id) : clearTimeout(id));
+  }, [user]);
+
   // A tab that was open while the network went out gets a chance to catch up.
   useEffect(() => {
     if (!user) return;

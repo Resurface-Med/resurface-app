@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useLayoutEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
 
 const NAV_SUB    = "var(--c-nav-sub)";
@@ -10,7 +10,7 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
   const itemRefs = useRef([]);
   const [pill, setPill] = useState({ top: 12, height: 40 });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const idx = NAV.findIndex(i => i && i.k === view);
     const el  = itemRefs.current[idx];
     if (el && navRef.current) setPill({ top: el.offsetTop, height: el.offsetHeight });
@@ -60,15 +60,23 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
         position: "relative",
         overflowY: "auto",
       }}>
-        {/* Active pill: white island on blue glass */}
+        {/* Active pill: white island on blue glass.
+            Moved with transform, not `top`. Animating `top` makes the browser
+            re-run layout and paint for every frame of the slide, and this
+            sidebar carries an 18px backdrop-filter, so each of those frames
+            also re-blurred the panel behind it — which is why the one moving
+            element on screen was the thing that stuttered. translateY is
+            handled entirely by the compositor: no layout, no paint. */}
         <div style={{
           position: "absolute",
-          left: 8, right: 8,
-          top: pill.top, height: pill.height,
+          left: 8, right: 8, top: 0,
+          height: pill.height,
+          transform: `translateY(${pill.top}px)`,
           borderRadius: "var(--r-pill)",
           background: "var(--c-accent)",
           boxShadow: "0 8px 20px rgba(20, 44, 130, 0.28)",
-          transition: "top 0.2s cubic-bezier(0.22,1,0.36,1), height 0.15s ease",
+          transition: "transform 0.24s cubic-bezier(0.22,1,0.36,1)",
+          willChange: "transform",
           pointerEvents: "none", zIndex: 0,
         }} />
 
@@ -105,7 +113,7 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
               <span style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
 
               {badge > 0 && (
-                <span className="anim-badge-pulse" style={{
+                <span style={{
                   marginLeft: "auto",
                   background: active ? "rgba(255,255,255,0.25)" : "var(--c-accent)",
                   color: "#fff", borderRadius: "var(--r-pill)", fontSize: 11,

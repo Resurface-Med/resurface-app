@@ -182,10 +182,11 @@ export default function FilterPanel({ value, onChange, pStats = {} }) {
           transition: "background 0.2s, border-color 0.2s", position: "relative",
         }}>
           <div style={{
-            position: "absolute", top: 2, left: unseenOnly ? 17 : 2,
+            position: "absolute", top: 2, left: 2,
             width: 14, height: 14, borderRadius: "50%",
             background: unseenOnly ? "#fff" : "var(--c-muted)",
-            transition: "left 0.2s, background 0.2s",
+            transform: `translateX(${unseenOnly ? 15 : 0}px)`,
+            transition: "transform 0.2s, background 0.2s",
           }} />
         </div>
         <span style={{ fontSize: 14, color: unseenOnly ? C.text : C.muted, transition: "color 0.2s" }}>
