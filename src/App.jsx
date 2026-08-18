@@ -278,13 +278,10 @@ export default function App() {
         minWidth: 0,
         overflow: "hidden",
       }}>
-        <div className="scroll-region" style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ flex: 1, overflowY: "auto" }}>
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>
-          {/* Keyed on the view so the animation replays per switch, and holds
-              the whole view so only one layer moves. */}
-          <div key={view} className="view-enter">
           {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
             activity={activity}
             srCards={srCards}
@@ -302,7 +299,6 @@ export default function App() {
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
 
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
-          </div>
 
           </Suspense>
         </div>

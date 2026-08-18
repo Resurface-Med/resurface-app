@@ -97,6 +97,7 @@ export default function Dashboard({
         <header style={{
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           gap: 20, flexWrap: "wrap",
+          animation: "dash-left 0.26s cubic-bezier(0.22,1,0.36,1) both",
         }}>
           <div>
             <span style={eyebrowField}>{todayLabel}</span>
@@ -123,6 +124,7 @@ export default function Dashboard({
         <div style={{
           display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
           marginTop: "clamp(16px, 2.4vh, 24px)",
+          animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.1s both",
         }}>
           <button
             onClick={() => onStudy?.(primary.scope)}
@@ -162,7 +164,7 @@ export default function Dashboard({
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           <div className="dash-split">
 
-            <section>
+            <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.14s both" }}>
               <h2 style={sectionH}>Your progress</h2>
               <p style={{ ...meta, marginTop: 4 }}>
                 {seen === 0
@@ -218,7 +220,7 @@ export default function Dashboard({
               </button>
             </section>
 
-            <section>
+            <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.22s both" }}>
               <ActivityHeatmap activity={activity} />
 
               <div style={{

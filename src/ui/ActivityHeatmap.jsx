@@ -38,14 +38,7 @@ function mondayOf(d) {
   return out;
 }
 
-/**
- * WEEKS columns of 7 days, ending with the week containing today.
- *
- * The day key is built once here rather than per cell per render. It used to
- * be recomputed in three places — every cell, plus both summary reducers —
- * which is roughly 250 padded strings on each render of a component that
- * re-renders whenever any app state changes.
- */
+/** WEEKS columns of 7 days, ending with the week containing today. */
 function buildGrid() {
   const start = mondayOf(new Date());
   start.setDate(start.getDate() - (WEEKS - 1) * 7);
@@ -54,7 +47,7 @@ function buildGrid() {
     Array.from({ length: DAYS }, (_, d) => {
       const date = new Date(start);
       date.setDate(start.getDate() + w * 7 + d);
-      return { date, key: todayKey(date), time: date.getTime() };
+      return date;
     }),
   );
 }
@@ -140,23 +133,21 @@ export default function ActivityHeatmap({ activity = {} }) {
     const out = {};
     let last = null;
     grid.forEach((week, wi) => {
-      const m = week[0].date.getMonth();
+      const m = week[0].getMonth();
       if (m !== last) { out[wi] = MONTHS[m]; last = m; }
     });
     return out;
   }, [grid]);
 
-  // One pass, one flattened array, no key rebuilding.
-  const [total, activeDays] = useMemo(() => {
-    let sum = 0, days = 0;
-    for (const week of grid) {
-      for (const cell of week) {
-        const n = activity[cell.key] || 0;
-        if (n > 0) { sum += n; days += 1; }
-      }
-    }
-    return [sum, days];
-  }, [grid, activity]);
+  const total = useMemo(
+    () => grid.flat().reduce((sum, d) => sum + (activity[todayKey(d)] || 0), 0),
+    [grid, activity],
+  );
+
+  const activeDays = useMemo(
+    () => grid.flat().filter(d => activity[todayKey(d)] > 0).length,
+    [grid, activity],
+  );
 
   return (
     <section style={{ position: "relative" }}>
@@ -244,14 +235,15 @@ function Row({ d, label, grid, activity, today, now, onHover }) {
       </div>
 
       {grid.map((week, wi) => {
-        const cell = week[d];
+        const date = week[d];
+        const key = todayKey(date);
         return (
           <Cell
             key={wi}
-            date={cell.date}
-            count={activity[cell.key] || 0}
-            isToday={cell.key === today}
-            isFuture={cell.time > now}
+            date={date}
+            count={activity[key] || 0}
+            isToday={key === today}
+            isFuture={date.getTime() > now}
             onHover={onHover}
           />
         );
