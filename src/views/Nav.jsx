@@ -101,14 +101,10 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
               aria-current={active ? "page" : undefined}
             >
               <span className="app-nav__label" style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
+              <span className="app-nav__label-sm" style={{ fontWeight: active ? 700 : 500 }}>{item.short ?? item.label}</span>
 
               {badge > 0 && (
-                <span className="app-nav__badge" style={{
-                  marginLeft: "auto",
-                  background: active ? "rgba(255,255,255,0.25)" : "var(--c-accent)",
-                  color: "#fff", borderRadius: "var(--r-pill)", fontSize: 11,
-                  fontWeight: 700, padding: "2px 8px",
-                }}>{badge}</span>
+                <span className="app-nav__badge">{badge}</span>
               )}
             </button>
           );
@@ -146,7 +142,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             )}
           </span>
         </button>
-        <div className="app-nav__foot-meta" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, padding: "0 4px" }}>
+        <div className="app-nav__foot-meta">
           <span style={{ color: NAV_MUTDIM, fontSize: 11.5, fontWeight: 500 }}>© Resurface 2026</span>
           <button onClick={onSignOut} className="btn-press" style={{
             background: "none", border: "none", padding: 0, cursor: "pointer",

@@ -237,7 +237,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div style={{ display: "flex", minHeight: "var(--app-vh)", gap: "clamp(8px, 1vw, 18px)", background: "transparent" }}>
+    <div className="app-shell">
       <Sidebar {...nav} />
       {pendingView && (
         <div style={{
@@ -288,14 +288,8 @@ export default function App() {
         }}
       >{theme === "dark" ? "Light" : "Night"}</button>
 
-      <div style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        minWidth: 0,
-        overflow: "hidden",
-      }}>
-        <div className="app-main" style={{ flex: 1, overflowY: "auto" }}>
+      <div className="app-content">
+        <div className="app-main">
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>

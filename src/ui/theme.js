@@ -379,10 +379,13 @@ export const chipFieldActive = {
 // carry (⊞ ▷ ↻ ✗ ★ ✦ ◉) were typographic symbols rather than an icon set —
 // rendering differently on every platform and reading as leftovers beside the
 // landing's illustrations. Four labelled items need no legend.
+// `short` is what the bottom tab bar uses. A phone row divides ~390px between
+// six targets, and "Leaderboard" alone is wider than its share — the labels
+// collided rather than truncating.
 export const NAV = [
   { k: V.DASH,        label: "Home" },
   { k: V.STUDY,       label: "Study" },
   { k: V.PROGRESS,    label: "Progress" },
-  { k: V.LEADERBOARD, label: "Leaderboard" },
-  { k: V.GENERATE,    label: "Generate" },
+  { k: V.LEADERBOARD, label: "Leaderboard", short: "Ranks" },
+  { k: V.GENERATE,    label: "Generate",    short: "Create" },
 ];
