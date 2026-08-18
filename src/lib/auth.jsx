@@ -25,7 +25,20 @@ export function AuthProvider({ children }) {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
-      setSession(next);
+      // Keep the same session object when nothing meaningful changed. A new
+      // object on every TOKEN_REFRESHED used to remount the app via effects
+      // that depended on `user`, which killed in-progress practice sessions
+      // the moment you tabbed away.
+      setSession(prev => {
+        if (
+          prev?.access_token === next?.access_token
+          && prev?.user?.id === next?.user?.id
+          && Boolean(prev) === Boolean(next)
+        ) {
+          return prev;
+        }
+        return next;
+      });
       setLoading(false);
     });
 
@@ -41,11 +54,14 @@ export function AuthProvider({ children }) {
     loading,
     configured: isConfigured,
 
-    signUp: (email, password) =>
+    signUp: (email, password, displayName) =>
       supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: window.location.origin },
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { display_name: String(displayName || "").trim() },
+        },
       }),
 
     signIn: (email, password) =>

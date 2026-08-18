@@ -69,16 +69,16 @@ export default function Dashboard({
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
-  // Reviews first — a lapsed interval is the only thing here that decays.
-  const primary =
-    dueCount > 0
-      ? { scope: "due", label: `Review ${dueCount} due` }
-      : { scope: "all", label: seen === 0 ? "Start studying" : "Practice anything" };
-
-  const secondary = [
-    dueCount > 0 && { scope: "all",   label: "Practice anything" },
-    seen > 0     && { scope: "wrong", label: "Fix what you missed" },
-  ].filter(Boolean);
+  // Two actions, max: reviews that are due, and open practice. Wrong-answer
+  // drilling lives inside Practice as a scope — it does not need a third door.
+  const actions = dueCount > 0
+    ? [
+        { scope: "due", label: `Review ${dueCount} due`, primary: true },
+        { scope: "all", label: "Practice", primary: false },
+      ]
+    : [
+        { scope: "all", label: seen === 0 ? "Start studying" : "Practice", primary: true },
+      ];
 
   const band = {
     maxWidth: 1180,
@@ -126,32 +126,25 @@ export default function Dashboard({
           marginTop: "clamp(16px, 2.4vh, 24px)",
           animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.1s both",
         }}>
-          <button
-            onClick={() => onStudy?.(primary.scope)}
-            className="btn-press"
-            style={{
-              background: "#fff", color: "var(--c-accent)", border: "none",
-              borderRadius: "var(--r-pill)", padding: "12px 26px",
-              fontFamily: "inherit", fontSize: 15.5, fontWeight: 600, cursor: "pointer",
-              boxShadow: "0 8px 20px rgba(15,27,61,0.16)",
-              display: "flex", alignItems: "center", gap: 7,
-            }}
-          >
-            {primary.label} <span aria-hidden="true">→</span>
-          </button>
-
-          {secondary.map(s => (
+          {actions.map(a => (
             <button
-              key={s.scope}
-              onClick={() => onStudy?.(s.scope)}
+              key={a.scope}
+              onClick={() => onStudy?.(a.scope)}
               className="btn-press"
-              style={{
+              style={a.primary ? {
+                background: "var(--c-field-object)", color: "var(--c-field-object-ink)", border: "none",
+                borderRadius: "var(--r-pill)", padding: "11px 22px",
+                fontFamily: "inherit", fontSize: 15, fontWeight: 600, cursor: "pointer",
+                boxShadow: "0 4px 14px rgba(15,27,61,0.1)",
+                display: "flex", alignItems: "center", gap: 7,
+              } : {
                 background: "rgba(255,255,255,0.12)", color: OF.text,
-                border: "none", borderRadius: "var(--r-pill)", padding: "12px 20px",
+                border: "1px solid rgba(255,255,255,0.22)",
+                borderRadius: "var(--r-pill)", padding: "11px 20px",
                 fontFamily: "inherit", fontSize: 15, fontWeight: 500, cursor: "pointer",
               }}
             >
-              {s.label}
+              {a.label}{a.primary ? <span aria-hidden="true">→</span> : null}
             </button>
           ))}
         </div>

@@ -73,6 +73,12 @@ function apply(op) {
       });
     case "goal":
       return supabase.from("profiles").update({ daily_goal: op.goal, updated_at: new Date().toISOString() }).eq("id", op.userId);
+    case "profile":
+      return supabase.from("profiles").update({
+        ...(op.displayName !== undefined ? { display_name: op.displayName } : {}),
+        ...(op.showOnLeaderboard !== undefined ? { show_on_leaderboard: op.showOnLeaderboard } : {}),
+        updated_at: new Date().toISOString(),
+      }).eq("id", op.userId);
     case "timed-best":
       return supabase.from("timed_bests").upsert({ user_id: op.userId, scope: op.scope, score: op.score });
     case "question-edit":
@@ -164,10 +170,19 @@ export async function loadAll(userId) {
       ? { streak: streak.data.current, longest: streak.data.longest, lastDate: streak.data.last_date }
       : { streak: 0, longest: 0, lastDate: null },
     dailyGoal: profile.data?.daily_goal ?? 20,
+    displayName: profile.data?.display_name ?? "",
+    showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
     timedBests,
     generated: (generated.data ?? []).map(r => ({ ...r.payload, id: Number(r.id) })),
     questionEdits,
   };
+}
+
+/** Weekly cohort board — security-definer RPC, default-on profiles with names. */
+export async function fetchLeaderboardWeek() {
+  const { data, error } = await supabase.rpc("leaderboard_week");
+  if (error) throw error;
+  return data ?? [];
 }
 
 // ── Writes ────────────────────────────────────────────────────────────────
@@ -181,6 +196,12 @@ export const remote = {
   activity: (userId, day, count)  => send({ kind: "activity", userId, day, count }),
   streak:   (userId, s)           => send({ kind: "streak", userId, current: s.streak, longest: s.longest, lastDate: s.lastDate }),
   goal:     (userId, goal)        => send({ kind: "goal", userId, goal }),
+  profile:  (userId, patch)       => send({
+    kind: "profile",
+    userId,
+    displayName: patch.displayName,
+    showOnLeaderboard: patch.showOnLeaderboard,
+  }),
   timedBest:(userId, scope, score)=> send({ kind: "timed-best", userId, scope, score }),
   questionEdit: (userId, questionId, payload) => send({ kind: "question-edit", userId, questionId, payload }),
   addGenerated: (userId, questions) =>

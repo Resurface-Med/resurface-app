@@ -4,6 +4,14 @@ import CatTag from "./CatTag";
 import BmBtn from "./BmBtn";
 import EditQuestionModal from "./EditQuestionModal";
 
+/**
+ * The question is the only solid object on the field.
+ *
+ * Options are a short list of peers — select, then submit — so the permanent
+ * eliminate control on every row is hidden until hover/focus. Mid-answer chrome
+ * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
+ * Accuracy feedback lives after the commit, not as a second dashboard.
+ */
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit }) {
   const answered = sel !== null || timedOut;
 
@@ -34,30 +42,25 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     });
   }
 
-  // Reset interaction state on each new question
   useEffect(() => {
     setPending(null);
     setEliminated(new Set());
   }, [q?.id]);
 
-  // Keyboard handler — re-registers whenever relevant state changes
   useEffect(() => {
     if (!q) return;
 
     function handleKey(e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
-      // Arrow left/right — navigate between questions (always available)
       if (e.key === "ArrowRight") { e.preventDefault(); onNext?.(); return; }
       if (e.key === "ArrowLeft")  { e.preventDefault(); onPrev?.(); return; }
 
-      // After answering: space/enter → next
       if (answered) {
         if (e.key === " " || e.key === "Enter") { e.preventDefault(); onNext?.(); }
         return;
       }
 
-      // Arrow up/down — cycle through options
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setPending(prev => {
@@ -75,7 +78,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         return;
       }
 
-      // 1–5: select option
       const num = parseInt(e.key);
       if (!isNaN(num) && num >= 1 && num <= q.opts.length) {
         e.preventDefault();
@@ -84,7 +86,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         return;
       }
 
-      // Space / Enter: submit pending
       if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
         if (pending !== null) onAnswer(pending);
@@ -113,49 +114,53 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     });
   }
 
+  const toolBtn = (active) => ({
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: 6,
+    borderRadius: 8,
+    lineHeight: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: active ? C.success : C.mutedDim,
+    transition: "color 0.15s, background 0.15s",
+  });
+
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
-    <div style={qcard} className="anim-scale-in">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+    <div style={qcard} className="q-card anim-scale-in">
+      <div className="q-card-meta">
         <CatTag label={q.cat} />
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {/* Edit button */}
+        <div className="q-card-tools">
           <button
+            type="button"
             onClick={() => setEditing(true)}
             title="Edit question"
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              padding: "2px 4px", borderRadius: 4, lineHeight: 1,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: C.mutedDim, transition: "color 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = C.muted}
-            onMouseLeave={e => e.currentTarget.style.color = C.mutedDim}
+            aria-label="Edit question"
+            style={toolBtn(false)}
+            className="q-tool"
           >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
               <path d="M10.5 1.5L13.5 4.5L5 13H2V10L10.5 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
           <button
+            type="button"
             onClick={handleCopy}
             title="Copy question"
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              padding: "2px 4px", borderRadius: 4, lineHeight: 1,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: copied ? C.success : C.mutedDim,
-              transition: "color 0.15s",
-            }}
-            onMouseEnter={e => { if (!copied) e.currentTarget.style.color = C.muted; }}
-            onMouseLeave={e => { if (!copied) e.currentTarget.style.color = C.mutedDim; }}
+            aria-label="Copy question"
+            style={toolBtn(copied)}
+            className="q-tool"
           >
             {copied ? (
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
                 <path d="M2 8L6 12L13 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             ) : (
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
                 <rect x="5" y="1" width="9" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
                 <path d="M5 4H3.5A1.5 1.5 0 002 5.5v8A1.5 1.5 0 003.5 15h6A1.5 1.5 0 0011 13.5V13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
               </svg>
@@ -165,39 +170,26 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         </div>
       </div>
 
-      <p className="anim-fade-up delay-0" style={{ ...qstem, marginBottom: 22 }}>{q.q}</p>
+      <p className="anim-fade-up delay-0" style={{ ...qstem, marginBottom: 20 }}>{q.q}</p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="q-opts" role="listbox" aria-label="Answers">
         {q.opts.map((opt, i) => {
           const ok = i === q.ans;
           const picked = i === sel;
           const isPending = !answered && pending === i;
           const isElim = !answered && eliminated.has(i);
 
-          let bg = "var(--c-surface2)", brd = "var(--c-border)", col = C.text;
+          let state = "idle";
           let animClass = `anim-fade-up delay-${(i + 1) * 50}`;
-          let extraClass = "";
-
           if (answered) {
             animClass = "";
-            if (ok) {
-              bg = "#e7f6ed"; brd = "#1f9d55"; col = "#146c3d";
-              extraClass = "option-correct";
-              if (picked) animClass = "anim-pop";
-            } else if (picked) {
-              bg = "#fdeaea"; brd = "#d64545"; col = "#a33232";
-              extraClass = "option-wrong";
-              animClass = "anim-shake";
-            } else {
-              col = C.mutedDim; brd = "var(--c-border)";
-              bg = "var(--c-surface2)";
-              extraClass = "option-faded";
-            }
+            if (ok) { state = "correct"; if (picked) animClass = "anim-pop"; }
+            else if (picked) { state = "wrong"; animClass = "anim-shake"; }
+            else state = "faded";
           } else if (isPending) {
-            bg = C.accentDim; brd = C.accentBrd; col = C.accent;
-            extraClass = "option-pending";
+            state = "pending";
           } else if (isElim) {
-            bg = "var(--c-surface2)"; brd = "var(--c-overlay)"; col = C.mutedDim;
+            state = "elim";
             animClass = "";
           } else {
             animClass += " option-btn";
@@ -208,77 +200,39 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           return (
             <button
               key={i}
+              type="button"
+              role="option"
+              aria-selected={isPending || picked}
               onClick={() => handleOptionClick(i)}
-              className={`${animClass} ${extraClass}`.trim()}
-              style={{
-                display: "flex", flexDirection: "column", alignItems: "stretch",
-                padding: "11px 16px", borderRadius: "var(--r-pill)",
-                cursor: answered ? "default" : "pointer",
-                textAlign: "left", fontSize: 15, lineHeight: 1.5,
-                background: bg, border: `1.5px solid ${brd}`,
-                transition: "background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s",
-                fontFamily: "inherit",
-                opacity: isElim ? 0.4 : 1,
-              }}
+              className={`q-opt is-${state} ${animClass}`.trim()}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
-                <span style={{
-                  fontWeight: 700, width: 28, height: 28,
-                  display: "grid", placeItems: "center",
-                  borderRadius: "50%", flexShrink: 0,
-                  background: answered
-                    ? (ok ? "#1f9d55" : picked ? "#d64545" : "var(--c-card-solid)")
-                    : isPending ? "var(--c-accent)" : "var(--c-card-solid)",
-                  color: answered
-                    ? (ok || picked ? "#fff" : C.mutedDim)
-                    : isPending ? "#fff" : C.mutedDim,
-                  fontSize: 12.5,
-                }}>{"ABCDE"[i]}</span>
+              <div className="q-opt-row">
+                <span className="q-opt-letter" aria-hidden="true">{"ABCDE"[i]}</span>
+                <span className="q-opt-text">{opt}</span>
 
-                <span style={{
-                  flex: 1,
-                  color: answered ? col : isPending ? C.accent : isElim ? C.mutedDim : C.text,
-                  textDecoration: isElim ? "line-through" : "none",
-                  fontWeight: 500,
-                  letterSpacing: -0.15,
-                }}>{opt}</span>
+                {answered && ok && (
+                  <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>
+                )}
+                {answered && picked && !ok && (
+                  <span className="q-opt-mark bad" aria-hidden="true">✗</span>
+                )}
 
-                {answered && ok       && <span className="anim-pop" style={{ marginLeft: "auto", color: C.success, fontWeight: 700, flexShrink: 0 }}>✓</span>}
-                {answered && picked && !ok && <span style={{ marginLeft: "auto", color: C.danger, flexShrink: 0 }}>✗</span>}
-                {!answered && isPending && <span style={{ marginLeft: "auto", fontSize: 11, color: C.accent, flexShrink: 0, fontWeight: 600 }}>selected</span>}
                 {!answered && (
                   <button
+                    type="button"
+                    className={`q-elim${isElim ? " is-on" : ""}`}
                     onClick={(e) => toggleEliminate(e, i)}
-                    style={{
-                      marginLeft: isPending ? 8 : "auto",
-                      flexShrink: 0,
-                      cursor: "pointer", padding: "4px 8px",
-                      color: isElim ? C.danger : C.muted,
-                      fontSize: 11, lineHeight: 1,
-                      opacity: isElim ? 1 : 0.7,
-                      border: `1px solid ${isElim ? C.dangerBrd : "var(--c-border)"}`,
-                      borderRadius: "var(--r-pill)",
-                      background: isElim ? C.dangerDim : "transparent",
-                      transition: "opacity 0.15s, color 0.15s, border-color 0.15s",
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = "1"}
-                    onMouseLeave={e => e.currentTarget.style.opacity = isElim ? "1" : "0.7"}
                     title="Rule out"
-                  >✕</button>
+                    aria-label={isElim ? "Restore option" : "Rule out option"}
+                    aria-pressed={isElim}
+                  >
+                    ✕
+                  </button>
                 )}
               </div>
 
               {wrongNote && (
-                <div style={{
-                  marginTop: 8, marginLeft: 40,
-                  paddingLeft: 10,
-                  borderLeft: picked
-                    ? `3px solid ${C.danger}`
-                    : "2px solid var(--c-border)",
-                  fontSize: 13, lineHeight: 1.65,
-                  fontWeight: picked ? 600 : 400,
-                  color: picked ? C.danger : C.sub,
-                }}>
+                <div className={`q-opt-note${picked ? " is-picked" : ""}`}>
                   {wrongNote}
                 </div>
               )}
@@ -287,49 +241,49 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         })}
       </div>
 
-      {/* Submit button */}
       {!answered && pending !== null && (
-        <button className="anim-fade-up hover-lift btn-press" style={{ ...primaryBtn, width: "100%", marginTop: 12 }} onClick={() => onAnswer(pending)}>
-          Submit Answer
+        <button
+          type="button"
+          className="anim-fade-up hover-lift btn-press"
+          style={{ ...primaryBtn, width: "100%", marginTop: 14 }}
+          onClick={() => onAnswer(pending)}
+        >
+          Submit answer
         </button>
       )}
 
-      {/* Time's up banner */}
       {timedOut && sel === null && (
-        <div className="anim-shake" style={{ marginTop: 14, padding: "13px 16px", background: C.dangerDim, border: `1px solid ${C.dangerBrd}`, borderRadius: "var(--r-card)", fontSize: 13, color: C.danger }}>
-          <b>Time's up!</b> The correct answer was <b>{"ABCDE"[q.ans]} — {q.opts[q.ans]}</b>
+        <div className="q-feedback is-timeout anim-shake">
+          <b>Time&apos;s up.</b> Correct answer was <b>{"ABCDE"[q.ans]} — {q.opts[q.ans]}</b>
         </div>
       )}
 
       {answered && (
-        <div className="anim-fade-up" style={{
-          marginTop: 14, padding: "16px 18px",
-          background: "var(--c-accent-dim)",
-          border: "1px solid var(--c-accent-brd)",
-          borderRadius: "var(--r-card)",
-        }}>
-          <div style={{ fontWeight: 600, fontSize: 13, color: sel === q.ans ? C.success : C.danger, marginBottom: 8 }}>
+        <div className={`q-feedback anim-fade-up${sel === q.ans ? " is-ok" : " is-bad"}`}>
+          <div className="q-feedback-title">
             {sel === q.ans
-              ? "✓ Correct!"
+              ? "Correct"
               : timedOut && sel === null
-                ? `Timed out — Answer: ${"ABCDE"[q.ans]}`
-                : `✗ Incorrect — correct answer: ${"ABCDE"[q.ans]}`}
+                ? `Timed out — answer: ${"ABCDE"[q.ans]}`
+                : `Incorrect — answer: ${"ABCDE"[q.ans]}`}
           </div>
-          <div style={{ fontSize: 13, color: C.sub, lineHeight: 1.75 }}>{q.exp}</div>
+          <div className="q-feedback-body">{q.exp}</div>
         </div>
       )}
 
       {answered && (
-        <div className="anim-fade-up delay-100" style={{ display: "flex", gap: 10, marginTop: 14 }}>
+        <div className="q-nav-actions anim-fade-up delay-100">
           {onPrev && (
-            <button className="hover-lift btn-press" onClick={onPrev} style={{
-              padding: "12px 18px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
-              background: "var(--c-surface2)", color: C.sub, fontSize: 14, fontWeight: 600,
-              cursor: "pointer", fontFamily: "inherit", transition: "border-color 0.15s, color 0.15s",
-              flexShrink: 0,
-            }}>← Back</button>
+            <button type="button" className="q-back btn-press" onClick={onPrev}>
+              ← Back
+            </button>
           )}
-          <button className="hover-lift btn-press" style={{ ...primaryBtn, flex: 1 }} onClick={onNext}>
+          <button
+            type="button"
+            className="hover-lift btn-press"
+            style={{ ...primaryBtn, flex: 1 }}
+            onClick={onNext}
+          >
             {isLast ? "Finish" : nextLabel || "Next →"}
           </button>
         </div>

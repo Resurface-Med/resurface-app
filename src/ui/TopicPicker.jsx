@@ -5,23 +5,14 @@ import { QUESTIONS } from "../data";
 /**
  * Choosing what to practise, by topic.
  *
- * Topic is how people actually pick a session, so it is the screen rather than
- * a filter hidden behind a disclosure. Burying the most frequent intent behind
- * the most work is a gulf-of-execution problem: the user knows exactly what
- * they want and the interface makes them hunt for the control.
+ * Subjects are the first scan; categories open under the one you care about.
+ * That keeps the default view short (nine rows with air) without a second
+ * screen, and without dumping forty categories into one scroll.
  *
- * The list is the bank's own structure — nine subjects, each opening onto its
- * categories — so the mapping between what you see and what you get needs no
- * learning. Counts and coverage sit on every row because that is knowledge in
- * the world: you should not have to remember how much Immunology you have done
- * in order to decide whether to do more.
- *
- * Rows that would yield nothing under the current scope are disabled rather
- * than allowed and then explained, which is a constraint preventing the error
- * instead of feedback reporting it.
+ * Counts and coverage sit on every row because that is knowledge in the
+ * world. Empty rows are disabled — a constraint, not an error after the fact.
  */
 
-/** One row per subject, each carrying its categories. */
 function buildTree(pStats, eligible) {
   const decks = new Map();
 
@@ -45,13 +36,10 @@ function buildTree(pStats, eligible) {
     .map(d => ({ ...d, cats: [...d.cats.values()].sort((a, b) => b.total - a.total) }));
 }
 
-/** Categories are often prefixed with their own subject; the row above says it. */
 function shortCat(cat, deck) {
   return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
 }
 
-/** Coverage bar + available count. Track colour is independent of the row
- *  hover wash so the bar stays visible when you mouse over a subject. */
 function Coverage({ seen, total, avail, dim }) {
   const pct = total > 0 ? Math.min(100, Math.round((seen / total) * 100)) : 0;
   return (
@@ -71,8 +59,7 @@ function Coverage({ seen, total, avail, dim }) {
 function Chevron({ open }) {
   return (
     <svg
-      className="topic-chevron-icon"
-      width="18" height="18" viewBox="0 0 18 18"
+      width="16" height="16" viewBox="0 0 18 18"
       aria-hidden="true"
       style={{
         display: "block",
@@ -101,10 +88,6 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
   const full = useMemo(() => buildTree(pStats, eligible), [pStats, eligible]);
   const totalAvail = eligible.size;
 
-  // Searching keeps a subject when it matches, or when any of its categories
-  // does — and then shows only the matching ones. Past about ten rows a list
-  // is faster to type into than to read, and this one grows with every year
-  // that gets added.
   const q = query.trim().toLowerCase();
   const tree = useMemo(() => {
     if (!q) return full;
@@ -122,9 +105,9 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
   const deckActive = d => selDeck === d && selCat === "All";
   const catActive  = (d, c) => selDeck === d && selCat === c;
 
-  function pickAll()          { onChange({ deck: ["All"], cat: ["All"] }); }
-  function pickDeck(d)        { onChange({ deck: [d], cat: ["All"] }); }
-  function pickCat(d, c)      { onChange({ deck: [d], cat: [c] }); }
+  function pickAll()     { onChange({ deck: ["All"], cat: ["All"] }); }
+  function pickDeck(d)   { onChange({ deck: [d], cat: ["All"] }); }
+  function pickCat(d, c) { onChange({ deck: [d], cat: [c] }); }
 
   function toggle(d) {
     setOpen(prev => {
@@ -137,22 +120,22 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
   return (
     <div role="radiogroup" aria-label="Topic">
       {!q && (
-      <button
-        role="radio" aria-checked={isAll}
-        onClick={pickAll}
-        className={`topic-row${isAll ? " is-active" : ""}`}
-      >
-        <span className="topic-name" style={{ fontWeight: 600 }}>
-          All subjects
-        </span>
-        <span className="topic-meta">
-          <span className="topic-avail">{totalAvail}</span>
-        </span>
-      </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={isAll}
+          onClick={pickAll}
+          className={`topic-row topic-row-roomy${isAll ? " is-active" : ""}`}
+        >
+          <span className="topic-name" style={{ fontWeight: 600 }}>All subjects</span>
+          <span className="topic-meta">
+            <span className="topic-avail">{totalAvail}</span>
+          </span>
+        </button>
       )}
 
       {q && tree.length === 0 && (
-        <p style={{ padding: "14px 12px", fontSize: 14, color: C.muted }}>
+        <p style={{ padding: "20px 4px", fontSize: 14.5, color: C.muted }}>
           No topic matches “{query.trim()}”.
         </p>
       )}
@@ -163,10 +146,12 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         const many = d.cats.length > 1;
 
         return (
-          <div key={d.deck}>
-            <div className={`topic-row${deckActive(d.deck) ? " is-active" : ""}${empty ? " is-empty" : ""}`}>
+          <div key={d.deck} className="topic-group">
+            <div className={`topic-row topic-row-roomy${deckActive(d.deck) ? " is-active" : ""}${empty ? " is-empty" : ""}`}>
               <button
-                role="radio" aria-checked={deckActive(d.deck)}
+                type="button"
+                role="radio"
+                aria-checked={deckActive(d.deck)}
                 disabled={empty}
                 onClick={() => pickDeck(d.deck)}
                 className="topic-hit"
@@ -177,6 +162,7 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
 
               {many && (
                 <button
+                  type="button"
                   onClick={() => toggle(d.deck)}
                   aria-expanded={isOpen}
                   aria-label={`${isOpen ? "Hide" : "Show"} ${d.deck} topics`}
@@ -192,7 +178,9 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
               return (
                 <button
                   key={c.cat}
-                  role="radio" aria-checked={catActive(d.deck, c.cat)}
+                  type="button"
+                  role="radio"
+                  aria-checked={catActive(d.deck, c.cat)}
                   disabled={catEmpty}
                   onClick={() => pickCat(d.deck, c.cat)}
                   className={`topic-row is-child${catActive(d.deck, c.cat) ? " is-active" : ""}${catEmpty ? " is-empty" : ""}`}

@@ -1,395 +1,365 @@
-import { useState, useMemo, useEffect } from "react";
-import { C, V, pageWrap, card, h1, h2, pageSub } from "../ui/theme";
+import { useMemo, useState } from "react";
+import { V, h1, sectionH, OF } from "../ui/theme";
 import { QUESTIONS, DECK_MAP } from "../data";
-import ProgressBar from "../ui/ProgressBar";
-import GhostBtn from "../ui/GhostBtn";
+import Wave from "../ui/Wave";
 
+/**
+ * Progress — personal depth, without the chart gimmick.
+ *
+ * Signature is typographic: name the one topic still furthest under, then the
+ * actionable list. Dashboard already owns “how far am I”; this page owns
+ * “open this next”.
+ */
 
-function AnimatedRing({ pct, col, size = 88 }) {
-  const [displayed, setDisplayed] = useState(0);
-  useEffect(() => {
-    const t = setTimeout(() => setDisplayed(pct), 80);
-    return () => clearTimeout(t);
-  }, [pct]);
+const band = {
+  maxWidth: 1180,
+  margin: "0 auto",
+  padding: "0 clamp(20px, 3vw, 40px)",
+  width: "100%",
+};
 
-  const strokeW = 6;
-  const r = (size - strokeW) / 2;
-  const circ = 2 * Math.PI * r;
-  const fill = (displayed / 100) * circ;
-  const cx = size / 2;
-
-  return (
-    <svg width={size} height={size} style={{ flexShrink: 0, transform: "rotate(-90deg)" }}>
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke="var(--c-surface2)" strokeWidth={strokeW} />
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke={col} strokeWidth={strokeW}
-        strokeDasharray={`${fill} ${circ}`} strokeLinecap="round"
-        style={{ transition: "stroke-dasharray 1.2s cubic-bezier(0.4,0,0.2,1)" }} />
-      <text x={cx} y={cx} textAnchor="middle" dominantBaseline="central"
-        fill={col} fontSize={16} fontWeight={600} fontFamily="Poppins,sans-serif"
-        style={{ transform: `rotate(90deg)`, transformOrigin: `${cx}px ${cx}px` }}>
-        {pct}%
-      </text>
-    </svg>
-  );
+function shortCat(cat, deck) {
+  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
 }
 
-function accColour(pct) {
-  if (pct === null || pct === undefined) return C.mutedDim;
-  if (pct >= 70) return C.success;
-  if (pct >= 50) return C.warning;
-  return C.danger;
-}
-
-function AccBadge({ pct }) {
-  const col = accColour(pct);
-  return (
-    <span style={{
-      fontSize: 13, fontWeight: 700, color: col,
-      background: pct === null ? "transparent" : pct >= 70 ? C.successDim : pct >= 50 ? C.warningDim : C.dangerDim,
-      border: `1px solid ${pct === null ? "transparent" : pct >= 70 ? C.successBrd : pct >= 50 ? C.warningBrd : C.dangerBrd}`,
-      borderRadius: "var(--r-pill)", padding: "2px 8px",
-    }}>
-      {pct === null ? "—" : pct + "%"}
-    </span>
-  );
-}
-
-
-function TopicRow({ topic, pStats, divider, onPractice }) {
-  const [hovered, setHovered] = useState(false);
-  const qs = QUESTIONS.filter(q => q.cat === topic);
-  const total = qs.length;
+function topicStats(cat, pStats) {
+  const qs = QUESTIONS.filter(q => q.cat === cat);
   let correct = 0, attempts = 0, seen = 0;
-  qs.forEach(q => {
+  for (const q of qs) {
     const s = pStats[q.id];
     if (s) { correct += s.correct; attempts += s.total; seen++; }
-  });
-  const pct = attempts > 0 ? Math.round(correct / attempts * 100) : null;
+  }
+  const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
+  return { total: qs.length, seen, pct, deck: qs[0]?.deck ?? "" };
+}
 
+function deckStats(deck, pStats) {
+  const qs = QUESTIONS.filter(q => q.deck === deck);
+  let correct = 0, attempts = 0, seen = 0;
+  for (const q of qs) {
+    const s = pStats[q.id];
+    if (s) { correct += s.correct; attempts += s.total; seen++; }
+  }
+  const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
+  return { total: qs.length, seen, pct };
+}
 
+function FieldStat({ label, value, unit }) {
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        ...(divider ? { borderTop: "1px solid var(--c-border)", paddingTop: 8, marginTop: 8 } : {}),
-        borderRadius: "var(--r-card)",
-        padding: "6px 4px",
-        transition: "background 0.15s",
-        background: hovered ? "var(--c-overlay)" : "transparent",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-        <span style={{ flex: 1, fontSize: 14, color: C.text, fontWeight: 600, letterSpacing: -0.15, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {topic}
-        </span>
-        {hovered && onPractice ? (
-          <button onClick={onPractice} className="hover-lift btn-press" style={{
-            padding: "3px 10px", borderRadius: "var(--r-pill)", fontSize: 12, fontWeight: 600,
-            background: "var(--c-accent-dim)", border: "1px solid var(--c-accent-brd)",
-            color: "var(--c-accent)", cursor: "pointer", fontFamily: "inherit",
-            whiteSpace: "nowrap", flexShrink: 0, letterSpacing: -0.1,
-          }}>Practice →</button>
-        ) : (
-          <>
-            <span style={{ fontSize: 12, color: C.muted, whiteSpace: "nowrap" }}>{seen}/{total}</span>
-            <AccBadge pct={pct} />
-          </>
-        )}
-      </div>
-      <ProgressBar value={pct ?? 0} colour={accColour(pct)} />
+    <div className="prog-field-stat">
+      <span className="prog-field-value">
+        {value}
+        {unit ? <span className="prog-field-unit">{unit}</span> : null}
+      </span>
+      <span className="prog-field-label">{label}</span>
     </div>
   );
 }
 
-function DeckSection({ deck, cats, pStats, collapsed, onToggle, onPractice }) {
-  const qs = QUESTIONS.filter(q => q.deck === deck);
-  let dc_correct = 0, dc_attempts = 0, dc_seen = 0;
-  qs.forEach(q => {
-    const s = pStats[q.id];
-    if (s) { dc_correct += s.correct; dc_attempts += s.total; dc_seen++; }
-  });
-  const deckPct = dc_attempts > 0 ? Math.round(dc_correct / dc_attempts * 100) : null;
-
-  const sortedCats = [...cats].sort((a, b) => {
-    const pctA = (() => {
-      const qs2 = QUESTIONS.filter(q => q.cat === a);
-      let c = 0, t = 0;
-      qs2.forEach(q => { const s = pStats[q.id]; if (s) { c += s.correct; t += s.total; } });
-      return t > 0 ? c / t : null;
-    })();
-    const pctB = (() => {
-      const qs2 = QUESTIONS.filter(q => q.cat === b);
-      let c = 0, t = 0;
-      qs2.forEach(q => { const s = pStats[q.id]; if (s) { c += s.correct; t += s.total; } });
-      return t > 0 ? c / t : null;
-    })();
-    if (pctA === null && pctB === null) return 0;
-    if (pctA === null) return 1;
-    if (pctB === null) return -1;
-    return pctA - pctB;
-  });
-
-  const isOpen = !collapsed;
-
+function TopicActionRow({ title, meta, pct, onPractice, dim }) {
   return (
-    <div style={{ ...card, padding: 0, overflow: "hidden" }}>
-      <button
-        onClick={onToggle}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 10,
-          padding: "12px 16px",
-          background: "transparent",
-          border: "none", cursor: "pointer", fontFamily: "inherit",
-          borderBottom: isOpen ? "1px solid var(--c-border)" : "none",
-        }}
-      >
-        <span style={{ fontWeight: 600, fontSize: 15, color: C.text, flex: 1, textAlign: "left", letterSpacing: -0.2 }}>{deck}</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {deckPct !== null && (
-            <span style={{ fontSize: 13, fontWeight: 700, color: deckPct >= 70 ? C.success : deckPct >= 50 ? C.warning : C.danger }}>
-              {deckPct}%
+    <div className={`prog-row${dim ? " is-dim" : ""}`}>
+      <div className="prog-row-main">
+        <span className="prog-row-title">{title}</span>
+        <span className="prog-row-meta">
+          {pct !== null && pct !== undefined && (
+            <span className={`prog-pct${pct < 60 ? " is-weak" : pct >= 70 ? " is-ok" : ""}`}>
+              {pct}%
             </span>
           )}
-          <span style={{ fontSize: 12, color: C.muted }}>{dc_seen}/{qs.length}</span>
-          <span style={{ fontSize: 12, color: C.muted, transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s", display: "inline-block" }}>▾</span>
-        </div>
+          <span className="prog-seen">{meta}</span>
+        </span>
+      </div>
+      {onPractice && (
+        <button type="button" className="prog-practice btn-press" onClick={onPractice}>
+          Practice
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SubjectBlock({ deck, cats, pStats, open, onToggle, onPractice }) {
+  const d = deckStats(deck, pStats);
+  const sorted = useMemo(() => {
+    return [...cats].sort((a, b) => {
+      const pa = topicStats(a, pStats).pct;
+      const pb = topicStats(b, pStats).pct;
+      if (pa === null && pb === null) return 0;
+      if (pa === null) return 1;
+      if (pb === null) return -1;
+      return pa - pb;
+    });
+  }, [cats, pStats]);
+
+  return (
+    <div className="prog-subject">
+      <button
+        type="button"
+        className={`prog-subject-head${open ? " is-open" : ""}`}
+        onClick={onToggle}
+        aria-expanded={open}
+      >
+        <span className="prog-row-title">{deck}</span>
+        <span className="prog-row-meta">
+          {d.pct !== null && <span className="prog-pct">{d.pct}%</span>}
+          <span className="prog-seen">{d.seen}/{d.total}</span>
+          <span className={`prog-chevron${open ? " is-open" : ""}`} aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+              <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        </span>
       </button>
 
-      {isOpen && (
-        <div style={{ padding: "8px 12px 12px" }}>
-          {sortedCats.map((cat, i) => (
-            <TopicRow key={cat} topic={cat} deck={deck} pStats={pStats} divider={i > 0} onPractice={() => onPractice(deck, cat)} />
-          ))}
+      {open && (
+        <div className="prog-subject-cats">
+          {sorted.map(cat => {
+            const t = topicStats(cat, pStats);
+            return (
+              <TopicActionRow
+                key={cat}
+                title={shortCat(cat, deck)}
+                meta={`${t.seen}/${t.total}`}
+                pct={t.pct}
+                onPractice={() => onPractice(deck, cat)}
+              />
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
-export default function StatsView({ pStats, srCards, setView, setLaunchFilter, onClearP, onClearSR }) {
-  const [collapsed, setCollapsed] = useState(new Set(Object.keys(DECK_MAP)));
+export default function StatsView({
+  pStats, srCards, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
+}) {
+  const [openDecks, setOpenDecks] = useState(() => new Set());
+  const [showRest, setShowRest] = useState({ untouched: false, steady: false });
 
-  function handlePractice(deck, cat) {
+  function practice(deck, cat) {
+    setStudyScope?.("all");
     setLaunchFilter({ deck, cat });
     setView(V.STUDY);
   }
 
   function toggleDeck(deck) {
-    setCollapsed(prev => {
+    setOpenDecks(prev => {
       const next = new Set(prev);
-      if (next.has(deck)) next.delete(deck);
-      else next.add(deck);
+      next.has(deck) ? next.delete(deck) : next.add(deck);
       return next;
     });
   }
 
-  const stats = useMemo(() => {
+  const overview = useMemo(() => {
     const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
     const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
-    const oPct = totalT > 0 ? Math.round(totalC / totalT * 100) : 0;
+    const accuracy = totalT > 0 ? Math.round((totalC / totalT) * 100) : null;
     const seen = Object.keys(pStats).length;
     const learned = Object.values(srCards).filter(c => c.repetitions > 0).length;
-    return { totalC, totalT, oPct, seen, learned };
+    return { accuracy, seen, learned };
   }, [pStats, srCards]);
 
-  const { needsAttention, notStarted, mastered, decks } = useMemo(() => {
-    const allDecks = Object.keys(DECK_MAP);
-    const needsAttention = [];
-    const notStarted = [];
-    const mastered = [];
+  const { weak, untouched, steady, decks, spotlight } = useMemo(() => {
+    const weak = [];
+    const untouched = [];
+    const steady = [];
 
-    QUESTIONS.reduce((acc, q) => {
-      if (!acc.includes(q.cat)) acc.push(q.cat);
-      return acc;
-    }, []).forEach(cat => {
-      const qs = QUESTIONS.filter(q => q.cat === cat);
-      let c = 0, t = 0, seen = 0;
-      qs.forEach(q => { const s = pStats[q.id]; if (s) { c += s.correct; t += s.total; seen++; } });
-      const pct = t > 0 ? Math.round(c / t * 100) : null;
-      const deck = qs[0]?.deck ?? "";
-
-      if (pct === null) {
-        notStarted.push({ cat, deck, pct: null, seen: 0, total: qs.length });
-      } else if (seen === qs.length && pct >= 70) {
-        mastered.push({ cat, deck, pct, seen, total: qs.length });
-      } else if (pct < 60) {
-        needsAttention.push({ cat, deck, pct, seen, total: qs.length });
-      }
-    });
-
-    needsAttention.sort((a, b) => a.pct - b.pct);
-
+    const cats = [...new Set(QUESTIONS.map(q => q.cat))];
+    for (const cat of cats) {
+      const t = topicStats(cat, pStats);
+      const row = { cat, deck: t.deck, pct: t.pct, seen: t.seen, total: t.total };
+      if (t.pct === null) untouched.push(row);
+      else if (t.seen === t.total && t.pct >= 70) steady.push(row);
+      else if (t.pct < 60) weak.push(row);
+    }
+    weak.sort((a, b) => a.pct - b.pct);
     return {
-      needsAttention: needsAttention.slice(0, 5),
-      notStarted,
-      mastered,
-      decks: allDecks,
+      weak: weak.slice(0, 6),
+      untouched,
+      steady,
+      decks: Object.keys(DECK_MAP),
+      spotlight: weak[0] ?? null,
     };
   }, [pStats]);
 
-  const [showNotStarted, setShowNotStarted] = useState(false);
-  const [showMastered, setShowMastered] = useState(false);
-
-  const { oPct, seen, learned, totalC, totalT } = stats;
-  const accCol = oPct >= 70 ? C.success : oPct >= 50 ? C.warning : C.danger;
+  const { accuracy, seen, learned } = overview;
 
   return (
-    <div style={pageWrap}>
-      {/* Title */}
-      <h1 className="anim-fade-up delay-0" style={h1}>Progress</h1>
-      <p className="anim-fade-up delay-50" style={pageSub}>Where you're strong, and where to spend the next session.</p>
-
-      {/* Header — circle indicator */}
-      <div className="anim-scale-in delay-100" style={{ ...card, display: "flex", alignItems: "center", gap: 28 }}>
-        <AnimatedRing pct={oPct} col={accCol} />
-        <div className="anim-fade-up delay-400">
-          <div style={{ fontWeight: 600, fontSize: 18, color: C.text, letterSpacing: -0.3 }}>Overall Accuracy</div>
-          <div style={{ color: C.muted, fontSize: 15, marginTop: 4, fontWeight: 500 }}>{totalC} correct of {totalT} attempts</div>
-          <div style={{ color: C.muted, fontSize: 14, marginTop: 3, fontWeight: 500 }}>
-            {seen} of {QUESTIONS.length} questions seen · {learned} cards learned
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
+          <div style={{ minWidth: 0, flex: "1 1 280px" }}>
+            <h1 style={{ ...h1, margin: 0 }}>Progress</h1>
+            {spotlight ? (
+              <div className="prog-spotlight">
+                <p className="prog-spotlight-kicker">Furthest under right now</p>
+                <p className="prog-spotlight-title">
+                  {shortCat(spotlight.cat, spotlight.deck)}
+                </p>
+                <p className="prog-spotlight-meta">
+                  {spotlight.deck} · {spotlight.pct}% · {spotlight.seen}/{spotlight.total} seen
+                </p>
+                <button
+                  type="button"
+                  className="prog-spotlight-cta btn-press"
+                  onClick={() => practice(spotlight.deck, spotlight.cat)}
+                >
+                  Practice this →
+                </button>
+              </div>
+            ) : (
+              <p style={{ marginTop: 10, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "34em" }}>
+                {seen === 0
+                  ? "Nothing attempted yet — start a session and this page fills in."
+                  : "Nothing’s critically under. Keep the rhythm going."}
+              </p>
+            )}
           </div>
-        </div>
+
+          <div className="prog-field-stats is-compact" aria-label="Overview">
+            <FieldStat
+              label="Accuracy"
+              value={accuracy === null ? "—" : accuracy}
+              unit={accuracy === null ? null : "%"}
+            />
+            <FieldStat label="Seen" value={`${seen}`} unit={`/${QUESTIONS.length}`} />
+            <FieldStat label="In rotation" value={learned} />
+          </div>
+        </header>
       </div>
 
-      {/* Needs Attention */}
-      {needsAttention.length > 0 && (
-        <>
-          <h2 className="anim-fade-up delay-200" style={h2}>Needs Attention</h2>
-          <div className="anim-fade-up delay-300" style={{
-            ...card,
-            background: C.dangerDim,
-            border: `1px solid ${C.dangerBrd}`,
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-              <span style={{ fontSize: 14 }}>⚠</span>
-              <span style={{ fontSize: 14, fontWeight: 600, color: C.danger }}>Topics below 60% accuracy</span>
+      <Wave from="transparent" to="var(--c-card-solid)" />
+
+      <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
+        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+
+          {weak.length > 0 && (
+            <section className="prog-section">
+              <div className="prog-section-head">
+                <h2 style={{ ...sectionH, margin: 0 }}>Still under</h2>
+                <span className="prog-section-note">Below 60% — pull these up first</span>
+              </div>
+              <div className="prog-list">
+                {weak.map(row => (
+                  <TopicActionRow
+                    key={row.cat}
+                    title={shortCat(row.cat, row.deck)}
+                    meta={`${row.deck} · ${row.seen}/${row.total}`}
+                    pct={row.pct}
+                    onPractice={() => practice(row.deck, row.cat)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section className="prog-section">
+            <div className="prog-section-head">
+              <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
+              <span className="prog-section-note">Weakest topics first inside each</span>
             </div>
-            {needsAttention.map(({ cat, deck, pct }, i) => (
-              <div key={cat} style={i > 0 ? { borderTop: "1px solid var(--c-border)", paddingTop: 12, marginTop: 12 } : {}}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ flex: 1, fontSize: 14, color: C.text, fontWeight: 500 }}>{cat}</span>
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, color: C.muted,
-                    background: "var(--c-overlay2)", borderRadius: "var(--r-pill)", padding: "2px 8px",
-                  }}>
-                    {deck}
-                  </span>
-                  <AccBadge pct={pct} />
-                </div>
-                <ProgressBar value={pct ?? 0} colour={C.danger} />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+            <div className="prog-subjects">
+              {decks.map(deck => (
+                <SubjectBlock
+                  key={deck}
+                  deck={deck}
+                  cats={DECK_MAP[deck] || []}
+                  pStats={pStats}
+                  open={openDecks.has(deck)}
+                  onToggle={() => toggleDeck(deck)}
+                  onPractice={practice}
+                />
+              ))}
+            </div>
+          </section>
 
-      {/* Deck sections */}
-      <h2 className="anim-fade-up delay-200" style={h2}>By Deck</h2>
-      {decks.map((deck, i) => (
-        <div key={deck} className={`anim-fade-up delay-${Math.min(200 + i * 50, 500)}`}>
-          <DeckSection
-            deck={deck}
-            cats={DECK_MAP[deck] || []}
-            pStats={pStats}
-            collapsed={collapsed.has(deck)}
-            onToggle={() => toggleDeck(deck)}
-            onPractice={handlePractice}
-          />
-        </div>
-      ))}
-
-      {/* Not Started */}
-      {notStarted.length > 0 && (
-        <>
-          <h2 className="anim-fade-up delay-400" style={h2}>Not Started</h2>
-          <div className="anim-fade-up delay-500" style={{ ...card, padding: 0, overflow: "hidden" }}>
-            <button
-              onClick={() => setShowNotStarted(v => !v)}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "14px 20px", background: "transparent", border: "none",
-                cursor: "pointer", fontFamily: "inherit",
-                borderBottom: showNotStarted ? "1px solid var(--c-border)" : "none",
-              }}
-            >
-              <span style={{ fontSize: 14, color: C.muted, flex: 1, textAlign: "left", fontWeight: 600 }}>
-                {notStarted.length} topic{notStarted.length !== 1 ? "s" : ""} not yet attempted
-              </span>
-              <span style={{
-                fontSize: 13, color: C.muted,
-                transform: showNotStarted ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s", display: "inline-block",
-              }}>▾</span>
-            </button>
-            {showNotStarted && (
-              <div style={{ padding: "12px 20px", display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {notStarted.map(({ cat, deck }) => (
-                  <div key={cat} style={{
-                    fontSize: 13, color: C.muted, background: "var(--c-surface2)",
-                    border: "1px solid var(--c-border)", borderRadius: "var(--r-pill)", padding: "5px 12px",
-                    display: "flex", alignItems: "center", gap: 6,
-                  }}>
-                    <span>{cat}</span>
-                    <span style={{ fontSize: 11, opacity: 0.6 }}>{deck}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Mastered */}
-      {mastered.length > 0 && (
-        <>
-          <h2 className="anim-fade-up delay-400" style={h2}>Mastered</h2>
-          <div className="anim-fade-up delay-500" style={{
-            ...card, padding: 0, overflow: "hidden",
-            background: C.successDim, border: `1px solid ${C.successBrd}`,
-          }}>
-            <button
-              onClick={() => setShowMastered(v => !v)}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "14px 20px", background: "transparent", border: "none",
-                cursor: "pointer", fontFamily: "inherit",
-                borderBottom: showMastered ? `1px solid ${C.successBrd}` : "none",
-              }}
-            >
-              <span style={{ fontSize: 14 }}>✓</span>
-              <span style={{ fontSize: 14, color: C.success, flex: 1, textAlign: "left", fontWeight: 600 }}>
-                {mastered.length} topic{mastered.length !== 1 ? "s" : ""} mastered (100% seen, ≥70%)
-              </span>
-              <span style={{
-                fontSize: 13, color: C.success,
-                transform: showMastered ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s", display: "inline-block",
-              }}>▾</span>
-            </button>
-            {showMastered && (
-              <div style={{ padding: "12px 20px" }}>
-                {mastered.map(({ cat, pct }, i) => (
-                  <div key={cat} style={i > 0 ? { borderTop: "1px solid var(--c-border)", paddingTop: 10, marginTop: 10 } : {}}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                      <span style={{ flex: 1, fontSize: 14, color: C.text, fontWeight: 500 }}>{cat}</span>
-                      <AccBadge pct={pct} />
+          {(untouched.length > 0 || steady.length > 0) && (
+            <section className="prog-section prog-section-quiet">
+              {untouched.length > 0 && (
+                <div className="prog-disclose">
+                  <button
+                    type="button"
+                    className="prog-disclose-btn"
+                    onClick={() => setShowRest(s => ({ ...s, untouched: !s.untouched }))}
+                    aria-expanded={showRest.untouched}
+                  >
+                    <span>{untouched.length} not started yet</span>
+                    <span className={`prog-chevron${showRest.untouched ? " is-open" : ""}`} aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                        <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                  </button>
+                  {showRest.untouched && (
+                    <div className="prog-list">
+                      {untouched.map(row => (
+                        <TopicActionRow
+                          key={row.cat}
+                          title={shortCat(row.cat, row.deck)}
+                          meta={row.deck}
+                          pct={null}
+                          dim
+                          onPractice={() => practice(row.deck, row.cat)}
+                        />
+                      ))}
                     </div>
-                    <ProgressBar value={pct} colour={C.success} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+                  )}
+                </div>
+              )}
 
-      <div style={{
-        display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap",
-        marginTop: 36, paddingTop: 24, borderTop: "1px solid var(--c-border)",
-      }}>
-        <GhostBtn onClick={() => { if (window.confirm("Reset practice stats?")) onClearP?.(); }}>Reset practice stats</GhostBtn>
-        <GhostBtn onClick={() => { if (window.confirm("Reset review schedules?")) onClearSR?.(); }}>Reset review schedule</GhostBtn>
+              {steady.length > 0 && (
+                <div className="prog-disclose">
+                  <button
+                    type="button"
+                    className="prog-disclose-btn"
+                    onClick={() => setShowRest(s => ({ ...s, steady: !s.steady }))}
+                    aria-expanded={showRest.steady}
+                  >
+                    <span>{steady.length} looking steady</span>
+                    <span className={`prog-chevron${showRest.steady ? " is-open" : ""}`} aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                        <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                  </button>
+                  {showRest.steady && (
+                    <div className="prog-list">
+                      {steady.map(row => (
+                        <TopicActionRow
+                          key={row.cat}
+                          title={shortCat(row.cat, row.deck)}
+                          meta={`${row.deck} · ${row.seen}/${row.total}`}
+                          pct={row.pct}
+                          dim
+                          onPractice={() => practice(row.deck, row.cat)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </section>
+          )}
+
+          <div className="prog-reset">
+            <button
+              type="button"
+              className="prog-reset-btn"
+              onClick={() => { if (window.confirm("Reset practice stats for every question?")) onClearP?.(); }}
+            >
+              Reset practice stats
+            </button>
+            <button
+              type="button"
+              className="prog-reset-btn"
+              onClick={() => { if (window.confirm("Reset review schedules?")) onClearSR?.(); }}
+            >
+              Reset review schedule
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

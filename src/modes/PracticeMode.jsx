@@ -9,97 +9,84 @@ import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import TopicPicker from "../ui/TopicPicker";
 import SessionSummary from "../ui/SessionSummary";
 
+const NAV_PCT_KEY = "pq_nav_show_pct";
+function loadNavPct() {
+  try {
+    const v = localStorage.getItem(NAV_PCT_KEY);
+    if (v === null) return true;
+    return v === "1";
+  } catch {
+    return true;
+  }
+}
+
 function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
   const activeRef = useRef(null);
+  const [showPct, setShowPct] = useState(loadNavPct);
+
   useEffect(() => { activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [idx]);
 
-  const answered  = Object.keys(sels).length;
-  const correct   = Object.values(results).filter(r => r.correct).length;
-  const wrong     = Object.values(results).filter(r => !r.correct).length;
-  const pct       = queue.length > 0 ? Math.round((answered / queue.length) * 100) : 0;
-  const R = 32, SW = 4, CIRC = 2 * Math.PI * R, SIZE = (R + SW) * 2;
+  useEffect(() => {
+    try { localStorage.setItem(NAV_PCT_KEY, showPct ? "1" : "0"); } catch { /* ignore */ }
+  }, [showPct]);
+
+  const answered = Object.keys(sels).length;
+  const pct = queue.length > 0 ? Math.round((answered / queue.length) * 100) : 0;
 
   return (
-    <div style={{
-      width: 220, flexShrink: 0,
-      display: "flex", flexDirection: "column",
-      borderRadius: "var(--r-panel)",
-      border: "1px solid var(--c-border)",
-      overflow: "hidden",
-      background: "var(--c-card-bg)",
-      boxShadow: "var(--c-card-shadow)",
-      maxHeight: maxHeight ?? undefined,
-    }}>
-
-      {/* Header */}
-      <div style={{ padding: "14px 14px 12px", borderBottom: "1px solid var(--c-border)", flexShrink: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: C.muted, letterSpacing: 1, textTransform: "uppercase" }}>Questions</div>
-            <div style={{ fontSize: 13, color: C.mutedDim, marginTop: 3 }}>{answered}/{queue.length} done</div>
+    <nav
+      className="q-nav"
+      aria-label="Question list"
+      style={{ maxHeight: maxHeight ?? undefined }}
+    >
+      <div className="q-nav-head">
+        <div className="q-nav-head-main">
+          <div className="q-nav-head-text">
+            <span className="q-nav-count">{answered}/{queue.length}</span>
+            <span className="q-nav-label">answered</span>
           </div>
-          {/* Mini progress ring */}
-          <svg width={SIZE} height={SIZE}>
-            <circle cx={R+SW} cy={R+SW} r={R} fill="none" stroke="var(--c-border)" strokeWidth={SW} />
-            <circle cx={R+SW} cy={R+SW} r={R} fill="none"
-              stroke={pct === 100 ? C.success : C.accent} strokeWidth={SW}
-              strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - pct / 100)}
-              strokeLinecap="round" transform={`rotate(-90 ${R+SW} ${R+SW})`}
-              style={{ transition: "stroke-dashoffset 0.5s ease" }}
-            />
-            <text x={R+SW} y={R+SW+5} textAnchor="middle" fontSize="14" fontWeight="600"
-              fill={pct === 100 ? C.success : C.accentLt} fontFamily="inherit">
+          {showPct && (
+            <span className="q-nav-pct" aria-label={`${pct}% complete`}>
               {pct}%
-            </text>
-          </svg>
+            </span>
+          )}
         </div>
-
-        {/* Correct / wrong stats */}
-        {answered > 0 && (
-          <div style={{ display: "flex", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-              <span style={{ fontSize: 20, fontWeight: 500, color: C.success, letterSpacing: -0.5 }}>{correct}</span>
-              <span style={{ fontSize: 11, color: C.muted }}>correct</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-              <span style={{ fontSize: 20, fontWeight: 500, color: C.danger, letterSpacing: -0.5 }}>{wrong}</span>
-              <span style={{ fontSize: 11, color: C.muted }}>wrong</span>
-            </div>
-          </div>
-        )}
+        <button
+          type="button"
+          className="q-nav-pct-toggle"
+          onClick={() => setShowPct(v => !v)}
+          aria-pressed={showPct}
+        >
+          {showPct ? "Hide %" : "Show %"}
+        </button>
       </div>
 
-      {/* List */}
-      <div style={{ overflowY: "auto", overscrollBehavior: "contain", padding: "8px 10px" }}>
-        {queue.map((qItem, i) => {
+      <div className="q-nav-list">
+        {queue.map((_, i) => {
           const isCurrent  = i === idx;
           const isAnswered = sels[i] !== undefined;
           const isCorrect  = results[i]?.correct;
-          const dotColor   = !isAnswered ? "var(--c-border)" : isCorrect ? C.success : C.danger;
+          let state = "idle";
+          if (isCurrent) state = "current";
+          else if (isAnswered) state = isCorrect ? "ok" : "bad";
+
           return (
-            <button key={i} ref={isCurrent ? activeRef : null}
-              onClick={() => onJump(i)} className="btn-press" style={{
-                display: "flex", alignItems: "center", gap: 8,
-                padding: "11px 12px", borderRadius: "var(--r-card)", border: "none",
-                background: isCurrent ? "var(--c-accent-dim)" : "transparent",
-                outline: isCurrent ? "1px solid var(--c-accent-brd)" : "none",
-                cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%",
-              }}>
-              <div style={{
-                width: 10, height: 10, borderRadius: "50%", flexShrink: 0,
-                background: isCurrent ? C.accent : dotColor,
-                boxShadow: isCurrent ? "0 0 0 3px var(--c-accent-glow)" : "none",
-                border: !isAnswered && !isCurrent ? "1px solid var(--c-border)" : "none",
-                transition: "all 0.2s",
-              }} />
-              <span style={{ fontSize: 14, fontWeight: isCurrent ? 600 : 400, letterSpacing: isCurrent ? -0.2 : 0, color: isCurrent ? C.text : isAnswered ? C.sub : C.muted }}>
-                Q{i + 1}
-              </span>
+            <button
+              key={i}
+              ref={isCurrent ? activeRef : null}
+              type="button"
+              onClick={() => onJump(i)}
+              className={`q-nav-item is-${state} btn-press`}
+              aria-current={isCurrent ? "true" : undefined}
+              aria-label={`Question ${i + 1}${isAnswered ? (isCorrect ? ", correct" : ", wrong") : ""}`}
+            >
+              <span className="q-nav-dot" aria-hidden="true" />
+              <span className="q-nav-num">{i + 1}</span>
             </button>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }
 
@@ -119,29 +106,21 @@ const band = {
 };
 
 const SCOPES = [
-  { k: "all",   label: "Any question" },
-  { k: "due",   label: "Due now" },
-  { k: "wrong", label: "Got wrong" },
+  { k: "all",   label: "Any" },
+  { k: "due",   label: "Due" },
+  { k: "wrong", label: "Wrong" },
   { k: "saved", label: "Saved" },
 ];
 
-const SCOPE_COPY = {
-  all:   "Work through questions at your own pace.",
-  due:   "Questions due to resurface, before you forget them.",
-  wrong: "The ones that caught you out.",
-  saved: "Questions you bookmarked.",
+const SCOPE_HINT = {
+  all:   "Any question in this topic",
+  due:   "Due to resurface now",
+  wrong: "Ones you got wrong",
+  saved: "Ones you bookmarked",
 };
 
-const setupLabel = {
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: "0.06em",
-  textTransform: "uppercase",
-  color: C.muted,
-  marginBottom: 8,
-};
-
-function segBtn(active, disabled) {
+/** Compact chips for the setup dock — secondary choices, not a second page. */
+function dockChip(active, disabled) {
   return {
     ...chipBtn,
     ...(active ? {
@@ -154,7 +133,8 @@ function segBtn(active, disabled) {
     }),
     flex: "0 0 auto",
     minWidth: "auto",
-    padding: "9px 18px",
+    padding: "7px 12px",
+    fontSize: 13,
     textAlign: "center",
     justifyContent: "center",
     whiteSpace: "nowrap",
@@ -338,18 +318,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       : null;
 
     return (
-      /* Fixed frame: the list scrolls, the commit stays. One job on this
-         screen — decide what to practise and start. Everything below the
-         list is secondary and deliberately quieter than the topic choice. */
+      /* Topics own the page. Secondary choices sit in a slim dock so the list
+         gets height without a second screen or a tall settings stack. */
       <div style={{ display: "flex", flexDirection: "column", height: "var(--app-vh)" }}>
-        <div style={{ ...band, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(14px, 2.2vh, 22px)", flexShrink: 0 }}>
+        <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <div>
-              <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)" }}>Practice</h1>
-              <p style={{ marginTop: 6, fontSize: 14.5, color: OF.soft, fontWeight: 500, letterSpacing: -0.2 }}>
-                Pick a topic. Start when you're ready.
-              </p>
-            </div>
+            <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0 }}>Practice</h1>
 
             {savedSession && (
               <div style={{
@@ -370,11 +344,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <Wave from="transparent" to="var(--c-card-solid)" />
 
         <div style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(16px, 2.4vh, 24px)" }}>
+          <div style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
 
-            {/* Primary: what. Search is a tool for the list, not a peer of Start. */}
-            <div style={{ flexShrink: 0, marginBottom: 6 }}>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
+            <div style={{ flexShrink: 0, marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
                 <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                 <span style={{ fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
                   {scoped} available
@@ -396,7 +369,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               />
             </div>
 
-            <div className="topic-scroll" style={{ flex: 1, minHeight: 0, marginTop: 4 }}>
+            <div className="topic-scroll" style={{ flex: 1, minHeight: 0, marginTop: 2 }}>
               <TopicPicker
                 value={filter}
                 onChange={next => setFilter(f => ({ ...f, ...next }))}
@@ -406,46 +379,35 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               />
             </div>
 
-            {/* Secondary: how. Grouped, labelled, never competing with the list. */}
-            <div style={{
-              flexShrink: 0,
-              marginTop: 4,
-              paddingTop: "clamp(14px, 2vh, 18px)",
-              paddingBottom: "clamp(16px, 2.4vh, 24px)",
-              borderTop: "1px solid var(--c-border)",
-              display: "flex", flexDirection: "column", gap: 16,
-            }}>
-              <div>
-                <div style={setupLabel}>From</div>
-                <div className="setup-seg" role="radiogroup" aria-label="Question pool">
-                  {SCOPES.map(s => {
-                    const n = scopeCount(s.k);
-                    const disabled = n === 0 && s.k !== "all";
-                    const active = scope === s.k;
-                    return (
-                      <button
-                        key={s.k}
-                        role="radio"
-                        aria-checked={active}
-                        className="btn-press"
-                        disabled={disabled}
-                        onClick={() => !disabled && setScope(s.k)}
-                        style={segBtn(active, disabled)}
-                      >
-                        {s.label}
-                      </button>
-                    );
-                  })}
+            <div className="setup-dock">
+              <div className="setup-dock-row">
+                <div className="setup-dock-group">
+                  <span className="setup-dock-label">From</span>
+                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Question pool">
+                    {SCOPES.map(s => {
+                      const n = scopeCount(s.k);
+                      const disabled = n === 0 && s.k !== "all";
+                      const active = scope === s.k;
+                      return (
+                        <button
+                          key={s.k}
+                          role="radio"
+                          aria-checked={active}
+                          className="btn-press"
+                          disabled={disabled}
+                          onClick={() => !disabled && setScope(s.k)}
+                          style={dockChip(active, disabled)}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p style={{ margin: "8px 2px 0", fontSize: 13, color: C.muted, lineHeight: 1.4 }}>
-                  {SCOPE_COPY[scope]}
-                </p>
-              </div>
 
-              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-                <div>
-                  <div style={setupLabel}>How many</div>
-                  <div className="setup-seg" role="radiogroup" aria-label="Session length">
+                <div className="setup-dock-group">
+                  <span className="setup-dock-label">How many</span>
+                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Session length">
                     {COUNT_OPTIONS.map(o => {
                       const disabled = o !== "All" && o > scoped;
                       const active = o === countOpt;
@@ -456,7 +418,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           aria-checked={active}
                           disabled={disabled}
                           className="btn-press"
-                          style={segBtn(active, disabled)}
+                          style={dockChip(active, disabled)}
                           onClick={() => !disabled && setCountOpt(o)}
                         >
                           {o === "All" ? "All" : o}
@@ -466,27 +428,31 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  className="btn-press"
-                  onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
-                  aria-pressed={filter.unseenOnly}
-                  style={{
-                    ...chipBtn,
-                    ...(filter.unseenOnly ? chipBtnActive : {}),
-                    marginBottom: 1,
-                  }}
-                >
-                  Unseen only
-                </button>
+                <div className="setup-dock-group">
+                  <span className="setup-dock-label">Filter</span>
+                  <button
+                    type="button"
+                    className="btn-press"
+                    onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
+                    aria-pressed={filter.unseenOnly}
+                    style={dockChip(filter.unseenOnly, false)}
+                  >
+                    Unseen only
+                  </button>
+                </div>
               </div>
+
+              <p className="setup-dock-hint" aria-live="polite">
+                {SCOPE_HINT[scope]}
+                {filter.unseenOnly ? " · unseen only" : ""}
+              </p>
 
               <button
                 className="btn-press"
                 disabled={willAsk === 0}
                 onClick={() => start()}
                 style={{
-                  ...primaryBtn, ...lg, width: "100%", marginTop: 2,
+                  ...primaryBtn, ...lg, width: "100%",
                   opacity: willAsk === 0 ? 0.5 : 1,
                   cursor: willAsk === 0 ? "not-allowed" : "pointer",
                 }}
@@ -525,7 +491,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
    * them, and two sets of the same control is how the other screens got noisy.
    */
   return (
-    <div style={{ ...band, maxWidth: 1020, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div style={{ ...band, maxWidth: 1100, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <button
           onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }}
@@ -553,7 +519,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.22)", overflow: "hidden" }}>
         <div style={{
           height: "100%", width: `${((idx + 1) / queue.length) * 100}%`,
-          background: "#fff", borderRadius: 99,
+          background: "var(--c-field-object)", borderRadius: 99,
           transition: "width 0.3s cubic-bezier(0.22,1,0.36,1)",
         }} />
       </div>

@@ -5,16 +5,33 @@ const NAV_SUB    = "var(--c-nav-sub)";
 const NAV_MUTED  = "var(--c-nav-muted)";
 const NAV_MUTDIM = "var(--c-nav-muted-dim)";
 
-export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
+function initials(displayName, email) {
+  const n = String(displayName || "").trim();
+  if (n) {
+    const parts = n.split(/\s+/).filter(Boolean);
+    const a = parts[0]?.[0] || "";
+    const b = parts[1]?.[0] || "";
+    return (a + b || n.slice(0, 2)).toUpperCase();
+  }
+  return String(email || "?").slice(0, 1).toUpperCase();
+}
+
+export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut }) {
   const navRef  = useRef(null);
   const itemRefs = useRef([]);
-  const [pill, setPill] = useState({ top: 12, height: 40 });
+  const [pill, setPill] = useState({ top: 12, height: 40, visible: true });
 
   useLayoutEffect(() => {
     const idx = NAV.findIndex(i => i && i.k === view);
     const el  = itemRefs.current[idx];
-    if (el && navRef.current) setPill({ top: el.offsetTop, height: el.offsetHeight });
+    if (idx < 0 || !el || !navRef.current) {
+      setPill(p => ({ ...p, visible: false }));
+      return;
+    }
+    setPill({ top: el.offsetTop, height: el.offsetHeight, visible: true });
   }, [view]);
+
+  const activeProfile = view === V.PROFILE;
 
   return (
     <aside style={{
@@ -34,19 +51,31 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
         padding: "18px 16px 16px",
         borderBottom: "1px solid var(--c-nav-border)",
       }}>
-        {/* The coloured lockup, because the sidebar is a white object now —
-            the white cut-out would be invisible on it. Same asset the landing
-            uses inside its own white nav pill. */}
         <img
           src="/logo-lockup.png"
           alt="Resurface"
           width="720"
           height="190"
+          className="nav-logo nav-logo-day"
           style={{
             width: "100%",
             maxWidth: 172,
             height: "auto",
             display: "block",
+          }}
+        />
+        <img
+          src="/logo-lockup-white.png"
+          alt=""
+          aria-hidden="true"
+          width="720"
+          height="190"
+          className="nav-logo nav-logo-night"
+          style={{
+            width: "100%",
+            maxWidth: 172,
+            height: "auto",
+            display: "none",
           }}
         />
       </div>
@@ -60,13 +89,6 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
         position: "relative",
         overflowY: "auto",
       }}>
-        {/* Active pill: white island on blue glass.
-            Moved with transform, not `top`. Animating `top` makes the browser
-            re-run layout and paint for every frame of the slide, and this
-            sidebar carries an 18px backdrop-filter, so each of those frames
-            also re-blurred the panel behind it — which is why the one moving
-            element on screen was the thing that stuttered. translateY is
-            handled entirely by the compositor: no layout, no paint. */}
         <div style={{
           position: "absolute",
           left: 8, right: 8, top: 0,
@@ -75,9 +97,10 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
           borderRadius: "var(--r-pill)",
           background: "var(--c-accent)",
           boxShadow: "0 8px 20px rgba(20, 44, 130, 0.28)",
-          transition: "transform 0.24s cubic-bezier(0.22,1,0.36,1)",
+          transition: "transform 0.24s cubic-bezier(0.22,1,0.36,1), opacity 0.18s",
           willChange: "transform",
           pointerEvents: "none", zIndex: 0,
+          opacity: pill.visible ? 1 : 0,
         }} />
 
         {NAV.map((item, idx) => {
@@ -89,8 +112,6 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
           );
 
           const active = view === item.k;
-          // Only Study carries a count now, and what it counts is the thing
-          // worth returning for: questions due to resurface.
           const badge = item.k === V.STUDY ? dueCount : 0;
 
           return (
@@ -125,14 +146,57 @@ export function Sidebar({ view, setView, dueCount, email, onSignOut }) {
         })}
       </nav>
 
-      <div style={{ padding: "12px 16px", borderTop: "1px solid var(--c-nav-border)" }}>
-        {email && (
-          <div style={{
-            fontSize: 12, color: NAV_SUB, fontWeight: 500,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }} title={email}>{email}</div>
-        )}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
+      <div style={{ padding: "12px 12px 14px", borderTop: "1px solid var(--c-nav-border)" }}>
+        <button
+          type="button"
+          onClick={() => setView(V.PROFILE)}
+          className="btn-press"
+          title="Profile"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "8px 10px",
+            borderRadius: "var(--r-pill)",
+            border: activeProfile ? "1px solid var(--c-accent-brd)" : "1px solid transparent",
+            background: activeProfile ? "var(--c-accent-dim)" : "transparent",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
+            color: NAV_SUB,
+          }}
+        >
+          <span style={{
+            width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+            display: "grid", placeItems: "center",
+            background: "var(--c-accent)",
+            color: "#fff",
+            fontSize: 12, fontWeight: 700, letterSpacing: -0.2,
+          }}>
+            {initials(displayName, email)}
+          </span>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <span style={{
+              display: "block",
+              fontSize: 13, fontWeight: 600, letterSpacing: -0.15,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              color: "var(--c-nav-text)",
+            }}>
+              {displayName?.trim() || "Profile"}
+            </span>
+            {email && (
+              <span style={{
+                display: "block",
+                fontSize: 11, fontWeight: 500, color: NAV_MUTED,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}>
+                {email}
+              </span>
+            )}
+          </span>
+        </button>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, padding: "0 4px" }}>
           <span style={{ color: NAV_MUTDIM, fontSize: 11.5, fontWeight: 500 }}>© Resurface 2026</span>
           <button onClick={onSignOut} className="btn-press" style={{
             background: "none", border: "none", padding: 0, cursor: "pointer",

@@ -17,7 +17,7 @@ const field = {
   fontSize: 15,
   fontFamily: "inherit",
   color: "var(--c-text)",
-  background: "var(--c-card-solid)",
+  background: "var(--c-surface3)",
   border: "1.5px solid var(--c-border)",
   borderRadius: "var(--r-ctrl)",
   outline: "none",
@@ -38,6 +38,7 @@ export default function LoginPage() {
   const [step, setStep] = useState("form");   // form | code
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -90,7 +91,9 @@ export default function LoginPage() {
         setResendIn(RESEND_SECS);
         setNotice("");
       } else if (mode === "signup") {
-        const { data, error: err } = await signUp(trimmed, password);
+        const name = displayName.trim();
+        if (name.length < 2) throw new Error("Pick a display name (at least 2 characters).");
+        const { data, error: err } = await signUp(trimmed, password, name);
         if (err) throw err;
         setEmail(trimmed);
         // With email confirmation on, Supabase returns a user but no session.
@@ -243,10 +246,20 @@ export default function LoginPage() {
             <form onSubmit={submitForm} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
               <div>
                 <label htmlFor="email" style={labelStyle}>Email</label>
-                <input id="email" type="email" required autoComplete="email" autoFocus
+                <input id="email" type="email" required autoComplete="email" autoFocus={mode !== "signup"}
                   value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@university.ac.uk" style={field} />
               </div>
+
+              {mode === "signup" && (
+                <div>
+                  <label htmlFor="displayName" style={labelStyle}>Display name</label>
+                  <input id="displayName" type="text" required minLength={2} maxLength={32}
+                    autoComplete="nickname" autoFocus
+                    value={displayName} onChange={e => setDisplayName(e.target.value)}
+                    placeholder="Shown on the leaderboard" style={field} />
+                </div>
+              )}
 
               <div className={`auth-collapse${hidePassword ? " is-out" : ""}`} aria-hidden={hidePassword}>
                 <div>
@@ -306,7 +319,7 @@ export default function LoginPage() {
               <button type="button" onClick={signInWithGoogle} className="btn-press" style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
-                color: C.text, background: "var(--c-card-solid)",
+                color: C.text, background: "var(--c-surface3)",
                 border: "1.5px solid var(--c-border)", borderRadius: "var(--r-pill)", cursor: "pointer",
               }}>
                 <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
@@ -437,7 +450,7 @@ const codeCell = {
   fontFamily: "inherit",
   fontVariantNumeric: "tabular-nums",
   color: "var(--c-text)",
-  background: "var(--c-card-solid)",
+  background: "var(--c-surface3)",
   border: "1.5px solid var(--c-border)",
   borderRadius: "var(--r-ctrl)",
   outline: "none",

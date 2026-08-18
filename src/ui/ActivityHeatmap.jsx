@@ -66,10 +66,10 @@ function level(count) {
 }
 
 const LEVEL_BG = [
-  "var(--c-surface3)",          // none — a tint of the page, not of the accent
-  "rgba(53, 98, 245, 0.30)",
-  "rgba(53, 98, 245, 0.52)",
-  "rgba(53, 98, 245, 0.76)",
+  "var(--c-surface3)",
+  "color-mix(in srgb, var(--c-accent) 28%, transparent)",
+  "color-mix(in srgb, var(--c-accent) 48%, transparent)",
+  "color-mix(in srgb, var(--c-accent) 72%, transparent)",
   "var(--c-accent)",
 ];
 

@@ -184,7 +184,7 @@ export default function FilterPanel({ value, onChange, pStats = {} }) {
           <div style={{
             position: "absolute", top: 2, left: 2,
             width: 14, height: 14, borderRadius: "50%",
-            background: unseenOnly ? "#fff" : "var(--c-muted)",
+            background: unseenOnly ? "var(--c-field-object)" : "var(--c-muted)",
             transform: `translateX(${unseenOnly ? 15 : 0}px)`,
             transition: "transform 0.2s, background 0.2s",
           }} />

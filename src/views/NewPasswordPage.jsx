@@ -17,7 +17,7 @@ const field = {
   fontSize: 15,
   fontFamily: "inherit",
   color: "var(--c-text)",
-  background: "var(--c-card-solid)",
+  background: "var(--c-surface3)",
   border: "1.5px solid var(--c-border)",
   borderRadius: "var(--r-ctrl)",
   outline: "none",

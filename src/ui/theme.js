@@ -41,7 +41,8 @@ export const C = {
  * STUDY, chosen on its setup screen. Subjects and Stats merge into PROGRESS,
  * which also rescues Subjects: nothing linked to it, so it was unreachable.
  */
-export const V = { DASH:"dash", STUDY:"study", PROGRESS:"progress", GENERATE:"generate" };
+export const V = { DASH:"dash", STUDY:"study", PROGRESS:"progress", LEADERBOARD:"leaderboard", GENERATE:"generate", PROFILE:"profile" };
+
 
 /** What STUDY draws from. Set before opening it. */
 export const SCOPE = { ALL:"all", DUE:"due", WRONG:"wrong", SAVED:"saved" };
@@ -265,11 +266,11 @@ export const btnBlue = {
   boxShadow: "var(--c-cta-shadow)",
 };
 
-/** White fill, blue text. The primary action on the blue field. */
+/** Field-object fill, ink text. The primary action on the blue field. */
 export const btnWhite = {
   ...btnBase,
-  background: "#fff",
-  color: "var(--blue, #3562f5)",
+  background: "var(--c-field-object)",
+  color: "var(--c-field-object-ink)",
   boxShadow: "var(--c-cta-shadow)",
 };
 
@@ -333,10 +334,10 @@ export const labelField = {
   color: OF.soft,
 };
 
-/** Chip inside a card: white pill on the panel, accent fill when chosen. */
+/** Chip inside a card: panel pill, accent fill when chosen. */
 export const chipBtn = {
   padding: "10px 18px",
-  background: "var(--c-card-solid)",
+  background: "var(--c-surface3)",
   border: "1.5px solid var(--c-border)",
   borderRadius: "var(--r-pill)",
   color: C.sub,
@@ -367,9 +368,9 @@ export const chipField = {
 
 export const chipFieldActive = {
   ...chipField,
-  background: "#fff",
-  border: "1.5px solid #fff",
-  color: "var(--blue, #3562f5)",
+  background: "var(--c-field-object)",
+  border: "1.5px solid var(--c-field-object)",
+  color: "var(--c-field-object-ink)",
   boxShadow: "0 8px 20px rgba(15, 27, 61, 0.18)",
   fontWeight: 600,
 };
@@ -379,8 +380,9 @@ export const chipFieldActive = {
 // rendering differently on every platform and reading as leftovers beside the
 // landing's illustrations. Four labelled items need no legend.
 export const NAV = [
-  { k: V.DASH,     label: "Home" },
-  { k: V.STUDY,    label: "Study" },
-  { k: V.PROGRESS, label: "Progress" },
-  { k: V.GENERATE, label: "Generate" },
+  { k: V.DASH,        label: "Home" },
+  { k: V.STUDY,       label: "Study" },
+  { k: V.PROGRESS,    label: "Progress" },
+  { k: V.LEADERBOARD, label: "Leaderboard" },
+  { k: V.GENERATE,    label: "Generate" },
 ];

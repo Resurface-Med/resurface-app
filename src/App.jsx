@@ -33,9 +33,11 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
 
-const StudyMode    = lazy(() => import("./modes/PracticeMode"));
-const ProgressView = lazy(() => import("./views/StatsView"));
-const GenerateMode = lazy(() => import("./views/GenerateMode"));
+const StudyMode       = lazy(() => import("./modes/PracticeMode"));
+const ProgressView    = lazy(() => import("./views/StatsView"));
+const LeaderboardView = lazy(() => import("./views/LeaderboardView"));
+const ProfileView     = lazy(() => import("./views/ProfileView"));
+const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -53,6 +55,8 @@ export default function App() {
   const [streak, setStreak] = useState({ streak: 0, longest: 0, lastDate: null });
   const [activity, setActivity] = useState({});
   const [dailyGoal, setDailyGoal] = useState(20);
+  const [displayName, setDisplayName] = useState("");
+  const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [generated, setGenerated] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -69,10 +73,11 @@ export default function App() {
     setTheme(t => t === 'dark' ? 'light' : 'dark');
   }
 
-  // Pull the snapshot once per sign-in, and retry anything a dropped
-  // connection parked earlier.
+  // Pull the snapshot once per signed-in user. Depend on user.id — not the
+  // user object — so a tab-focus token refresh doesn't remount the whole app
+  // and wipe an in-progress practice session.
   useEffect(() => {
-    if (!user || recovering) { setDataLoading(false); return; }
+    if (!user?.id || recovering) { setDataLoading(false); return; }
     let cancelled = false;
     setDataLoading(true);
     (async () => {
@@ -89,17 +94,21 @@ export default function App() {
       setStreak(d.streak);
       setActivity(d.activity);
       setDailyGoal(d.dailyGoal);
+      setDisplayName(d.displayName || "");
+      setShowOnLeaderboard(d.showOnLeaderboard !== false);
       setGenerated(d.generated);
       setDataLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user?.id, recovering]);
 
   useEffect(() => {
     if (!user) return;
     const warm = () => {
       import("./modes/PracticeMode");
       import("./views/StatsView");
+      import("./views/LeaderboardView");
+      import("./views/ProfileView");
       import("./views/GenerateMode");
     };
     const ric = window.requestIdleCallback;
@@ -185,7 +194,12 @@ export default function App() {
     setView(newView);
   }
 
-  const nav = { view, setView: handleNav, dueCount, email: user?.email, onSignOut: signOut };
+  const nav = {
+    view, setView: handleNav, dueCount,
+    email: user?.email,
+    displayName,
+    onSignOut: signOut,
+  };
 
   // Auth gates the whole app. `configured` is false when the Supabase env vars
   // are missing, in which case sign-in can't work at all and saying so beats
@@ -207,6 +221,8 @@ export default function App() {
   // which starts the data load, which used to replace this screen mid-flow.
   if (user && recovering) return <NewPasswordPage />;
 
+  // Only block on the first auth/data bootstrap. Later token refreshes must
+  // not tear down StudyMode — that was ending practice sessions on tab-away.
   if (authLoading || (user && dataLoading)) {
     return (
       <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center" }}>
@@ -267,7 +283,7 @@ export default function App() {
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
           cursor: "pointer", fontSize: 13, fontWeight: 600,
-          color: "#fff", letterSpacing: -0.1,
+          color: "var(--c-on-field)", letterSpacing: -0.1,
         }}
       >{theme === "dark" ? "Light" : "Night"}</button>
 
@@ -294,9 +310,29 @@ export default function App() {
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
 
-          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView} setLaunchFilter={setLaunchFilter}
+          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView}
+            setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
+
+          {view === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
+
+          {view === V.PROFILE && (
+            <ProfileView
+              key={user.id}
+              userId={user.id}
+              email={user.email}
+              displayName={displayName}
+              showOnLeaderboard={showOnLeaderboard}
+              dailyGoal={dailyGoal}
+              onProfileChange={p => {
+                if (p.displayName !== undefined) setDisplayName(p.displayName);
+                if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);
+                if (p.dailyGoal !== undefined) setDailyGoal(p.dailyGoal);
+              }}
+              onSignOut={signOut}
+            />
+          )}
 
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
 

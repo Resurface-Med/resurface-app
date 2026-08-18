@@ -1,29 +1,63 @@
 import { useState, useRef, useEffect } from "react";
 import JSZip from "jszip";
-import { C, pageWrap, card, h1, h2, primaryBtn, fieldBtn, chipBtn, chipBtnActive, pageSub } from "../ui/theme";
+import { h1, sectionH, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
+import Wave from "../ui/Wave";
 import { DECK_MAP } from "../data";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 
-// Generation lives in resurface-backend; this is the only place the app talks
-// to it. Falls back to the backend's local dev port.
-// Falls back to production rather than localhost: a deploy that forgets the
-// env var should still work, and only a dev machine wants :3001.
+/**
+ * Generate — turn lecture material into questions.
+ *
+ * Same composition as Progress / Leaderboard: blue field for the thesis,
+ * wave into a white sheet for the work. One job per phase. No nested cards
+ * for display; chips and flat rows carry the interaction.
+ */
+
 const API_BASE = import.meta.env.VITE_API_BASE
   || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
 
-// Vercel serverless functions cap request bodies at 4.5MB, and base64 inflates
-// a file by ~33%, so anything over ~3MB will be rejected at the edge.
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
 
 const DIFFICULTIES = [
-  { k: "easy",   label: "Easy",   desc: "Single-fact recall — locations, products, enzyme names" },
-  { k: "medium", label: "Medium", desc: "Mechanism & application — why/what would happen if..." },
-  { k: "hard",   label: "Hard",   desc: "Clinical vignettes — every question opens with a patient scenario" },
+  { k: "easy",   label: "Easy",   hint: "Single-fact recall" },
+  { k: "medium", label: "Medium", hint: "Mechanism & application" },
+  { k: "hard",   label: "Hard",   hint: "Clinical vignettes" },
 ];
 
-// ── File extraction helpers ─────────────────────────────────────────────────
+const COUNT_PRESETS = [5, 10, 15, 20];
+
+const band = {
+  maxWidth: 1180,
+  margin: "0 auto",
+  padding: "0 clamp(20px, 3vw, 40px)",
+  width: "100%",
+};
+
+const whisper = {
+  fontSize: 10,
+  fontWeight: 500,
+  letterSpacing: "0.03em",
+  textTransform: "uppercase",
+  color: "var(--c-muted-dim)",
+  lineHeight: 1,
+};
+
+const field = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: "11px 14px",
+  fontSize: 15,
+  fontFamily: "inherit",
+  color: "var(--c-text)",
+  background: "var(--c-surface3)",
+  border: "1.5px solid transparent",
+  borderRadius: "var(--r-ctrl)",
+  outline: "none",
+};
+
+// ── File extraction ─────────────────────────────────────────────────────────
 
 async function extractPptx(file) {
   const zip = await JSZip.loadAsync(file);
@@ -53,18 +87,12 @@ function fileToBase64(file) {
   });
 }
 
-// ── Question generation ─────────────────────────────────────────────────────
-// The file is parsed here (browser-only work), then handed to /api/generate,
-// which holds the API key and builds the prompt server-side.
-
 async function generateQuestions({ file, pastedText, deck, category, year, block, difficulty, count }) {
   let userContent = [];
 
   if (file) {
     const ext = file.name.split(".").pop().toLowerCase();
 
-    // pptx is extracted to plain text below, so only the binary paths (which
-    // get base64'd and forwarded whole) are bound by the request size cap.
     if (ext !== "pptx" && ext !== "ppt" && file.size > MAX_FILE_BYTES) {
       throw new Error(`That file is ${(file.size / 1024 / 1024).toFixed(1)}MB — the limit is 3MB. Try splitting it or pasting the text instead.`);
     }
@@ -72,20 +100,21 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
     if (ext === "pptx" || ext === "ppt") {
       const text = await extractPptx(file);
       userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
-
     } else if (ext === "pdf") {
       const b64 = await fileToBase64(file);
       userContent = [
         { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } },
-        { type: "text", text: `Topic: ${deck} / ${category}` }
+        { type: "text", text: `Topic: ${deck} / ${category}` },
       ];
-
-    } else if (["jpg","jpeg","png","gif","webp"].includes(ext)) {
+    } else if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
       const b64 = await fileToBase64(file);
-      const mt = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : ext === "png" ? "image/png" : ext === "gif" ? "image/gif" : "image/webp";
+      const mt = ext === "jpg" || ext === "jpeg" ? "image/jpeg"
+        : ext === "png" ? "image/png"
+        : ext === "gif" ? "image/gif"
+        : "image/webp";
       userContent = [
         { type: "image", source: { type: "base64", media_type: mt, data: b64 } },
-        { type: "text", text: `Topic: ${deck} / ${category}` }
+        { type: "text", text: `Topic: ${deck} / ${category}` },
       ];
     }
   } else if (pastedText.trim()) {
@@ -113,7 +142,6 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   }
 
   const { questions: parsed } = await res.json();
-
   if (!Array.isArray(parsed)) throw new Error("Expected a JSON array from Claude.");
 
   return parsed.map(q => ({
@@ -129,162 +157,69 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   }));
 }
 
-// ── Generating animation ────────────────────────────────────────────────────
+// ── Quiet generating state ──────────────────────────────────────────────────
 
 const MESSAGES = [
-  "Reading your slides...",
-  "Identifying key concepts...",
-  "Drafting question stems...",
-  "Building plausible distractors...",
-  "Writing answer explanations...",
-  "Checking the science...",
-  "Adding why-wrong notes...",
-  "Polishing the questions...",
-  "Almost there...",
+  "Reading your slides…",
+  "Finding the examinable bits…",
+  "Drafting stems…",
+  "Building distractors…",
+  "Writing explanations…",
+  "Almost there…",
 ];
-
-const FLOATERS = ["?", "?", "?", "✦", "?", "?", "✦", "?"];
-
-const KEYFRAMES = `
-@keyframes orb-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.18); opacity: 1; }
-}
-@keyframes orbit {
-  from { transform: rotate(0deg) translateX(54px) rotate(0deg); }
-  to   { transform: rotate(360deg) translateX(54px) rotate(-360deg); }
-}
-@keyframes orbit2 {
-  from { transform: rotate(120deg) translateX(54px) rotate(-120deg); }
-  to   { transform: rotate(480deg) translateX(54px) rotate(-480deg); }
-}
-@keyframes orbit3 {
-  from { transform: rotate(240deg) translateX(54px) rotate(-240deg); }
-  to   { transform: rotate(600deg) translateX(54px) rotate(-600deg); }
-}
-@keyframes floatup {
-  0%   { transform: translateY(0) scale(1); opacity: 0.7; }
-  100% { transform: translateY(-120px) scale(0.5); opacity: 0; }
-}
-@keyframes msg-fade {
-  0%   { opacity: 0; transform: translateY(8px); }
-  15%  { opacity: 1; transform: translateY(0); }
-  80%  { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-8px); }
-}
-@keyframes bar-slide {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(400%); }
-}
-`;
 
 function GeneratingScreen({ count }) {
   const [msgIdx, setMsgIdx] = useState(0);
-  const [floaters, setFloaters] = useState([]);
 
   useEffect(() => {
-    const msgInterval = setInterval(() => {
-      setMsgIdx(i => (i + 1) % MESSAGES.length);
-    }, 2200);
-
-    const floatInterval = setInterval(() => {
-      const id = Date.now();
-      const sym = FLOATERS[Math.floor(Math.random() * FLOATERS.length)];
-      const left = 10 + Math.random() * 80;
-      setFloaters(f => [...f.slice(-6), { id, sym, left }]);
-      setTimeout(() => setFloaters(f => f.filter(x => x.id !== id)), 2500);
-    }, 600);
-
-    return () => { clearInterval(msgInterval); clearInterval(floatInterval); };
+    const t = setInterval(() => setMsgIdx(i => (i + 1) % MESSAGES.length), 2400);
+    return () => clearInterval(t);
   }, []);
 
   return (
-    <div style={{ ...pageWrap, alignItems: "center", justifyContent: "center", minHeight: "calc(var(--app-vh) * 0.7)" }}>
-      <style>{KEYFRAMES}</style>
-
-      <div style={{
-        ...card,
-        width: "100%",
-        maxWidth: 520,
-        textAlign: "center",
-        padding: "48px 36px 40px",
-        position: "relative",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}>
-        {/* Floating question marks */}
-        {floaters.map(f => (
-          <div key={f.id} style={{
-            position: "absolute", bottom: "28%", left: `${f.left}%`,
-            fontSize: 22, color: C.accent, opacity: 0.7, pointerEvents: "none",
-            animation: "floatup 2.5s ease-out forwards",
-          }}>{f.sym}</div>
-        ))}
-
-        {/* Orb */}
-        <div style={{ position: "relative", width: 130, height: 130, marginBottom: 36 }}>
-          {/* Glow */}
-          <div style={{
-            position: "absolute", inset: -20,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, var(--c-accent-glow) 0%, transparent 70%)",
-            animation: "orb-pulse 2s ease-in-out infinite",
-          }} />
-          {/* Core orb */}
-          <div style={{
-            width: 130, height: 130, borderRadius: "50%",
-            background: "radial-gradient(circle at 35% 35%, #6e8ff7, var(--c-accent) 60%, #2450e8)",
-            boxShadow: "0 0 40px var(--c-accent-glow), 0 12px 32px rgba(20, 44, 130, 0.22)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            animation: "orb-pulse 2s ease-in-out infinite",
-            fontSize: 36, color: "#fff",
-          }}>✦</div>
-
-          {/* Orbiting dots */}
-          {[
-            { anim: "orbit 2.4s linear infinite", color: C.accentLt },
-            { anim: "orbit2 2.4s linear infinite", color: C.success },
-            { anim: "orbit3 2.4s linear infinite", color: C.warning },
-          ].map((dot, i) => (
-            <div key={i} style={{
-              position: "absolute", top: "50%", left: "50%",
-              width: 10, height: 10, marginTop: -5, marginLeft: -5,
-              animation: dot.anim,
-            }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: dot.color, boxShadow: `0 0 8px ${dot.color}` }} />
-            </div>
-          ))}
-        </div>
-
-        {/* Title */}
-        <div style={{ fontSize: 22, fontWeight: 600, color: C.text, marginBottom: 8, letterSpacing: -0.8 }}>
-          Generating {count} questions
-        </div>
-
-        {/* Rotating message */}
-        <div key={msgIdx} style={{
-          fontSize: 15, color: C.accent, marginBottom: 32, height: 22,
-          animation: "msg-fade 2.2s ease forwards",
-        }}>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(28px, 4vh, 48px)" }}>
+        <h1 style={{ ...h1, margin: 0 }}>Generating</h1>
+        <p className="gen-field-sub">
+          {count} question{count !== 1 ? "s" : ""} from your material
+        </p>
+        <p key={msgIdx} className="gen-status">
           {MESSAGES[msgIdx]}
-        </div>
-
-        {/* Indeterminate progress bar */}
-        <div style={{ width: 280, height: 6, background: C.surface3, borderRadius: "var(--r-pill)", overflow: "hidden" }}>
-          <div style={{
-            height: "100%", width: "40%", borderRadius: "var(--r-pill)",
-            background: "linear-gradient(90deg, #6e8ff7, var(--c-accent))",
-            animation: "bar-slide 1.6s ease-in-out infinite",
-          }} />
+        </p>
+        <div className="gen-bar" aria-hidden="true">
+          <div className="gen-bar-fill" />
         </div>
       </div>
+      <Wave from="transparent" to="var(--c-card-solid)" />
+      <div style={{ background: "var(--c-card-solid)", flex: 1 }} />
     </div>
   );
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
+function Shell({ title, sub, children, footer, maxWidth = 720 }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+        <h1 style={{ ...h1, margin: 0 }}>{title}</h1>
+        {sub ? <p className="gen-field-sub">{sub}</p> : null}
+      </div>
+      <Wave from="transparent" to="var(--c-card-solid)" />
+      <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
+        <div style={{
+          ...band,
+          maxWidth,
+          paddingTop: "clamp(20px, 3vh, 28px)",
+          paddingBottom: footer ? "clamp(100px, 14vh, 120px)" : "clamp(36px, 5vh, 56px)",
+        }}>
+          {children}
+        </div>
+      </div>
+      {footer}
+    </div>
+  );
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
 
 export default function GenerateMode({ savedGenerated = [], onGeneratedChange }) {
   const { user } = useAuth();
@@ -295,12 +230,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [year, setYear] = useState("Year 1");
   const [block, setBlock] = useState("Principles");
   const [difficulty, setDifficulty] = useState("medium");
+  const [countRaw, setCountRaw] = useState("10");
 
-  const [phase, setPhase] = useState("setup"); // setup | generating | review | done
+  const [phase, setPhase] = useState("setup");
   const [generated, setGenerated] = useState([]);
   const [kept, setKept] = useState(new Set());
   const [error, setError] = useState("");
-  const [countRaw, setCountRaw] = useState("10"); // string so user can clear and retype
   const fileRef = useRef();
 
   const [savedQs, setSavedQs] = useState(savedGenerated);
@@ -321,262 +256,316 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const decks = Object.keys(DECK_MAP);
   const existingCats = DECK_MAP[deck] || [];
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
+  const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
 
-  // ── Review phase ──────────────────────────────────────────────────────
+  // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
     const keptList = generated.filter((_, i) => kept.has(i));
     return (
-      <div style={pageWrap}>
-        <h1 className="anim-fade-up delay-0" style={h1}>Review Questions</h1>
-        <p className="anim-fade-up delay-50" style={pageSub}>
-          Untick any questions you don't want to keep. {keptList.length}/{generated.length} selected.
-        </p>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <Shell
+        title="Review"
+        sub={`${keptList.length} of ${generated.length} kept — untick anything you don’t want.`}
+        footer={(
+          <div className="gen-sticky">
+            <div className="gen-sticky-inner">
+              <button
+                type="button"
+                className="btn-press"
+                style={{ ...primaryBtn, flex: 1 }}
+                disabled={keptList.length === 0}
+                onClick={async () => {
+                  if (user) await remote.addGenerated(user.id, keptList);
+                  const merged = [...savedQs, ...keptList];
+                  setSavedQs(merged);
+                  onGeneratedChange?.(merged);
+                  setPhase("done");
+                }}
+              >
+                Add {keptList.length} to bank →
+              </button>
+              <button
+                type="button"
+                className="btn-press gen-ghost"
+                onClick={() => { setPhase("setup"); setGenerated([]); }}
+              >
+                Start over
+              </button>
+            </div>
+          </div>
+        )}
+      >
+        <ol className="gen-review-list">
           {generated.map((q, i) => {
             const isKept = kept.has(i);
             return (
-              <div key={i} className="anim-fade-up" style={{
-                ...card, padding: "18px 20px",
-                opacity: isKept ? 1 : 0.45,
-                borderColor: isKept ? "var(--c-border)" : "var(--c-overlay)",
-                transition: "opacity 0.2s",
-              }}>
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-                  <input type="checkbox" checked={isKept} onChange={() => {
-                    setKept(prev => {
-                      const s = new Set(prev);
-                      s.has(i) ? s.delete(i) : s.add(i);
-                      return s;
-                    });
-                  }} style={{ marginTop: 3, width: 16, height: 16, flexShrink: 0, accentColor: C.accent, cursor: "pointer" }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: C.text, lineHeight: 1.6, marginBottom: 10, letterSpacing: -0.3 }}>{q.q}</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <li key={i} className={`gen-review-item${isKept ? "" : " is-out"}`}>
+                <label className="gen-review-row">
+                  <input
+                    type="checkbox"
+                    checked={isKept}
+                    onChange={() => {
+                      setKept(prev => {
+                        const s = new Set(prev);
+                        s.has(i) ? s.delete(i) : s.add(i);
+                        return s;
+                      });
+                    }}
+                  />
+                  <span className="gen-review-body">
+                    <span className="gen-review-q">{q.q}</span>
+                    <span className="gen-review-opts">
                       {q.opts.map((opt, oi) => (
-                        <div key={oi} style={{
-                          fontSize: 14, padding: "6px 10px", borderRadius: "var(--r-card)",
-                          background: oi === q.ans ? C.successDim : C.surface2,
-                          border: `1px solid ${oi === q.ans ? C.successBrd : "var(--c-border)"}`,
-                          color: oi === q.ans ? C.success : C.sub,
-                          display: "flex", gap: 8,
-                        }}>
-                          <span style={{ fontWeight: 700, fontFamily: "monospace" }}>{"ABCDE"[oi]}</span>
-                          <span>{opt}</span>
-                        </div>
+                        <span
+                          key={oi}
+                          className={`gen-review-opt${oi === q.ans ? " is-ans" : ""}`}
+                        >
+                          <span className="gen-review-letter">{"ABCDE"[oi]}</span>
+                          {opt}
+                        </span>
                       ))}
-                    </div>
-                    <div style={{ marginTop: 10, fontSize: 13, color: C.muted, lineHeight: 1.6 }}>{q.exp}</div>
-                  </div>
-                </div>
-              </div>
+                    </span>
+                    {q.exp ? <span className="gen-review-exp">{q.exp}</span> : null}
+                  </span>
+                </label>
+              </li>
             );
           })}
-        </div>
-
-        <div style={{ display: "flex", gap: 10, position: "sticky", bottom: 20 }}>
-          <button className="hover-lift btn-press" style={{ ...primaryBtn, flex: 1 }}
-            disabled={keptList.length === 0}
-            onClick={async () => {
-              if (user) await remote.addGenerated(user.id, keptList);
-              const merged = [...savedQs, ...keptList];
-              setSavedQs(merged);
-              onGeneratedChange?.(merged);
-              setPhase("done");
-            }}>
-            Add {keptList.length} Question{keptList.length !== 1 ? "s" : ""} to Bank →
-          </button>
-          <button className="hover-lift btn-press" onClick={() => { setPhase("setup"); setGenerated([]); }} style={{
-            padding: "12px 22px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
-            background: "var(--c-card-bg)", color: C.sub, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "var(--c-card-shadow)",
-          }}>Start Over</button>
-        </div>
-      </div>
+        </ol>
+      </Shell>
     );
   }
 
-  // ── Done phase ─────────────────────────────────────────────────────────
+  // ── Done ──────────────────────────────────────────────────────────────
   if (phase === "done") {
     return (
-      <div style={pageWrap}>
-        <h1 className="anim-fade-up delay-0" style={h1}>AI Generate</h1>
-        <div className="anim-scale-in delay-100" style={{ ...card, textAlign: "center", padding: "48px 32px" }}>
-          <div className="anim-pop delay-200" style={{ fontSize: 52, marginBottom: 16, color: C.success }}>✓</div>
-          <div style={{ fontSize: 17, color: C.text, fontWeight: 600, marginBottom: 8, letterSpacing: -0.5 }}>Questions added!</div>
-          <div style={{ fontSize: 14, color: C.muted, marginBottom: 24 }}>
-            Reload the page to see them in Practice, Flashcards, and all other modes.
-          </div>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-            <button className="hover-lift btn-press" style={primaryBtn} onClick={() => window.location.reload()}>
-              Reload App
-            </button>
-            <button className="hover-lift btn-press" onClick={() => { setPhase("setup"); setGenerated([]); setFile(null); setPastedText(""); }} style={{
-              padding: "12px 22px", borderRadius: "var(--r-pill)", border: "1px solid var(--c-border)",
-              background: C.surface2, color: C.sub, fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-            }}>Generate More</button>
-          </div>
+      <Shell
+        title="Added"
+        sub="Reload once so Practice and the rest of the app pick them up."
+      >
+        <div className="gen-done-actions">
+          <button type="button" className="btn-press" style={primaryBtn} onClick={() => window.location.reload()}>
+            Reload app
+          </button>
+          <button
+            type="button"
+            className="btn-press gen-text-btn"
+            onClick={() => {
+              setPhase("setup");
+              setGenerated([]);
+              setFile(null);
+              setPastedText("");
+            }}
+          >
+            Generate more
+          </button>
         </div>
-      </div>
+      </Shell>
     );
   }
 
-  // ── Generating phase ──────────────────────────────────────────────────
   if (phase === "generating") return <GeneratingScreen count={countNum} />;
 
-  // ── Setup phase ────────────────────────────────────────────────────────
-  const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
-
-  const inputStyle = {
-    width: "100%", background: C.surface2, border: "1px solid var(--c-border)",
-    borderRadius: "var(--r-card)", padding: "10px 14px", color: C.text, fontSize: 15,
-    fontFamily: "inherit", outline: "none", boxSizing: "border-box",
-  };
-  const labelStyle2 = { fontSize: 13, color: C.muted, fontWeight: 600, letterSpacing: -0.2, marginBottom: 8 };
-
+  // ── Setup ─────────────────────────────────────────────────────────────
   return (
-    <div style={pageWrap}>
-      <div className="anim-fade-up delay-0">
-        <h1 style={h1}>AI Generate</h1>
-        <p style={pageSub}>Upload your slides and Claude will write questions for you.</p>
-      </div>
-
-      {/* Single card with all settings */}
-      <div className="anim-fade-up delay-50" style={card}>
-
-        {/* Drop zone */}
-        <div
+    <Shell
+      title="Generate"
+      sub="Drop slides or notes — Resurface writes the questions."
+      maxWidth={680}
+    >
+      {/* Source */}
+      <section className="gen-block">
+        <span style={whisper}>Source</span>
+        <button
+          type="button"
+          className={`gen-drop${file ? " has-file" : ""}`}
           onClick={() => fileRef.current?.click()}
-          style={{
-            border: `2px dashed ${file ? C.accentBrd : "var(--c-border)"}`,
-            borderRadius: "var(--r-card)", padding: file ? "16px 20px" : "22px 20px",
-            textAlign: "center", cursor: "pointer", transition: "all 0.2s",
-            background: file ? C.accentDim : C.surface2, marginBottom: 16,
-          }}
           onDragOver={e => e.preventDefault()}
-          onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) { setFile(f); setPastedText(""); } }}
+          onDrop={e => {
+            e.preventDefault();
+            const f = e.dataTransfer.files[0];
+            if (f) { setFile(f); setPastedText(""); }
+          }}
         >
-          <input ref={fileRef} type="file" accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp" style={{ display: "none" }}
-            onChange={e => { if (e.target.files[0]) { setFile(e.target.files[0]); setPastedText(""); } }} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
+            style={{ display: "none" }}
+            onChange={e => {
+              if (e.target.files[0]) {
+                setFile(e.target.files[0]);
+                setPastedText("");
+              }
+            }}
+          />
           {file ? (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-              <span style={{ fontSize: 20 }}>📎</span>
-              <span style={{ fontSize: 15, color: C.accent, fontWeight: 500 }}>{file.name}</span>
-              <button onClick={e => { e.stopPropagation(); setFile(null); }} style={{
-                background: "none", border: "none", color: C.muted, fontSize: 13, cursor: "pointer", marginLeft: 4,
-              }}>✕</button>
-            </div>
+            <span className="gen-drop-file">
+              <span className="gen-drop-name">{file.name}</span>
+              <span
+                role="button"
+                tabIndex={0}
+                className="gen-drop-clear"
+                onClick={e => { e.stopPropagation(); setFile(null); }}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setFile(null);
+                  }
+                }}
+              >
+                Remove
+              </span>
+            </span>
           ) : (
-            <div>
-              <div style={{ fontSize: 14, color: C.sub }}>⬆ Drop a file or click to browse</div>
-              <div style={{ fontSize: 13, color: C.mutedDim, marginTop: 3 }}>PowerPoint, PDF, or image</div>
-            </div>
+            <span className="gen-drop-empty">
+              <span className="gen-drop-lead">Drop a file or browse</span>
+              <span className="gen-drop-meta">PowerPoint, PDF, or image · max 3MB</span>
+            </span>
           )}
-        </div>
+        </button>
 
         {!file && (
           <textarea
+            className="gen-paste"
             value={pastedText}
             onChange={e => setPastedText(e.target.value)}
-            placeholder="Or paste lecture notes / slide text here..."
+            placeholder="Or paste lecture notes here…"
             rows={4}
-            style={{ ...inputStyle, resize: "vertical", marginBottom: 20 }}
           />
         )}
+      </section>
 
-        {/* Year + Block row */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-          <div>
-            <div style={labelStyle2}>Year</div>
-            <select value={year} onChange={e => setYear(e.target.value)} style={{ ...inputStyle, cursor: "pointer" }}>
-              {["Year 1","Year 2","Year 3","Year 4","Year 5"].map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-          </div>
-          <div>
-            <div style={labelStyle2}>Block</div>
-            <input
-              type="text" value={block} onChange={e => setBlock(e.target.value)}
-              placeholder="e.g. Principles"
-              list="block-suggestions"
-              style={inputStyle}
-            />
-            <datalist id="block-suggestions">
-              {["Principles","Clinical","Pathology","Pharmacology","Anatomy","Physiology"].map(b => <option key={b} value={b} />)}
-            </datalist>
-          </div>
-        </div>
-
-        {/* Subject + count row */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 140px", gap: 12, marginBottom: 16 }}>
-          <div>
-            <div style={labelStyle2}>Subject</div>
-            <select value={deck} onChange={e => { setDeck(e.target.value); setCategory(""); }} style={{ ...inputStyle, cursor: "pointer" }}>
+      {/* Placement */}
+      <section className="gen-block">
+        <span style={whisper}>Where they belong</span>
+        <div className="gen-grid">
+          <label className="gen-field">
+            <span className="gen-field-label">Subject</span>
+            <select
+              value={deck}
+              onChange={e => { setDeck(e.target.value); setCategory(""); }}
+              style={{ ...field, cursor: "pointer" }}
+            >
               {decks.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-          </div>
-          <div>
-            <div style={labelStyle2}>Questions</div>
+          </label>
+          <label className="gen-field">
+            <span className="gen-field-label">Topic</span>
             <input
               type="text"
-              inputMode="numeric"
-              value={countRaw}
-              onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
-              onBlur={() => setCountRaw(String(countNum || 10))}
-              style={inputStyle}
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              placeholder={existingCats[0] || "e.g. Glycolysis"}
+              list="gen-cat-suggestions"
+              style={field}
+              required
             />
+            <datalist id="gen-cat-suggestions">
+              {existingCats.map(c => <option key={c} value={c} />)}
+            </datalist>
+          </label>
+          <label className="gen-field">
+            <span className="gen-field-label">Year</span>
+            <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
+              {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </label>
+          <label className="gen-field">
+            <span className="gen-field-label">Block</span>
+            <input
+              type="text"
+              value={block}
+              onChange={e => setBlock(e.target.value)}
+              placeholder="e.g. Principles"
+              list="gen-block-suggestions"
+              style={field}
+            />
+            <datalist id="gen-block-suggestions">
+              {["Principles", "Clinical", "Pathology", "Pharmacology", "Anatomy", "Physiology"].map(b => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+          </label>
+        </div>
+      </section>
+
+      {/* Difficulty + count */}
+      <section className="gen-block">
+        <div className="gen-chip-row">
+          <div className="gen-chip-group">
+            <span style={whisper}>Difficulty</span>
+            <div className="gen-chips" role="radiogroup" aria-label="Difficulty">
+              {DIFFICULTIES.map(d => (
+                <button
+                  key={d.k}
+                  type="button"
+                  className="btn-press"
+                  onClick={() => setDifficulty(d.k)}
+                  style={difficulty === d.k ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="gen-hint">{DIFFICULTIES.find(d => d.k === difficulty)?.hint}</p>
+          </div>
+          <div className="gen-chip-group">
+            <span style={whisper}>How many</span>
+            <div className="gen-chips" role="radiogroup" aria-label="Question count">
+              {COUNT_PRESETS.map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  className="btn-press"
+                  onClick={() => setCountRaw(String(n))}
+                  style={countNum === n ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                >
+                  {n}
+                </button>
+              ))}
+              {!COUNT_PRESETS.includes(countNum) && (
+                <span className="gen-count-custom">{countNum}</span>
+              )}
+            </div>
+            <label className="gen-count-edit">
+              <span className="gen-field-label">Or type</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={countRaw}
+                onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
+                onBlur={() => setCountRaw(String(countNum || 10))}
+                style={{ ...field, width: 72, textAlign: "center" }}
+              />
+            </label>
           </div>
         </div>
+      </section>
 
-        {/* Topic */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={labelStyle2}>Topic</div>
-          <input
-            type="text" value={category} onChange={e => setCategory(e.target.value)}
-            placeholder={existingCats[0] || "e.g. Glycolysis & Bioenergetics"}
-            list="cat-suggestions"
-            style={inputStyle}
-          />
-          <datalist id="cat-suggestions">
-            {existingCats.map(c => <option key={c} value={c} />)}
-          </datalist>
-        </div>
-
-        {/* Difficulty */}
-        <div>
-          <div style={labelStyle2}>Difficulty</div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {DIFFICULTIES.map(d => (
-              <button key={d.k} onClick={() => setDifficulty(d.k)}
-                className="hover-lift btn-press"
-                style={{
-                  ...chipBtn, ...(difficulty === d.k ? chipBtnActive : {}),
-                  flex: 1, textAlign: "center", padding: "9px 8px", fontSize: 14, fontWeight: 600,
-                }}>
-                {d.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ fontSize: 13, color: C.mutedDim, marginTop: 7 }}>
-            {DIFFICULTIES.find(d => d.k === difficulty)?.desc}
-          </div>
-        </div>
-      </div>
-
-      {error && (
-        <div style={{ padding: "12px 16px", background: C.dangerDim, border: `1px solid ${C.dangerBrd}`, borderRadius: "var(--r-card)", fontSize: 14, color: C.danger }}>
-          {error}
-        </div>
-      )}
+      {error && <p className="gen-error">{error}</p>}
 
       <button
-        className="hover-lift btn-press"
-        style={{ ...fieldBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
+        type="button"
+        className="btn-press"
+        style={{ ...primaryBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
         disabled={!canGenerate}
         onClick={async () => {
           setError("");
           setPhase("generating");
           try {
-            const qs = await generateQuestions({ file, pastedText, deck, category: category.trim(), year, block: block.trim() || "Principles", difficulty, count: countNum });
+            const qs = await generateQuestions({
+              file,
+              pastedText,
+              deck,
+              category: category.trim(),
+              year,
+              block: block.trim() || "Principles",
+              difficulty,
+              count: countNum,
+            });
             setGenerated(qs);
             setKept(new Set(qs.map((_, i) => i)));
             setPhase("review");
@@ -586,55 +575,61 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           }
         }}
       >
-        Generate {countNum} Question{countNum !== 1 ? "s" : ""} →
+        Generate {countNum} question{countNum !== 1 ? "s" : ""} →
       </button>
 
-      {/* Generated questions bank */}
+      {/* Bank */}
       {savedQs.length > 0 && (
-        <div className="anim-fade-up" style={card}>
-          <button onClick={() => setBankOpen(v => !v)} style={{
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            width: "100%", background: "none", border: "none", cursor: "pointer",
-            padding: 0, fontFamily: "inherit",
-          }}>
-            <span style={{ ...h2, marginTop: 0, marginBottom: 0 }}>
-              Generated Questions ({savedQs.length})
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 12, color: C.danger, cursor: "pointer" }}
-                onClick={e => { e.stopPropagation(); if (window.confirm("Delete all generated questions?")) { clearAll(); setBankOpen(false); window.location.reload(); } }}>
-                Clear all
-              </span>
-              <span style={{ color: C.muted, fontSize: 14, transition: "transform 0.2s", display: "inline-block", transform: bankOpen ? "rotate(180deg)" : "none" }}>▾</span>
-            </div>
-          </button>
+        <section className="gen-bank">
+          <div className="prog-section-head" style={{ marginBottom: 8 }}>
+            <button
+              type="button"
+              className="gen-bank-toggle"
+              onClick={() => setBankOpen(v => !v)}
+            >
+              <h2 style={{ ...sectionH, margin: 0 }}>In your bank</h2>
+              <span className="prog-section-note">{savedQs.length}</span>
+              <span className={`gen-bank-chevron${bankOpen ? " is-open" : ""}`} aria-hidden="true">▾</span>
+            </button>
+            <button
+              type="button"
+              className="gen-text-btn is-danger"
+              onClick={() => {
+                if (window.confirm("Delete all generated questions?")) {
+                  clearAll();
+                  setBankOpen(false);
+                  window.location.reload();
+                }
+              }}
+            >
+              Clear all
+            </button>
+          </div>
 
           {bankOpen && (
-            <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+            <ul className="gen-bank-list">
               {savedQs.map(q => (
-                <div key={q.id} style={{
-                  display: "flex", alignItems: "flex-start", gap: 12,
-                  padding: "12px 14px", borderRadius: "var(--r-card)",
-                  background: C.surface2, border: "1px solid var(--c-border)",
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, color: C.accent, marginBottom: 4 }}>{q.deck} · {q.cat}</div>
-                    <div style={{ fontSize: 14, color: C.text, lineHeight: 1.55 }}>{q.q}</div>
-                    <div style={{ fontSize: 13, color: C.success, marginTop: 4 }}>
-                      ✓ {"ABCDE"[q.ans]} — {q.opts[q.ans]}
-                    </div>
+                <li key={q.id} className="gen-bank-row">
+                  <div className="gen-bank-main">
+                    <span className="gen-bank-meta">{q.deck} · {q.cat}</span>
+                    <span className="gen-bank-q">{q.q}</span>
+                    <span className="gen-bank-ans">
+                      {"ABCDE"[q.ans]} — {q.opts[q.ans]}
+                    </span>
                   </div>
-                  <button onClick={() => { deleteQuestion(q.id); window.location.reload(); }} style={{
-                    flexShrink: 0, background: C.dangerDim, border: `1px solid ${C.dangerBrd}`,
-                    borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.danger, fontSize: 13,
-                    fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                  }}>Delete</button>
-                </div>
+                  <button
+                    type="button"
+                    className="gen-text-btn is-danger"
+                    onClick={() => { deleteQuestion(q.id); window.location.reload(); }}
+                  >
+                    Delete
+                  </button>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </div>
+        </section>
       )}
-    </div>
+    </Shell>
   );
 }
