@@ -1,7 +1,19 @@
 /* ─── UI scale ────────────────────────────────────────────────── */
 :root {
   --app-scale: 1.12;
-  --app-vh: calc(100vh / var(--app-scale));
+  /* dvh, not vh. On phones 100vh is the viewport with the browser chrome
+     *hidden*, so a full-height screen sits partly behind the address bar and
+     the bottom of it is unreachable until you scroll. dvh tracks the chrome. */
+  --app-vh: calc(100dvh / var(--app-scale));
+  /* Physical inset of the notch and home indicator, zero on everything else.
+     Divided by the scale because #root's zoom would otherwise magnify it. */
+  --safe-b: calc(env(safe-area-inset-bottom, 0px) / var(--app-scale));
+  --safe-t: calc(env(safe-area-inset-top, 0px) / var(--app-scale));
+  --tabbar-h: 0px;
+  /* What a screen that pins itself to the viewport may actually occupy: the
+     tab bar floats over the bottom, so anything anchored to --app-vh would
+     put its own anchored controls underneath it. */
+  --screen-h: calc(var(--app-vh) - var(--tabbar-h) - var(--safe-b));
 
   /* Landing-aligned brand */
   --blue: #3562f5;
@@ -31,6 +43,27 @@
 
 #root {
   zoom: var(--app-scale);
+}
+
+/* ─── Phones ─────────────────────────────────────────────────────── */
+/* The 1.12 zoom exists to make a desktop UI comfortable at arm's length. A
+   phone is already held close, and dividing a 390px viewport by 1.12 leaves
+   348px of usable width — the layout was being asked to fit a screen 12%
+   smaller than the real one. At this size the scale is simply 1. */
+@media (max-width: 900px) {
+  :root {
+    --app-scale: 1;
+    --tabbar-h: 58px;
+  }
+}
+
+/* Nothing may exceed the viewport width. A single overflowing child turns the
+   whole page into a horizontal scroller, which on touch reads as the layout
+   being broken rather than as a scrollable region. */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 /* ─── Light (default): white/panel objects on blue field ───────── */
@@ -571,6 +604,13 @@ body::after {
 }
 @media (hover: none) {
   .q-elim { opacity: 0.55; }
+
+  .hover-lift:hover,
+  .btn-press:hover {
+    transform: none !important;
+    box-shadow: inherit;
+  }
+  .topic-row:hover:not(.is-empty) { background: none; }
 }
 
 .q-opt-note {
@@ -2086,4 +2126,162 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .gen-status { animation: none; }
   .gen-bar-fill { animation: none; width: 55%; }
+}
+
+/* ─── Navigation ────────────────────────────────────────────────── */
+/* One component, two shapes. On a desktop it is a sidebar; on a phone it is a
+   bottom tab bar, because a phone is held one-handed and the bottom of the
+   screen is the only region the thumb reaches without regripping. Putting
+   primary navigation at the top of a phone screen is the single most common
+   way a desktop layout fails on mobile.
+   CSS decides which, not JavaScript — no breakpoint state to get out of sync,
+   and no window measuring on every resize. */
+
+@media (max-width: 900px) {
+  .app-nav {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    top: auto;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    z-index: 400;
+    flex-direction: row;
+    border: none;
+    border-top: 1px solid var(--c-nav-border);
+    border-radius: 0;
+    /* Padding, not margin: the bar's background must reach under the home
+       indicator, while its controls stay above it. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -2px 20px rgba(15, 27, 61, 0.12);
+  }
+
+  /* The wordmark is orientation, and you already know where you are. */
+  .app-nav__brand { display: none; }
+
+  .app-nav__list {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    overflow: visible;
+  }
+
+  .app-nav__item {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    /* 44px is Apple's minimum comfortable target and 48dp is Material's; the
+       bar clears both, and the whole column is tappable rather than the text. */
+    min-height: 54px;
+    padding: 8px 4px;
+    border-radius: 0;
+    text-align: center;
+  }
+
+  .app-nav__label { font-size: 12px; }
+
+  /* The sliding pill is a vertical-list idea. Bottom tabs mark the active
+     item in place — a pill sliding sideways under a thumb reads as a swipe
+     the user did not make. */
+  .app-nav__pill { display: none; }
+
+  .app-nav__item.is-active { color: var(--c-accent); }
+  .app-nav__item.is-active .app-nav__label { font-weight: 700; }
+  .app-nav__item.is-active::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 50%;
+    width: 26px; height: 3px;
+    transform: translateX(-50%);
+    background: var(--c-accent);
+    border-radius: 0 0 3px 3px;
+  }
+
+  .app-nav__foot {
+    border-top: none;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .app-nav__foot-meta { display: none; }
+
+  .app-nav__profile {
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-height: 54px;
+    width: 68px;
+    padding: 8px 4px;
+    border-radius: 0;
+    border: none !important;
+    background: none !important;
+  }
+  .app-nav__profile-text { display: none; }
+
+  /* Badges sit on the corner of a tab rather than after a label. */
+  .app-nav__badge {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    margin-left: 8px;
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+}
+
+/* The bar floats over the content, so the last thing on a page needs room to
+   clear it or it can never be scrolled into view. */
+.app-main {
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-b));
+}
+
+/* ─── Phone layout ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* Two columns on a 390px screen gives two unreadable columns. */
+  .dash-split { grid-template-columns: 1fr; }
+
+  /* The blurred backdrops are the most expensive thing the app paints, and a
+     phone GPU pays for them on every frame the layer behind changes. The
+     surfaces are 86% opaque, so the blur was contributing almost nothing
+     visually while costing the most. */
+  .app-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--c-surface) !important;
+  }
+
+  /* A fixed, full-viewport noise texture composited under everything that
+     scrolls. Invisible at 2.5% opacity on a phone screen; not free. */
+  body::after { display: none; }
+
+  /* Three large radial gradients, repainted whenever the fixed layer is
+     invalidated. One flat field reads the same at this size. */
+  body::before { background: none; }
+}
+
+/* iOS zooms the whole page when a focused input is under 16px, which then
+   leaves the layout scaled and the user stranded. Applies at every size
+   because the trigger is the input, not the viewport. */
+@media (max-width: 900px) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* Touch targets. Apple asks for 44pt, Material for 48dp; anything smaller is
+   measurably harder to hit and produces mis-taps on adjacent controls. */
+@media (pointer: coarse) {
+  button, [role="radio"], [role="button"], a {
+    min-height: 44px;
+  }
+  /* Except things that are deliberately inline in a sentence. */
+  button.inline-link, .app-nav__badge {
+    min-height: 0;
+  }
+}
+
+/* The theme button floats at the top right. On a desktop it sits in the margin
+   beside the content; on a phone there is no margin, so a page heading would
+   run underneath it. Reserve the width rather than letting them collide. */
+@media (max-width: 900px) {
+  .page-band { padding-right: 84px !important; }
 }

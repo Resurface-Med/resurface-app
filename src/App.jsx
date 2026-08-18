@@ -273,7 +273,8 @@ export default function App() {
         className="btn-press"
         title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         style={{
-          position: "fixed", top: 18, right: 22, zIndex: 500,
+          position: "fixed", zIndex: 500,
+          top: "calc(var(--safe-t) + 14px)", right: "clamp(12px, 2vw, 22px)",
           height: 36, padding: "0 14px",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
           background: "rgba(255,255,255,0.14)",
@@ -294,7 +295,7 @@ export default function App() {
         minWidth: 0,
         overflow: "hidden",
       }}>
-        <div style={{ flex: 1, overflowY: "auto" }}>
+        <div className="app-main" style={{ flex: 1, overflowY: "auto" }}>
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>

@@ -93,7 +93,7 @@ export default function Dashboard({
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       {/* ── Blue field: who you are, and the one thing to do ───────── */}
-      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
+      <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
         <header style={{
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           gap: 20, flexWrap: "wrap",

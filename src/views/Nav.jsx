@@ -34,7 +34,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
   const activeProfile = view === V.PROFILE;
 
   return (
-    <aside style={{
+    <aside className="app-nav" style={{
       width: 248,
       margin: "14px 0 14px 14px",
       background: "var(--c-nav-bg)",
@@ -47,7 +47,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
       position: "sticky", top: 14, height: "calc(var(--app-vh) - 28px)",
       overflow: "hidden",
     }}>
-      <div style={{
+      <div className="app-nav__brand" style={{
         padding: "18px 16px 16px",
         borderBottom: "1px solid var(--c-nav-border)",
       }}>
@@ -80,7 +80,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         />
       </div>
 
-      <nav ref={navRef} style={{
+      <nav ref={navRef} className="app-nav__list" style={{
         padding: "12px 10px",
         flex: 1,
         display: "flex",
@@ -99,9 +99,10 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
           boxShadow: "0 8px 20px rgba(20, 44, 130, 0.28)",
           transition: "transform 0.24s cubic-bezier(0.22,1,0.36,1), opacity 0.18s",
           willChange: "transform",
+          // class hook so the bottom bar can drop it entirely
           pointerEvents: "none", zIndex: 0,
           opacity: pill.visible ? 1 : 0,
-        }} />
+        }} className="app-nav__pill" />
 
         {NAV.map((item, idx) => {
           if (!item) return (
@@ -119,7 +120,8 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
               key={item.k}
               ref={el => { if (item) itemRefs.current[idx] = el; }}
               onClick={() => setView(item.k)}
-              className="btn-press"
+              className={`btn-press app-nav__item${active ? " is-active" : ""}`}
+              aria-current={active ? "page" : undefined}
               style={{
                 display: "flex", alignItems: "center", gap: 10,
                 padding: "11px 14px", borderRadius: "var(--r-pill)",
@@ -131,10 +133,10 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
                 transition: "color 0.2s",
               }}
             >
-              <span style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
+              <span className="app-nav__label" style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
 
               {badge > 0 && (
-                <span style={{
+                <span className="app-nav__badge" style={{
                   marginLeft: "auto",
                   background: active ? "rgba(255,255,255,0.25)" : "var(--c-accent)",
                   color: "#fff", borderRadius: "var(--r-pill)", fontSize: 11,
@@ -146,12 +148,13 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         })}
       </nav>
 
-      <div style={{ padding: "12px 12px 14px", borderTop: "1px solid var(--c-nav-border)" }}>
+      <div className="app-nav__foot" style={{ padding: "12px 12px 14px", borderTop: "1px solid var(--c-nav-border)" }}>
         <button
           type="button"
           onClick={() => setView(V.PROFILE)}
-          className="btn-press"
+          className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
           title="Profile"
+          aria-current={activeProfile ? "page" : undefined}
           style={{
             width: "100%",
             display: "flex",
@@ -176,7 +179,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
           }}>
             {initials(displayName, email)}
           </span>
-          <span style={{ minWidth: 0, flex: 1 }}>
+          <span className="app-nav__profile-text" style={{ minWidth: 0, flex: 1 }}>
             <span style={{
               display: "block",
               fontSize: 13, fontWeight: 600, letterSpacing: -0.15,
@@ -196,7 +199,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             )}
           </span>
         </button>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, padding: "0 4px" }}>
+        <div className="app-nav__foot-meta" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 10, padding: "0 4px" }}>
           <span style={{ color: NAV_MUTDIM, fontSize: 11.5, fontWeight: 500 }}>© Resurface 2026</span>
           <button onClick={onSignOut} className="btn-press" style={{
             background: "none", border: "none", padding: 0, cursor: "pointer",

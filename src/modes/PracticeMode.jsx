@@ -320,8 +320,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return (
       /* Topics own the page. Secondary choices sit in a slim dock so the list
          gets height without a second screen or a tall settings stack. */
-      <div style={{ display: "flex", flexDirection: "column", height: "var(--app-vh)" }}>
-        <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
+        <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0 }}>Practice</h1>
 

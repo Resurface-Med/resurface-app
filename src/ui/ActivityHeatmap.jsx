@@ -77,8 +77,14 @@ const Cell = memo(function Cell({ date, count, isToday, isFuture, onHover }) {
   const l = level(count);
   return (
     <div
+      // Touch has no hover, so a hover-only tooltip is simply unreachable on a
+      // phone — the whole map becomes decorative. Tap toggles the same panel.
       onMouseEnter={isFuture ? undefined : (e) => onHover(e, date, count)}
       onMouseLeave={isFuture ? undefined : () => onHover(null)}
+      onClick={isFuture ? undefined : (e) => onHover(e, date, count, true)}
+      role={isFuture ? undefined : "button"}
+      tabIndex={isFuture ? undefined : -1}
+      aria-label={isFuture ? undefined : `${count} on ${date.toDateString()}`}
       style={{
         width: "100%",
         aspectRatio: "1 / 1",
@@ -113,7 +119,7 @@ export default function ActivityHeatmap({ activity = {} }) {
   // past the viewport and flickered a scrollbar in and out. Offsets are plain
   // layout pixels in the same space the tooltip is positioned in, so the two
   // cannot disagree no matter what --app-scale is set to.
-  const onHover = useCallback((e, date, count) => {
+  const onHover = useCallback((e, date, count, isTap = false) => {
     if (e === null) return setTip(null);
     const el = e.currentTarget;
     const grid = el.parentElement;
@@ -125,7 +131,12 @@ export default function ActivityHeatmap({ activity = {} }) {
     const ratio = (el.offsetLeft + el.offsetWidth / 2 - grid.offsetLeft) / grid.offsetWidth;
     const align = ratio > 0.72 ? "right" : ratio < 0.18 ? "left" : "center";
 
-    setTip({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop, date, count, align });
+    setTip(prev => {
+      // A second tap on the same cell closes it; on a phone there is no
+      // pointer to move away, so without this the panel would never dismiss.
+      if (isTap && prev && prev.key === el.offsetLeft + "," + el.offsetTop) return null;
+      return { x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop, date, count, align, key: el.offsetLeft + "," + el.offsetTop };
+    });
   }, []);
 
   // A month is labelled on the first column whose Monday falls in it.
