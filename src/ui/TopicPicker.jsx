@@ -54,13 +54,13 @@ function Coverage({ seen, total, avail, dim }) {
   const pct = total > 0 ? (seen / total) * 100 : 0;
   return (
     <>
-      <span style={{
+      {seen > 0 && <span style={{
         width: "clamp(40px, 5vw, 64px)", height: 4, borderRadius: 99,
         background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0,
         opacity: dim ? 0.4 : 1,
       }}>
         <span style={{ display: "block", height: "100%", width: `${pct}%`, background: "var(--c-accent)", borderRadius: 99 }} />
-      </span>
+      </span>}
       <span style={{
         width: 58, textAlign: "right", flexShrink: 0,
         fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums",
@@ -71,14 +71,28 @@ function Coverage({ seen, total, avail, dim }) {
   );
 }
 
-export default function TopicPicker({ value, onChange, pStats, eligibleIds }) {
+export default function TopicPicker({ value, onChange, pStats, eligibleIds, query = "" }) {
   const [open, setOpen] = useState(
     () => new Set(value.deck?.[0] && value.deck[0] !== "All" ? [value.deck[0]] : []),
   );
 
   const eligible = useMemo(() => new Set(eligibleIds), [eligibleIds]);
-  const tree = useMemo(() => buildTree(pStats, eligible), [pStats, eligible]);
+  const full = useMemo(() => buildTree(pStats, eligible), [pStats, eligible]);
   const totalAvail = eligible.size;
+
+  // Searching keeps a subject when it matches, or when any of its categories
+  // does — and then shows only the matching ones. Past about ten rows a list
+  // is faster to type into than to read, and this one grows with every year
+  // that gets added.
+  const q = query.trim().toLowerCase();
+  const tree = useMemo(() => {
+    if (!q) return full;
+    return full.flatMap(d => {
+      if (d.deck.toLowerCase().includes(q)) return [d];
+      const cats = d.cats.filter(c => c.cat.toLowerCase().includes(q));
+      return cats.length ? [{ ...d, cats }] : [];
+    });
+  }, [full, q]);
 
   const selDeck = value.deck?.[0] ?? "All";
   const selCat  = value.cat?.[0] ?? "All";
@@ -101,22 +115,30 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds }) {
 
   return (
     <div role="radiogroup" aria-label="Topic">
+      {!q && (
       <button
         role="radio" aria-checked={isAll}
         onClick={pickAll}
         className={`topic-row${isAll ? " is-active" : ""}`}
       >
         <span style={{ flex: 1, textAlign: "left", fontSize: 15, fontWeight: 600, color: C.text }}>
-          Everything
+          All subjects
         </span>
         <span style={{ width: 58, textAlign: "right", fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums" }}>
           {totalAvail} left
         </span>
       </button>
+      )}
+
+      {q && tree.length === 0 && (
+        <p style={{ padding: "14px 12px", fontSize: 14, color: C.muted }}>
+          No topic matches “{query.trim()}”.
+        </p>
+      )}
 
       {tree.map(d => {
         const empty = d.avail === 0;
-        const isOpen = open.has(d.deck);
+        const isOpen = q ? true : open.has(d.deck);
         const many = d.cats.length > 1;
 
         return (

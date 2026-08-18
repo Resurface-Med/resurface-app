@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive } from "../ui/theme";
+import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
@@ -105,6 +105,11 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
 
 const COUNT_OPTIONS = [10, 20, 50, "All"];
 
+/** Categories carry their subject as a prefix; the button already names it. */
+function shortLabel(cat, deck) {
+  return cat && deck && cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
+}
+
 /** Same measure as the dashboard, so the two screens sit on one grid. */
 const band = {
   maxWidth: 1180,
@@ -114,7 +119,7 @@ const band = {
 };
 
 const SCOPES = [
-  { k: "all",   label: "Everything" },
+  { k: "all",   label: "Any question" },
   { k: "due",   label: "Due now" },
   { k: "wrong", label: "Got wrong" },
   { k: "saved", label: "Saved" },
@@ -154,6 +159,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     : defaultFilter
   );
   const [countOpt, setCountOpt] = useState("All");
+  const [topicQuery, setTopicQuery] = useState("");
   const [queue, setQueue] = useState(null);
   const [idx, setIdx] = useState(0);
   const [sels, setSels] = useState({});
@@ -289,128 +295,140 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   // Setup screen
   if (!queue) {
-    // Scope first, topic second: the scope decides which questions exist at
-    // all, so the topic rows can show how many each would actually give you.
-    const inScope = applyScope(QUESTIONS.filter(q => !filter.unseenOnly || !pStats[q.id]));
-    const eligibleIds = inScope.map(q => q.id);
+    // Scope decides which questions exist at all, so the topic rows can each
+    // say how many they would actually give you under it.
+    const inScope = applyScope(QUESTIONS.filter(x => !filter.unseenOnly || !pStats[x.id]));
+    const eligibleIds = inScope.map(x => x.id);
     const scoped = scopedCount(filter);
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
-    const topicLabel = !filter.cat.includes("All") ? filter.cat[0]
+    const topicLabel = !filter.cat.includes("All") ? shortLabel(filter.cat[0], filter.deck[0])
       : !filter.deck.includes("All") ? filter.deck[0]
       : null;
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-        {/* ── Blue field: what this is, and anything left unfinished ─── */}
-        <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
-          <h1 style={h1}>Practice</h1>
+      /* Height, not min-height. The screen is a fixed frame: the list scrolls
+         inside it and the action stays put. Previously the whole page grew with
+         the list and pushed Start past the bottom of the viewport — the one
+         control the screen exists to offer was the one you had to go looking
+         for, and every year of questions added would have pushed it further. */
+      <div style={{ display: "flex", flexDirection: "column", height: "var(--app-vh)" }}>
+        <div style={{ ...band, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(14px, 2.2vh, 22px)", flexShrink: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)" }}>Practice</h1>
 
-          {savedSession && (
-            <div style={{
-              ...glassCard, marginTop: 20,
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              flexWrap: "wrap", gap: 14,
-            }}>
-              <div>
-                <div style={{ fontSize: 15.5, fontWeight: 600, color: OF.text }}>
-                  You left a session at question {(savedSession.idx ?? 0) + 1} of {savedSession.queue?.length ?? 0}
-                </div>
-                <div style={{ fontSize: 14, color: OF.soft, marginTop: 4 }}>
-                  {savedSession.sC ?? 0} of {savedSession.sT ?? 0} right so far
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+            {savedSession && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                <span style={{ fontSize: 14, color: OF.soft }}>
+                  Unfinished session · {(savedSession.idx ?? 0) + 1}/{savedSession.queue?.length ?? 0}
+                </span>
                 <button className="btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
                 <button className="btn-press" style={fieldGhostBtn} onClick={discardSession}>Discard</button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <Wave from="transparent" to="var(--c-card-solid)" />
 
-        {/* ── Sheet: the topic is the screen ───────────────────────── */}
-        <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
-          <div style={{ ...band, maxWidth: 760, paddingTop: "clamp(18px, 3vh, 28px)" }}>
+        {/* minHeight 0 so the scroll region can actually shrink inside flex */}
+        <div style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <div style={{ ...band, maxWidth: 760, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 20px)" }}>
 
-            <h2 style={sectionH}>What are you revising?</h2>
-            <div className="topic-scroll" style={{ marginTop: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", flexShrink: 0 }}>
+              <h2 style={{ ...sectionH, flexShrink: 0 }}>What are you revising?</h2>
+              <input
+                type="search"
+                value={topicQuery}
+                onChange={e => setTopicQuery(e.target.value)}
+                placeholder="Search topics"
+                aria-label="Search topics"
+                style={{
+                  marginLeft: "auto", flex: "1 1 160px", maxWidth: 240,
+                  padding: "8px 14px", fontSize: 14, fontFamily: "inherit",
+                  color: C.text, background: "var(--c-surface3)",
+                  border: "1px solid transparent", borderRadius: "var(--r-pill)",
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            {/* The only part that scrolls. */}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: 10, scrollbarGutter: "stable" }}>
               <TopicPicker
                 value={filter}
                 onChange={next => { setFilter(f => ({ ...f, ...next })); setCountOpt("All"); }}
                 pStats={pStats}
                 eligibleIds={eligibleIds}
+                query={topicQuery}
               />
             </div>
 
-            {/* Refinements. Deliberately smaller and below: they modify the
-                choice above rather than competing with it. */}
+            {/* Anchored: the refinements and the commit never leave the screen. */}
             <div style={{
-              display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-              marginTop: "clamp(20px, 3vh, 28px)", paddingTop: "clamp(16px, 2.4vh, 22px)",
+              flexShrink: 0, paddingTop: "clamp(12px, 1.8vh, 18px)",
+              paddingBottom: "clamp(14px, 2.2vh, 22px)",
               borderTop: "1px solid var(--c-border)",
+              display: "flex", flexDirection: "column", gap: 12,
             }}>
-              {SCOPES.map(s => {
-                const n = scopeCount(s.k);
-                const disabled = n === 0 && s.k !== "all";
-                return (
-                  <button key={s.k} className="btn-press" disabled={disabled}
-                    onClick={() => !disabled && setScope(s.k)}
-                    style={{
-                      ...chipBtn,
-                      ...(scope === s.k ? chipBtnActive : {}),
-                      opacity: disabled ? 0.38 : 1,
-                      cursor: disabled ? "not-allowed" : "pointer",
-                    }}>
-                    {s.label}
-                  </button>
-                );
-              })}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {SCOPES.map(s => {
+                  const n = scopeCount(s.k);
+                  const disabled = n === 0 && s.k !== "all";
+                  return (
+                    <button key={s.k} className="btn-press" disabled={disabled}
+                      onClick={() => !disabled && setScope(s.k)}
+                      style={{
+                        ...chipBtn, ...(scope === s.k ? chipBtnActive : {}),
+                        opacity: disabled ? 0.38 : 1,
+                        cursor: disabled ? "not-allowed" : "pointer",
+                      }}>
+                      {s.label}
+                    </button>
+                  );
+                })}
 
-              <label style={{
-                display: "flex", alignItems: "center", gap: 8, marginLeft: "auto",
-                fontSize: 14, color: C.sub, cursor: "pointer", userSelect: "none",
-              }}>
-                <input
-                  type="checkbox"
-                  checked={filter.unseenOnly}
-                  onChange={e => { setFilter(f => ({ ...f, unseenOnly: e.target.checked })); setCountOpt("All"); }}
-                  style={{ width: 16, height: 16, accentColor: "var(--c-accent)", cursor: "pointer" }}
-                />
-                Only ones I haven't seen
-              </label>
+                <span style={{ width: 1, height: 22, background: "var(--c-border)", margin: "0 4px" }} />
+
+                {COUNT_OPTIONS.map(o => {
+                  const disabled = o !== "All" && o > scoped;
+                  return (
+                    <button key={o} disabled={disabled} className="btn-press"
+                      style={{ ...chipBtn, ...(o === countOpt ? chipBtnActive : {}), opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
+                      onClick={() => !disabled && setCountOpt(o)}>
+                      {o === "All" ? "All" : o}
+                    </button>
+                  );
+                })}
+
+                <label style={{
+                  display: "flex", alignItems: "center", gap: 8, marginLeft: "auto",
+                  fontSize: 13.5, color: C.sub, cursor: "pointer", userSelect: "none",
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={filter.unseenOnly}
+                    onChange={e => { setFilter(f => ({ ...f, unseenOnly: e.target.checked })); setCountOpt("All"); }}
+                    style={{ width: 15, height: 15, accentColor: "var(--c-accent)", cursor: "pointer" }}
+                  />
+                  Unseen only
+                </label>
+              </div>
+
+              <button
+                className="btn-press"
+                disabled={willAsk === 0}
+                onClick={() => start()}
+                style={{
+                  ...primaryBtn, ...lg, width: "100%",
+                  opacity: willAsk === 0 ? 0.5 : 1,
+                  cursor: willAsk === 0 ? "not-allowed" : "pointer",
+                }}
+              >
+                {willAsk === 0
+                  ? "Nothing left here — try another topic"
+                  : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"}${topicLabel ? ` from ${topicLabel}` : ""} →`}
+              </button>
             </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-              <span style={{ fontSize: 14, color: C.sub, marginRight: 4 }}>How many</span>
-              {COUNT_OPTIONS.map(o => {
-                const disabled = o !== "All" && o > scoped;
-                return (
-                  <button key={o} disabled={disabled} className="btn-press"
-                    style={{ ...chipBtn, ...(o === countOpt ? chipBtnActive : {}), opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
-                    onClick={() => !disabled && setCountOpt(o)}>
-                    {o === "All" ? `All ${scoped}` : o}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* States the outcome before you commit to it. */}
-            <button
-              className="btn-press"
-              disabled={willAsk === 0}
-              onClick={() => start()}
-              style={{
-                ...primaryBtn, ...lg, width: "100%",
-                marginTop: "clamp(22px, 3vh, 30px)",
-                opacity: willAsk === 0 ? 0.5 : 1,
-                cursor: willAsk === 0 ? "not-allowed" : "pointer",
-              }}
-            >
-              {willAsk === 0
-                ? "Nothing left here — try another topic"
-                : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"}${topicLabel ? ` from ${topicLabel}` : ""} →`}
-            </button>
           </div>
         </div>
       </div>
