@@ -116,7 +116,16 @@ export default function ActivityHeatmap({ activity = {} }) {
   const onHover = useCallback((e, date, count) => {
     if (e === null) return setTip(null);
     const el = e.currentTarget;
-    setTip({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop, date, count });
+    const grid = el.parentElement;
+
+    // A centred tooltip is wider than five cells, so near either end it leaves
+    // the map — on the right that means overlapping the next column. Anchor the
+    // near edge to the cell instead of the centre, which keeps the whole label
+    // inside the grid without needing to measure the label itself.
+    const ratio = (el.offsetLeft + el.offsetWidth / 2 - grid.offsetLeft) / grid.offsetWidth;
+    const align = ratio > 0.72 ? "right" : ratio < 0.18 ? "left" : "center";
+
+    setTip({ x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop, date, count, align });
   }, []);
 
   // A month is labelled on the first column whose Monday falls in it.
@@ -192,7 +201,7 @@ export default function ActivityHeatmap({ activity = {} }) {
       {tip && (
         <div style={{
           position: "absolute", left: tip.x, top: tip.y - 10,
-          transform: "translate(-50%, -100%)",
+          transform: `translate(${tip.align === "right" ? "-100%" : tip.align === "left" ? "0" : "-50%"}, -100%)`,
           background: "var(--c-card-solid)",
           border: "1px solid var(--c-border)",
           borderRadius: "var(--r-card)", padding: "8px 12px",

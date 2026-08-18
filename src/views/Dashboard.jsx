@@ -190,7 +190,7 @@ export default function Dashboard({ pStats, streak, dueCount, setView, activity 
         <div style={{ ...band, paddingTop: "clamp(8px, 2vh, 20px)" }}>
 
       <div className="dash-split">
-        <div style={{ animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s both" }}>
+        <div style={{ animation: "sweep-reveal 0.34s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s backwards" }}>
           <ActivityHeatmap activity={activity} />
         </div>
 
