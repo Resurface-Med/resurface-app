@@ -50,30 +50,45 @@ function shortCat(cat, deck) {
   return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
 }
 
-/* Coverage of a subject: always show the track so empty and full read as the
-   same kind of thing. Previously only seen>0 drew a bar, so untouched subjects
-   looked like a different UI. */
+/** Coverage bar + available count. Track colour is independent of the row
+ *  hover wash so the bar stays visible when you mouse over a subject. */
 function Coverage({ seen, total, avail, dim }) {
-  const pct = total > 0 ? (seen / total) * 100 : 0;
+  const pct = total > 0 ? Math.min(100, Math.round((seen / total) * 100)) : 0;
   return (
-    <>
-      <span style={{
-        width: "clamp(36px, 4.5vw, 56px)", height: 3, borderRadius: 99,
-        background: "var(--c-surface3)", overflow: "hidden", flexShrink: 0,
-        opacity: dim ? 0.4 : 1,
-      }}>
-        <span style={{
-          display: "block", height: "100%", width: `${pct}%`,
-          background: "var(--c-accent)", borderRadius: 99,
-        }} />
+    <span className="topic-meta" style={{ opacity: dim ? 0.45 : 1 }}>
+      <span
+        className="topic-bar"
+        role="img"
+        aria-label={`${seen} of ${total} seen`}
+      >
+        <span className="topic-bar-fill" style={{ width: `${pct}%` }} />
       </span>
-      <span style={{
-        width: 52, textAlign: "right", flexShrink: 0,
-        fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums",
-      }}>
-        {avail}
-      </span>
-    </>
+      <span className="topic-avail">{avail}</span>
+    </span>
+  );
+}
+
+function Chevron({ open }) {
+  return (
+    <svg
+      className="topic-chevron-icon"
+      width="18" height="18" viewBox="0 0 18 18"
+      aria-hidden="true"
+      style={{
+        display: "block",
+        transform: open ? "rotate(90deg)" : "rotate(0deg)",
+        transition: "transform 0.15s ease",
+      }}
+    >
+      <path
+        d="M6.5 3.5L12 9l-5.5 5.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -127,11 +142,11 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         onClick={pickAll}
         className={`topic-row${isAll ? " is-active" : ""}`}
       >
-        <span style={{ flex: 1, textAlign: "left", fontSize: 15, fontWeight: 600, color: C.text }}>
+        <span className="topic-name" style={{ fontWeight: 600 }}>
           All subjects
         </span>
-        <span style={{ width: 52, textAlign: "right", fontSize: 12.5, color: C.mutedDim, fontVariantNumeric: "tabular-nums" }}>
-          {totalAvail}
+        <span className="topic-meta">
+          <span className="topic-avail">{totalAvail}</span>
         </span>
       </button>
       )}
@@ -156,9 +171,7 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
                 onClick={() => pickDeck(d.deck)}
                 className="topic-hit"
               >
-                <span style={{ flex: 1, textAlign: "left", fontSize: 14.5, fontWeight: 500, color: C.text }}>
-                  {d.deck}
-                </span>
+                <span className="topic-name">{d.deck}</span>
                 <Coverage seen={d.seen} total={d.total} avail={d.avail} dim={empty} />
               </button>
 
@@ -167,13 +180,9 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
                   onClick={() => toggle(d.deck)}
                   aria-expanded={isOpen}
                   aria-label={`${isOpen ? "Hide" : "Show"} ${d.deck} topics`}
-                  className="topic-expand"
+                  className={`topic-expand${isOpen ? " is-open" : ""}`}
                 >
-                  <span aria-hidden="true" style={{
-                    display: "inline-block",
-                    transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
-                    transition: "transform 0.15s ease",
-                  }}>›</span>
+                  <Chevron open={isOpen} />
                 </button>
               )}
             </div>
@@ -188,9 +197,7 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
                   onClick={() => pickCat(d.deck, c.cat)}
                   className={`topic-row is-child${catActive(d.deck, c.cat) ? " is-active" : ""}${catEmpty ? " is-empty" : ""}`}
                 >
-                  <span style={{ flex: 1, textAlign: "left", fontSize: 14, color: C.sub }}>
-                    {shortCat(c.cat, d.deck)}
-                  </span>
+                  <span className="topic-name is-child">{shortCat(c.cat, d.deck)}</span>
                   <Coverage seen={c.seen} total={c.total} avail={c.avail} dim={catEmpty} />
                 </button>
               );

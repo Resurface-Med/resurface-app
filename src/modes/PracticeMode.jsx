@@ -144,16 +144,20 @@ const setupLabel = {
 function segBtn(active, disabled) {
   return {
     ...chipBtn,
-    ...(active ? chipBtnActive : {
+    ...(active ? {
+      ...chipBtnActive,
+      boxShadow: "none",
+    } : {
       background: "transparent",
       border: "1.5px solid transparent",
       boxShadow: "none",
     }),
-    flex: "1 1 0",
-    minWidth: 0,
-    padding: "9px 14px",
+    flex: "0 0 auto",
+    minWidth: "auto",
+    padding: "9px 18px",
     textAlign: "center",
     justifyContent: "center",
+    whiteSpace: "nowrap",
     opacity: disabled ? 0.35 : 1,
     cursor: disabled ? "not-allowed" : "pointer",
   };
@@ -392,7 +396,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               />
             </div>
 
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", marginTop: 4, scrollbarGutter: "stable" }}>
+            <div className="topic-scroll" style={{ flex: 1, minHeight: 0, marginTop: 4 }}>
               <TopicPicker
                 value={filter}
                 onChange={next => setFilter(f => ({ ...f, ...next }))}

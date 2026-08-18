@@ -696,16 +696,15 @@ select {
 
 
 /* ─── Topic picker ──────────────────────────────────────────────── */
-/* A list, not a grid of cards: nine subjects and forty-one categories as
 /* Topic list — one decision, scanned top to bottom.
    Selected row is the only filled surface; hairlines separate the rest.
-   Counts sit right-aligned so the eye compares them as a column. */
+   Meta sits right-aligned so the eye compares numbers as a column. */
 .topic-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 11px 12px;
+  padding: 12px 10px 12px 12px;
   background: none;
   border: none;
   border-radius: var(--r-ctrl);
@@ -744,25 +743,117 @@ select {
   cursor: inherit;
 }
 
+.topic-name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--c-text);
+  letter-spacing: -0.15px;
+}
+.topic-name.is-child {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--c-sub);
+}
+
+.topic-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Thick bar. Track is deliberately stronger than --c-border so it
+   survives the row hover wash (which used to share surface3 with the
+   old track and erase the bar). */
+.topic-bar {
+  width: 56px;
+  height: 8px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--c-muted) 32%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.topic-row:hover:not(.is-empty) .topic-bar,
+.topic-row.is-active .topic-bar {
+  background: color-mix(in srgb, var(--c-accent) 28%, transparent);
+}
+.topic-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--c-accent);
+  min-width: 0;
+}
+
+.topic-avail {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-sub);
+  min-width: 2.4em;
+  text-align: right;
+}
+
+/* Expand control — real hit target, not a punctuation mark. */
 .topic-expand {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  background: none;
+  background: var(--c-surface3);
   border: none;
-  border-radius: 50%;
+  border-radius: 10px;
   cursor: pointer;
-  color: var(--c-muted);
-  font-size: 16px;
+  color: var(--c-sub);
+  transition: background 0.12s ease, color 0.12s ease;
 }
-.topic-expand:hover { background: var(--c-overlay2); color: var(--c-text); }
+.topic-expand:hover,
+.topic-expand.is-open {
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
+}
 
-/* Segmented controls on the Practice setup footer — equal-weight peers
-   inside a quiet track, so From / How many read as one choice each. */
+/* Always-visible scrollbar so the list announces itself as scrollable. */
+.topic-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 4px;
+}
+.topic-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.topic-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+.topic-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--c-muted) 55%, transparent);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.topic-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--c-muted);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+.topic-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--c-muted) 55%, transparent) transparent;
+}
+
+/* Segmented controls on the Practice setup footer — size to their labels,
+   never crush long ones like "Any question". */
 .setup-seg {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   background: var(--c-surface3);
@@ -775,5 +866,6 @@ select {
 }
 @media (max-width: 560px) {
   .setup-seg { width: 100%; }
+  .setup-seg > button { flex: 1 1 auto; }
 }
 
