@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { C, pageWrap, card, h1, primaryBtn, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive, label as labelStyle, pageSub } from "../ui/theme";
+import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, glassCard, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
-import ProgressBar from "../ui/ProgressBar";
+import Wave from "../ui/Wave";
 import QuestionCard from "../ui/QuestionCard";
 import FilterPanel, { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import SessionSummary from "../ui/SessionSummary";
@@ -104,6 +104,14 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
 
 const COUNT_OPTIONS = [10, 20, 50, "All"];
 
+/** Same measure as the dashboard, so the two screens sit on one grid. */
+const band = {
+  maxWidth: 1180,
+  margin: "0 auto",
+  padding: "0 clamp(20px, 3vw, 40px)",
+  width: "100%",
+};
+
 const SCOPES = [
   { k: "all",   label: "Everything" },
   { k: "due",   label: "Due now" },
@@ -145,6 +153,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     : defaultFilter
   );
   const [countOpt, setCountOpt] = useState("All");
+  // Open only when a launch arrived pre-filtered, so the state that produced
+  // the question count is never hidden from the person about to start.
+  const [filtersOpen, setFiltersOpen] = useState(
+    Boolean(launchFilter && (launchFilter.deck !== "All" || launchFilter.cat !== "All")),
+  );
   const [queue, setQueue] = useState(null);
   const [idx, setIdx] = useState(0);
   const [sels, setSels] = useState({});
@@ -175,17 +188,25 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return () => ro.disconnect();
   });
 
-  function start(filterOverride) {
-    const f = filterOverride ?? filter;
-    let base = filteredQuestions(f, pStats);
-
-    // The scope is the only thing that separates what used to be five modes.
-    if (scope === "due")   base = base.filter(q => isReviewDue(srCards[q.id]));
-    if (scope === "saved") base = base.filter(q => bookmarks.includes(q.id));
-    if (scope === "wrong") base = base.filter(q => {
+  /** The scope is the only thing that separates what used to be five modes. */
+  function applyScope(list) {
+    if (scope === "due")   return list.filter(q => isReviewDue(srCards[q.id]));
+    if (scope === "saved") return list.filter(q => bookmarks.includes(q.id));
+    if (scope === "wrong") return list.filter(q => {
       const s = pStats[q.id];
       return s && s.total > 0 && s.correct / s.total < 0.6;
     });
+    return list;
+  }
+
+  /** Exactly what a Start press would queue, so the button can say so. */
+  function scopedCount(f) {
+    return applyScope(filteredQuestions(f, pStats)).length;
+  }
+
+  function start(filterOverride) {
+    const f = filterOverride ?? filter;
+    const base = applyScope(filteredQuestions(f, pStats));
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
     const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);
@@ -253,7 +274,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   if (!queue && Object.keys(results).length > 0) {
     return (
       <SessionSummary
-        title="Free Practice"
+        title={SCOPES.find(s => s.k === scope)?.label ?? "Practice"}
         results={Object.values(results)}
         onRestart={() => {
           const f = sessionFilter ?? filter;
@@ -272,87 +293,128 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   // Setup screen
   if (!queue) {
-    const baseCount = filteredQuestions(filter, pStats).length;
-    return (
-      <div style={pageWrap}>
-        <h1 className="anim-fade-up delay-0" style={h1}>Free Practice</h1>
-        <p className="anim-fade-up delay-50" style={pageSub}>No timer, no pressure. Learn at your pace.</p>
+    const scoped = scopedCount(filter);
+    const narrowed = !filter.deck.includes("All") || !filter.cat.includes("All")
+      || !filter.year.includes("All") || !filter.block.includes("All") || filter.unseenOnly;
+    const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
 
-        {/* Resume card */}
-        {savedSession && (() => {
-          const cats = [...new Set((savedSession.queue ?? []).map(q => q.cat))];
-          const topicLabel = cats.length === 0 ? null
-            : cats.length <= 2 ? cats.join(" · ")
-            : `${cats.slice(0, 2).join(" · ")} +${cats.length - 2} more`;
-          return (
-            // Sits on the blue field, so it is glass with white text. It used
-            // to be a `card` tinted with accentDim — a 10% blue wash on blue,
-            // carrying blue and ink text that neither theme could read.
-            <div className="anim-scale-in delay-50" style={glassCard}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: OF.text, marginBottom: 6 }}>Session in progress</div>
-                  <div style={{ fontSize: 15, color: OF.soft }}>
-                    Question {(savedSession.idx ?? 0) + 1} of {savedSession.queue?.length ?? "?"} · {savedSession.sC ?? 0}/{savedSession.sT ?? 0} correct
-                  </div>
-                  {topicLabel && (
-                    <div style={{ fontSize: 14, color: OF.faint, marginTop: 5 }}>{topicLabel}</div>
-                  )}
+    return (
+      <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+        {/* ── Blue field: what this is, and anything left unfinished ─── */}
+        <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
+          <h1 style={h1}>Practice</h1>
+
+          {savedSession && (
+            <div style={{
+              ...glassCard, marginTop: 20,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              flexWrap: "wrap", gap: 14,
+            }}>
+              <div>
+                <div style={{ fontSize: 15.5, fontWeight: 600, color: OF.text }}>
+                  You left a session at question {(savedSession.idx ?? 0) + 1} of {savedSession.queue?.length ?? 0}
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button className="hover-lift btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
-                  <button className="hover-lift btn-press" onClick={discardSession} style={fieldGhostBtn}>Discard</button>
+                <div style={{ fontSize: 14, color: OF.soft, marginTop: 4 }}>
+                  {savedSession.sC ?? 0} of {savedSession.sT ?? 0} right so far
                 </div>
               </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button className="btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
+                <button className="btn-press" style={fieldGhostBtn} onClick={discardSession}>Discard</button>
+              </div>
             </div>
-          );
-        })()}
+          )}
+        </div>
 
-        <div className="anim-fade-up delay-100" style={card}>
-          <div style={{ marginBottom: 22 }}>
-            <div style={labelStyle}>What do you want to work on?</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <Wave from="transparent" to="var(--c-card-solid)" />
+
+        {/* ── Sheet: two decisions, then go ─────────────────────────── */}
+        <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
+          <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 3vh, 30px)" }}>
+
+            <h2 style={sectionH}>What do you want to work on?</h2>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
               {SCOPES.map(s => {
                 const n = scopeCount(s.k);
                 const disabled = n === 0 && s.k !== "all";
                 return (
-                  <button key={s.k} className="btn-press"
+                  <button key={s.k} className="btn-press" disabled={disabled}
                     onClick={() => !disabled && setScope(s.k)}
                     style={{
                       ...chipBtn,
                       ...(scope === s.k ? chipBtnActive : {}),
-                      opacity: disabled ? 0.4 : 1,
+                      opacity: disabled ? 0.38 : 1,
                       cursor: disabled ? "not-allowed" : "pointer",
                     }}>
-                    {s.label}{s.k !== "all" && ` (${n})`}
+                    {s.label} <span style={{ opacity: 0.65, fontVariantNumeric: "tabular-nums" }}>{n}</span>
                   </button>
                 );
               })}
             </div>
-          </div>
+            <p style={{ fontSize: 13.5, color: C.muted, marginTop: 10 }}>{SCOPE_COPY[scope]}</p>
 
-          <div style={{ marginBottom: 20 }}>
-            <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
-          </div>
-          <div className="anim-fade-up delay-200" style={{ marginBottom: 24 }}>
-            <div style={labelStyle}>Number of questions</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {COUNT_OPTIONS.map((o, i) => {
-                const disabled = o !== "All" && o > baseCount;
+            <h2 style={{ ...sectionH, marginTop: "clamp(24px, 3.4vh, 34px)" }}>How many?</h2>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+              {COUNT_OPTIONS.map(o => {
+                const disabled = o !== "All" && o > scoped;
                 return (
-                  <button key={o} disabled={disabled}
-                    className={`anim-fade-up delay-${200 + i * 50} ${!disabled ? "hover-lift btn-press" : ""}`}
+                  <button key={o} disabled={disabled} className="btn-press"
                     style={{ ...chipBtn, ...(o === countOpt ? chipBtnActive : {}), opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer" }}
                     onClick={() => !disabled && setCountOpt(o)}>
-                    {o === "All" ? `All (${baseCount})` : o}
+                    {o === "All" ? `All ${scoped}` : o}
                   </button>
                 );
               })}
             </div>
+
+            {/* Most sessions are "just start". The filters are a real feature
+                but a rare one, so they fold away instead of occupying the
+                screen every time. The label states the count when anything is
+                active, so a filter left on from an earlier launch can never be
+                invisible. */}
+            <div style={{ marginTop: "clamp(24px, 3.4vh, 34px)" }}>
+              <button
+                onClick={() => setFiltersOpen(o => !o)}
+                className="btn-press"
+                aria-expanded={filtersOpen}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "none", border: "none", padding: 0, cursor: "pointer",
+                  fontFamily: "inherit", fontSize: 14.5, fontWeight: 600,
+                  color: narrowed ? C.accent : C.sub,
+                }}
+              >
+                <span aria-hidden="true" style={{
+                  display: "inline-block",
+                  transform: filtersOpen ? "rotate(90deg)" : "rotate(0deg)",
+                  transition: "transform 0.15s ease",
+                }}>›</span>
+                {narrowed ? `Narrowed to ${scoped} questions` : "Narrow it down"}
+              </button>
+
+              {filtersOpen && (
+                <div style={{ marginTop: 16 }}>
+                  <FilterPanel value={filter} onChange={f => { setFilter(f); setCountOpt("All"); }} pStats={pStats} />
+                </div>
+              )}
+            </div>
+
+            <button
+              className="btn-press"
+              disabled={willAsk === 0}
+              onClick={() => start()}
+              style={{
+                ...primaryBtn, ...lg, width: "100%",
+                marginTop: "clamp(26px, 3.6vh, 36px)",
+                opacity: willAsk === 0 ? 0.5 : 1,
+                cursor: willAsk === 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              {willAsk === 0
+                ? "Nothing matches those filters"
+                : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"} →`}
+            </button>
           </div>
-          <button className="anim-fade-up delay-400 hover-lift btn-press" style={{ ...primaryBtn, width: "100%", opacity: baseCount === 0 ? 0.5 : 1 }} onClick={start} disabled={baseCount === 0}>
-            Start Practice →
-          </button>
         </div>
       </div>
     );
@@ -360,47 +422,62 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   const q = queue[idx];
   const sel = sels[idx] ?? null;
-  const pct = sT > 0 ? Math.round(sC / sT * 100) : null;
   const isBookmarked = bookmarks.includes(q?.id);
-  const filterLabel = [
+  const topic = [
     !filter.deck.includes("All") && filter.deck.join(", "),
-    !filter.cat.includes("All") && filter.cat.join(", ")
-  ].filter(Boolean).join(" · ") || "All Topics";
+    !filter.cat.includes("All") && filter.cat.join(", "),
+  ].filter(Boolean).join(" · ") || SCOPES.find(s => s.k === scope)?.label || "Everything";
 
+  /**
+   * A session is one object — the question. Everything else is a thin rail.
+   *
+   * The old header carried a page title, the filter label and a live accuracy
+   * percentage set in 32px and coloured green or amber. The title and label
+   * restate what you chose one screen ago, and the running score is the exact
+   * thing the research on question banks warns about: students reported real
+   * anxiety watching it, and some skipped hard questions to protect it.
+   * Accuracy belongs in the summary, once the answering is done.
+   *
+   * The rail keeps position — the one thing you cannot know by looking — and
+   * the way out. The prev/next arrows are gone because the card already owns
+   * them, and two sets of the same control is how the other screens got noisy.
+   */
   return (
-    <div style={{ maxWidth: 1020, margin: "0 auto", padding: "40px 28px", display: "flex", flexDirection: "column", gap: 20 }}>
-      <div className="anim-fade-down delay-0" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h1 style={h1}>Free Practice</h1>
-          <p style={pageSub}>{filterLabel}</p>
-        </div>
-        {pct !== null && (
-          <div className="anim-scale-in delay-100" style={{ textAlign: "right", flexShrink: 0 }}>
-            <div style={{ fontSize: 32, fontWeight: 600, color: pct >= 70 ? OF.pos : OF.warn, lineHeight: 1, letterSpacing: -1 }}>{pct}%</div>
-            <div style={{ fontSize: 11, color: OF.soft }}>{sC}/{sT}</div>
-          </div>
-        )}
+    <div style={{ ...band, maxWidth: 1020, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <button
+          onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }}
+          className="btn-press"
+          style={{
+            flexShrink: 0, background: "rgba(255,255,255,0.12)", border: "none",
+            borderRadius: "var(--r-pill)", padding: "8px 16px",
+            color: OF.text, fontFamily: "inherit", fontSize: 14, fontWeight: 500, cursor: "pointer",
+          }}
+        >Exit</button>
+
+        <span style={{ fontSize: 14, color: OF.soft, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {topic}
+        </span>
+
+        <span style={{
+          marginLeft: "auto", flexShrink: 0,
+          fontSize: 14, fontWeight: 600, color: OF.text, fontVariantNumeric: "tabular-nums",
+        }}>
+          {idx + 1} / {queue.length}
+        </span>
       </div>
-      <div className="anim-fade-up delay-50" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <button onClick={handleBack} disabled={idx === 0} className="btn-press" style={{
-          flexShrink: 0, background: "none", border: "1.5px solid rgba(255,255,255,0.4)",
-          borderRadius: "var(--r-pill)", padding: "5px 10px", color: OF.text, fontSize: 13,
-          cursor: idx === 0 ? "default" : "pointer", opacity: idx === 0 ? 0.3 : 1,
-        }}>←</button>
-        <ProgressBar value={(idx + 1) / queue.length * 100} colour={C.accent} />
-        <span style={{ fontSize: 12, color: OF.soft, whiteSpace: "nowrap" }}>{idx + 1}/{queue.length}</span>
-        <button onClick={handleNext} disabled={idx + 1 >= queue.length} className="btn-press" style={{
-          flexShrink: 0, background: "none", border: "1.5px solid rgba(255,255,255,0.4)",
-          borderRadius: "var(--r-pill)", padding: "5px 10px", color: OF.text, fontSize: 13,
-          cursor: idx + 1 >= queue.length ? "default" : "pointer", opacity: idx + 1 >= queue.length ? 0.3 : 1,
-        }}>→</button>
-        <button onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }} className="btn-press" style={{
-          flexShrink: 0, background: "none", border: "1px solid var(--c-border)",
-          borderRadius: "var(--r-pill)", padding: "5px 12px", color: C.muted, fontSize: 12, cursor: "pointer",
-        }}>Exit</button>
+
+      {/* Position, full width. One mark, one meaning. */}
+      <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.22)", overflow: "hidden" }}>
+        <div style={{
+          height: "100%", width: `${((idx + 1) / queue.length) * 100}%`,
+          background: "#fff", borderRadius: 99,
+          transition: "width 0.3s cubic-bezier(0.22,1,0.36,1)",
+        }} />
       </div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 20 }}>
-        <div ref={cardRef} style={{ flex: 1 }}>
+
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 18 }}>
+        <div ref={cardRef} style={{ flex: 1, minWidth: 0 }}>
           <QuestionCard q={q} sel={sel} onAnswer={handleAnswer} onNext={handleNext} onPrev={handleBack}
             onToggleBookmark={() => onToggleBookmark(q.id)} isBookmarked={isBookmarked}
             isLast={idx + 1 >= queue.length} nextLabel="Next question"
