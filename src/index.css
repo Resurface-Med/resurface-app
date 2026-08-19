@@ -659,7 +659,7 @@ body::after {
   line-height: 1.7;
 }
 
-.q-nav-actions {
+.q-actions {
   display: flex;
   gap: 10px;
   margin-top: 14px;
@@ -2665,4 +2665,50 @@ select {
        fills the screen, and it is the most expensive thing on it to paint. */
     box-shadow: 0 6px 20px rgba(20, 44, 130, 0.08) !important;
   }
+}
+
+/* Desktop keeps the x, so the hint would be describing a gesture nobody needs. */
+.q-hold-hint { display: none; }
+
+/* ─── Question card on a phone ──────────────────────────────────── */
+@media (max-width: 900px) {
+  /* Pinned to the bottom of the viewport while the card is taller than it.
+     Sticky rather than fixed so it stops at the end of the card instead of
+     hovering over the next thing. The negative margins let the backing run to
+     the card's edges; the padding puts the button back where it was. */
+  .q-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: 14px -15px 0;
+    padding: 12px 15px calc(12px + var(--safe-b));
+    background: var(--c-card-solid);
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 -8px 18px rgba(15, 27, 61, 0.06);
+  }
+  .q-actions-primary { min-height: 50px; }
+
+  /* Editing and copying a question are deskwork. They sat at 15px in the
+     prime corner above the stem, under the 44px target and in the way of the
+     only thing this screen is for. The star stays: saving one to come back to
+     is something you do mid-session. */
+  .q-tool-extra { display: none; }
+
+  /* A-E are a keyboard affordance and nothing on a phone types them, so the
+     column they occupy is width taken from option text that is already
+     wrapping to two lines. */
+  .q-opt-letter { display: none; }
+
+  /* Replaced by holding the option. */
+  .q-elim { display: none; }
+  .q-hold-hint {
+    display: block;
+    margin: 12px 0 0;
+    font-size: 12.5px;
+    color: var(--c-muted-dim);
+    text-align: center;
+  }
+
+  /* One row, then a hairline of progress under it. */
+  .session-wrap { gap: 10px !important; }
 }
