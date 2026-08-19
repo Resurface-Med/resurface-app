@@ -39,7 +39,7 @@ export default function LeaderboardView({ userId }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+      <div className="tab-rise" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)", "--d": 0 }}>
         <h1 style={{ ...h1, margin: 0 }}>Leaderboard</h1>
         <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em" }}>
           Questions answered this week. You’re on it by default — change that in Profile if you want.
@@ -55,7 +55,7 @@ export default function LeaderboardView({ userId }) {
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+        <div className="tab-rise" style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)", "--d": 110 }}>
           <div className="prog-section-head" style={{ marginBottom: 14 }}>
             <h2 style={{ ...sectionH, margin: 0 }}>This week</h2>
             <span className="prog-section-note">Last 7 days</span>

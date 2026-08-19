@@ -341,6 +341,18 @@ body::after {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Content entrance when a sidebar tab mounts — applied to blocks inside the
+   view, not a wrapper around the whole pane. */
+@keyframes tab-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tab-rise {
+  animation: tab-rise 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--d, 0) * 1ms);
+}
+
 @keyframes sweep-reveal {
   0%   { clip-path: inset(0 100% 0 0); opacity: 0; transform: scaleX(0.96); }
   60%  { opacity: 1; }
@@ -889,7 +901,8 @@ select {
   .anim-bounce-in,
   .anim-orb-drift,
   .anim-badge-pulse,
-  .anim-pulse-glow {
+  .anim-pulse-glow,
+  .tab-rise {
     animation: none !important;
   }
 }

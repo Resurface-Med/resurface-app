@@ -188,7 +188,7 @@ export default function StatsView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+      <div className="tab-rise" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)", "--d": 0 }}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
           <div style={{ minWidth: 0, flex: "1 1 280px" }}>
             <h1 style={{ ...h1, margin: 0 }}>Progress</h1>
@@ -236,7 +236,7 @@ export default function StatsView({
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
 
           {weak.length > 0 && (
-            <section className="prog-section">
+            <section className="prog-section tab-rise" style={{ "--d": 100 }}>
               <div className="prog-section-head">
                 <h2 style={{ ...sectionH, margin: 0 }}>Still under</h2>
                 <span className="prog-section-note">Below 60% — pull these up first</span>
@@ -255,7 +255,7 @@ export default function StatsView({
             </section>
           )}
 
-          <section className="prog-section">
+          <section className="prog-section tab-rise" style={{ "--d": weak.length > 0 ? 180 : 100 }}>
             <div className="prog-section-head">
               <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
               <span className="prog-section-note">Weakest topics first inside each</span>
@@ -276,7 +276,7 @@ export default function StatsView({
           </section>
 
           {(untouched.length > 0 || steady.length > 0) && (
-            <section className="prog-section prog-section-quiet">
+            <section className="prog-section prog-section-quiet tab-rise" style={{ "--d": 260 }}>
               {untouched.length > 0 && (
                 <div className="prog-disclose">
                   <button
