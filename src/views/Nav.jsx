@@ -1,4 +1,4 @@
-import { useRef, useLayoutEffect, useState } from "react";
+import { useRef, useLayoutEffect, useEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
 
 const NAV_SUB    = "var(--c-nav-sub)";
@@ -32,9 +32,50 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
   }, [view]);
 
   const activeProfile = view === V.PROFILE;
+  const [open, setOpen] = useState(false);
+
+  // Escape closes it, and while it is open the page behind must not scroll —
+  // otherwise a drag anywhere on the dimmed area moves the content underneath,
+  // which reads as the drawer having lost its place.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = e => { if (e.key === "Escape") setOpen(false); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  /** Navigating is the end of the drawer's job. */
+  function go(k) {
+    setView(k);
+    setOpen(false);
+  }
 
   return (
-    <aside className="app-nav">
+    <>
+      <button
+        type="button"
+        className="app-nav__burger"
+        aria-label="Open menu"
+        aria-expanded={open}
+        aria-controls="app-nav"
+        onClick={() => setOpen(true)}
+      >
+        <span /><span /><span />
+        {dueCount > 0 && <span className="app-nav__burger-dot">{dueCount}</span>}
+      </button>
+
+      <div
+        className={`app-nav__scrim${open ? " is-open" : ""}`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+
+    <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
       <div className="app-nav__brand">
         <img
           src="/logo-lockup.png"
@@ -96,12 +137,11 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             <button
               key={item.k}
               ref={el => { if (item) itemRefs.current[idx] = el; }}
-              onClick={() => setView(item.k)}
+              onClick={() => go(item.k)}
               className={`btn-press app-nav__item${active ? " is-active" : ""}`}
               aria-current={active ? "page" : undefined}
             >
               <span className="app-nav__label" style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
-              <span className="app-nav__label-sm" style={{ fontWeight: active ? 700 : 500 }}>{item.short ?? item.label}</span>
 
               {badge > 0 && (
                 <span className="app-nav__badge">{badge}</span>
@@ -114,7 +154,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
       <div className="app-nav__foot">
         <button
           type="button"
-          onClick={() => setView(V.PROFILE)}
+          onClick={() => go(V.PROFILE)}
           className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
           title="Profile"
           aria-current={activeProfile ? "page" : undefined}
@@ -151,5 +191,6 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         </div>
       </div>
     </aside>
+    </>
   );
 }
