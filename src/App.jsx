@@ -120,6 +120,12 @@ export default function App() {
     return () => (ric ? window.cancelIdleCallback(id) : clearTimeout(id));
   }, [user]);
 
+  // New tab → top of the pane. Leaving scroll mid-page made switches feel broken.
+  useEffect(() => {
+    const main = document.querySelector(".app-main");
+    if (main) main.scrollTop = 0;
+  }, [view]);
+
   // A tab that was open while the network went out gets a chance to catch up.
   useEffect(() => {
     if (!user) return;
@@ -306,6 +312,10 @@ export default function App() {
           <div
             key={view}
             className={`view-switch${navDir < 0 ? " is-back" : " is-fwd"}`}
+            onAnimationEnd={(e) => {
+              if (e.target !== e.currentTarget) return;
+              e.currentTarget.classList.add("is-settled");
+            }}
           >
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
