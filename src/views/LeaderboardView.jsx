@@ -55,28 +55,28 @@ export default function LeaderboardView({ userId }) {
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
-          <div className="prog-section-head tab-rise tab-rise--sheet" style={{ marginBottom: 14, "--d": 140 }}>
+        <div className="tab-rise" style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)", "--d": 110 }}>
+          <div className="prog-section-head" style={{ marginBottom: 14 }}>
             <h2 style={{ ...sectionH, margin: 0 }}>This week</h2>
             <span className="prog-section-note">Last 7 days</span>
           </div>
 
           {error && (
-            <p className="tab-rise" style={{ color: C.danger, fontSize: 14, "--d": 200 }}>{error}</p>
+            <p style={{ color: C.danger, fontSize: 14 }}>{error}</p>
           )}
 
           {rows === null && !error && (
-            <p className="tab-rise" style={{ color: C.muted, fontSize: 14.5, "--d": 200 }}>Loading the board…</p>
+            <p style={{ color: C.muted, fontSize: 14.5 }}>Loading the board…</p>
           )}
 
           {rows && rows.length === 0 && (
-            <p className="tab-rise" style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5, "--d": 200 }}>
+            <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
               Nobody on the board yet. Add a display name and answer a few questions.
             </p>
           )}
 
           {rows && rows.length > 0 && (
-            <ol className="lb-list tab-cascade" style={{ "--d": 160 }}>
+            <ol className="lb-list">
               {rows.map(r => {
                 const mine = r.user_id === userId;
                 return (

@@ -387,7 +387,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           <Wave from="transparent" to="var(--c-card-solid)" />
 
           <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-            <div className="tab-rise tab-rise--sheet" style={{ ...band, maxWidth: 720, paddingTop: 14, paddingBottom: "calc(24px + var(--safe-b))", "--d": 160 }}>
+            <div className="tab-rise" style={{ ...band, maxWidth: 720, paddingTop: 14, paddingBottom: "calc(24px + var(--safe-b))", "--d": 90 }}>
 
               {step === "topic" ? (
                 <>
@@ -514,7 +514,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <Wave from="transparent" to="var(--c-card-solid)" />
 
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div className="setup-col tab-rise tab-rise--sheet" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)", "--d": 160 }}>
+          <div className="setup-col tab-rise" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)", "--d": 90 }}>
 
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>

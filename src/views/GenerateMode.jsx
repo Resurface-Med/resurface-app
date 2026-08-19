@@ -206,13 +206,13 @@ function Shell({ title, sub, children, footer, maxWidth = 720 }) {
       <Wave from="transparent" to="var(--c-card-solid)" />
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div
-          className="tab-rise tab-rise--sheet"
+          className="tab-rise"
           style={{
             ...band,
             maxWidth,
             paddingTop: "clamp(20px, 3vh, 28px)",
             paddingBottom: footer ? "clamp(100px, 14vh, 120px)" : "clamp(36px, 5vh, 56px)",
-            "--d": 180,
+            "--d": 100,
           }}
         >
           {children}
