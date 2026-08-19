@@ -94,14 +94,11 @@ export default function Dashboard({
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       {/* ── Blue field: who you are, and the one thing to do ───────── */}
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
-        <header
-          className="tab-rise"
-          style={{
-            display: "flex", justifyContent: "space-between", alignItems: "flex-end",
-            gap: 20, flexWrap: "wrap",
-            "--d": 0,
-          }}
-        >
+        <header style={{
+          display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+          gap: 20, flexWrap: "wrap",
+          animation: "dash-left 0.26s cubic-bezier(0.22,1,0.36,1) both",
+        }}>
           <div>
             <span style={eyebrowField}>{todayLabel}</span>
             <h1 style={{ ...h1, marginTop: 10 }}>{greeting}.</h1>
@@ -124,14 +121,11 @@ export default function Dashboard({
           )}
         </header>
 
-        <div
-          className="tab-rise"
-          style={{
-            display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-            marginTop: "clamp(16px, 2.4vh, 24px)",
-            "--d": 90,
-          }}
-        >
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          marginTop: "clamp(16px, 2.4vh, 24px)",
+          animation: "rise-blur 0.28s cubic-bezier(0.22,1,0.36,1) 0.1s both",
+        }}>
           {actions.map(a => (
             <button
               key={a.scope}
@@ -163,7 +157,7 @@ export default function Dashboard({
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           <div className="dash-split">
 
-            <section className="tab-rise" style={{ "--d": 140 }}>
+            <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.14s both" }}>
               <h2 style={sectionH}>Your progress</h2>
               <p style={{ ...meta, marginTop: 4 }}>
                 {seen === 0
@@ -219,7 +213,7 @@ export default function Dashboard({
               </button>
             </section>
 
-            <section className="tab-rise" style={{ "--d": 220 }}>
+            <section style={{ animation: "rise-blur 0.3s cubic-bezier(0.22,1,0.36,1) 0.22s both" }}>
               <ActivityHeatmap activity={activity} />
 
               <div style={{

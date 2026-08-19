@@ -359,7 +359,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     if (isPhone) {
       return (
         <div className="setup-frame" style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
-          <div className="page-band tab-rise" style={{ ...band, paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0, "--d": 0 }}>
+          <div className="page-band" style={{ ...band, paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
             {step === "topic" ? (
               <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
             ) : (
@@ -387,7 +387,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           <Wave from="transparent" to="var(--c-card-solid)" />
 
           <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-            <div className="tab-rise" style={{ ...band, maxWidth: 720, paddingTop: 14, paddingBottom: "calc(24px + var(--safe-b))", "--d": 90 }}>
+            <div style={{ ...band, maxWidth: 720, paddingTop: 14, paddingBottom: "calc(24px + var(--safe-b))" }}>
 
               {step === "topic" ? (
                 <>
@@ -491,7 +491,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       /* Topics own the page. Secondary choices sit in a slim dock so the list
          gets height without a second screen or a tall settings stack. */
       <div className="setup-frame" style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
-        <div className="page-band tab-rise" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0, "--d": 0 }}>
+        <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0 }}>Practice</h1>
 
@@ -514,7 +514,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <Wave from="transparent" to="var(--c-card-solid)" />
 
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div className="setup-col tab-rise" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)", "--d": 90 }}>
+          <div className="setup-col" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
 
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
