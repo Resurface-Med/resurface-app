@@ -1295,6 +1295,7 @@ select {
 }
 .setup-seg > button {
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 /* Slim dock — flat strip. Labels whisper; chips stay the visual weight. */
@@ -2539,4 +2540,43 @@ select {
 @media (max-width: 900px) {
   .theme-fab { display: none !important; }
   .profile-appearance { display: block; margin-top: 22px; }
+}
+
+/* ─── Practice dock on a phone ──────────────────────────────────── */
+/* It is a sheet rising from the bottom edge, not a strip cut across the page.
+   Square corners butting into a scrolling list read as the list being clipped;
+   a radius and a soft lift say the panel is in front and the list continues
+   underneath. */
+@media (max-width: 900px) {
+  .setup-dock {
+    /* Out to the edges, past the column's own padding. */
+    margin-left: -18px;
+    margin-right: -18px;
+    padding-left: 18px;
+    padding-right: 18px;
+    padding-top: 16px;
+    border-top: none;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -10px 30px rgba(15, 27, 61, 0.1);
+  }
+
+  /* Stacked. Three groups sharing one row left each of them too narrow to
+     read, and pushed "Filter" into a column of its own beside a control it
+     has nothing to do with. */
+  .setup-dock-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+
+  /* Full width, equal shares: a segmented control that only spans part of the
+     row invites a tap on the dead space beside it. */
+  .setup-seg {
+    width: 100%;
+    max-width: none;
+  }
+  .setup-seg > button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
 }

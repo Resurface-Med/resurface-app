@@ -120,6 +120,19 @@ const SCOPE_HINT = {
 };
 
 /** Compact chips for the setup dock — secondary choices, not a second page. */
+/** A toggle that stands on its own needs a resting state you can see. Inside a
+ *  segmented track the track is the affordance, so `dockChip` goes transparent
+ *  when off — standing alone that reads as a label, not a control. */
+function toggleChip(active) {
+  return {
+    ...chipBtn,
+    ...(active ? { ...chipBtnActive, boxShadow: "none" } : {}),
+    padding: "7px 12px",
+    fontSize: 13,
+    whiteSpace: "nowrap",
+  };
+}
+
 function dockChip(active, disabled) {
   return {
     ...chipBtn,
@@ -131,7 +144,6 @@ function dockChip(active, disabled) {
       border: "1.5px solid transparent",
       boxShadow: "none",
     }),
-    flex: "0 0 auto",
     minWidth: "auto",
     padding: "7px 12px",
     fontSize: 13,
@@ -435,7 +447,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     className="btn-press"
                     onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
                     aria-pressed={filter.unseenOnly}
-                    style={dockChip(filter.unseenOnly, false)}
+                    style={toggleChip(filter.unseenOnly)}
                   >
                     Unseen only
                   </button>
