@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, Component, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, Component, lazy, Suspense } from "react";
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -186,12 +186,31 @@ export default function App() {
   // "ready to review" directly beneath "Seen: 0".
   const dueCount = useMemo(() => QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length, [srCards]);
 
+  /**
+   * Every navigation goes through here so the transition knows which way to
+   * travel. Direction is decided at the moment of the change, where both the
+   * old and the new view are in hand — computing it during render would mean
+   * reading and writing a ref in the render phase, which React does not allow.
+   *
+   * Taking the direction from the nav's own order is what makes a switch read
+   * as movement through a place rather than a crossfade, and it is free: the
+   * same two properties animate either way, only the sign of the offset moves.
+   */
+  const [dir, setDir] = useState("down");
+
+  function go(next) {
+    const from = NAV.findIndex(i => i.k === view);
+    const to = NAV.findIndex(i => i.k === next);
+    if (from >= 0 && to >= 0) setDir(to < from ? "up" : "down");
+    setView(next);
+  }
+
   function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
       setPendingView(newView);
       return;
     }
-    setView(newView);
+    go(newView);
   }
 
   const nav = {
@@ -200,6 +219,7 @@ export default function App() {
     displayName,
     onSignOut: signOut,
   };
+
 
   // Auth gates the whole app. `configured` is false when the Supabase env vars
   // are missing, in which case sign-in can't work at all and saying so beats
@@ -251,7 +271,7 @@ export default function App() {
               Your progress will be saved. You can pick up exactly where you left off.
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { setView(pendingView); setPendingView(null); }}
+              <button onClick={() => { go(pendingView); setPendingView(null); }}
                 className="btn-press"
                 style={{ ...primaryBtn, flex: 1 }}>
                 Save and leave
@@ -296,19 +316,19 @@ export default function App() {
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>
-          {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
+          {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             activity={activity}
             srCards={srCards}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
-            onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); setView(V.STUDY); }} />}
+            onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); go(V.STUDY); }} />}
 
           {view === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
 
-          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView}
+          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
