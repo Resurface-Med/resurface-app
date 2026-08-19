@@ -2709,3 +2709,58 @@ select {
   /* One row, then a hairline of progress under it. */
   .session-wrap { gap: 10px !important; }
 }
+
+/* ─── Tab transitions ───────────────────────────────────────────── */
+/* Dramatic from the motion, not from effects.
+   Two earlier attempts bought their drama with filter: blur() on a cascade of
+   elements across every view. Blur cannot be composited — each frame is a full
+   repaint plus a Gaussian pass — so the more dramatic it looked on paper, the
+   worse it ran. Everything here is transform and opacity, which the compositor
+   handles on its own thread without touching layout or paint.
+
+   The distance and the overshoot do the work instead: 34px of travel, a slight
+   scale, and an ease that arrives fast and settles. One element moves — the
+   whole screen — so it is a single layer whatever the view contains. */
+
+@keyframes view-in-down {
+  from { opacity: 0; transform: translate3d(0, 34px, 0) scale(0.985); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes view-in-up {
+  from { opacity: 0; transform: translate3d(0, -34px, 0) scale(0.985); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.view-swap {
+  animation: view-in-down 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* No will-change. A running transform/opacity animation is promoted for its
+     duration and released when it ends; declaring will-change would pin the
+     layer for the life of the view instead, which is the opposite of the point
+     on a page that then sits still. */
+}
+.view-swap[data-dir="up"] {
+  animation-name: view-in-up;
+}
+
+/* A phone renders the same distance across a third of the width, so the same
+   34px reads as a longer throw. Shorter there keeps the timing honest. */
+@media (max-width: 900px) {
+  .view-swap {
+    animation-duration: 0.34s;
+  }
+  @keyframes view-in-down {
+    from { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.99); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+  @keyframes view-in-up {
+    from { opacity: 0; transform: translate3d(0, -22px, 0) scale(0.99); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-swap {
+    animation: none;
+  }
+}

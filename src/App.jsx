@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Component, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, Component, lazy, Suspense } from "react";
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -22,7 +22,7 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-import { V, C, card, primaryBtn } from "./ui/theme";
+import { V, C, NAV, card, primaryBtn } from "./ui/theme";
 import { QUESTIONS, loadDecks } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
@@ -290,6 +290,9 @@ export default function App() {
 
       <div className="app-content">
         <div className="app-main">
+          {/* Keyed on the view so the animation replays per switch, and holding
+              the whole screen so exactly one element moves. */}
+          <div key={view} className="view-swap" data-dir={dir}>
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>
@@ -333,7 +336,9 @@ export default function App() {
 
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
 
+
           </Suspense>
+          </div>
         </div>
       </div>
     </div>
