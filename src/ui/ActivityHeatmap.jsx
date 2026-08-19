@@ -82,6 +82,7 @@ const Cell = memo(function Cell({ date, count, isToday, isFuture, onHover }) {
       onMouseEnter={isFuture ? undefined : (e) => onHover(e, date, count)}
       onMouseLeave={isFuture ? undefined : () => onHover(null)}
       onClick={isFuture ? undefined : (e) => onHover(e, date, count, true)}
+      className="heat-cell"
       role={isFuture ? undefined : "button"}
       tabIndex={isFuture ? undefined : -1}
       aria-label={isFuture ? undefined : `${count} on ${date.toDateString()}`}

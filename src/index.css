@@ -2445,8 +2445,12 @@ select {
   button, [role="radio"], [role="button"], a {
     min-height: 44px;
   }
-  /* Except things that are deliberately inline in a sentence. */
-  button.inline-link, .app-nav__badge {
+  /* Except things that are deliberately inline in a sentence, and the
+     heatmap, whose cells are a chart that happens to be tappable. Eighty-four
+     of them cannot each be 44px tall: the rule was stretching a 22px-wide
+     square into a 44px column and turning the map into a picket fence. The
+     grid as a whole is the target here, not the individual day. */
+  button.inline-link, .app-nav__badge, .heat-cell {
     min-height: 0;
   }
 }
