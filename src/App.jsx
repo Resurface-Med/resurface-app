@@ -22,7 +22,7 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-import { V, C, card, primaryBtn } from "./ui/theme";
+import { V, C, card, primaryBtn, NAV } from "./ui/theme";
 import { QUESTIONS, loadDecks } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
@@ -41,10 +41,14 @@ const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
+/** Sidebar order, then Profile — used to pick slide direction on tab change. */
+const VIEW_ORDER = [...NAV.map((i) => i.k), V.PROFILE];
+
 export default function App() {
   const { user, loading: authLoading, configured, signOut, recovering } = useAuth();
 
   const [view, setView] = useState(V.DASH);
+  const [navDir, setNavDir] = useState(1); // 1 = down the nav, -1 = up
   const [pendingView, setPendingView] = useState(null);
   const [practiceSessionActive, setPracticeSessionActive] = useState(false);
 
@@ -186,12 +190,21 @@ export default function App() {
   // "ready to review" directly beneath "Seen: 0".
   const dueCount = useMemo(() => QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length, [srCards]);
 
+  function goToView(newView) {
+    if (newView === view) return;
+    const from = VIEW_ORDER.indexOf(view);
+    const to = VIEW_ORDER.indexOf(newView);
+    if (from >= 0 && to >= 0) setNavDir(to > from ? 1 : -1);
+    else setNavDir(1);
+    setView(newView);
+  }
+
   function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
       setPendingView(newView);
       return;
     }
-    setView(newView);
+    goToView(newView);
   }
 
   const nav = {
@@ -251,7 +264,7 @@ export default function App() {
               Your progress will be saved. You can pick up exactly where you left off.
             </div>
             <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { setView(pendingView); setPendingView(null); }}
+              <button onClick={() => { goToView(pendingView); setPendingView(null); }}
                 className="btn-press"
                 style={{ ...primaryBtn, flex: 1 }}>
                 Save and leave
@@ -290,22 +303,26 @@ export default function App() {
 
       <div className="app-content">
         <div className="app-main">
+          <div
+            key={view}
+            className={`view-switch${navDir < 0 ? " is-back" : " is-fwd"}`}
+          >
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>
-          {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={setView}
+          {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={goToView}
             activity={activity}
             srCards={srCards}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
-            onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); setView(V.STUDY); }} />}
+            onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); goToView(V.STUDY); }} />}
 
           {view === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
 
-          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={setView}
+          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={goToView}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
@@ -334,6 +351,7 @@ export default function App() {
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
 
           </Suspense>
+          </div>
         </div>
       </div>
     </div>
