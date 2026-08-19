@@ -294,10 +294,6 @@ body::after {
   100% { transform: scale(1); }
 }
 
-@keyframes reveal-bar {
-  from { width: 0; }
-}
-
 @keyframes dash-left {
   from { opacity: 0; transform: translateX(-24px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -313,12 +309,6 @@ body::after {
 @keyframes rise-blur {
   from { opacity: 0; transform: translateY(28px); }
   to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes sweep-reveal {
-  0%   { clip-path: inset(0 100% 0 0); opacity: 0; transform: scaleX(0.96); }
-  60%  { opacity: 1; }
-  100% { clip-path: inset(0 0% 0 0); opacity: 1; transform: scaleX(1); }
 }
 
 @keyframes glint {
