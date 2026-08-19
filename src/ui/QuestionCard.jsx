@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
 import EditQuestionModal from "./EditQuestionModal";
@@ -95,20 +95,19 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     return () => window.removeEventListener("keydown", handleKey);
   }, [q, answered, pending, eliminated, onAnswer, onNext, onPrev]);
 
-  const pressTimer = useRef(null);
-  const longPressed = useRef(false);
-  useEffect(() => () => clearTimeout(pressTimer.current), []);
-
   if (!q) return null;
 
   function handleOptionClick(i) {
-    // A hold that already eliminated must not also select on release.
-    if (longPressed.current) { longPressed.current = false; return; }
     if (answered || eliminated.has(i)) return;
     setPending(i);
   }
 
-  function eliminateAt(i) {
+  // Tap the x. A long-press was tried and reverted: on iOS the same gesture
+  // raises the system selection callout, so holding an option offered to copy
+  // its text at the same time as ruling it out. Competing with the OS for a
+  // gesture it already owns is not a fight worth having for a shortcut.
+  function toggleEliminate(e, i) {
+    e.stopPropagation();
     if (answered) return;
     setEliminated(prev => {
       const s = new Set(prev);
@@ -116,34 +115,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       else { s.add(i); if (pending === i) setPending(null); }
       return s;
     });
-  }
-
-  function toggleEliminate(e, i) {
-    e.stopPropagation();
-    eliminateAt(i);
-  }
-
-  /**
-   * Ruling an option out by holding it.
-   *
-   * The x sits inside the option's own tap target, so on a phone a near-miss
-   * answers the question instead of eliminating — a slip you cannot take back.
-   * A hold cannot be mistyped: it is a different gesture, not a smaller
-   * target. The x stays on pointers that can hover, where aiming is exact.
-   */
-  function startPress(i) {
-    if (answered || eliminated.has(i)) return;
-    longPressed.current = false;
-    clearTimeout(pressTimer.current);
-    pressTimer.current = setTimeout(() => {
-      longPressed.current = true;
-      eliminateAt(i);
-      navigator.vibrate?.(12);
-    }, 420);
-  }
-
-  function endPress() {
-    clearTimeout(pressTimer.current);
   }
 
   const toolBtn = (active) => ({
@@ -243,11 +214,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               role="option"
               aria-selected={isPending || picked}
               onClick={() => handleOptionClick(i)}
-              onPointerDown={() => startPress(i)}
-              onPointerUp={endPress}
-              onPointerLeave={endPress}
-              onPointerCancel={endPress}
-              onContextMenu={e => e.preventDefault()}
               className={`q-opt is-${state} ${animClass}`.trim()}
             >
               <div className="q-opt-row">
@@ -302,10 +268,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           </div>
           <div className="q-feedback-body">{q.exp}</div>
         </div>
-      )}
-
-      {!answered && (
-        <p className="q-hold-hint">Hold an option to rule it out</p>
       )}
 
       {/* One home for whatever the card is asking you to do next.

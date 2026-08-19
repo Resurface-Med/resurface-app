@@ -461,7 +461,11 @@ body::after {
   align-items: stretch;
   width: 100%;
   padding: 12px 14px;
-  border-radius: var(--r-pill);
+  /* A stadium, not a pill. --r-pill is 999px, which only reads as intentional
+     on something one line tall — the moment an option wraps to two lines the
+     ends bulge into semicircles and the row looks like a lozenge with text
+     stuffed in it. A fixed radius keeps the same shape at any height. */
+  border-radius: 14px;
   border: 1.5px solid var(--c-border);
   background: var(--c-card-solid);
   cursor: pointer;
@@ -2667,9 +2671,6 @@ select {
   }
 }
 
-/* Desktop keeps the x, so the hint would be describing a gesture nobody needs. */
-.q-hold-hint { display: none; }
-
 /* ─── Question card on a phone ──────────────────────────────────── */
 @media (max-width: 900px) {
   /* Pinned to the bottom of the viewport while the card is taller than it.
@@ -2699,14 +2700,10 @@ select {
      wrapping to two lines. */
   .q-opt-letter { display: none; }
 
-  /* Replaced by holding the option. */
-  .q-elim { display: none; }
-  .q-hold-hint {
-    display: block;
-    margin: 12px 0 0;
-    font-size: 12.5px;
-    color: var(--c-muted-dim);
-    text-align: center;
+  /* The x is back, at a size worth aiming at. */
+  .q-elim {
+    min-width: 36px;
+    min-height: 36px;
   }
 
   /* One row, then a hairline of progress under it. */
