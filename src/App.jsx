@@ -32,6 +32,7 @@ import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
+import DashboardPreview from "./views/DashboardPreview";
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
 const ProgressView    = lazy(() => import("./views/StatsView"));
@@ -42,6 +43,18 @@ const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
 export default function App() {
+  // Landing hero frames this route — real Dashboard UI, fixture progress, no auth.
+  if (typeof window !== "undefined" && window.location.pathname === "/preview/dashboard") {
+    return (
+      <ErrorBoundary>
+        <DashboardPreview />
+      </ErrorBoundary>
+    );
+  }
+  return <AppMain />;
+}
+
+function AppMain() {
   const { user, loading: authLoading, configured, signOut, recovering } = useAuth();
 
   const [view, setView] = useState(V.DASH);
