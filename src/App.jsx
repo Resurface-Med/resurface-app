@@ -33,6 +33,7 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
 import DashboardPreview from "./views/DashboardPreview";
+import PracticePreview from "./views/PracticePreview";
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
 const ProgressView    = lazy(() => import("./views/StatsView"));
@@ -43,13 +44,23 @@ const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
 export default function App() {
-  // Landing hero frames this route — real Dashboard UI, fixture progress, no auth.
-  if (typeof window !== "undefined" && window.location.pathname === "/preview/dashboard") {
-    return (
-      <ErrorBoundary>
-        <DashboardPreview />
-      </ErrorBoundary>
-    );
+  // Landing hero frames these routes — real UI, fixture state, no auth.
+  if (typeof window !== "undefined") {
+    const path = window.location.pathname;
+    if (path === "/preview/practice") {
+      return (
+        <ErrorBoundary>
+          <PracticePreview />
+        </ErrorBoundary>
+      );
+    }
+    if (path === "/preview/dashboard") {
+      return (
+        <ErrorBoundary>
+          <DashboardPreview />
+        </ErrorBoundary>
+      );
+    }
   }
   return <AppMain />;
 }
