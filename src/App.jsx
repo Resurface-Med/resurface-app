@@ -270,7 +270,7 @@ export default function App() {
 
       <button
         onClick={toggleTheme}
-        className="btn-press"
+        className="btn-press theme-fab"
         title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         style={{
           position: "fixed", zIndex: 500,
@@ -320,6 +320,8 @@ export default function App() {
               displayName={displayName}
               showOnLeaderboard={showOnLeaderboard}
               dailyGoal={dailyGoal}
+              theme={theme}
+              onThemeChange={setTheme}
               onProfileChange={p => {
                 if (p.displayName !== undefined) setDisplayName(p.displayName);
                 if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);

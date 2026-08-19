@@ -2525,3 +2525,14 @@ select {
   /* One column, and enough space between the halves to read as separate. */
   .dash-split { gap: 26px; }
 }
+
+/* The theme switch lives in one place per size. On a phone it is a row in
+   Profile, so the floating button goes; on a desktop the floating button is
+   the control, so the Profile row goes. Never both — one setting with two
+   switches is how they end up disagreeing in someone's head. */
+.profile-appearance { display: none; }
+
+@media (max-width: 900px) {
+  .theme-fab { display: none !important; }
+  .profile-appearance { display: block; margin-top: 22px; }
+}

@@ -30,7 +30,7 @@ const field = {
 
 export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, dailyGoal,
-  onProfileChange, onSignOut,
+  onProfileChange, onSignOut, theme, onThemeChange,
 }) {
   const [name, setName] = useState(displayName || "");
   const [onBoard, setOnBoard] = useState(showOnLeaderboard !== false);
@@ -122,6 +122,39 @@ export default function ProfileView({
               {saved ? "Saved" : "Save changes"}
             </button>
           </form>
+
+          {/* Phones only — the floating switch is hidden there, and two
+              controls for one setting is worse than either alone. */}
+          <div className="profile-appearance">
+            <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: C.muted }}>
+              Appearance
+            </span>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }} role="radiogroup" aria-label="Appearance">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={theme !== "dark"}
+                className="btn-press"
+                onClick={() => onThemeChange?.("light")}
+                style={theme !== "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+              >
+                Day
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={theme === "dark"}
+                className="btn-press"
+                onClick={() => onThemeChange?.("dark")}
+                style={theme === "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+              >
+                Night
+              </button>
+            </div>
+            <p style={{ margin: "8px 0 0", fontSize: 13, color: C.muted, lineHeight: 1.4 }}>
+              Applies straight away, and is remembered on this device.
+            </p>
+          </div>
 
           <button
             type="button"
