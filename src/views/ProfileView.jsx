@@ -61,7 +61,7 @@ export default function ProfileView({
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div className="tab-rise" style={{ ...band, maxWidth: 480, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)", "--d": 100 }}>
+        <div className="tab-rise tab-rise--sheet" style={{ ...band, maxWidth: 480, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)", "--d": 180 }}>
           <form onSubmit={save} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: C.muted }}>

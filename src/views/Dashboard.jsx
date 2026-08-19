@@ -125,11 +125,11 @@ export default function Dashboard({
         </header>
 
         <div
-          className="tab-rise"
+          className="tab-rise tab-rise--breach"
           style={{
             display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
             marginTop: "clamp(16px, 2.4vh, 24px)",
-            "--d": 90,
+            "--d": 140,
           }}
         >
           {actions.map(a => (
@@ -163,7 +163,7 @@ export default function Dashboard({
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           <div className="dash-split">
 
-            <section className="tab-rise" style={{ "--d": 140 }}>
+            <section className="tab-rise tab-rise--sheet" style={{ "--d": 220 }}>
               <h2 style={sectionH}>Your progress</h2>
               <p style={{ ...meta, marginTop: 4 }}>
                 {seen === 0
@@ -219,7 +219,7 @@ export default function Dashboard({
               </button>
             </section>
 
-            <section className="tab-rise" style={{ "--d": 220 }}>
+            <section className="tab-rise tab-rise--sheet" style={{ "--d": 360 }}>
               <ActivityHeatmap activity={activity} />
 
               <div style={{
