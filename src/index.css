@@ -1250,6 +1250,8 @@ select {
 .topic-scroll {
   flex: 1;
   min-height: 0;
+  flex: 1;
+  min-height: 0;
   overflow-y: scroll;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -1274,6 +1276,8 @@ select {
   border: 2px solid transparent;
 }
 .topic-scroll {
+  flex: 1;
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--c-muted) 55%, transparent) transparent;
 }
@@ -2325,10 +2329,11 @@ select {
     top: calc(env(safe-area-inset-top, 0px) + 14px);
     left: 12px;
     width: 44px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    gap: 0;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     background: rgba(255, 255, 255, 0.14);
     border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: var(--r-pill);
@@ -2338,14 +2343,17 @@ select {
     cursor: pointer;
   }
 
-  .app-nav__burger span {
+  /* Classed, not `span`. A descendant `span` rule also matched the count
+     badge — and at 0,1,1 it outranked .app-nav__burger-dot's 0,1,0 — so the
+     badge was being squashed into a 17x2px bar hanging off the corner. */
+  .app-nav__burger-line {
     display: block;
     width: 17px;
     height: 2px;
     border-radius: 2px;
     background: var(--c-on-field);
   }
-  .app-nav__burger span + span { margin-top: 4px; }
+  .app-nav__burger-line + .app-nav__burger-line { margin-top: 4px; }
 
   /* A badge on a hidden drawer is invisible, so the count rides the button
      that opens it — otherwise nothing on screen says anything is due. */
@@ -2448,8 +2456,72 @@ select {
    beside the content; on a phone there is no margin, so a page heading would
    run underneath them. Reserve the room rather than letting them collide. */
 @media (max-width: 900px) {
+  /* Reserving a column either side of the heading cost 148px of a 390px
+     screen — 38% of the width — to avoid two buttons that are only 44px tall.
+     They overlap the top of the page, not the side of it, so the page starts
+     below them and keeps its full width. */
   .page-band {
-    padding-left: 64px !important;
-    padding-right: 84px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 66px) !important;
   }
+}
+
+/* ─── Practice setup on a phone ─────────────────────────────────── */
+/* The desktop screen is a pinned frame: fixed height, list scrolling inside
+   it, controls docked at the bottom. On a phone that is the wrong shape — an
+   inner scroll region inside a fixed-height column is the thing that would not
+   scroll, and a dock competes with the drawer and the browser chrome for the
+   same edge. The page becomes an ordinary document instead: it scrolls as one,
+   and the controls stick to the bottom of the viewport only while there is
+   still list above them. */
+@media (max-width: 900px) {
+  .setup-frame {
+    height: auto !important;
+    min-height: 100dvh;
+  }
+  .setup-sheet,
+  .setup-col {
+    flex: none !important;
+    min-height: 0 !important;
+    display: block !important;
+  }
+  .topic-scroll {
+    flex: none !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .setup-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    margin-top: 8px;
+    padding-bottom: calc(14px + var(--safe-b));
+    box-shadow: 0 -8px 20px rgba(15, 27, 61, 0.08);
+  }
+}
+
+/* ─── Phone typography and spacing ──────────────────────────────── */
+/* Desktop sizes are clamp()ed against vw, so on a 390px screen they all land
+   on their minimums at once — which flattens the hierarchy exactly where
+   there is least room to spare. These re-open the gaps between levels and
+   pull the horizontal padding in, since a phone does not need a reading
+   margin the way a 1400px window does. */
+@media (max-width: 900px) {
+  .page-band,
+  .dash-split,
+  .setup-col {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  /* Cards run closer to the edge; a wide inset on a narrow screen is width
+     spent on nothing. */
+  .qcard,
+  .card {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  /* One column, and enough space between the halves to read as separate. */
+  .dash-split { gap: 26px; }
 }

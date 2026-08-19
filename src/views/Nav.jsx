@@ -65,7 +65,9 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         aria-controls="app-nav"
         onClick={() => setOpen(true)}
       >
-        <span /><span /><span />
+        <span className="app-nav__burger-line" />
+        <span className="app-nav__burger-line" />
+        <span className="app-nav__burger-line" />
         {dueCount > 0 && <span className="app-nav__burger-dot">{dueCount}</span>}
       </button>
 

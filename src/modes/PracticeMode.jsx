@@ -320,7 +320,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return (
       /* Topics own the page. Secondary choices sit in a slim dock so the list
          gets height without a second screen or a tall settings stack. */
-      <div style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
+      <div className="setup-frame" style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
         <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0 }}>Practice</h1>
@@ -343,8 +343,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
         <Wave from="transparent" to="var(--c-card-solid)" />
 
-        <div style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
+        <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <div className="setup-col" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
 
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
@@ -369,7 +369,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               />
             </div>
 
-            <div className="topic-scroll" style={{ flex: 1, minHeight: 0, marginTop: 2 }}>
+            <div className="topic-scroll" style={{ marginTop: 2 }}>
               <TopicPicker
                 value={filter}
                 onChange={next => setFilter(f => ({ ...f, ...next }))}
