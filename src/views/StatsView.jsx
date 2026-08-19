@@ -190,7 +190,7 @@ export default function StatsView({
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
-          <div style={{ minWidth: 0, flex: "1 1 280px" }}>
+          <div data-in="left" style={{ minWidth: 0, flex: "1 1 280px", "--i": 0 }}>
             <h1 style={{ ...h1, margin: 0 }}>Progress</h1>
             {spotlight ? (
               <div className="prog-spotlight">
@@ -218,7 +218,7 @@ export default function StatsView({
             )}
           </div>
 
-          <div className="prog-field-stats is-compact" aria-label="Overview">
+          <div className="prog-field-stats is-compact" aria-label="Overview" data-in="rise" style={{ "--i": 1 }}>
             <FieldStat
               label="Accuracy"
               value={accuracy === null ? "—" : accuracy}
@@ -236,7 +236,7 @@ export default function StatsView({
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
 
           {weak.length > 0 && (
-            <section className="prog-section">
+            <section className="prog-section" data-in="rise" style={{ "--i": 2 }}>
               <div className="prog-section-head">
                 <h2 style={{ ...sectionH, margin: 0 }}>Still under</h2>
                 <span className="prog-section-note">Below 60% — pull these up first</span>
@@ -255,7 +255,7 @@ export default function StatsView({
             </section>
           )}
 
-          <section className="prog-section">
+          <section className="prog-section" data-in="rise" style={{ "--i": 3 }}>
             <div className="prog-section-head">
               <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
               <span className="prog-section-note">Weakest topics first inside each</span>
@@ -276,7 +276,7 @@ export default function StatsView({
           </section>
 
           {(untouched.length > 0 || steady.length > 0) && (
-            <section className="prog-section prog-section-quiet">
+            <section className="prog-section prog-section-quiet" data-in="rise" style={{ "--i": 4 }}>
               {untouched.length > 0 && (
                 <div className="prog-disclose">
                   <button

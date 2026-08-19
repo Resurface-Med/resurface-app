@@ -179,7 +179,7 @@ function GeneratingScreen({ count }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(28px, 4vh, 48px)" }}>
-        <h1 style={{ ...h1, margin: 0 }}>Generating</h1>
+        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Generating</h1>
         <p className="gen-field-sub">
           {count} question{count !== 1 ? "s" : ""} from your material
         </p>
@@ -200,7 +200,7 @@ function Shell({ title, sub, children, footer, maxWidth = 720 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
-        <h1 style={{ ...h1, margin: 0 }}>{title}</h1>
+        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>{title}</h1>
         {sub ? <p className="gen-field-sub">{sub}</p> : null}
       </div>
       <Wave from="transparent" to="var(--c-card-solid)" />
@@ -373,7 +373,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       maxWidth={680}
     >
       {/* Source */}
-      <section className="gen-block">
+      <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
         <span style={whisper}>Source</span>
         <button
           type="button"
@@ -437,7 +437,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       </section>
 
       {/* Placement */}
-      <section className="gen-block">
+      <section className="gen-block" data-in="rise" style={{ "--i": 2 }}>
         <span style={whisper}>Where they belong</span>
         <div className="gen-grid">
           <label className="gen-field">
@@ -493,7 +493,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       </section>
 
       {/* Difficulty + count */}
-      <section className="gen-block">
+      <section className="gen-block" data-in="rise" style={{ "--i": 3 }}>
         <div className="gen-chip-row">
           <div className="gen-chip-group">
             <span style={whisper}>Difficulty</span>

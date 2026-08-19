@@ -40,7 +40,7 @@ export default function LeaderboardView({ userId }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
-        <h1 style={{ ...h1, margin: 0 }}>Leaderboard</h1>
+        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Leaderboard</h1>
         <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em" }}>
           Questions answered this week. You’re on it by default — change that in Profile if you want.
         </p>
@@ -56,7 +56,7 @@ export default function LeaderboardView({ userId }) {
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
-          <div className="prog-section-head" style={{ marginBottom: 14 }}>
+          <div className="prog-section-head" data-in="rise" style={{ marginBottom: 14, "--i": 1 }}>
             <h2 style={{ ...sectionH, margin: 0 }}>This week</h2>
             <span className="prog-section-note">Last 7 days</span>
           </div>
@@ -77,10 +77,10 @@ export default function LeaderboardView({ userId }) {
 
           {rows && rows.length > 0 && (
             <ol className="lb-list">
-              {rows.map(r => {
+              {rows.map((r, i) => {
                 const mine = r.user_id === userId;
                 return (
-                  <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`}>
+                  <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 2 + i }}>
                     <span className="lb-rank">#{r.rank}</span>
                     <span className="lb-name">
                       {r.display_name}

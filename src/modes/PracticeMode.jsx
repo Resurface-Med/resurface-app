@@ -493,7 +493,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       <div className="setup-frame" style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
         <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <h1 style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0 }}>Practice</h1>
+            <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
 
             {savedSession && (
               <div style={{
@@ -539,7 +539,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               />
             </div>
 
-            <div className="topic-scroll" style={{ marginTop: 2 }}>
+            <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               <TopicPicker
                 value={filter}
                 onChange={next => setFilter(f => ({ ...f, ...next }))}
@@ -549,7 +549,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               />
             </div>
 
-            <div className="setup-dock">
+            <div className="setup-dock" data-in="rise" style={{ "--i": 3 }}>
               <div className="setup-dock-row">
                 <div className="setup-dock-group">
                   <span className="setup-dock-label">From</span>
@@ -661,7 +661,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
    * them, and two sets of the same control is how the other screens got noisy.
    */
   return (
-    <div className="session-wrap" style={{ ...band, maxWidth: 1100, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="session-wrap" data-in="rise" style={{ "--i": 0, ...band, maxWidth: 1100, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <button
           onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }}
