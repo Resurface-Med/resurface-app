@@ -186,22 +186,8 @@ export default function App() {
   // "ready to review" directly beneath "Seen: 0".
   const dueCount = useMemo(() => QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length, [srCards]);
 
-  /**
-   * Every navigation goes through here so the transition knows which way to
-   * travel. Direction is decided at the moment of the change, where both the
-   * old and the new view are in hand — computing it during render would mean
-   * reading and writing a ref in the render phase, which React does not allow.
-   *
-   * Taking the direction from the nav's own order is what makes a switch read
-   * as movement through a place rather than a crossfade, and it is free: the
-   * same two properties animate either way, only the sign of the offset moves.
-   */
-  const [dir, setDir] = useState("down");
-
+  /** One door for every navigation, so the keyed wrapper always remounts. */
   function go(next) {
-    const from = NAV.findIndex(i => i.k === view);
-    const to = NAV.findIndex(i => i.k === next);
-    if (from >= 0 && to >= 0) setDir(to < from ? "up" : "down");
     setView(next);
   }
 
@@ -312,7 +298,7 @@ export default function App() {
         <div className="app-main">
           {/* Keyed on the view so the animation replays per switch, and holding
               the whole screen so exactly one element moves. */}
-          <div key={view} className="view-swap" data-dir={dir}>
+          <div key={view} className="view-swap">
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>

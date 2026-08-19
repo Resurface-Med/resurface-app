@@ -20,9 +20,10 @@ import { QUESTIONS } from "../data";
 /** Anki's threshold for a mature card, in days. */
 const MASTERED_DAYS = 21;
 
-function StatRow({ label, value, strong = false, top = false }) {
+function StatRow({ label, value, strong = false, top = false, i = 0 }) {
   return (
-    <div style={{
+    <div data-in="rise" style={{
+      "--i": i,
       display: "flex", alignItems: "baseline", justifyContent: "space-between",
       gap: 12, padding: "9px 0",
       borderTop: top ? "1px solid var(--c-border)" : "none",
@@ -98,13 +99,13 @@ export default function Dashboard({
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
           gap: 20, flexWrap: "wrap",
         }}>
-          <div>
+          <div data-in="left" style={{ "--i": 0 }}>
             <span style={eyebrowField}>{todayLabel}</span>
             <h1 style={{ ...h1, marginTop: 10 }}>{greeting}.</h1>
           </div>
 
           {streak.streak > 0 && (
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0 }}>
+            <div data-in="right" style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0, "--i": 1 }}>
               <span style={{ fontSize: "clamp(26px, 2.6vw, 32px)", fontWeight: 700, color: OF.text, letterSpacing: -1.4, lineHeight: 1 }}>
                 {streak.streak}
               </span>
@@ -124,12 +125,13 @@ export default function Dashboard({
           display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
           marginTop: "clamp(16px, 2.4vh, 24px)",
         }}>
-          {actions.map(a => (
+          {actions.map((a, i) => (
             <button
               key={a.scope}
               onClick={() => onStudy?.(a.scope)}
               className="btn-press"
-              style={a.primary ? {
+              data-in="pop"
+              style={{ "--i": 2 + i, ...(a.primary ? {
                 background: "var(--c-field-object)", color: "var(--c-field-object-ink)", border: "none",
                 borderRadius: "var(--r-pill)", padding: "11px 22px",
                 fontFamily: "inherit", fontSize: 15, fontWeight: 600, cursor: "pointer",
@@ -140,7 +142,7 @@ export default function Dashboard({
                 border: "1px solid rgba(255,255,255,0.22)",
                 borderRadius: "var(--r-pill)", padding: "11px 20px",
                 fontFamily: "inherit", fontSize: 15, fontWeight: 500, cursor: "pointer",
-              }}
+              }) }}
             >
               {a.label}{a.primary ? <span aria-hidden="true">→</span> : null}
             </button>
@@ -155,7 +157,7 @@ export default function Dashboard({
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           <div className="dash-split">
 
-            <section>
+            <section data-in="rise" style={{ "--i": 5 }}>
               <h2 style={sectionH}>Your progress</h2>
               <p style={{ ...meta, marginTop: 4 }}>
                 {seen === 0
@@ -165,9 +167,9 @@ export default function Dashboard({
 
               {/* One object, three quantities. Mastered nests inside seen nests
                   inside the bank, which separate figures could only imply. */}
-              <div style={{
+              <div data-in="grow" style={{
                 display: "flex", height: 16, borderRadius: 99, overflow: "hidden",
-                background: "var(--c-surface3)", marginTop: 20,
+                background: "var(--c-surface3)", marginTop: 20, "--i": 6,
               }}>
                 <div style={{
                   width: `${pctMastered}%`, background: "var(--c-accent)",
@@ -181,21 +183,24 @@ export default function Dashboard({
 
               <div style={{ marginTop: 16 }}>
                 <StatRow
+                  i={7}
                   strong
                   label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", marginRight: 8 }} />Mastered</>}
                   value={mastered.toLocaleString()}
                 />
                 <StatRow
+                  i={8}
                   label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", opacity: 0.32, marginRight: 8 }} />Seen</>}
                   value={seen.toLocaleString()}
                 />
                 <StatRow
+                  i={9}
                   label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-surface3)", marginRight: 8 }} />Not yet started</>}
                   value={(total - seen).toLocaleString()}
                 />
 
-                <StatRow top label="Questions answered" value={totalT.toLocaleString()} />
-                <StatRow label="Accuracy" value={acc === null ? "—" : `${acc}%`} />
+                <StatRow i={10} top label="Questions answered" value={totalT.toLocaleString()} />
+                <StatRow i={11} label="Accuracy" value={acc === null ? "—" : `${acc}%`} />
               </div>
 
               <button
@@ -211,7 +216,7 @@ export default function Dashboard({
               </button>
             </section>
 
-            <section>
+            <section data-in="rise" style={{ "--i": 7 }}>
               <ActivityHeatmap activity={activity} />
 
               <div style={{

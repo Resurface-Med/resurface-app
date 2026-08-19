@@ -2710,57 +2710,74 @@ select {
   .session-wrap { gap: 10px !important; }
 }
 
-/* ─── Tab transitions ───────────────────────────────────────────── */
-/* Dramatic from the motion, not from effects.
-   Two earlier attempts bought their drama with filter: blur() on a cascade of
-   elements across every view. Blur cannot be composited — each frame is a full
-   repaint plus a Gaussian pass — so the more dramatic it looked on paper, the
-   worse it ran. Everything here is transform and opacity, which the compositor
-   handles on its own thread without touching layout or paint.
+/* ─── Tab entrance kit ──────────────────────────────────────────── */
+/* Individual pieces arrive, staggered, with overshoot.
+   The two reverted attempts at this ran badly because of filter: blur() at
+   10–18px on every animated element — blur cannot be composited, so each frame
+   was a repaint plus a Gaussian pass. Moving things one at a time was never
+   the problem. Everything below is transform and opacity, which the compositor
+   owns, so a dozen elements cost about what one did.
 
-   The distance and the overshoot do the work instead: 34px of travel, a slight
-   scale, and an ease that arrives fast and settles. One element moves — the
-   whole screen — so it is a single layer whatever the view contains. */
+   Order is set per element with --i and the delay is derived, so re-timing a
+   whole screen is one number here rather than a hunt through markup. */
 
-@keyframes view-in-down {
-  from { opacity: 0; transform: translate3d(0, 34px, 0) scale(0.985); }
+@keyframes rs-rise {
+  from { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.965); }
   to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
 
-@keyframes view-in-up {
-  from { opacity: 0; transform: translate3d(0, -34px, 0) scale(0.985); }
-  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes rs-left {
+  from { opacity: 0; transform: translate3d(-28px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-.view-swap {
-  animation: view-in-down 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
-  /* No will-change. A running transform/opacity animation is promoted for its
-     duration and released when it ends; declaring will-change would pin the
-     layer for the life of the view instead, which is the opposite of the point
-     on a page that then sits still. */
-}
-.view-swap[data-dir="up"] {
-  animation-name: view-in-up;
+@keyframes rs-right {
+  from { opacity: 0; transform: translate3d(28px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-/* A phone renders the same distance across a third of the width, so the same
-   34px reads as a longer throw. Shorter there keeps the timing honest. */
+/* The overshoot is in the keyframe rather than the easing, so the bounce lands
+   the same way regardless of how long the animation runs. */
+@keyframes rs-pop {
+  0%   { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.86); }
+  55%  { opacity: 1; transform: translate3d(0, -4px, 0) scale(1.04); }
+  78%  { transform: translate3d(0, 1px, 0) scale(0.99); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* scaleX, not width: width is layout and would re-flow every frame. */
+@keyframes rs-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+[data-in] {
+  animation-duration: 0.52s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-delay: calc(var(--i, 0) * 52ms);
+}
+[data-in="rise"]  { animation-name: rs-rise; }
+[data-in="left"]  { animation-name: rs-left; }
+[data-in="right"] { animation-name: rs-right; }
+[data-in="pop"]   { animation-name: rs-pop; animation-duration: 0.58s; }
+[data-in="grow"]  { animation-name: rs-grow; transform-origin: left center; animation-duration: 0.7s; }
+
+/* Shorter throw on a phone, where the same distance crosses a third of the
+   width and reads as a much longer journey. */
 @media (max-width: 900px) {
-  .view-swap {
-    animation-duration: 0.34s;
+  [data-in] {
+    animation-duration: 0.42s;
+    animation-delay: calc(var(--i, 0) * 40ms);
   }
-  @keyframes view-in-down {
-    from { opacity: 0; transform: translate3d(0, 22px, 0) scale(0.99); }
+  @keyframes rs-rise {
+    from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.98); }
     to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
-  @keyframes view-in-up {
-    from { opacity: 0; transform: translate3d(0, -22px, 0) scale(0.99); }
-    to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  }
+  @keyframes rs-left  { from { opacity: 0; transform: translate3d(-16px, 0, 0); } to { opacity: 1; transform: none; } }
+  @keyframes rs-right { from { opacity: 0; transform: translate3d(16px, 0, 0); }  to { opacity: 1; transform: none; } }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .view-swap {
-    animation: none;
-  }
+  [data-in] { animation: none; }
 }
