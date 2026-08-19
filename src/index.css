@@ -2178,43 +2178,21 @@ select {
   overflow-y: auto;
 }
 
-/* Whole-pane enter when the sidebar tab changes. Direction follows nav order.
-   No blur — it was expensive on large panes and read as mush. Horizontal
-   travel is the tab metaphor; opacity + scale do the drama. */
+/* Whole-pane enter when the sidebar tab changes. Direction follows nav order. */
 @keyframes view-switch-fwd {
-  from {
-    opacity: 0;
-    transform: translate3d(56px, 0, 0) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(18px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
 }
 @keyframes view-switch-back {
-  from {
-    opacity: 0;
-    transform: translate3d(-56px, 0, 0) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(-14px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0);     filter: blur(0); }
 }
 .view-switch {
   min-height: 100%;
-  animation: view-switch-fwd 0.48s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+  animation: view-switch-fwd 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .view-switch.is-back {
   animation-name: view-switch-back;
-}
-/* While the pane is entering, mute nested intros so they don't fight it. */
-.view-switch:not(.is-settled) * {
-  animation: none !important;
-}
-.view-switch.is-settled {
-  will-change: auto;
 }
 
 .app-nav__badge {
