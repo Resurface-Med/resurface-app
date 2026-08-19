@@ -120,6 +120,27 @@ const SCOPE_HINT = {
 };
 
 /** Compact chips for the setup dock — secondary choices, not a second page. */
+/**
+ * Whether we are on a phone.
+ *
+ * The two-step setup is a genuine branch in the flow, not a restyle, so CSS
+ * cannot express it — this is the one place a breakpoint has to be known to
+ * JavaScript. It listens rather than reading once, so a rotation or a resized
+ * window lands on the right shape.
+ */
+function useIsPhone() {
+  const [isPhone, setIsPhone] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 900px)").matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px)");
+    const onChange = e => setIsPhone(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isPhone;
+}
+
 /** A toggle that stands on its own needs a resting state you can see. Inside a
  *  segmented track the track is the affordance, so `dockChip` goes transparent
  *  when off — standing alone that reads as a label, not a control. */
@@ -184,6 +205,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   );
   const [countOpt, setCountOpt] = useState(20);
   const [topicQuery, setTopicQuery] = useState("");
+  const isPhone = useIsPhone();
+  // Phones split the setup in two. A phone screen cannot hold a scrolling list
+  // and a full set of controls at once without the controls eating half of it,
+  // so the list gets the screen, then the options do.
+  const [step, setStep] = useState("topic");
   const [queue, setQueue] = useState(null);
   const [idx, setIdx] = useState(0);
   const [sels, setSels] = useState({});
@@ -328,6 +354,138 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const topicLabel = !filter.cat.includes("All") ? shortLabel(filter.cat[0], filter.deck[0])
       : !filter.deck.includes("All") ? filter.deck[0]
       : null;
+
+    // ── Phones: one decision per screen ───────────────────────────
+    if (isPhone) {
+      return (
+        <div className="setup-frame" style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
+          <div className="page-band" style={{ ...band, paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
+            {step === "topic" ? (
+              <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn-press setup-back"
+                  onClick={() => setStep("topic")}
+                >
+                  <span aria-hidden="true">←</span> {topicLabel ?? "All subjects"}
+                </button>
+                <h1 style={{ ...h1, fontSize: 27, margin: "10px 0 0" }}>How much?</h1>
+              </>
+            )}
+
+            {savedSession && step === "topic" && (
+              <div className="setup-resume">
+                <span>Unfinished · {(savedSession.idx ?? 0) + 1}/{savedSession.queue?.length ?? 0}</span>
+                <button className="btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
+                <button className="btn-press" style={fieldGhostBtn} onClick={discardSession}>Discard</button>
+              </div>
+            )}
+          </div>
+
+          <Wave from="transparent" to="var(--c-card-solid)" />
+
+          <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
+            <div style={{ ...band, maxWidth: 720, paddingTop: 14, paddingBottom: "calc(24px + var(--safe-b))" }}>
+
+              {step === "topic" ? (
+                <>
+                  <input
+                    type="search"
+                    value={topicQuery}
+                    onChange={e => setTopicQuery(e.target.value)}
+                    placeholder="Search topics"
+                    aria-label="Search topics"
+                    className="setup-search"
+                  />
+                  {/* Choosing is the whole job of this screen, so a choice
+                      finishes it rather than waiting for a confirm nobody
+                      would understand the purpose of. */}
+                  <TopicPicker
+                    value={filter}
+                    onChange={next => {
+                      setFilter(f => ({ ...f, ...next }));
+                      setCountOpt("All");
+                      setStep("options");
+                    }}
+                    pStats={pStats}
+                    eligibleIds={eligibleIds}
+                    query={topicQuery}
+                  />
+                </>
+              ) : (
+                <div className="setup-options">
+                  <div className="setup-opt-group">
+                    <span className="setup-dock-label">From</span>
+                    <div className="setup-seg" role="radiogroup" aria-label="Question pool">
+                      {SCOPES.map(s => {
+                        const n = scopeCount(s.k);
+                        const disabled = n === 0 && s.k !== "all";
+                        const on = scope === s.k;
+                        return (
+                          <button key={s.k} role="radio" aria-checked={on} disabled={disabled}
+                            className="btn-press" onClick={() => !disabled && setScope(s.k)}
+                            style={dockChip(on, disabled)}>
+                            {s.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="setup-opt-group">
+                    <span className="setup-dock-label">How many</span>
+                    <div className="setup-seg" role="radiogroup" aria-label="Session length">
+                      {COUNT_OPTIONS.map(o => {
+                        const disabled = o !== "All" && o > scoped;
+                        const on = o === countOpt;
+                        return (
+                          <button key={o} role="radio" aria-checked={on} disabled={disabled}
+                            className="btn-press" onClick={() => !disabled && setCountOpt(o)}
+                            style={dockChip(on, disabled)}>
+                            {o === "All" ? "All" : o}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="setup-opt-group">
+                    <span className="setup-dock-label">Filter</span>
+                    <button
+                      type="button"
+                      className="btn-press"
+                      onClick={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
+                      aria-pressed={filter.unseenOnly}
+                      style={{ ...toggleChip(filter.unseenOnly), alignSelf: "flex-start" }}
+                    >
+                      Unseen only
+                    </button>
+                  </div>
+
+                  <p className="setup-dock-hint" aria-live="polite">
+                    {SCOPE_HINT[scope]}
+                    {filter.unseenOnly ? " · unseen only" : ""}
+                  </p>
+
+                  <button
+                    className="btn-press setup-start"
+                    disabled={willAsk === 0}
+                    onClick={() => start()}
+                    style={{ ...primaryBtn, ...lg, width: "100%", opacity: willAsk === 0 ? 0.5 : 1 }}
+                  >
+                    {willAsk === 0
+                      ? "Nothing here — pick another topic"
+                      : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"} →`}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       /* Topics own the page. Secondary choices sit in a slim dock so the list

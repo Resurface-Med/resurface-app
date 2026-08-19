@@ -2580,3 +2580,62 @@ select {
     min-width: 0;
   }
 }
+
+/* ─── Practice setup on a phone: two screens ────────────────────── */
+/* The dock is gone. A scrolling list and a full set of controls cannot share
+   a phone screen without the controls taking half of it, so each gets a screen
+   of its own and the list gets the whole page it needs. */
+.setup-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--r-pill);
+  padding: 7px 15px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-on-field);
+  cursor: pointer;
+}
+
+.setup-resume {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--c-on-field-soft);
+}
+
+.setup-search {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 6px;
+  font-family: inherit;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  outline: none;
+}
+
+.setup-options {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-top: 6px;
+}
+.setup-opt-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Full width and equal shares, so no tap lands on dead space beside a control. */
+.setup-options .setup-seg { width: 100%; max-width: none; }
+.setup-options .setup-seg > button { flex: 1 1 0; min-width: 0; }
+
+/* Bottom of the screen, where the thumb already is. */
+.setup-start { margin-top: 6px; }
