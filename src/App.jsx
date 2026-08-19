@@ -32,6 +32,7 @@ import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
+import DashboardPreview from "./views/DashboardPreview";
 import PracticePreview from "./views/PracticePreview";
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
@@ -43,12 +44,22 @@ const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
 export default function App() {
-  if (typeof window !== "undefined" && window.location.pathname === "/preview/practice") {
-    return (
-      <ErrorBoundary>
-        <PracticePreview />
-      </ErrorBoundary>
-    );
+  if (typeof window !== "undefined") {
+    const path = window.location.pathname;
+    if (path === "/preview/dashboard") {
+      return (
+        <ErrorBoundary>
+          <DashboardPreview />
+        </ErrorBoundary>
+      );
+    }
+    if (path === "/preview/practice") {
+      return (
+        <ErrorBoundary>
+          <PracticePreview />
+        </ErrorBoundary>
+      );
+    }
   }
 
   return <AppMain />;
