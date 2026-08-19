@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
-import CatTag from "./CatTag";
 import BmBtn from "./BmBtn";
 import EditQuestionModal from "./EditQuestionModal";
 
@@ -132,8 +131,13 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div style={qcard} className="q-card anim-scale-in">
+      {/* No category label. "Hormone Signalling" printed above "Adrenergic
+          receptors B1 are coupled to:" narrows the answer space before the
+          options have been read — it is a hint the exam will not give you.
+          The session header already states the scope you chose, which you
+          know; what the individual question belongs to is the thing worth
+          not saying. */}
       <div className="q-card-meta">
-        <CatTag label={q.cat} />
         <div className="q-card-tools">
           <button
             type="button"

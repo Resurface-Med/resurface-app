@@ -2639,3 +2639,30 @@ select {
 
 /* Bottom of the screen, where the thumb already is. */
 .setup-start { margin-top: 6px; }
+
+/* Answering a question is a mode with one way out, and it has its own Exit
+   control in the same corner the menu button occupies. Two overlapping
+   escapes is worse than either: the drawer stands down while a session runs. */
+@media (max-width: 900px) {
+  .app-shell.is-session .app-nav__burger { display: none; }
+  .app-shell.is-session .page-band { padding-top: calc(env(safe-area-inset-top, 0px) + 14px) !important; }
+}
+
+/* ─── Answering, on a phone ─────────────────────────────────────── */
+@media (max-width: 900px) {
+  /* The card is the screen here. A 20px blue margin either side plus 22px of
+     card padding spent 84px of a 390px viewport on framing a question that
+     then had to wrap onto more lines because of it. */
+  .session-wrap {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+  }
+  .q-card {
+    padding: 18px 15px !important;
+    border-radius: 20px !important;
+    /* The heavy desktop drop shadow is invisible against a card that nearly
+       fills the screen, and it is the most expensive thing on it to paint. */
+    box-shadow: 0 6px 20px rgba(20, 44, 130, 0.08) !important;
+  }
+}

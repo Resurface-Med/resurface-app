@@ -661,7 +661,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
    * them, and two sets of the same control is how the other screens got noisy.
    */
   return (
-    <div style={{ ...band, maxWidth: 1100, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="session-wrap" style={{ ...band, maxWidth: 1100, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <button
           onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }}

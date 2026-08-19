@@ -237,7 +237,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div className="app-shell">
+    <div className={`app-shell${practiceSessionActive ? " is-session" : ""}`}>
       <Sidebar {...nav} />
       {pendingView && (
         <div style={{
