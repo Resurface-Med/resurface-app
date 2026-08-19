@@ -171,14 +171,12 @@ export default function Dashboard({
                 display: "flex", height: 16, borderRadius: 99, overflow: "hidden",
                 background: "var(--c-surface3)", marginTop: 20, "--i": 6,
               }}>
-                <div style={{
-                  width: `${pctMastered}%`, background: "var(--c-accent)",
-                  transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
-                }} />
-                <div style={{
-                  width: `${pctSeenOnly}%`, background: "var(--c-accent)", opacity: 0.32,
-                  transition: "width 0.4s cubic-bezier(0.22,1,0.36,1)",
-                }} />
+                {/* flex-basis rather than width so the two segments still
+                    share the track, and no transition — the parent already
+                    sweeps open on scaleX, and animating these would re-run
+                    layout inside something that is mid-animation. */}
+                <div style={{ flex: `0 0 ${pctMastered}%`, background: "var(--c-accent)" }} />
+                <div style={{ flex: `0 0 ${pctSeenOnly}%`, background: "var(--c-accent)", opacity: 0.32 }} />
               </div>
 
               <div style={{ marginTop: 16 }}>

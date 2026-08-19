@@ -688,9 +688,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       {/* Position, full width. One mark, one meaning. */}
       <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.22)", overflow: "hidden" }}>
         <div style={{
-          height: "100%", width: `${((idx + 1) / queue.length) * 100}%`,
+          height: "100%", width: "100%",
+          transform: `scaleX(${(idx + 1) / queue.length})`,
+          transformOrigin: "left center",
           background: "var(--c-field-object)", borderRadius: 99,
-          transition: "width 0.3s cubic-bezier(0.22,1,0.36,1)",
+          transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1)",
         }} />
       </div>
 

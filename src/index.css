@@ -294,32 +294,6 @@ body::after {
   100% { transform: scale(1); }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(53, 98, 245, 0.12); }
-  50%       { box-shadow: 0 0 0 6px rgba(53, 98, 245, 0.2); }
-}
-
-@keyframes badge-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.82; transform: scale(1.08); }
-}
-
-@keyframes timer-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.55; }
-}
-
-@keyframes shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position: 400px 0; }
-}
-
-@keyframes orb-drift {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%       { transform: translate(18px, -12px) scale(1.04); }
-  66%       { transform: translate(-10px, 10px) scale(0.97); }
-}
-
 @keyframes reveal-bar {
   from { width: 0; }
 }
@@ -378,8 +352,6 @@ body::after {
 /* ─── Animation utilities ────────────────────────────────────────── */
 
 .anim-fade-up   { animation: fadeSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-fade-down { animation: fadeSlideDown 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.anim-fade-in   { animation: fadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .anim-scale-in  { animation: scaleIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .anim-shake     { animation: shake 0.3s ease both; }
 .anim-pop       { animation: pop 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -395,11 +367,6 @@ body::after {
 .delay-350 { animation-delay: 130ms; }
 .delay-400 { animation-delay: 150ms; }
 .delay-500 { animation-delay: 180ms; }
-
-.anim-badge-pulse    { animation: badge-pulse 2.2s ease-in-out infinite; }
-.anim-timer-urgent   { animation: timer-pulse 0.7s ease-in-out infinite; }
-.anim-orb-drift      { animation: orb-drift 14s ease-in-out infinite; }
-.anim-pulse-glow     { animation: pulse-glow 2.5s ease-in-out infinite; }
 
 /* ─── Interactive utilities ─────────────────────────────────────── */
 
@@ -843,12 +810,6 @@ body::after {
   .q-nav { display: none; }
 }
 
-.shimmer {
-  background: linear-gradient(90deg, rgba(53, 98, 245, 0.06) 25%, rgba(53, 98, 245, 0.14) 50%, rgba(53, 98, 245, 0.06) 75%);
-  background-size: 400px 100%;
-  animation: shimmer 1.6s infinite linear;
-}
-
 button {
   cursor: pointer;
   font-family: inherit;
@@ -882,14 +843,9 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-up,
-  .anim-fade-down,
-  .anim-fade-in,
   .anim-scale-in,
   .anim-pop,
-  .anim-bounce-in,
-  .anim-orb-drift,
-  .anim-badge-pulse,
-  .anim-pulse-glow {
+  .anim-bounce-in {
     animation: none !important;
   }
 }
@@ -1011,7 +967,6 @@ select {
 
 /* The white sheet slides in from the opposite edge, so the two panels meet. */
 
-
 /* Form contents stagger once the sheet has landed. */
 .auth-stagger > * {
   will-change: transform, opacity;
@@ -1100,8 +1055,6 @@ select {
 @media (max-width: 1100px) {
   .dash-split { grid-template-columns: 1fr; }
 }
-
-
 
 /* ─── Topic picker ──────────────────────────────────────────────── */
 /* Topic list — one decision, scanned top to bottom.
@@ -1350,7 +1303,6 @@ select {
   .setup-dock-row { gap: 8px 10px; }
   .setup-seg { max-width: 100%; }
 }
-
 
 /* ─── Progress ──────────────────────────────────────────────────── */
 /* Progress — field overview + one quiet list of where to practise next. */
@@ -1658,6 +1610,7 @@ select {
   padding: 0;
 }
 .lb-row {
+  --step: 22ms;
   display: flex;
   align-items: baseline;
   gap: 14px;
@@ -2755,7 +2708,7 @@ select {
   animation-duration: 0.52s;
   animation-fill-mode: both;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-  animation-delay: calc(var(--i, 0) * 52ms);
+  animation-delay: calc(var(--i, 0) * var(--step, 52ms));
 }
 [data-in="rise"]  { animation-name: rs-rise; }
 [data-in="left"]  { animation-name: rs-left; }
@@ -2768,7 +2721,7 @@ select {
 @media (max-width: 900px) {
   [data-in] {
     animation-duration: 0.42s;
-    animation-delay: calc(var(--i, 0) * 40ms);
+    animation-delay: calc(var(--i, 0) * var(--step, 40ms));
   }
   @keyframes rs-rise {
     from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.98); }

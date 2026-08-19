@@ -80,7 +80,7 @@ export default function LeaderboardView({ userId }) {
               {rows.map((r, i) => {
                 const mine = r.user_id === userId;
                 return (
-                  <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 2 + i }}>
+                  <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 2 + Math.min(i, 12) }}>
                     <span className="lb-rank">#{r.rank}</span>
                     <span className="lb-name">
                       {r.display_name}
