@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
-import ExplainSheet from "./ExplainSheet";
+import ExplainChat from "./ExplainChat";
 import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
 
@@ -140,7 +140,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
-    {explaining && <ExplainSheet q={q} picked={sel} onClose={() => setExplaining(false)} />}
     <div style={qcard} className="q-card anim-scale-in">
       {/* No category label. "Hormone Signalling" printed above "Adrenergic
           receptors B1 are coupled to:" narrows the answer space before the
@@ -289,16 +288,20 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
           <p className="q-exp">{q.exp}</p>
 
+          {explaining && sel !== q.ans && (
+            <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
+          )}
+
           <div className="q-review-tools">
             {/* Offered only on a wrong answer: there is a specific misconception
                 to address, and someone who was right does not need asking. */}
-            {sel !== q.ans && (
+            {sel !== q.ans && !explaining && (
               <button
                 type="button"
                 className="q-deeper-btn btn-press"
                 onClick={() => setExplaining(true)}
               >
-                Still don&apos;t get it?
+                Ask Resurface AI
               </button>
             )}
             {/* Bank questions only. A generated question is one person's own, so

@@ -682,172 +682,184 @@ body::after {
   margin-top: 14px;
 }
 .q-deeper-btn {
-  padding: 8px 14px;
+  padding: 10px 18px;
   border-radius: var(--r-pill);
-  border: 1px solid var(--c-accent-brd);
-  background: var(--c-accent-dim);
-  color: var(--c-accent);
-  font-size: 12.5px;
+  border: none;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 13.5px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.16s, border-color 0.16s;
+  box-shadow: 0 6px 16px rgba(53, 98, 245, 0.22);
+  transition: background 0.16s, box-shadow 0.16s;
 }
-.q-deeper-btn:hover { background: var(--c-accent-glow); }
+.q-deeper-btn:hover {
+  background: var(--c-accent-lt);
+  box-shadow: 0 8px 20px rgba(53, 98, 245, 0.28);
+}
 .q-review-tools .q-flag-open { margin-top: 0; margin-left: auto; }
 .q-review-tools .q-flag-done { margin: 0 0 0 auto; }
 
-/* ── Deeper explanation sheet ──────────────────────────────────────────
-   Off to the side, so the card keeps its place and its height. The text is
-   about the option you picked, so the question has to stay visible — which is
-   why this is a sheet and not a route. */
+/* ── Resurface AI chat ─────────────────────────────────────────────
+   A nest of bubbles under the bank explanation. Same round language as the
+   option rows and pills — not a document drawer with uppercase labels. */
 
-.xs-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 1400;
-  display: flex;
-  justify-content: flex-end;
-  background: rgba(26, 47, 122, 0.42);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  animation: xs-fade 0.2s ease both;
-}
-@keyframes xs-fade { from { opacity: 0; } to { opacity: 1; } }
-
-.xs-sheet {
-  width: min(440px, 100%);
-  height: 100%;
+.ai-chat {
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
-  background: var(--c-card-bg);
-  border-left: 1px solid var(--c-border);
-  box-shadow: -18px 0 44px rgba(15, 27, 61, 0.18);
-  animation: xs-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes xs-in {
-  from { transform: translate3d(100%, 0, 0); }
-  to   { transform: translate3d(0, 0, 0); }
-}
-
-.xs-head {
-  display: flex;
-  align-items: flex-start;
   gap: 12px;
-  padding: 20px 20px 14px;
-  border-bottom: 1px solid var(--c-border);
-  flex-shrink: 0;
-}
-.xs-eyebrow {
-  display: block;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--c-accent);
-  margin-bottom: 5px;
-}
-.xs-q {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.45;
-  color: var(--c-text);
-  letter-spacing: -0.2px;
-}
-.xs-close {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
+  padding: 12px 12px 14px;
+  background: var(--c-surface2);
   border: 1px solid var(--c-border);
-  border-radius: 50%;
-  background: var(--c-card-solid);
-  color: var(--c-muted);
-  font-size: 13px;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  border-radius: 22px;
+  animation: ai-open 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.xs-close:hover { color: var(--c-text); border-color: var(--c-muted); }
+@keyframes ai-open {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.92); }
+  64%  { opacity: 1; transform: translateY(-5px) scale(1.02); }
+  100% { opacity: 1; transform: none; }
+}
 
-.xs-context {
-  padding: 13px 20px;
-  background: var(--c-surface);
-  border-bottom: 1px solid var(--c-border);
-  flex-shrink: 0;
-}
-.xs-ctx-row {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--c-text);
-}
-.xs-ctx-row + .xs-ctx-row { margin-top: 6px; }
-.xs-ctx-label {
-  display: inline-block;
-  min-width: 62px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-}
-.xs-ctx-row.is-bad .xs-ctx-label { color: var(--c-danger); }
-.xs-ctx-row.is-ok  .xs-ctx-label { color: var(--c-success); }
-
-.xs-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 18px 20px 26px;
-}
-.xs-sec + .xs-sec { margin-top: 18px; }
-.xs-sec p, .xs-keep p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--c-sub);
-}
-.xs-sec-title {
-  margin: 0 0 6px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--c-accent);
-}
-.xs-keep {
-  margin-top: 20px;
-  padding: 14px 16px;
-  border-radius: var(--r-card);
-  background: var(--c-accent-dim);
-  border: 1px solid var(--c-accent-brd);
-}
-.xs-keep p { color: var(--c-text); font-weight: 500; }
-
-.xs-loading {
+.ai-chat-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13.5px;
-  color: var(--c-muted);
+  padding: 2px 2px 2px 6px;
 }
-.xs-dots { display: inline-flex; gap: 3px; }
-.xs-dots i {
-  width: 5px;
-  height: 5px;
+.ai-chat-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--c-text);
+}
+.ai-chat-mark {
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--c-accent);
-  animation: xs-blink 1.1s ease-in-out infinite both;
+  box-shadow: 0 0 0 4px var(--c-accent-dim);
+  animation: ai-mark 2.4s ease-in-out infinite;
+  flex-shrink: 0;
 }
-.xs-dots i:nth-child(2) { animation-delay: 0.16s; }
-.xs-dots i:nth-child(3) { animation-delay: 0.32s; }
-@keyframes xs-blink {
-  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
-  40%           { opacity: 1;    transform: scale(1); }
+@keyframes ai-mark {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 4px var(--c-accent-dim); }
+  50%      { transform: scale(1.08); box-shadow: 0 0 0 6px var(--c-accent-glow); }
 }
-.xs-error { margin: 0; font-size: 13.5px; color: var(--c-danger); line-height: 1.6; }
+
+.ai-chat-close {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--c-card-solid);
+  box-shadow: 0 1px 0 var(--c-border);
+  color: var(--c-text);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ai-chat-close:hover { color: var(--c-accent); }
+
+.ai-chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.ai-bubble {
+  margin: 0;
+  max-width: 92%;
+  padding: 11px 16px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  letter-spacing: -0.15px;
+}
+.ai-bubble.is-you {
+  align-self: flex-end;
+  background: var(--c-accent);
+  color: #fff;
+  border-radius: 22px 22px 6px 22px;
+  box-shadow: 0 6px 16px rgba(53, 98, 245, 0.22);
+  animation: ai-you-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.ai-bubble.is-ai {
+  align-self: flex-start;
+  background: var(--c-card-solid);
+  color: var(--c-text);
+  border-radius: 22px 22px 22px 6px;
+  box-shadow: 0 4px 14px rgba(15, 27, 61, 0.06);
+  animation: ai-ai-in 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.ai-bubble.is-keep {
+  background: var(--c-accent-dim);
+  color: var(--c-text);
+  font-weight: 600;
+  border: 1px solid var(--c-accent-brd);
+}
+.ai-bubble.is-typing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--c-muted);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.ai-bubble.is-error {
+  color: var(--c-danger);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ai-bubble.is-error p { margin: 0; }
+
+@keyframes ai-you-in {
+  0%   { opacity: 0; transform: translateX(22px) scale(0.84); }
+  68%  { opacity: 1; transform: translateX(-3px) scale(1.03); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes ai-ai-in {
+  0%   { opacity: 0; transform: translateX(-18px) translateY(8px) scale(0.86); }
+  64%  { opacity: 1; transform: translateX(2px) translateY(-2px) scale(1.03); }
+  100% { opacity: 1; transform: none; }
+}
+
+.ai-chat-dots { display: inline-flex; gap: 4px; }
+.ai-chat-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  animation: ai-blink 1.1s ease-in-out infinite both;
+}
+.ai-chat-dots i:nth-child(2) { animation-delay: 0.16s; }
+.ai-chat-dots i:nth-child(3) { animation-delay: 0.32s; }
+@keyframes ai-blink {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.75); }
+  40%           { opacity: 1;    transform: scale(1.12); }
+}
+
+.ai-chat-retry {
+  padding: 8px 14px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 /* ── Report a problem ──────────────────────────────────────────────────
    Deliberately the smallest thing on the card. It has to be findable the
@@ -2985,33 +2997,44 @@ select {
   [data-in] { animation: none; }
 }
 
-/* The sheet is a side panel on a desk and a bottom sheet on a phone — same
-   component, and the thumb is at the bottom of the device either way. */
-@media (max-width: 700px) {
-  .xs-scrim {
-    align-items: flex-end;
-    justify-content: center;
+/* Phone: the chat is the whole screen. Close is the only way back. */
+@media (max-width: 900px) {
+  .ai-chat {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    padding: calc(12px + var(--safe-t)) 16px calc(16px + var(--safe-b));
+    background: var(--c-card-solid);
+    animation: ai-up 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
-  .xs-sheet {
-    width: 100%;
-    height: auto;
-    max-height: 88%;
-    border-left: none;
-    border-top-left-radius: var(--r-panel);
-    border-top-right-radius: var(--r-panel);
-    box-shadow: 0 -18px 44px rgba(15, 27, 61, 0.22);
-    animation-name: xs-up;
+  @keyframes ai-up {
+    0%   { opacity: 0; transform: translate3d(0, 24%, 0); }
+    70%  { opacity: 1; transform: translate3d(0, -1.5%, 0); }
+    100% { opacity: 1; transform: none; }
   }
-  @keyframes xs-up {
-    from { transform: translate3d(0, 100%, 0); }
-    to   { transform: translate3d(0, 0, 0); }
+  .ai-chat-head {
+    padding: 4px 0 8px;
   }
-  .xs-head { padding: 16px 16px 12px; }
-  .xs-context { padding: 12px 16px; }
-  .xs-body { padding: 16px 16px 28px; }
+  .ai-chat-close {
+    min-height: 44px;
+    padding: 10px 20px;
+    background: var(--c-surface3);
+  }
+  .ai-chat-thread {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 8px;
+    gap: 10px;
+  }
+  .ai-bubble { max-width: 88%; font-size: 15px; padding: 13px 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .xs-sheet, .xs-scrim { animation: none; }
-  .xs-dots i { animation: none; opacity: 0.7; }
+  .ai-chat, .ai-bubble, .ai-chat-mark, .ai-chat-dots i {
+    animation: none !important;
+  }
 }
