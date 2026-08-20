@@ -142,7 +142,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   }
 
   const { questions: parsed } = await res.json();
-  if (!Array.isArray(parsed)) throw new Error("Expected a JSON array from Claude.");
+  if (!Array.isArray(parsed)) throw new Error("The generator returned something unexpected. Try again.");
 
   return parsed.map(q => ({
     cat: category,
