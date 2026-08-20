@@ -4,11 +4,11 @@ import { supabase } from "../lib/supabase";
 import { splitMarks } from "../lib/formatExplain";
 
 /**
- * A centred window after a wrong answer — not a drawer, not a chatbot.
+ * A small tutor thread over the still-visible missed question.
  *
- * The card already showed which row was red and which was green. This window
- * restates that in words so the prose underneath has a subject, then explains
- * the miss. Close (or the blurred surround, or Escape) puts you back.
+ * Chrome (You / Answer) stays put so the prose has a subject. The thread is
+ * talk, not a document — no restated stem, no section titles, no composer.
+ * Close, the blurred surround, or Escape puts you back on the card.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
@@ -28,6 +28,16 @@ function ExplainText({ text }) {
     if (part.kind === "em") return <em key={i}>{part.text}</em>;
     return <span key={i}>{part.text}</span>;
   });
+}
+
+function Chip({ tone, kicker, letter, text }) {
+  return (
+    <p className={`ai-chip is-${tone}`}>
+      <span className="ai-chip-kicker">{kicker}</span>
+      {letter && <span className="ai-chip-letter">{letter}</span>}
+      <span className="ai-chip-text">{text}</span>
+    </p>
+  );
 }
 
 export default function ExplainChat({ q, picked, onClose }) {
@@ -77,21 +87,9 @@ export default function ExplainChat({ q, picked, onClose }) {
 
   const replies = detail
     ? [
-        detail.whyWrong && {
-          k: "why",
-          lead: "Why that isn't right",
-          text: detail.whyWrong,
-        },
-        detail.whyRight && {
-          k: "right",
-          lead: `Why the answer is ${LETTERS[q.ans]}`,
-          text: detail.whyRight,
-        },
-        detail.remember && {
-          k: "keep",
-          lead: "Worth remembering",
-          text: detail.remember,
-        },
+        detail.whyWrong && { k: "why", text: detail.whyWrong },
+        detail.whyRight && { k: "right", text: detail.whyRight },
+        detail.remember && { k: "keep", text: detail.remember },
       ].filter(Boolean)
     : [];
 
@@ -146,31 +144,24 @@ export default function ExplainChat({ q, picked, onClose }) {
           </button>
         </header>
 
-        <div className="ai-chat-about">
-          <p className="ai-chat-q">{q.q}</p>
-          {chose && (
-            <p className="ai-chat-pick is-bad">
-              <span>You picked</span>
-              {letter} — {chose}
-            </p>
-          )}
-          {!chose && (
-            <p className="ai-chat-pick is-bad">
-              <span>You picked</span>
-              nothing — time ran out
-            </p>
-          )}
-          <p className="ai-chat-pick is-ok">
-            <span>Answer</span>
-            {LETTERS[q.ans]} — {q.opts[q.ans]}
-          </p>
+        <div className="ai-chat-chips">
+          <Chip
+            tone="bad"
+            kicker="You"
+            letter={letter}
+            text={chose || "nothing — time ran out"}
+          />
+          <Chip
+            tone="ok"
+            kicker="Ans"
+            letter={LETTERS[q.ans]}
+            text={q.opts[q.ans]}
+          />
         </div>
 
         <div className="ai-chat-thread" aria-live="polite">
           {state === "loading" && (
-            <p className="ai-chat-wait">
-              {letter ? `Looking at ${letter}…` : "Looking at this…"}
-            </p>
+            <p className="ai-chat-wait">One moment…</p>
           )}
 
           {state === "error" && (
@@ -187,13 +178,12 @@ export default function ExplainChat({ q, picked, onClose }) {
           )}
 
           {state === "done" && replies.slice(0, shown).map(msg => (
-            <div
+            <p
               key={msg.k}
               className={`ai-bubble is-ai${msg.k === "keep" ? " is-keep" : ""}`}
             >
-              <p className="ai-bubble-lead">{msg.lead}</p>
-              <p className="ai-bubble-body"><ExplainText text={msg.text} /></p>
-            </div>
+              <ExplainText text={msg.text} />
+            </p>
           ))}
         </div>
       </div>
