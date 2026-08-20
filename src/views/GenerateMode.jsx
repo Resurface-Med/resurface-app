@@ -225,6 +225,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   if (!Array.isArray(parsed)) throw new Error("The generator returned something unexpected. Try again.");
 
   return parsed.map(q => ({
+    gen: true,
     cat: category,
     year,
     block,

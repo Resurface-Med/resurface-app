@@ -620,6 +620,150 @@ body::after {
   line-height: 1.7;
 }
 
+/* ── Still don't get it? ───────────────────────────────────────────────
+   Sits inside the feedback block, below the bank's own explanation, so
+   it reads as "more of this" rather than a separate feature. Quiet until
+   asked: a button that looks like a link, not a call to action. */
+.q-deeper-ask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.q-deeper-btn {
+  padding: 7px 13px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-sub);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.16s, border-color 0.16s;
+}
+.q-deeper-btn:hover:not(:disabled) {
+  color: var(--c-accent);
+  border-color: var(--c-accent-brd);
+}
+.q-deeper-btn:disabled { opacity: 0.6; cursor: default; }
+.q-deeper-error { font-size: 12.5px; color: var(--c-danger); }
+
+.q-deeper {
+  margin-top: 13px;
+  padding: 13px 15px;
+  border-radius: var(--r-card);
+  background: var(--c-accent-dim);
+  border: 1px solid var(--c-accent-brd);
+}
+.q-deeper-row {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--c-text);
+  margin: 0 0 10px;
+}
+.q-deeper-row:last-child { margin-bottom: 0; }
+.q-deeper-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin-bottom: 3px;
+}
+/* The one line worth carrying out of the question. */
+.q-deeper-keep {
+  margin: 12px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--c-accent-brd);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--c-text);
+}
+
+/* ── Report a problem ──────────────────────────────────────────────────
+   Deliberately the smallest thing on the card. It has to be findable the
+   moment a question is wrong and invisible the rest of the time. */
+.q-flag-open {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--c-border);
+}
+.q-flag-open:hover { color: var(--c-sub); }
+
+.q-flag {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--c-border);
+  background: var(--c-card-solid);
+}
+.q-flag-title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-sub);
+  margin-bottom: 9px;
+}
+.q-flag-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.q-flag-reason {
+  padding: 7px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.16s, border-color 0.16s;
+}
+.q-flag-reason:hover {
+  color: var(--c-accent);
+  border-color: var(--c-accent-brd);
+}
+.q-flag-cancel {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.q-flag-done {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+.q-flag-undo {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-sub);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .q-actions {
   display: flex;
   gap: 10px;

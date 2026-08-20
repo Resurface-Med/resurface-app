@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
+import DeeperExplanation from "./DeeperExplanation";
+import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
 
 /**
@@ -267,8 +269,17 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 : `Incorrect — answer: ${q.opts[q.ans]}`}
           </div>
           <div className="q-feedback-body">{q.exp}</div>
+
+          {/* Only when they got it wrong: there is a specific misconception to
+              address, and someone who was right does not need asking. */}
+          {sel !== q.ans && <DeeperExplanation q={q} picked={sel} />}
         </div>
       )}
+
+      {/* Bank questions only. A generated question is one person's own, so a
+          flag on it tells the cohort nothing — and its id comes from a
+          different table whose serial overlaps the bank's. */}
+      {answered && !q.gen && <FlagQuestion questionId={q.id} />}
 
       {/* One home for whatever the card is asking you to do next.
           On a phone this sticks to the bottom of the viewport: once an answer

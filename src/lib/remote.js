@@ -81,6 +81,17 @@ function apply(op) {
       }).eq("id", op.userId);
     case "timed-best":
       return supabase.from("timed_bests").upsert({ user_id: op.userId, scope: op.scope, score: op.score });
+    case "flag":
+      // One row per person per question, so flagging again is a correction
+      // rather than a second vote.
+      return supabase.from("question_flags").upsert({
+        user_id: op.userId, question_id: op.questionId,
+        reason: op.reason, note: op.note ?? null,
+        created_at: new Date().toISOString(),
+      });
+    case "flag-remove":
+      return supabase.from("question_flags").delete()
+        .eq("user_id", op.userId).eq("question_id", op.questionId);
     case "question-edit":
       return supabase.from("question_edits").upsert({
         user_id: op.userId, question_id: op.questionId,
@@ -173,7 +184,10 @@ export async function loadAll(userId) {
     displayName: profile.data?.display_name ?? "",
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
     timedBests,
-    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: Number(r.id) })),
+    // gen marks these as one person's own questions. Their ids come from this
+    // table's serial and so overlap the bank's, which matters for anything
+    // keyed on question_id — flags are cohort-wide, these are not.
+    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: Number(r.id), gen: true })),
     questionEdits,
   };
 }
@@ -204,6 +218,8 @@ export const remote = {
   }),
   timedBest:(userId, scope, score)=> send({ kind: "timed-best", userId, scope, score }),
   questionEdit: (userId, questionId, payload) => send({ kind: "question-edit", userId, questionId, payload }),
+  flag:       (userId, questionId, reason, note) => send({ kind: "flag", userId, questionId, reason, note }),
+  unflag:     (userId, questionId)               => send({ kind: "flag-remove", userId, questionId }),
   addGenerated: (userId, questions) =>
     send({ kind: "generated-add", rows: questions.map(q => ({ user_id: userId, payload: q })) }),
   clearGenerated: (userId) => send({ kind: "generated-clear", userId }),
