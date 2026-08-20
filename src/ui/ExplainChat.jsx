@@ -1,26 +1,33 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabase";
+import { splitMarks } from "../lib/formatExplain";
 
 /**
- * A one-shot chat after a wrong answer.
+ * A centred window after a wrong answer — not a drawer, not a chatbot.
  *
- * Tapping Ask Resurface AI *is* the question — there is no composer, because
- * the API cannot continue a conversation. The option they picked shows as
- * their bubble; the three replies land one after another.
- *
- * On a desk this sits under the bank explanation. On a phone it takes the
- * whole screen, so the close control has to be obvious: that is the only way
- * back to the card.
+ * The card already showed which row was red and which was green. This window
+ * restates that in words so the prose underneath has a subject, then explains
+ * the miss. Close (or the blurred surround, or Escape) puts you back.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
   || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
 
 const STAGGER_MS = 280;
+const LETTERS = "ABCDE";
 
 function prefersReducedMotion() {
   return typeof window !== "undefined"
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function ExplainText({ text }) {
+  return splitMarks(text).map((part, i) => {
+    if (part.kind === "strong") return <strong key={i}>{part.text}</strong>;
+    if (part.kind === "em") return <em key={i}>{part.text}</em>;
+    return <span key={i}>{part.text}</span>;
+  });
 }
 
 export default function ExplainChat({ q, picked, onClose }) {
@@ -70,9 +77,21 @@ export default function ExplainChat({ q, picked, onClose }) {
 
   const replies = detail
     ? [
-        detail.whyWrong && { k: "why", text: detail.whyWrong },
-        detail.whyRight && { k: "right", text: detail.whyRight },
-        detail.remember && { k: "keep", text: detail.remember },
+        detail.whyWrong && {
+          k: "why",
+          lead: "Why that isn't right",
+          text: detail.whyWrong,
+        },
+        detail.whyRight && {
+          k: "right",
+          lead: `Why the answer is ${LETTERS[q.ans]}`,
+          text: detail.whyRight,
+        },
+        detail.remember && {
+          k: "keep",
+          lead: "Worth remembering",
+          text: detail.remember,
+        },
       ].filter(Boolean)
     : [];
 
@@ -87,7 +106,6 @@ export default function ExplainChat({ q, picked, onClose }) {
       setTimeout(() => setShown(i + 2), STAGGER_MS * (i + 1))
     );
     return () => timers.forEach(clearTimeout);
-    // replies is rebuilt each render; length + texts are what we actually wait on.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, detail]);
 
@@ -101,66 +119,85 @@ export default function ExplainChat({ q, picked, onClose }) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
-  // A phone overlay would otherwise scroll the practice screen underneath.
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 900px)");
-    if (!mq.matches) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, []);
 
   const chose = Number.isInteger(picked) && q.opts[picked] ? q.opts[picked] : null;
-  const letter = Number.isInteger(picked) ? "ABCDE"[picked] : null;
+  const letter = Number.isInteger(picked) ? LETTERS[picked] : null;
 
-  return (
-    <div className="ai-chat" role="region" aria-label="Resurface AI">
-      <header className="ai-chat-head">
-        <div className="ai-chat-brand">
-          <span className="ai-chat-mark" aria-hidden="true" />
-          Resurface AI
+  return createPortal(
+    <div
+      className="ai-scrim"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="ai-chat"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ai-chat-title"
+      >
+        <header className="ai-chat-head">
+          <h2 id="ai-chat-title" className="ai-chat-brand">Resurface AI</h2>
+          <button type="button" className="ai-chat-close btn-press" onClick={onClose}>
+            Close
+          </button>
+        </header>
+
+        <div className="ai-chat-about">
+          <p className="ai-chat-q">{q.q}</p>
+          {chose && (
+            <p className="ai-chat-pick is-bad">
+              <span>You picked</span>
+              {letter} — {chose}
+            </p>
+          )}
+          {!chose && (
+            <p className="ai-chat-pick is-bad">
+              <span>You picked</span>
+              nothing — time ran out
+            </p>
+          )}
+          <p className="ai-chat-pick is-ok">
+            <span>Answer</span>
+            {LETTERS[q.ans]} — {q.opts[q.ans]}
+          </p>
         </div>
-        <button type="button" className="ai-chat-close btn-press" onClick={onClose}>
-          Close
-        </button>
-      </header>
 
-      <div className="ai-chat-thread" aria-live="polite">
-        {chose && (
-          <p className="ai-bubble is-you">
-            I went with {letter} — {chose}
-          </p>
-        )}
+        <div className="ai-chat-thread" aria-live="polite">
+          {state === "loading" && (
+            <p className="ai-chat-wait">
+              {letter ? `Looking at ${letter}…` : "Looking at this…"}
+            </p>
+          )}
 
-        {state === "loading" && (
-          <div className="ai-bubble is-ai is-typing">
-            <span className="ai-chat-dots" aria-hidden="true"><i /><i /><i /></span>
-            Looking at what you picked…
-          </div>
-        )}
+          {state === "error" && (
+            <div className="ai-bubble is-ai is-error">
+              <p>{error}</p>
+              <button
+                type="button"
+                className="ai-chat-retry btn-press"
+                onClick={() => setAttempt(n => n + 1)}
+              >
+                Try again
+              </button>
+            </div>
+          )}
 
-        {state === "error" && (
-          <div className="ai-bubble is-ai is-error">
-            <p>{error}</p>
-            <button
-              type="button"
-              className="ai-chat-retry btn-press"
-              onClick={() => setAttempt(n => n + 1)}
+          {state === "done" && replies.slice(0, shown).map(msg => (
+            <div
+              key={msg.k}
+              className={`ai-bubble is-ai${msg.k === "keep" ? " is-keep" : ""}`}
             >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {state === "done" && replies.slice(0, shown).map(msg => (
-          <p
-            key={msg.k}
-            className={`ai-bubble is-ai${msg.k === "keep" ? " is-keep" : ""}`}
-          >
-            {msg.text}
-          </p>
-        ))}
+              <p className="ai-bubble-lead">{msg.lead}</p>
+              <p className="ai-bubble-body"><ExplainText text={msg.text} /></p>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("root") || document.body,
   );
 }
