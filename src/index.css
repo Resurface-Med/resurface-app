@@ -401,6 +401,15 @@ body::after {
   gap: 2px;
   flex-shrink: 0;
 }
+/* Needs a display of its own. The mobile pass added this wrapper only to hide
+   edit and copy together below the breakpoint, so its one rule lived inside the
+   media query — leaving a bare span that flex blockifies on desktop, stacking
+   the two buttons vertically with the star beside them. */
+.q-tool-extra {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
 .q-tool:hover {
   color: var(--c-muted) !important;
   background: var(--c-surface3);
