@@ -6,8 +6,8 @@ import { splitMarks } from "../lib/formatExplain";
 /**
  * A small tutor thread over the still-visible missed question.
  *
- * Chrome (You / Answer) stays put so the prose has a subject. The thread is
- * talk, not a document — no restated stem, no section titles, no composer.
+ * The stem and You / Ans chips stay put. Each reply is a labelled bubble —
+ * why the pick was the trap, why the answer is right, one line to keep.
  * Close, the blurred surround, or Escape puts you back on the card.
  */
 
@@ -34,7 +34,7 @@ function Chip({ tone, kicker, letter, text }) {
   return (
     <p className={`ai-chip is-${tone}`}>
       <span className="ai-chip-kicker">{kicker}</span>
-      {letter && <span className="ai-chip-letter">{letter}</span>}
+      {letter && <span className="ai-chip-badge">{letter}</span>}
       <span className="ai-chip-text">{text}</span>
     </p>
   );
@@ -85,11 +85,27 @@ export default function ExplainChat({ q, picked, onClose }) {
     return () => { live = false; };
   }, [q, picked, attempt]);
 
+  const letter = Number.isInteger(picked) ? LETTERS[picked] : null;
+  const chose = Number.isInteger(picked) && q.opts[picked] ? q.opts[picked] : null;
+  const right = LETTERS[q.ans];
+
   const replies = detail
     ? [
-        detail.whyWrong && { k: "why", text: detail.whyWrong },
-        detail.whyRight && { k: "right", text: detail.whyRight },
-        detail.remember && { k: "keep", text: detail.remember },
+        detail.whyWrong && {
+          k: "why",
+          title: letter ? `Why ${letter} isn’t right` : "Why that isn’t right",
+          text: detail.whyWrong,
+        },
+        detail.whyRight && {
+          k: "right",
+          title: `Why it’s ${right}`,
+          text: detail.whyRight,
+        },
+        detail.remember && {
+          k: "keep",
+          title: "Take this",
+          text: detail.remember,
+        },
       ].filter(Boolean)
     : [];
 
@@ -123,9 +139,6 @@ export default function ExplainChat({ q, picked, onClose }) {
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  const chose = Number.isInteger(picked) && q.opts[picked] ? q.opts[picked] : null;
-  const letter = Number.isInteger(picked) ? LETTERS[picked] : null;
-
   return createPortal(
     <div
       className="ai-scrim"
@@ -144,6 +157,8 @@ export default function ExplainChat({ q, picked, onClose }) {
           </button>
         </header>
 
+        <p className="ai-chat-q">{q.q}</p>
+
         <div className="ai-chat-chips">
           <Chip
             tone="bad"
@@ -154,7 +169,7 @@ export default function ExplainChat({ q, picked, onClose }) {
           <Chip
             tone="ok"
             kicker="Ans"
-            letter={LETTERS[q.ans]}
+            letter={right}
             text={q.opts[q.ans]}
           />
         </div>
@@ -165,25 +180,28 @@ export default function ExplainChat({ q, picked, onClose }) {
           )}
 
           {state === "error" && (
-            <div className="ai-bubble is-ai is-error">
-              <p>{error}</p>
-              <button
-                type="button"
-                className="ai-chat-retry btn-press"
-                onClick={() => setAttempt(n => n + 1)}
-              >
-                Try again
-              </button>
+            <div className="ai-turn">
+              <span className="ai-turn-title">Couldn’t get there</span>
+              <div className="ai-bubble is-ai is-error">
+                <p>{error}</p>
+                <button
+                  type="button"
+                  className="ai-chat-retry btn-press"
+                  onClick={() => setAttempt(n => n + 1)}
+                >
+                  Try again
+                </button>
+              </div>
             </div>
           )}
 
           {state === "done" && replies.slice(0, shown).map(msg => (
-            <p
-              key={msg.k}
-              className={`ai-bubble is-ai${msg.k === "keep" ? " is-keep" : ""}`}
-            >
-              <ExplainText text={msg.text} />
-            </p>
+            <div key={msg.k} className={`ai-turn is-${msg.k}`}>
+              <span className="ai-turn-title">{msg.title}</span>
+              <p className={`ai-bubble is-ai${msg.k === "keep" ? " is-keep" : ""}`}>
+                <ExplainText text={msg.text} />
+              </p>
+            </div>
           ))}
         </div>
       </div>
