@@ -18,7 +18,20 @@ import { supabase } from "../lib/supabase";
 const API_BASE = import.meta.env.VITE_API_BASE
   || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
 
+// Only the images-in-a-PDF fallback is still bounded by this. The size limit
+// exists because a file is base64-encoded into a JSON body — which inflates it
+// by a third — and Vercel refuses a request body over 4.5MB. Text extraction
+// sidesteps it entirely: the words in a 40MB deck are a few tens of kilobytes.
 const MAX_FILE_BYTES = 3 * 1024 * 1024;
+
+// Reading a file this big into browser memory is the real limit now, and it is
+// far past any lecture.
+const MAX_READ_BYTES = 60 * 1024 * 1024;
+
+// Under this much extracted text, assume the pages are pictures — scanned
+// notes, or slides that are one exported image each — and send the file itself
+// so the model can still see them.
+const MIN_USEFUL_CHARS = 220;
 
 const DIFFICULTIES = [
   { k: "easy",   label: "Easy",   hint: "Single-fact recall" },
@@ -78,6 +91,59 @@ async function extractPptx(file) {
   return text;
 }
 
+/**
+ * The words out of a PDF, page by page.
+ *
+ * PowerPoint has always been handled this way and PDFs were the one path still
+ * shipping raw bytes, which is why they were the only ones hitting a size
+ * limit. Extracting first also costs about a third as much: a page sent as an
+ * image is billed at 258 tokens whatever is on it, while the same page as text
+ * is usually well under a hundred.
+ */
+let pdfjsPromise = null;
+
+/**
+ * pdf.js is 150KB gzipped — more than the rest of this screen put together —
+ * so it is fetched when someone actually picks a PDF rather than when the page
+ * opens. Cached after the first call, because a second lecture should not wait
+ * for the same download twice.
+ */
+async function loadPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = (async () => {
+      const [pdfjs, worker] = await Promise.all([
+        import("pdfjs-dist"),
+        import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+      ]);
+      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+      return pdfjs;
+    })();
+  }
+  return pdfjsPromise;
+}
+
+async function extractPdf(file) {
+  const pdfjs = await loadPdfjs();
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjs.getDocument({ data: buf }).promise;
+
+  let text = "";
+  for (let i = 1; i <= doc.numPages; i += 1) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      .map(it => it.str)
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (pageText) text += `\n--- Slide ${i} ---\n${pageText}`;
+    page.cleanup();
+  }
+
+  doc.destroy();
+  return text.trim();
+}
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -93,19 +159,33 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   if (file) {
     const ext = file.name.split(".").pop().toLowerCase();
 
-    if (ext !== "pptx" && ext !== "ppt" && file.size > MAX_FILE_BYTES) {
-      throw new Error(`That file is ${(file.size / 1024 / 1024).toFixed(1)}MB — the limit is 3MB. Try splitting it or pasting the text instead.`);
+    const isDoc = ext === "pptx" || ext === "ppt" || ext === "pdf";
+
+    if (isDoc && file.size > MAX_READ_BYTES) {
+      throw new Error(`That file is ${(file.size / 1024 / 1024).toFixed(0)}MB, which is more than the browser can open. Split it and try again.`);
+    }
+    if (!isDoc && file.size > MAX_FILE_BYTES) {
+      throw new Error(`That image is ${(file.size / 1024 / 1024).toFixed(1)}MB — the limit is 3MB for images. Try a smaller one.`);
     }
 
     if (ext === "pptx" || ext === "ppt") {
       const text = await extractPptx(file);
       userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
     } else if (ext === "pdf") {
-      const b64 = await fileToBase64(file);
-      userContent = [
-        { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } },
-        { type: "text", text: `Topic: ${deck} / ${category}` },
-      ];
+      const text = await extractPdf(file);
+
+      if (text.length >= MIN_USEFUL_CHARS) {
+        userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
+      } else if (file.size <= MAX_FILE_BYTES) {
+        // Nothing to read, so the pages must be pictures. Send them.
+        const b64 = await fileToBase64(file);
+        userContent = [
+          { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } },
+          { type: "text", text: `Topic: ${deck} / ${category}` },
+        ];
+      } else {
+        throw new Error("That PDF has no selectable text — the pages look like images — and it's too large to send as one. Try splitting it, or paste the text in instead.");
+      }
     } else if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
       const b64 = await fileToBase64(file);
       const mt = ext === "jpg" || ext === "jpeg" ? "image/jpeg"
