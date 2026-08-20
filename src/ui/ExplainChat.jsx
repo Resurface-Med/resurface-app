@@ -6,9 +6,9 @@ import { splitMarks } from "../lib/formatExplain";
 /**
  * A small tutor thread over the still-visible missed question.
  *
- * The stem and You / Ans chips stay put. Each reply is a labelled bubble —
- * why the pick was the trap, why the answer is right, one line to keep.
- * Close, the blurred surround, or Escape puts you back on the card.
+ * The stem and You / Ans chips stay put. Each reply is labelled so you know
+ * whether it is the trap, the answer, or the line to keep. Close, the blur,
+ * or Escape puts you back on the card.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
@@ -34,7 +34,7 @@ function Chip({ tone, kicker, letter, text }) {
   return (
     <p className={`ai-chip is-${tone}`}>
       <span className="ai-chip-kicker">{kicker}</span>
-      {letter && <span className="ai-chip-badge">{letter}</span>}
+      {letter && <span className="ai-chip-letter">{letter}</span>}
       <span className="ai-chip-text">{text}</span>
     </p>
   );
@@ -196,7 +196,7 @@ export default function ExplainChat({ q, picked, onClose }) {
           )}
 
           {state === "done" && replies.slice(0, shown).map(msg => (
-            <div key={msg.k} className={`ai-turn is-${msg.k}`}>
+            <div key={msg.k} className="ai-turn">
               <span className="ai-turn-title">{msg.title}</span>
               <p className={`ai-bubble is-ai${msg.k === "keep" ? " is-keep" : ""}`}>
                 <ExplainText text={msg.text} />
