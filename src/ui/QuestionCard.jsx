@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
-import DeeperExplanation from "./DeeperExplanation";
+import ExplainSheet from "./ExplainSheet";
 import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
 
@@ -20,6 +20,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const [eliminated, setEliminated] = useState(new Set());
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [explaining, setExplaining] = useState(false);
 
   function handleCopy() {
     const letters = "ABCDE";
@@ -46,6 +48,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   useEffect(() => {
     setPending(null);
     setEliminated(new Set());
+    setShowAll(false);
+    setExplaining(false);
   }, [q?.id]);
 
   useEffect(() => {
@@ -136,6 +140,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
+    {explaining && <ExplainSheet q={q} picked={sel} onClose={() => setExplaining(false)} />}
     <div style={qcard} className="q-card anim-scale-in">
       {/* No category label. "Hormone Signalling" printed above "Adrenergic
           receptors B1 are coupled to:" narrows the answer space before the
@@ -184,7 +189,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
       <p className="anim-fade-up delay-0" style={{ ...qstem, marginBottom: 20 }}>{q.q}</p>
 
-      <div className="q-opts" role="listbox" aria-label="Answers">
+      <div
+        className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}
+        role="listbox"
+        aria-label="Answers"
+      >
         {q.opts.map((opt, i) => {
           const ok = i === q.ans;
           const picked = i === sel;
@@ -208,6 +217,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           }
 
           const wrongNote = answered && !ok && q.optExp?.[i];
+          // Collapsed review shows two rows: what you said, and what was right.
+          const hidden = answered && !showAll && !ok && !picked;
 
           return (
             <button
@@ -216,6 +227,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               role="option"
               aria-selected={isPending || picked}
               onClick={() => handleOptionClick(i)}
+              hidden={hidden}
               className={`q-opt is-${state} ${animClass}`.trim()}
             >
               <div className="q-opt-row">
@@ -243,7 +255,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 )}
               </div>
 
-              {wrongNote && (
+              {wrongNote && (picked || showAll) && (
                 <div className={`q-opt-note${picked ? " is-picked" : ""}`}>
                   {wrongNote}
                 </div>
@@ -259,27 +271,43 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         </div>
       )}
 
+      {/* The rows above already say which was right and which you took, in
+          colour, with a tick and a cross. A red heading repeating it in words
+          was the same fact a third time, and it competed with the green row for
+          the eye. What is left is the part that teaches. */}
       {answered && (
-        <div className={`q-feedback anim-fade-up${sel === q.ans ? " is-ok" : " is-bad"}`}>
-          <div className="q-feedback-title">
-            {sel === q.ans
-              ? "Correct"
-              : timedOut && sel === null
-                ? `Timed out — answer: ${q.opts[q.ans]}`
-                : `Incorrect — answer: ${q.opts[q.ans]}`}
-          </div>
-          <div className="q-feedback-body">{q.exp}</div>
+        <div className="q-review anim-fade-up">
+          <button
+            type="button"
+            className="q-allopts"
+            onClick={() => setShowAll(v => !v)}
+            aria-expanded={showAll}
+          >
+            {showAll ? "Hide the others" : `All ${q.opts.length} options`}
+            <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">▾</span>
+          </button>
 
-          {/* Only when they got it wrong: there is a specific misconception to
-              address, and someone who was right does not need asking. */}
-          {sel !== q.ans && <DeeperExplanation q={q} picked={sel} />}
+          <p className="q-exp">{q.exp}</p>
+
+          <div className="q-review-tools">
+            {/* Offered only on a wrong answer: there is a specific misconception
+                to address, and someone who was right does not need asking. */}
+            {sel !== q.ans && (
+              <button
+                type="button"
+                className="q-deeper-btn btn-press"
+                onClick={() => setExplaining(true)}
+              >
+                Still don&apos;t get it?
+              </button>
+            )}
+            {/* Bank questions only. A generated question is one person's own, so
+                a flag on it tells the cohort nothing — and its id comes from a
+                different table whose serial overlaps the bank's. */}
+            {!q.gen && <FlagQuestion questionId={q.id} />}
+          </div>
         </div>
       )}
-
-      {/* Bank questions only. A generated question is one person's own, so a
-          flag on it tells the cohort nothing — and its id comes from a
-          different table whose serial overlaps the bank's. */}
-      {answered && !q.gen && <FlagQuestion questionId={q.id} />}
 
       {/* One home for whatever the card is asking you to do next.
           On a phone this sticks to the bottom of the viewport: once an answer

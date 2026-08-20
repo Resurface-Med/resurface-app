@@ -393,7 +393,7 @@ body::after {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 .q-card-tools {
   display: flex;
@@ -418,7 +418,7 @@ body::after {
 .q-opts {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .q-opt {
@@ -426,7 +426,7 @@ body::after {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
-  padding: 12px 14px;
+  padding: 10px 13px;
   /* A stadium, not a pill. --r-pill is 999px, which only reads as intentional
      on something one line tall — the moment an option wraps to two lines the
      ends bulge into semicircles and the row looks like a lozenge with text
@@ -486,8 +486,8 @@ body::after {
   width: 100%;
 }
 .q-opt-letter {
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -629,69 +629,225 @@ body::after {
   line-height: 1.7;
 }
 
-/* ── Still don't get it? ───────────────────────────────────────────────
-   Sits inside the feedback block, below the bank's own explanation, so
-   it reads as "more of this" rather than a separate feature. Quiet until
-   asked: a button that looks like a link, not a call to action. */
-.q-deeper-ask {
+/* ── Review phase ─────────────────────────────────────────────────────
+   Answering and reviewing are two different screens wearing one layout. While
+   you answer, five equal rows. Once you commit, the rows you did not take fold
+   away and the space goes to the part that teaches. */
+
+.q-opts.is-review .q-opt { cursor: default; }
+/* [hidden] is a UA rule at specificity zero and .q-opt sets display: flex, so
+   the attribute alone would hide nothing. */
+.q-opt[hidden] { display: none; }
+.q-opts.is-collapsed { gap: 6px; }
+
+.q-review {
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+.q-allopts {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  margin-bottom: 12px;
+  border: 0;
+  background: none;
+  color: var(--c-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.q-allopts:hover { color: var(--c-accent); }
+.q-allopts-chev {
+  font-size: 9px;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.q-allopts-chev.is-open { transform: rotate(180deg); }
+
+.q-exp {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-sub);
+  line-height: 1.7;
+}
+
+.q-review-tools {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 12px;
   flex-wrap: wrap;
+  margin-top: 14px;
 }
 .q-deeper-btn {
-  padding: 7px 13px;
+  padding: 8px 14px;
   border-radius: var(--r-pill);
-  border: 1px solid var(--c-border);
-  background: transparent;
-  color: var(--c-sub);
+  border: 1px solid var(--c-accent-brd);
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
   font-size: 12.5px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.16s, border-color 0.16s;
+  transition: background 0.16s, border-color 0.16s;
 }
-.q-deeper-btn:hover:not(:disabled) {
-  color: var(--c-accent);
-  border-color: var(--c-accent-brd);
-}
-.q-deeper-btn:disabled { opacity: 0.6; cursor: default; }
-.q-deeper-error { font-size: 12.5px; color: var(--c-danger); }
+.q-deeper-btn:hover { background: var(--c-accent-glow); }
+.q-review-tools .q-flag-open { margin-top: 0; margin-left: auto; }
+.q-review-tools .q-flag-done { margin: 0 0 0 auto; }
 
-.q-deeper {
-  margin-top: 13px;
-  padding: 13px 15px;
+/* ── Deeper explanation sheet ──────────────────────────────────────────
+   Off to the side, so the card keeps its place and its height. The text is
+   about the option you picked, so the question has to stay visible — which is
+   why this is a sheet and not a route. */
+
+.xs-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(26, 47, 122, 0.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: xs-fade 0.2s ease both;
+}
+@keyframes xs-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.xs-sheet {
+  width: min(440px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-card-bg);
+  border-left: 1px solid var(--c-border);
+  box-shadow: -18px 0 44px rgba(15, 27, 61, 0.18);
+  animation: xs-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes xs-in {
+  from { transform: translate3d(100%, 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+
+.xs-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+.xs-eyebrow {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  margin-bottom: 5px;
+}
+.xs-q {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+}
+.xs-close {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--c-border);
+  border-radius: 50%;
+  background: var(--c-card-solid);
+  color: var(--c-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.xs-close:hover { color: var(--c-text); border-color: var(--c-muted); }
+
+.xs-context {
+  padding: 13px 20px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+.xs-ctx-row {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--c-text);
+}
+.xs-ctx-row + .xs-ctx-row { margin-top: 6px; }
+.xs-ctx-label {
+  display: inline-block;
+  min-width: 62px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.xs-ctx-row.is-bad .xs-ctx-label { color: var(--c-danger); }
+.xs-ctx-row.is-ok  .xs-ctx-label { color: var(--c-success); }
+
+.xs-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 20px 26px;
+}
+.xs-sec + .xs-sec { margin-top: 18px; }
+.xs-sec p, .xs-keep p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--c-sub);
+}
+.xs-sec-title {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+.xs-keep {
+  margin-top: 20px;
+  padding: 14px 16px;
   border-radius: var(--r-card);
   background: var(--c-accent-dim);
   border: 1px solid var(--c-accent-brd);
 }
-.q-deeper-row {
+.xs-keep p { color: var(--c-text); font-weight: 500; }
+
+.xs-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 13.5px;
-  line-height: 1.65;
-  color: var(--c-text);
-  margin: 0 0 10px;
+  color: var(--c-muted);
 }
-.q-deeper-row:last-child { margin-bottom: 0; }
-.q-deeper-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--c-accent);
-  margin-bottom: 3px;
+.xs-dots { display: inline-flex; gap: 3px; }
+.xs-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  animation: xs-blink 1.1s ease-in-out infinite both;
 }
-/* The one line worth carrying out of the question. */
-.q-deeper-keep {
-  margin: 12px 0 0;
-  padding-top: 11px;
-  border-top: 1px solid var(--c-accent-brd);
-  font-size: 13.5px;
-  font-weight: 600;
-  line-height: 1.55;
-  color: var(--c-text);
+.xs-dots i:nth-child(2) { animation-delay: 0.16s; }
+.xs-dots i:nth-child(3) { animation-delay: 0.32s; }
+@keyframes xs-blink {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40%           { opacity: 1;    transform: scale(1); }
 }
+.xs-error { margin: 0; font-size: 13.5px; color: var(--c-danger); line-height: 1.6; }
 
 /* ── Report a problem ──────────────────────────────────────────────────
    Deliberately the smallest thing on the card. It has to be findable the
@@ -813,8 +969,15 @@ body::after {
 /* Progress already lives in the top bar. Accuracy belongs in the summary.
    This list only answers “where am I / jump where?” */
 
+/* ─── Session rail ──────────────────────────────────────────────────
+   A map, not a list. Nineteen stacked rows spent most of a screen's height
+   saying "you are on four", and at fifty questions it became a scrolling list
+   inside a scrolling page. The same information is a grid you read in one
+   glance, in the square language the dashboard heatmap already uses, so the
+   two screens look like the same product. */
+
 .q-nav {
-  width: 176px;
+  width: 168px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -827,26 +990,14 @@ body::after {
 }
 .q-nav-head {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 12px 10px;
+  align-items: baseline;
+  gap: 5px;
+  padding: 11px 12px 9px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   flex-shrink: 0;
 }
-.q-nav-head-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-.q-nav-head-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
 .q-nav-count {
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--c-on-field);
   font-variant-numeric: tabular-nums;
@@ -857,96 +1008,53 @@ body::after {
   font-weight: 500;
   color: var(--c-on-field-faint);
 }
-.q-nav-pct {
-  flex-shrink: 0;
-  font-size: 18px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.4px;
-  color: var(--c-on-field);
-  line-height: 1;
-}
-.q-nav-pct-toggle {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--c-on-field-faint);
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: color 0.12s;
-}
-.q-nav-pct-toggle:hover {
-  color: var(--c-on-field);
-}
-.q-nav-list {
+
+.q-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  padding: 10px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 6px;
   flex: 1;
   min-height: 0;
 }
-.q-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 10px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  cursor: pointer;
+.q-nav-cell {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--c-on-field-faint);
   font-family: inherit;
-  text-align: left;
-  transition: background 0.12s ease;
-}
-.q-nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-.q-nav-item.is-current {
-  background: rgba(255, 255, 255, 0.2);
-}
-.q-nav-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  box-sizing: border-box;
-  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
-}
-.q-nav-item.is-current .q-nav-dot {
-  background: var(--c-field-object);
-  border-color: var(--c-field-object);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-field-object) 28%, transparent);
-}
-.q-nav-item.is-ok .q-nav-dot {
-  background: var(--c-of-pos, #3ecf8e);
-  border-color: transparent;
-}
-.q-nav-item.is-bad .q-nav-dot {
-  background: var(--c-of-neg, #f56565);
-  border-color: transparent;
-}
-.q-nav-num {
-  font-size: 13.5px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  color: var(--c-on-field-soft);
-  letter-spacing: -0.15px;
-}
-.q-nav-item.is-current .q-nav-num {
+  font-size: 11.5px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  /* Transform and opacity only — this grid can be fifty cells. */
+  transition: background 0.12s, color 0.12s, transform 0.12s;
+}
+.q-nav-cell:hover {
+  background: rgba(255, 255, 255, 0.3);
   color: var(--c-on-field);
 }
-.q-nav-item.is-ok .q-nav-num,
-.q-nav-item.is-bad .q-nav-num {
-  color: var(--c-on-field-soft);
+.q-nav-cell:active { transform: scale(0.92); }
+
+.q-nav-cell.is-ok {
+  background: var(--c-success);
+  color: #fff;
+}
+.q-nav-cell.is-bad {
+  background: var(--c-danger);
+  color: #fff;
+}
+/* Where you are wins over what you scored: a ring reads at a glance without
+   competing with the green and red for meaning. */
+.q-nav-cell.is-current {
+  background: var(--c-on-field);
+  color: var(--c-accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
 }
 
 @media (max-width: 780px) {
@@ -2638,7 +2746,6 @@ select {
 .profile-appearance { display: none; }
 
 @media (max-width: 900px) {
-  .theme-fab { display: none !important; }
   .profile-appearance { display: block; margin-top: 22px; }
 }
 
@@ -2876,4 +2983,35 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   [data-in] { animation: none; }
+}
+
+/* The sheet is a side panel on a desk and a bottom sheet on a phone — same
+   component, and the thumb is at the bottom of the device either way. */
+@media (max-width: 700px) {
+  .xs-scrim {
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .xs-sheet {
+    width: 100%;
+    height: auto;
+    max-height: 88%;
+    border-left: none;
+    border-top-left-radius: var(--r-panel);
+    border-top-right-radius: var(--r-panel);
+    box-shadow: 0 -18px 44px rgba(15, 27, 61, 0.22);
+    animation-name: xs-up;
+  }
+  @keyframes xs-up {
+    from { transform: translate3d(0, 100%, 0); }
+    to   { transform: translate3d(0, 0, 0); }
+  }
+  .xs-head { padding: 16px 16px 12px; }
+  .xs-context { padding: 12px 16px; }
+  .xs-body { padding: 16px 16px 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xs-sheet, .xs-scrim { animation: none; }
+  .xs-dots i { animation: none; opacity: 0.7; }
 }

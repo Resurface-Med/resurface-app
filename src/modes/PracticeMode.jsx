@@ -9,29 +9,12 @@ import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import TopicPicker from "../ui/TopicPicker";
 import SessionSummary from "../ui/SessionSummary";
 
-const NAV_PCT_KEY = "pq_nav_show_pct";
-function loadNavPct() {
-  try {
-    const v = localStorage.getItem(NAV_PCT_KEY);
-    if (v === null) return true;
-    return v === "1";
-  } catch {
-    return true;
-  }
-}
-
 function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
   const activeRef = useRef(null);
-  const [showPct, setShowPct] = useState(loadNavPct);
 
   useEffect(() => { activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [idx]);
 
-  useEffect(() => {
-    try { localStorage.setItem(NAV_PCT_KEY, showPct ? "1" : "0"); } catch { /* ignore */ }
-  }, [showPct]);
-
   const answered = Object.keys(sels).length;
-  const pct = queue.length > 0 ? Math.round((answered / queue.length) * 100) : 0;
 
   return (
     <nav
@@ -39,29 +22,14 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
       aria-label="Question list"
       style={{ maxHeight: maxHeight ?? undefined }}
     >
+      {/* One line. The fraction and the percentage are the same fact twice, and
+          a control to hide one of them was a third element for it. */}
       <div className="q-nav-head">
-        <div className="q-nav-head-main">
-          <div className="q-nav-head-text">
-            <span className="q-nav-count">{answered}/{queue.length}</span>
-            <span className="q-nav-label">answered</span>
-          </div>
-          {showPct && (
-            <span className="q-nav-pct" aria-label={`${pct}% complete`}>
-              {pct}%
-            </span>
-          )}
-        </div>
-        <button
-          type="button"
-          className="q-nav-pct-toggle"
-          onClick={() => setShowPct(v => !v)}
-          aria-pressed={showPct}
-        >
-          {showPct ? "Hide %" : "Show %"}
-        </button>
+        <span className="q-nav-count">{answered}/{queue.length}</span>
+        <span className="q-nav-label">answered</span>
       </div>
 
-      <div className="q-nav-list">
+      <div className="q-nav-grid">
         {queue.map((_, i) => {
           const isCurrent  = i === idx;
           const isAnswered = sels[i] !== undefined;
@@ -76,12 +44,12 @@ function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
               ref={isCurrent ? activeRef : null}
               type="button"
               onClick={() => onJump(i)}
-              className={`q-nav-item is-${state} btn-press`}
+              className={`q-nav-cell is-${state}`}
               aria-current={isCurrent ? "true" : undefined}
               aria-label={`Question ${i + 1}${isAnswered ? (isCorrect ? ", correct" : ", wrong") : ""}`}
+              title={`Question ${i + 1}`}
             >
-              <span className="q-nav-dot" aria-hidden="true" />
-              <span className="q-nav-num">{i + 1}</span>
+              {i + 1}
             </button>
           );
         })}

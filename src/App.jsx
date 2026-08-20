@@ -69,10 +69,6 @@ export default function App() {
     themeStore.set(theme);
   }, [theme]);
 
-  function toggleTheme() {
-    setTheme(t => t === 'dark' ? 'light' : 'dark');
-  }
-
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
   // user object — so a tab-focus token refresh doesn't remount the whole app
   // and wipe an in-progress practice session.
@@ -274,25 +270,6 @@ export default function App() {
         </div>
       )}
 
-      <button
-        onClick={toggleTheme}
-        className="btn-press theme-fab"
-        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        style={{
-          position: "fixed", zIndex: 500,
-          top: "calc(var(--safe-t) + 14px)", right: "clamp(12px, 2vw, 22px)",
-          height: 36, padding: "0 14px",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-          background: "rgba(255,255,255,0.14)",
-          border: "1px solid rgba(255,255,255,0.28)",
-          borderRadius: "var(--r-pill)",
-          boxShadow: "0 10px 24px rgba(15,27,61,0.15)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          cursor: "pointer", fontSize: 13, fontWeight: 600,
-          color: "var(--c-on-field)", letterSpacing: -0.1,
-        }}
-      >{theme === "dark" ? "Light" : "Night"}</button>
 
       <div className="app-content">
         <div className="app-main">

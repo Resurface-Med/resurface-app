@@ -93,8 +93,8 @@ export const cardSolid = {
  */
 export const qcard = {
   background: "var(--c-card-solid)",
-  borderRadius: 28,
-  padding: "clamp(22px, 3vw, 30px)",
+  borderRadius: 24,
+  padding: "clamp(18px, 2.2vw, 24px)",
   border: "none",
   boxShadow: "0 4px 16px rgba(20, 44, 130, 0.04), 0 24px 56px rgba(20, 44, 130, 0.1)",
 };
