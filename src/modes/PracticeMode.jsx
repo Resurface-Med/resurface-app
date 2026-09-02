@@ -408,20 +408,35 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     aria-label="Search topics"
                     className="setup-search"
                   />
-                  {/* Choosing is the whole job of this screen, so a choice
-                      finishes it rather than waiting for a confirm nobody
-                      would understand the purpose of. */}
+                  {/* A tap used to advance to the next screen, on the
+                      reasoning that choosing was the whole job here and a
+                      confirm button would be a step nobody understood. That
+                      held while exactly one topic could be chosen. It cannot
+                      hold now: the first tap left the screen, so a second
+                      topic was unreachable and the checkboxes were decoration.
+                      Selecting and moving on are two things again. */}
                   <TopicPicker
                     value={filter}
-                    onChange={next => {
-                      setFilter(f => ({ ...f, ...next }));
-                      setCountOpt("All");
-                      setStep("options");
-                    }}
+                    onChange={next => setFilter(f => ({ ...f, ...next }))}
                     pStats={pStats}
                     eligibleIds={eligibleIds}
                     query={topicQuery}
                   />
+
+                  {/* Sticky, because the topic list is longer than a phone and
+                      the way out should not be at the bottom of a scroll. */}
+                  <div className="setup-next-dock">
+                    <button
+                      className="btn-press"
+                      disabled={scoped === 0}
+                      onClick={() => { setCountOpt("All"); setStep("options"); }}
+                      style={{ ...primaryBtn, ...lg, width: "100%", opacity: scoped === 0 ? 0.5 : 1 }}
+                    >
+                      {scoped === 0
+                        ? "Nothing here — pick another topic"
+                        : `Next · ${scoped} question${scoped === 1 ? "" : "s"} →`}
+                    </button>
+                  </div>
                 </>
               ) : (
                 <div className="setup-options">

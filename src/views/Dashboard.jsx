@@ -165,11 +165,25 @@ export default function Dashboard({
                   : `${Math.round((seen / total) * 100)}% of the bank attempted.`}
               </p>
 
+              {/* The heatmap opposite opens with a row of month labels above
+                  its cells, so without this the bar sat level with those
+                  labels rather than with the cells — and the cells are what it
+                  is actually the counterpart of. Mirrors the label's type and
+                  the grid's gap using the same clamps, so the two stay level
+                  across the whole range instead of at one width. Only while
+                  the columns are side by side; stacked, it is a blank line. */}
+              <div className="dash-heat-align" aria-hidden="true" style={{
+                marginTop: 20,
+                fontSize: "clamp(11px, 0.85vw, 13px)",
+                lineHeight: 1.2,
+              }}>&nbsp;</div>
+
               {/* One object, three quantities. Mastered nests inside seen nests
                   inside the bank, which separate figures could only imply. */}
               <div data-in="grow" style={{
                 display: "flex", height: 16, borderRadius: 99, overflow: "hidden",
-                background: "var(--c-surface3)", marginTop: 20, "--i": 6,
+                background: "var(--c-surface3)",
+                marginTop: "clamp(4px, 0.55vw, 7px)", "--i": 6,
               }}>
                 {/* flex-basis rather than width so the two segments still
                     share the track, and no transition — the parent already

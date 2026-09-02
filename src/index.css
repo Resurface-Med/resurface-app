@@ -1370,8 +1370,12 @@ select {
   align-items: start;
 }
 
+/* Only earns its space while there is a heatmap beside it to line up with. */
+.dash-heat-align { display: block; }
+
 @media (max-width: 1100px) {
   .dash-split { grid-template-columns: 1fr; }
+  .dash-heat-align { display: none; }
 }
 
 /* ─── Topic picker ──────────────────────────────────────────────── */
@@ -3161,6 +3165,21 @@ select {
 
 /* Bottom of the screen, where the thumb already is. */
 .setup-start { margin-top: 6px; }
+
+/* The way off the topic step. Sticky so it is reachable from anywhere in a
+   list that is much taller than a phone, with a fade so rows scrolling under
+   it read as passing behind rather than being cut off. */
+.setup-next-dock {
+  position: sticky;
+  bottom: 0;
+  margin-top: 10px;
+  padding: 14px 0 calc(8px + var(--safe-b));
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    var(--c-card-solid) 32%
+  );
+}
 
 /* Answering a question is a mode with one way out, and it has its own Exit
    control in the same corner the menu button occupies. Two overlapping
