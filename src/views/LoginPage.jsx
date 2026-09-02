@@ -214,11 +214,6 @@ export default function LoginPage() {
           }}>
             Don't let the lecture sink.
           </h2>
-
-          <p style={{ marginTop: 22, fontSize: 16, color: OF.soft, lineHeight: 1.6, maxWidth: "40ch" }}>
-            Built by a medical student, for medical students. Questions that
-            follow your course, not a generic syllabus.
-          </p>
         </div>
 
         <img
