@@ -60,12 +60,15 @@ const whisper = {
 const field = {
   width: "100%",
   boxSizing: "border-box",
-  padding: "11px 14px",
+  padding: "10px 13px",
   fontSize: 15,
   fontFamily: "inherit",
   color: "var(--c-text)",
   background: "var(--c-surface3)",
-  border: "1.5px solid transparent",
+  // 1px, not 1.5. The fill is what makes a field findable; the border is only
+  // there to hold the focus colour, and at 1.5 it was drawing a box round
+  // something that already had one.
+  border: "1px solid transparent",
   borderRadius: "var(--r-ctrl)",
   outline: "none",
 };
@@ -697,10 +700,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
       {error && <p className="gen-error">{error}</p>}
 
+      {/* No lift shadow. A shadow separates something floating above the page;
+          this is a bar fixed to the full width of the column, and the 30px
+          cast under it was the single heaviest thing on the screen. */}
       <button
         type="button"
         className="btn-press"
-        style={{ ...primaryBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
+        style={{ ...primaryBtn, width: "100%", boxShadow: "none", opacity: canGenerate ? 1 : 0.45 }}
         disabled={!canGenerate}
         onClick={async () => {
           setError("");
