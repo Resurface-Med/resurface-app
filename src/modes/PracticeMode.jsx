@@ -349,9 +349,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const eligibleIds = inScope.map(x => x.id);
     const scoped = scopedCount(filter);
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
-    const topicLabel = !filter.cat.includes("All") ? shortLabel(filter.cat[0], filter.deck[0])
-      : !filter.deck.includes("All") ? filter.deck[0]
-      : null;
+    /* One topic names itself; several are counted. Spelling out four topic
+       names would not fit the button this ends up on, and a list that gets
+       truncated tells you less than the number does. */
+    const selCats = filter.cat.includes("All") ? [] : filter.cat;
+    const topicLabel = selCats.length === 1
+      ? shortLabel(selCats[0], filter.deck[0])
+      : selCats.length > 1
+        ? `${selCats.length} topics`
+        : !filter.deck.includes("All") ? filter.deck[0] : null;
 
     // ── Phones: one decision per screen ───────────────────────────
     if (isPhone) {

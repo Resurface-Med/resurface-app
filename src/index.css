@@ -1411,6 +1411,36 @@ select {
   letter-spacing: -0.25px;
 }
 
+/* Tri-state, because a subject row stands for every topic under it and those
+   can be partly chosen. Sized and spaced by the row's own flex gap rather
+   than a margin, so it lines up in both the roomy and the child rows. */
+.topic-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface3);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.topic-check.is-on,
+.topic-check.is-mixed {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+}
+.topic-check-dash {
+  width: 9px;
+  height: 2px;
+  border-radius: 1px;
+  background: #fff;
+}
+.topic-row.is-empty .topic-check {
+  opacity: 0.4;
+}
+
 .topic-group { margin-bottom: 10px; }
 .topic-group .topic-row-roomy { margin-bottom: 0; }
 

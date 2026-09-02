@@ -3,14 +3,23 @@ import { C } from "./theme";
 import { QUESTIONS } from "../data";
 
 /**
- * Choosing what to practise, by topic.
+ * Choosing what to practise, by topic. Several at once.
  *
- * Subjects are the first scan; categories open under the one you care about.
- * That keeps the default view short (nine rows with air) without a second
- * screen, and without dumping forty categories into one scroll.
+ * Subjects are the first scan; topics open under the one you care about. That
+ * keeps the default view short (nine rows with air) without a second screen,
+ * and without dumping forty topics into one scroll.
  *
  * Counts and coverage sit on every row because that is knowledge in the
  * world. Empty rows are disabled — a constraint, not an error after the fact.
+ *
+ * Selection is held entirely in `cat`, with `deck` left as ["All"]. Two facts
+ * make that the right shape. filteredQuestions already ANDs deck against cat,
+ * so a mixed selection — all of Biochemistry plus one Anatomy topic — would
+ * filter to the intersection and quietly drop most of what was picked. And no
+ * topic name appears under more than one subject (41 of them, zero
+ * collisions), so naming the topics alone is unambiguous. Picking a subject
+ * therefore means picking every topic under it, which composes with everything
+ * else the same way.
  */
 
 function buildTree(pStats, eligible) {
@@ -79,14 +88,51 @@ function Chevron({ open }) {
   );
 }
 
-export default function TopicPicker({ value, onChange, pStats, eligibleIds, query = "" }) {
-  const [open, setOpen] = useState(
-    () => new Set(value.deck?.[0] && value.deck[0] !== "All" ? [value.deck[0]] : []),
+/** on | off | mixed — a subject whose topics are only partly chosen. */
+function Check({ state }) {
+  return (
+    <span
+      className={`topic-check${state === true ? " is-on" : state === "mixed" ? " is-mixed" : ""}`}
+      aria-hidden="true"
+    >
+      {state === true && (
+        <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+          <path
+            d="M2 6.4L4.6 9 10 3.2"
+            stroke="currentColor"
+            strokeWidth="2.1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+      {state === "mixed" && <span className="topic-check-dash" />}
+    </span>
   );
+}
+
+export default function TopicPicker({ value, onChange, pStats, eligibleIds, query = "" }) {
+  /* Chosen topics as a set, or null meaning "everything". null rather than a
+     set of all 41 so that adding a deck to the bank does not silently leave
+     an old selection behind. */
+  const selected = useMemo(() => {
+    const cats = value.cat ?? ["All"];
+    return cats.includes("All") || cats.length === 0 ? null : new Set(cats);
+  }, [value.cat]);
 
   const eligible = useMemo(() => new Set(eligibleIds), [eligibleIds]);
   const full = useMemo(() => buildTree(pStats, eligible), [pStats, eligible]);
   const totalAvail = eligible.size;
+
+  /* Open the subject holding the first chosen topic, so arriving from
+     Progress with one topic already picked shows it rather than hiding it
+     inside a collapsed row. */
+  const [open, setOpen] = useState(() => {
+    const first = (value.cat ?? []).find(c => c && c !== "All");
+    if (!first) return new Set();
+    const owner = full.find(d => d.cats.some(c => c.cat === first));
+    return new Set(owner ? [owner.deck] : []);
+  });
 
   const q = query.trim().toLowerCase();
   const tree = useMemo(() => {
@@ -98,16 +144,41 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
     });
   }, [full, q]);
 
-  const selDeck = value.deck?.[0] ?? "All";
-  const selCat  = value.cat?.[0] ?? "All";
+  const isAll = selected === null;
 
-  const isAll      = selDeck === "All";
-  const deckActive = d => selDeck === d && selCat === "All";
-  const catActive  = (d, c) => selDeck === d && selCat === c;
+  /* Empty set means nothing is chosen, which is not a state worth having on a
+     screen whose next button starts a session — it collapses back to All. */
+  function emit(next) {
+    if (!next || next.size === 0) onChange({ deck: ["All"], cat: ["All"] });
+    else onChange({ deck: ["All"], cat: [...next] });
+  }
 
-  function pickAll()     { onChange({ deck: ["All"], cat: ["All"] }); }
-  function pickDeck(d)   { onChange({ deck: [d], cat: ["All"] }); }
-  function pickCat(d, c) { onChange({ deck: [d], cat: [c] }); }
+  function pickAll() { onChange({ deck: ["All"], cat: ["All"] }); }
+
+  function toggleCat(cat) {
+    const next = new Set(selected ?? []);
+    next.has(cat) ? next.delete(cat) : next.add(cat);
+    emit(next);
+  }
+
+  /** A subject is its topics, so toggling it toggles all of them together. */
+  function toggleDeck(d) {
+    const cats = d.cats.filter(c => c.avail > 0).map(c => c.cat);
+    if (cats.length === 0) return;
+    const next = new Set(selected ?? []);
+    const allOn = cats.every(c => next.has(c));
+    cats.forEach(c => (allOn ? next.delete(c) : next.add(c)));
+    emit(next);
+  }
+
+  const catState = cat => (selected ? selected.has(cat) : false);
+  function deckState(d) {
+    if (!selected) return false;
+    const cats = d.cats.map(c => c.cat);
+    const on = cats.filter(c => selected.has(c)).length;
+    if (on === 0) return false;
+    return on === cats.length ? true : "mixed";
+  }
 
   function toggle(d) {
     setOpen(prev => {
@@ -118,15 +189,16 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
   }
 
   return (
-    <div role="radiogroup" aria-label="Topic">
+    <div role="group" aria-label="Topics">
       {!q && (
         <button
           type="button"
-          role="radio"
+          role="checkbox"
           aria-checked={isAll}
           onClick={pickAll}
           className={`topic-row topic-row-roomy${isAll ? " is-active" : ""}`}
         >
+          <Check state={isAll} />
           <span className="topic-name" style={{ fontWeight: 600 }}>All subjects</span>
           <span className="topic-meta">
             <span className="topic-avail">{totalAvail}</span>
@@ -144,18 +216,20 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         const empty = d.avail === 0;
         const isOpen = q ? true : open.has(d.deck);
         const many = d.cats.length > 1;
+        const dState = deckState(d);
 
         return (
           <div key={d.deck} className="topic-group">
-            <div className={`topic-row topic-row-roomy${deckActive(d.deck) ? " is-active" : ""}${empty ? " is-empty" : ""}`}>
+            <div className={`topic-row topic-row-roomy${dState === true ? " is-active" : ""}${empty ? " is-empty" : ""}`}>
               <button
                 type="button"
-                role="radio"
-                aria-checked={deckActive(d.deck)}
+                role="checkbox"
+                aria-checked={dState === "mixed" ? "mixed" : dState}
                 disabled={empty}
-                onClick={() => pickDeck(d.deck)}
+                onClick={() => toggleDeck(d)}
                 className="topic-hit"
               >
+                <Check state={dState} />
                 <span className="topic-name">{d.deck}</span>
                 <Coverage seen={d.seen} total={d.total} avail={d.avail} dim={empty} />
               </button>
@@ -175,16 +249,18 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
 
             {isOpen && d.cats.map(c => {
               const catEmpty = c.avail === 0;
+              const on = catState(c.cat);
               return (
                 <button
                   key={c.cat}
                   type="button"
-                  role="radio"
-                  aria-checked={catActive(d.deck, c.cat)}
+                  role="checkbox"
+                  aria-checked={on}
                   disabled={catEmpty}
-                  onClick={() => pickCat(d.deck, c.cat)}
-                  className={`topic-row is-child${catActive(d.deck, c.cat) ? " is-active" : ""}${catEmpty ? " is-empty" : ""}`}
+                  onClick={() => toggleCat(c.cat)}
+                  className={`topic-row is-child${on ? " is-active" : ""}${catEmpty ? " is-empty" : ""}`}
                 >
+                  <Check state={on} />
                   <span className="topic-name is-child">{shortCat(c.cat, d.deck)}</span>
                   <Coverage seen={c.seen} total={c.total} avail={c.avail} dim={catEmpty} />
                 </button>
