@@ -22,7 +22,7 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-import { V, C, NAV, card, primaryBtn } from "./ui/theme";
+import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
@@ -40,6 +40,10 @@ const ProfileView     = lazy(() => import("./views/ProfileView"));
 const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
+
+/** Shared by both buttons in the leave-session dialog, so they cannot drift
+ *  apart in height. nowrap because a wrapped label is what made them fat. */
+const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "nowrap" };
 
 export default function App() {
   const { user, loading: authLoading, configured, signOut, recovering } = useAuth();
@@ -252,17 +256,20 @@ export default function App() {
             <div style={{ fontSize: 14, color: C.sub, marginBottom: 28, lineHeight: 1.55 }}>
               Your progress will be saved. You can pick up exactly where you left off.
             </div>
+            {/* "Save and leave" was too long for half of a 340px dialog, so it
+                wrapped to two lines and the button grew to fit — twice the
+                height of the one beside it. The body already promises the save,
+                and the title asks a question, so the two buttons are just its
+                answers. Both share one set of metrics; the old pair were
+                hand-rolled separately at different padding and font sizes. */}
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => { go(pendingView); setPendingView(null); }}
                 className="btn-press"
-                style={{ ...primaryBtn, flex: 1 }}>
-                Save and leave
+                style={{ ...primaryBtn, ...dialogBtn }}>
+                Leave
               </button>
-              <button onClick={() => setPendingView(null)} className="btn-press" style={{
-                flex: 1, padding: "12px 16px", borderRadius: "var(--r-pill)",
-                border: "1px solid var(--c-border)", background: "var(--c-surface2)",
-                color: C.sub, fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-              }}>
+              <button onClick={() => setPendingView(null)} className="btn-press"
+                style={{ ...btnGhost, ...dialogBtn }}>
                 Stay
               </button>
             </div>
