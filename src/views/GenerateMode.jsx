@@ -241,13 +241,20 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
 // ── Quiet generating state ──────────────────────────────────────────────────
 
+/**
+ * These rotate on a timer, not on progress — nothing reports back from the
+ * model mid-request. So each one names a real part of the job rather than a
+ * position in it: "Almost there" was here and it was simply untrue, since the
+ * line has no idea how far along anything is. Anything of that shape belongs
+ * nowhere near this list.
+ */
 const MESSAGES = [
-  "Reading your slides…",
-  "Finding the examinable bits…",
-  "Drafting stems…",
-  "Building distractors…",
-  "Writing explanations…",
-  "Almost there…",
+  "Reading your material",
+  "Working out what's examinable",
+  "Writing the questions",
+  "Making the wrong answers plausible",
+  "Checking each one has a single right answer",
+  "Writing the explanations",
 ];
 
 /**
@@ -403,7 +410,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     return (
       <Shell
         title="Review"
-        sub={`${keptList.length} of ${generated.length} kept — untick anything you don’t want.`}
+        sub={`Keeping ${keptList.length} of ${generated.length}. Untick any you don’t want.`}
         footer={(
           <div className="gen-sticky">
             <div className="gen-sticky-inner">
@@ -451,6 +458,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                     }}
                   />
                   <span className="gen-review-body">
+                    <span className="gen-review-num" aria-hidden="true">{i + 1}</span>
                     <span className="gen-review-q">{q.q}</span>
                     <span className="gen-review-opts">
                       {q.opts.map((opt, oi) => (

@@ -2458,7 +2458,7 @@ select {
   padding: 0;
 }
 .gen-review-item {
-  padding: 16px 0;
+  padding: 20px 0;
   box-shadow: inset 0 1px 0 var(--c-border);
   transition: opacity 0.15s;
 }
@@ -2476,47 +2476,67 @@ select {
   cursor: pointer;
 }
 .gen-review-row input {
-  margin-top: 4px;
-  width: 16px;
-  height: 16px;
+  margin-top: 5px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   accent-color: var(--c-accent);
   cursor: pointer;
 }
+/* Two columns: the number, then everything it numbers. The options and the
+   explanation share the question's column rather than starting back at the
+   margin, so each item reads as one block hanging off its number instead of
+   three stacked things that happen to be adjacent. */
 .gen-review-body {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 10px;
+}
+.gen-review-num {
+  grid-column: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-muted-dim);
+  font-variant-numeric: tabular-nums;
+  /* Nudged to sit on the question's first baseline, not the top of its box. */
+  padding-top: 1px;
 }
 .gen-review-q {
-  font-size: 15px;
+  grid-column: 2;
+  font-size: 17px;
   font-weight: 600;
   color: var(--c-text);
-  line-height: 1.5;
-  letter-spacing: -0.25px;
+  line-height: 1.45;
+  letter-spacing: -0.3px;
 }
 .gen-review-opts {
+  grid-column: 2;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
+/* Every option used to carry a filled chip, which put five grey blocks behind
+   every question and left the answer competing with the four rows it was
+   supposed to stand out from. Only the answer is filled now; the rest are
+   plain text, and the group still reads as a set from the letters and the
+   indent alone. */
 .gen-review-opt {
   display: flex;
-  gap: 8px;
-  padding: 7px 10px;
+  gap: 10px;
+  padding: 5px 10px;
   border-radius: var(--r-ctrl);
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 500;
   color: var(--c-sub);
-  background: var(--c-surface3);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 .gen-review-opt.is-ans {
   color: var(--c-success);
   background: var(--c-success-dim);
-  box-shadow: inset 0 0 0 1px var(--c-success-brd);
+  font-weight: 600;
 }
 .gen-review-letter {
   font-weight: 700;
@@ -2525,7 +2545,8 @@ select {
   width: 1em;
 }
 .gen-review-exp {
-  font-size: 13px;
+  grid-column: 2;
+  font-size: 14px;
   font-weight: 500;
   color: var(--c-muted);
   line-height: 1.5;
