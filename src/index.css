@@ -2222,31 +2222,23 @@ select {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: clamp(20px, 2.8vh, 26px);
+  margin-bottom: clamp(22px, 3.2vh, 28px);
 }
-/* Empty, this is a dashed outline on the sheet and nothing else. It used to
-   carry a fill as well, which is the same instruction given twice — a dashed
-   border already means "put something here" — and between them they made the
-   first thing on the page also the heaviest. The fill comes back when a file
-   is in it, because that is a state worth marking. */
 .gen-drop {
   display: block;
   width: 100%;
-  padding: 18px 16px;
+  padding: 22px 18px;
   text-align: left;
   font-family: inherit;
   cursor: pointer;
   border-radius: var(--r-ctrl);
-  border: 1px dashed var(--c-border);
-  background: transparent;
+  border: 1.5px dashed var(--c-border);
+  background: var(--c-surface3);
   transition: border-color 0.15s, background 0.15s;
 }
 .gen-drop:hover,
 .gen-drop:focus-visible {
   border-color: var(--c-accent-brd);
-  /* An overlay token rather than a surface one: it tints whatever is behind
-     it, so this reads the same on the white sheet and on the dark card. */
-  background: var(--c-overlay);
   outline: none;
 }
 .gen-drop.has-file {
@@ -2299,13 +2291,13 @@ select {
 .gen-paste {
   width: 100%;
   box-sizing: border-box;
-  padding: 11px 13px;
+  padding: 12px 14px;
   font-size: 14.5px;
   font-family: inherit;
   line-height: 1.5;
   color: var(--c-text);
   background: var(--c-surface3);
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   border-radius: var(--r-ctrl);
   resize: vertical;
   outline: none;
@@ -2353,17 +2345,14 @@ select {
   font-weight: 500;
   color: var(--c-muted);
 }
-.gen-count-edit {
+/* Presets and the typed value on one line. They set the same number, so they
+   belong in the same row — as two rows it was a whole extra band of vertical
+   space to offer a second way to do one thing. */
+.gen-count-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
-  margin-top: 2px;
-}
-.gen-count-custom {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-accent);
-  padding: 0 4px;
+  gap: 8px;
 }
 .gen-error {
   margin: 0 0 14px;
@@ -2593,11 +2582,34 @@ select {
 }
 
 @media (max-width: 640px) {
+  /* .gen-grid deliberately keeps its two columns here. Collapsing it turned
+     four fields into four full-width rows, which was the single biggest
+     stretch of the form on a phone — and Subject, Topic, Year and Block all
+     hold short values that sit fine at half width. */
   .gen-grid {
-    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .gen-block {
+    margin-bottom: 16px;
+  }
+  .gen-field {
+    gap: 4px;
+  }
+  .gen-drop {
+    padding: 15px 14px;
+  }
+  .gen-chip-row {
+    gap: 14px 20px;
   }
   .gen-sticky-inner {
     flex-direction: column;
+  }
+}
+
+/* Below this the half-width fields genuinely stop fitting, so they stack. */
+@media (max-width: 380px) {
+  .gen-grid {
+    grid-template-columns: 1fr;
   }
 }
 

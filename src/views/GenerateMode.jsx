@@ -60,15 +60,12 @@ const whisper = {
 const field = {
   width: "100%",
   boxSizing: "border-box",
-  padding: "10px 13px",
+  padding: "11px 14px",
   fontSize: 15,
   fontFamily: "inherit",
   color: "var(--c-text)",
   background: "var(--c-surface3)",
-  // 1px, not 1.5. The fill is what makes a field findable; the border is only
-  // there to hold the focus colour, and at 1.5 it was drawing a box round
-  // something that already had one.
-  border: "1px solid transparent",
+  border: "1.5px solid transparent",
   borderRadius: "var(--r-ctrl)",
   outline: "none",
 };
@@ -584,14 +581,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             value={pastedText}
             onChange={e => setPastedText(e.target.value)}
             placeholder="Or paste lecture notes here…"
-            rows={4}
+            rows={3}
           />
         )}
       </section>
 
       {/* Placement */}
+      {/* No group label here. Subject, Topic, Year and Block each carry their
+          own, so a heading over them was a second level of hierarchy naming
+          what four labels already named — and on a phone it cost a whole row
+          to do it. */}
       <section className="gen-block" data-in="rise" style={{ "--i": 2 }}>
-        <span style={whisper}>Where they belong</span>
         <div className="gen-grid">
           <label className="gen-field">
             <span className="gen-field-label">Subject</span>
@@ -667,46 +667,43 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           </div>
           <div className="gen-chip-group">
             <span style={whisper}>How many</span>
-            <div className="gen-chips" role="radiogroup" aria-label="Question count">
-              {COUNT_PRESETS.map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  className="btn-press"
-                  onClick={() => setCountRaw(String(n))}
-                  style={countNum === n ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                >
-                  {n}
-                </button>
-              ))}
-              {!COUNT_PRESETS.includes(countNum) && (
-                <span className="gen-count-custom">{countNum}</span>
-              )}
-            </div>
-            <label className="gen-count-edit">
-              <span className="gen-field-label">Or type</span>
+            <div className="gen-count-row">
+              <div className="gen-chips" role="radiogroup" aria-label="Question count">
+                {COUNT_PRESETS.map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    className="btn-press"
+                    onClick={() => setCountRaw(String(n))}
+                    style={countNum === n ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+              {/* Outside the radiogroup on purpose — a textbox is not one of
+                  the radios, and putting it inside would say it was. */}
               <input
                 type="text"
                 inputMode="numeric"
+                aria-label="Or type a number of questions"
+                className="gen-count-input"
                 value={countRaw}
                 onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
                 onBlur={() => setCountRaw(String(countNum || 10))}
-                style={{ ...field, width: 72, textAlign: "center" }}
+                style={{ ...field, width: 58, textAlign: "center", padding: "10px 6px" }}
               />
-            </label>
+            </div>
           </div>
         </div>
       </section>
 
       {error && <p className="gen-error">{error}</p>}
 
-      {/* No lift shadow. A shadow separates something floating above the page;
-          this is a bar fixed to the full width of the column, and the 30px
-          cast under it was the single heaviest thing on the screen. */}
       <button
         type="button"
         className="btn-press"
-        style={{ ...primaryBtn, width: "100%", boxShadow: "none", opacity: canGenerate ? 1 : 0.45 }}
+        style={{ ...primaryBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
         disabled={!canGenerate}
         onClick={async () => {
           setError("");
