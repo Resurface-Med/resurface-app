@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
 import { h1, sectionH, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -153,7 +153,7 @@ function fileToBase64(file) {
   });
 }
 
-async function generateQuestions({ file, pastedText, deck, category, year, block, difficulty, count }) {
+async function generateQuestions({ file, pastedText, deck, category, year, block, difficulty, count, signal }) {
   let userContent = [];
 
   if (file) {
@@ -212,6 +212,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
       authorization: `Bearer ${session?.access_token ?? ""}`,
     },
     body: JSON.stringify({ userContent, difficulty, count }),
+    signal,
   });
 
   if (!res.ok) {
@@ -249,7 +250,23 @@ const MESSAGES = [
   "Almost there…",
 ];
 
-function GeneratingScreen({ count }) {
+/**
+ * The generating window.
+ *
+ * This used to be a whole page: the setup screen was replaced by a field band
+ * with the status line hanging off the top left, which put the one thing you
+ * are waiting on in the corner of an otherwise empty screen. It is a centred
+ * window over the form now — same scrim-and-window vocabulary as Resurface AI,
+ * so the app has one way of interrupting you rather than two.
+ *
+ * The drawing is the work, on a loop: a page of lecture text, which resolves
+ * into a stem with four options, one of which is the answer, and back. Five
+ * bars play both parts — five lines of prose, then one stem and four options —
+ * so the change is those same bars rearranging rather than one picture being
+ * swapped for another. A sheen crosses it throughout on its own cycle, so the
+ * loop never fully resets and the whole thing keeps moving even mid-hold.
+ */
+function GeneratingWindow({ count, onCancel }) {
   const [msgIdx, setMsgIdx] = useState(0);
 
   useEffect(() => {
@@ -257,22 +274,66 @@ function GeneratingScreen({ count }) {
     return () => clearInterval(t);
   }, []);
 
+  // Escape cancels, and the form behind must not scroll under the window.
+  useEffect(() => {
+    const onKey = e => { if (e.key === "Escape") onCancel(); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onCancel]);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(28px, 4vh, 48px)" }}>
-        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Generating</h1>
-        <p className="gen-field-sub">
-          {count} question{count !== 1 ? "s" : ""} from your material
+    <div className="genw-scrim">
+      <div
+        className="genw"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Generating questions"
+      >
+        <svg className="genw-stage" viewBox="0 0 200 124" aria-hidden="true">
+          <defs>
+            <linearGradient id="genw-sheen" x1="0" y1="0" x2="0" y2="1">
+              <stop className="genw-sheen-edge" offset="0%" />
+              <stop className="genw-sheen-mid" offset="50%" />
+              <stop className="genw-sheen-edge" offset="100%" />
+            </linearGradient>
+          </defs>
+
+          <circle className="genw-dot d1" cx="25" cy="45" r="3.5" />
+          <circle className="genw-dot d2" cx="25" cy="67" r="3.5" />
+          <circle className="genw-dot d3 is-answer" cx="25" cy="89" r="3.5" />
+          <circle className="genw-dot d4" cx="25" cy="111" r="3.5" />
+
+          <rect className="genw-ln l1" x="18" y="16" width="164" height="8" rx="4" />
+          <rect className="genw-ln l2" x="18" y="38" width="164" height="8" rx="4" />
+          <rect className="genw-ln l3" x="18" y="60" width="164" height="8" rx="4" />
+          <rect className="genw-ln l4" x="18" y="82" width="164" height="8" rx="4" />
+          <rect className="genw-ln l5" x="18" y="104" width="164" height="8" rx="4" />
+
+          <rect className="genw-sheen" x="0" y="-34" width="200" height="34" fill="url(#genw-sheen)" />
+        </svg>
+
+        <p className="genw-title">
+          Writing {count} question{count !== 1 ? "s" : ""}
         </p>
-        <p key={msgIdx} className="gen-status">
-          {MESSAGES[msgIdx]}
-        </p>
-        <div className="gen-bar" aria-hidden="true">
-          <div className="gen-bar-fill" />
+        <div aria-live="polite" className="genw-status-live">
+          <p key={msgIdx} className="genw-status">
+            {MESSAGES[msgIdx]}
+          </p>
         </div>
+
+        <div className="genw-track" aria-hidden="true">
+          <div className="genw-track-fill" />
+        </div>
+
+        <button type="button" className="genw-cancel btn-press" onClick={onCancel} autoFocus>
+          Cancel
+        </button>
       </div>
-      <Wave from="transparent" to="var(--c-card-solid)" />
-      <div style={{ background: "var(--c-card-solid)", flex: 1 }} />
     </div>
   );
 }
@@ -314,6 +375,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
+  // Cancel has to stop the request, not just hide the window — otherwise the
+  // reply lands later and drops the user into a review screen they backed out
+  // of. Held in a ref because aborting must not itself trigger a render.
+  const abortRef = useRef(null);
   const [generated, setGenerated] = useState([]);
   const [kept, setKept] = useState(new Set());
   const [error, setError] = useState("");
@@ -321,6 +386,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
   const [savedQs, setSavedQs] = useState(savedGenerated);
   const [bankOpen, setBankOpen] = useState(false);
+
+  const cancelGenerate = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
 
   function deleteQuestion(id) {
     const updated = savedQs.filter(q => q.id !== id);
@@ -444,15 +513,18 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     );
   }
 
-  if (phase === "generating") return <GeneratingScreen count={countNum} />;
-
   // ── Setup ─────────────────────────────────────────────────────────────
+  // The generating window sits over this rather than replacing it, so backing
+  // out returns you to a form still holding everything you filled in.
   return (
     <Shell
       title="Generate"
       sub="Drop slides or notes — Resurface writes the questions."
       maxWidth={680}
     >
+      {phase === "generating" && (
+        <GeneratingWindow count={countNum} onCancel={cancelGenerate} />
+      )}
       {/* Source */}
       <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
         <span style={whisper}>Source</span>
@@ -635,6 +707,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
         disabled={!canGenerate}
         onClick={async () => {
           setError("");
+          const ctrl = new AbortController();
+          abortRef.current = ctrl;
           setPhase("generating");
           try {
             const qs = await generateQuestions({
@@ -646,13 +720,20 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               block: block.trim() || "Principles",
               difficulty,
               count: countNum,
+              signal: ctrl.signal,
             });
             setGenerated(qs);
             setKept(new Set(qs.map((_, i) => i)));
             setPhase("review");
           } catch (e) {
+            // Cancelling is a decision, not a fault. Saying "The user aborted a
+            // request" back to someone who pressed Cancel is the app telling
+            // them off for doing what it offered.
+            if (e.name === "AbortError") { setPhase("setup"); return; }
             setError(e.message || "Something went wrong.");
             setPhase("setup");
+          } finally {
+            abortRef.current = null;
           }
         }}
       >

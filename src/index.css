@@ -2013,28 +2013,213 @@ select {
   max-width: 34em;
   line-height: 1.45;
 }
-.gen-status {
-  margin: 22px 0 0;
-  font-size: 16px;
+/* ── The generating window ─────────────────────────────────────────────
+   Same scrim-and-window vocabulary as Resurface AI, deliberately: two
+   different ways of interrupting someone is one too many. */
+
+.genw-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 28px 20px;
+  background: rgba(15, 27, 61, 0.46);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: genw-scrim-in 0.24s ease both;
+}
+@keyframes genw-scrim-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.genw {
+  width: min(380px, 100%);
+  /* --app-vh, not vh: #root carries a zoom, and viewport units ignore it, so
+     100vh here is taller than the box the window actually sits in. */
+  max-height: calc(var(--app-vh) - 44px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 24px 22px;
+  background: var(--c-card-solid);
+  border: 1px solid var(--c-border);
+  border-radius: 26px;
+  box-shadow: 0 24px 60px rgba(15, 27, 61, 0.24);
+  animation: genw-open 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes genw-open {
+  0%   { opacity: 0; transform: translateY(20px) scale(0.94); }
+  64%  { opacity: 1; transform: translateY(-4px) scale(1.015); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* ── The stage ───────────────────────────────────────────────────────────
+   Five bars play both parts: five lines of lecture prose, then a stem and
+   four options. Because it is the same five elements rearranging, the change
+   reads as the page being turned into questions rather than as one picture
+   being crossfaded for another.
+
+   Percentages are shared by every track below: hold at prose to 18%, morph to
+   34%, hold as a question to 62%, morph back by 78%, hold to the end. Editing
+   the loop means editing those five numbers in each block. */
+.genw-stage {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 20px;
+  overflow: visible;
+}
+
+.genw-ln {
+  fill: var(--c-accent);
+  /* fill-box so every bar shares one origin expressed in its own terms; the
+     bars sit at five different y values and would otherwise each need theirs
+     written out in user units. */
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: 7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.genw-ln.l1 { animation-name: genw-l1; }
+.genw-ln.l2 { animation-name: genw-l2; }
+.genw-ln.l3 { animation-name: genw-l3; }
+.genw-ln.l4 { animation-name: genw-l4; }
+.genw-ln.l5 { animation-name: genw-l5; }
+
+/* The stem: the one bar that gains weight rather than moving aside. */
+@keyframes genw-l1 {
+  0%, 18%   { transform: scaleX(0.97);            opacity: 0.26; }
+  34%, 62%  { transform: scale(0.95, 1.75);       opacity: 0.88; }
+  78%, 100% { transform: scaleX(0.97);            opacity: 0.26; }
+}
+@keyframes genw-l2 {
+  0%, 18%   { transform: scaleX(0.88);                    opacity: 0.26; }
+  34%, 62%  { transform: translate(16px, 3px) scaleX(0.72); opacity: 0.40; }
+  78%, 100% { transform: scaleX(0.88);                    opacity: 0.26; }
+}
+@keyframes genw-l3 {
+  0%, 18%   { transform: scaleX(1);                       opacity: 0.26; }
+  34%, 62%  { transform: translate(16px, 3px) scaleX(0.80); opacity: 0.40; }
+  78%, 100% { transform: scaleX(1);                       opacity: 0.26; }
+}
+/* The answer's row, so it settles a shade firmer than the other three. */
+@keyframes genw-l4 {
+  0%, 18%   { transform: scaleX(0.82);                    opacity: 0.26; }
+  34%, 44%  { transform: translate(16px, 3px) scaleX(0.68); opacity: 0.40; }
+  52%, 62%  { transform: translate(16px, 3px) scaleX(0.68); opacity: 0.66; }
+  78%, 100% { transform: scaleX(0.82);                    opacity: 0.26; }
+}
+@keyframes genw-l5 {
+  0%, 18%   { transform: scaleX(0.66);                    opacity: 0.26; }
+  34%, 62%  { transform: translate(16px, 3px) scaleX(0.76); opacity: 0.40; }
+  78%, 100% { transform: scaleX(0.66);                    opacity: 0.26; }
+}
+
+/* The option markers only exist while the bars are a question. */
+.genw-dot {
+  fill: var(--c-muted-dim);
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: genw-dot 7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+.genw-dot.is-answer {
+  animation-name: genw-dot-answer;
+}
+@keyframes genw-dot {
+  0%, 26%   { opacity: 0; }
+  34%, 62%  { opacity: 1; }
+  70%, 100% { opacity: 0; }
+}
+@keyframes genw-dot-answer {
+  0%, 26%   { opacity: 0; fill: var(--c-muted-dim); transform: scale(1); }
+  34%, 44%  { opacity: 1; fill: var(--c-muted-dim); transform: scale(1); }
+  50%       { opacity: 1; fill: var(--c-success);   transform: scale(1.45); }
+  56%, 62%  { opacity: 1; fill: var(--c-success);   transform: scale(1.15); }
+  70%, 100% { opacity: 0; fill: var(--c-success);   transform: scale(1); }
+}
+
+/* Crosses the stage on its own 3.2s cycle, deliberately not a factor of the
+   7s loop — the two drift against each other, so the drawing never arrives
+   back at an arrangement you have already watched. */
+.genw-sheen {
+  animation: genw-sheen 3.2s linear infinite;
+}
+.genw-sheen-edge { stop-color: var(--c-accent); stop-opacity: 0; }
+.genw-sheen-mid  { stop-color: var(--c-accent); stop-opacity: 0.16; }
+@keyframes genw-sheen {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(158px); }
+}
+
+.genw-title {
+  margin: 0;
+  font-size: 16.5px;
   font-weight: 600;
-  color: var(--c-on-field);
   letter-spacing: -0.3px;
+  color: var(--c-text);
+  text-align: center;
+}
+.genw-status-live {
+  width: 100%;
+}
+.genw-status {
+  margin: 7px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.15px;
+  color: var(--c-muted);
+  text-align: center;
+  min-height: 1.4em;
   animation: gen-msg 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.gen-bar {
+
+.genw-track {
   margin-top: 18px;
-  width: min(280px, 70%);
+  width: min(220px, 76%);
   height: 4px;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.22);
+  background: var(--c-surface3);
   overflow: hidden;
 }
-.gen-bar-fill {
+.genw-track-fill {
   height: 100%;
   width: 38%;
   border-radius: var(--r-pill);
-  background: var(--c-field-object);
+  background: var(--c-accent);
   animation: gen-bar-slide 1.5s ease-in-out infinite;
+}
+
+.genw-cancel {
+  margin-top: 20px;
+  padding: 10px 24px;
+  min-height: 40px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+  color: var(--c-sub);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+}
+.genw-cancel:hover { color: var(--c-text); }
+
+@media (max-width: 560px) {
+  .genw-scrim { padding: 18px 16px; }
+  .genw {
+    width: min(340px, 100%);
+    padding: 22px 18px 18px;
+    border-radius: 22px;
+  }
+  .genw-stage { margin-bottom: 16px; }
+  /* A 44px target, because this is the control someone reaches for when they
+     have realised they picked the wrong file. */
+  .genw-cancel { min-height: 44px; width: 100%; }
 }
 
 @keyframes gen-msg {
@@ -2401,8 +2586,21 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gen-status { animation: none; }
-  .gen-bar-fill { animation: none; width: 55%; }
+  .genw-status { animation: none; }
+  .genw-track-fill { animation: none; width: 55%; }
+  /* Frozen mid-loop at the question, which is the frame that says what is
+     being made. Held as a still rather than dropped, so the window is not
+     just a paragraph and a Cancel button. */
+  .genw-ln, .genw-dot, .genw-sheen { animation: none; }
+  .genw-ln.l1 { transform: scale(0.95, 1.75); opacity: 0.88; }
+  .genw-ln.l2 { transform: translate(16px, 3px) scaleX(0.72); opacity: 0.4; }
+  .genw-ln.l3 { transform: translate(16px, 3px) scaleX(0.80); opacity: 0.4; }
+  .genw-ln.l4 { transform: translate(16px, 3px) scaleX(0.68); opacity: 0.66; }
+  .genw-ln.l5 { transform: translate(16px, 3px) scaleX(0.76); opacity: 0.4; }
+  .genw-dot { opacity: 1; }
+  .genw-dot.is-answer { fill: var(--c-success); }
+  .genw-sheen { opacity: 0; }
+  .genw, .genw-scrim { animation: none; }
 }
 
 /* ─── Navigation ────────────────────────────────────────────────── */
