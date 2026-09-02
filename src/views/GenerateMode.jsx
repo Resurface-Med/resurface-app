@@ -250,6 +250,104 @@ const MESSAGES = [
   "Almost there…",
 ];
 
+/* ── The morph loader ──────────────────────────────────────────────────────
+ *
+ * A ring that turns while changing shape: triangle, square, pentagon, hexagon,
+ * circle, back to triangle. Two of them, nested and counter-rotating.
+ *
+ * The trick that makes a morph look effortless is that there is no trick — the
+ * browser can only interpolate one path into another if both have the same
+ * commands in the same order, so every shape here is built as the same twelve
+ * cubic segments and only the coordinates differ. A triangle is not three
+ * lines; it is twelve points sampled around a triangle, four to an edge.
+ *
+ * Generated rather than hand-written, because twelve cubics per shape times
+ * five shapes is 60 curves of path data that would be unreadable, unverifiable
+ * and impossible to retune by hand.
+ */
+
+/** n points spaced evenly around a regular polygon's outline. */
+function polyPoints(sides, r, n = 12, rot = -Math.PI / 2) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const t = (i / n) * sides;
+    const edge = Math.floor(t);
+    const f = t - edge;
+    const a0 = rot + (edge / sides) * Math.PI * 2;
+    const a1 = rot + ((edge + 1) / sides) * Math.PI * 2;
+    const x0 = Math.cos(a0) * r, y0 = Math.sin(a0) * r;
+    const x1 = Math.cos(a1) * r, y1 = Math.sin(a1) * r;
+    pts.push([x0 + (x1 - x0) * f, y0 + (y1 - y0) * f]);
+  }
+  return pts;
+}
+
+/**
+ * A closed Catmull-Rom spline through those points, written as cubics.
+ *
+ * Splining rather than joining them is what rounds the corners, and it is why
+ * one function covers every shape: a spline through twelve points on a circle
+ * is a circle, and through twelve points on a triangle is a rounded triangle.
+ */
+function closedSpline(pts, tension = 1) {
+  const n = pts.length;
+  const f = ([x, y]) => `${x.toFixed(2)},${y.toFixed(2)}`;
+  let d = `M${f(pts[0])}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n];
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % n];
+    const p3 = pts[(i + 2) % n];
+    const c1 = [p1[0] + ((p2[0] - p0[0]) / 6) * tension, p1[1] + ((p2[1] - p0[1]) / 6) * tension];
+    const c2 = [p2[0] - ((p3[0] - p1[0]) / 6) * tension, p2[1] - ((p3[1] - p1[1]) / 6) * tension];
+    d += ` C${f(c1)} ${f(c2)} ${f(p2)}`;
+  }
+  return `${d}Z`;
+}
+
+/* 48 sides is a circle at this size — its twelve sample points land on the
+   arc, and the spline through them closes the gaps. */
+const SIDES = [3, 4, 5, 6, 48];
+
+/** The cycle, returning to its first shape so the loop has no seam. */
+function morphValues(r, order = SIDES) {
+  const shapes = order.map(n => closedSpline(polyPoints(n, r)));
+  return [...shapes, shapes[0]].join(";");
+}
+
+const MORPH_OUTER = morphValues(26);
+/* The inner ring runs the sequence from a different corner, so the two are
+   never the same shape at the same time. */
+const MORPH_INNER = morphValues(14, [5, 6, 48, 3, 4]);
+
+const MORPH_KEYTIMES = "0;0.2;0.4;0.6;0.8;1";
+const MORPH_SPLINES = Array(5).fill("0.65 0 0.35 1").join(";");
+
+/* Each ring's first shape, set as a plain `d`. It stops the paths being empty
+   for the frame before SMIL takes over, and it is what stays on screen when
+   the morph is switched off below. */
+const STILL_OUTER = closedSpline(polyPoints(SIDES[0], 26));
+const STILL_INNER = closedSpline(polyPoints(5, 14));
+
+/**
+ * SMIL does not honour prefers-reduced-motion — a CSS media query cannot stop
+ * an <animate>, so the only way to respect the setting is to not render it.
+ */
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(() =>
+    typeof window !== "undefined" &&
+    !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return reduced;
+}
+
 /**
  * The generating window.
  *
@@ -259,15 +357,14 @@ const MESSAGES = [
  * window over the form now — same scrim-and-window vocabulary as Resurface AI,
  * so the app has one way of interrupting you rather than two.
  *
- * The drawing is the work, on a loop: a page of lecture text, which resolves
- * into a stem with four options, one of which is the answer, and back. Five
- * bars play both parts — five lines of prose, then one stem and four options —
- * so the change is those same bars rearranging rather than one picture being
- * swapped for another. A sheen crosses it throughout on its own cycle, so the
- * loop never fully resets and the whole thing keeps moving even mid-hold.
+ * The mark at the top is two rings that turn while changing shape, on periods
+ * that do not divide into each other — 6s and 4.6s morphing against 5.2s and
+ * 3.4s of rotation — so the pair never returns to an arrangement you have
+ * already watched and the loop has no visible restart.
  */
 function GeneratingWindow({ count, onCancel }) {
   const [msgIdx, setMsgIdx] = useState(0);
+  const stillOnly = usePrefersReducedMotion();
 
   useEffect(() => {
     const t = setInterval(() => setMsgIdx(i => (i + 1) % MESSAGES.length), 2400);
@@ -294,28 +391,39 @@ function GeneratingWindow({ count, onCancel }) {
         aria-modal="true"
         aria-label="Generating questions"
       >
-        <svg className="genw-stage" viewBox="0 0 200 124" aria-hidden="true">
-          <defs>
-            <linearGradient id="genw-sheen" x1="0" y1="0" x2="0" y2="1">
-              <stop className="genw-sheen-edge" offset="0%" />
-              <stop className="genw-sheen-mid" offset="50%" />
-              <stop className="genw-sheen-edge" offset="100%" />
-            </linearGradient>
-          </defs>
+        <div className="genw-stage" aria-hidden="true">
+          <svg className="genw-morph is-outer" viewBox="-32 -32 64 64">
+            <path className="genw-morph-path" d={STILL_OUTER}>
+              {!stillOnly && (
+                <animate
+                  attributeName="d"
+                  dur="6s"
+                  repeatCount="indefinite"
+                  values={MORPH_OUTER}
+                  keyTimes={MORPH_KEYTIMES}
+                  calcMode="spline"
+                  keySplines={MORPH_SPLINES}
+                />
+              )}
+            </path>
+          </svg>
 
-          <circle className="genw-dot d1" cx="25" cy="45" r="3.5" />
-          <circle className="genw-dot d2" cx="25" cy="67" r="3.5" />
-          <circle className="genw-dot d3 is-answer" cx="25" cy="89" r="3.5" />
-          <circle className="genw-dot d4" cx="25" cy="111" r="3.5" />
-
-          <rect className="genw-ln l1" x="18" y="16" width="164" height="8" rx="4" />
-          <rect className="genw-ln l2" x="18" y="38" width="164" height="8" rx="4" />
-          <rect className="genw-ln l3" x="18" y="60" width="164" height="8" rx="4" />
-          <rect className="genw-ln l4" x="18" y="82" width="164" height="8" rx="4" />
-          <rect className="genw-ln l5" x="18" y="104" width="164" height="8" rx="4" />
-
-          <rect className="genw-sheen" x="0" y="-34" width="200" height="34" fill="url(#genw-sheen)" />
-        </svg>
+          <svg className="genw-morph is-inner" viewBox="-32 -32 64 64">
+            <path className="genw-morph-path" d={STILL_INNER}>
+              {!stillOnly && (
+                <animate
+                  attributeName="d"
+                  dur="4.6s"
+                  repeatCount="indefinite"
+                  values={MORPH_INNER}
+                  keyTimes={MORPH_KEYTIMES}
+                  calcMode="spline"
+                  keySplines={MORPH_SPLINES}
+                />
+              )}
+            </path>
+          </svg>
+        </div>
 
         <p className="genw-title">
           Writing {count} question{count !== 1 ? "s" : ""}
@@ -324,10 +432,6 @@ function GeneratingWindow({ count, onCancel }) {
           <p key={msgIdx} className="genw-status">
             {MESSAGES[msgIdx]}
           </p>
-        </div>
-
-        <div className="genw-track" aria-hidden="true">
-          <div className="genw-track-fill" />
         </div>
 
         <button type="button" className="genw-cancel btn-press" onClick={onCancel} autoFocus>
