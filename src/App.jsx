@@ -291,7 +291,7 @@ export default function App() {
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
 
-          {view === V.PROGRESS && <ProgressView pStats={pStats} srCards={srCards} setView={go}
+          {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}

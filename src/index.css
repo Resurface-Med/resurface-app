@@ -1624,45 +1624,55 @@ select {
 
 /* ─── Progress ──────────────────────────────────────────────────── */
 /* Progress — field overview + one quiet list of where to practise next. */
+/* Two figures, so they can be given room and a relationship rather than
+   sitting in a row of three with an even gap between them. The rule between
+   is what makes them read as a pair being compared instead of two things that
+   happen to be adjacent, and it is a border rather than a gap so it cannot
+   drift out of alignment with the block heights. */
 .prog-field-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 28px 40px;
   margin-top: clamp(20px, 3vh, 28px);
 }
 .prog-field-stat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  padding-right: clamp(26px, 4.5vw, 52px);
+}
+.prog-field-stat + .prog-field-stat {
+  padding-left: clamp(26px, 4.5vw, 52px);
+  border-left: 1px solid rgba(255, 255, 255, 0.24);
 }
 .prog-field-value {
-  font-size: clamp(28px, 3.2vw, 36px);
+  font-size: clamp(34px, 4vw, 46px);
   font-weight: 700;
-  letter-spacing: -1.2px;
+  letter-spacing: -1.8px;
   color: var(--c-on-field);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+/* Smaller and softer than it was. "19/497" was reading as one figure at one
+   weight, so the number you care about had to be found inside it. */
 .prog-field-unit {
-  font-size: 0.55em;
+  font-size: 0.46em;
   font-weight: 600;
-  letter-spacing: -0.4px;
-  color: var(--c-on-field-soft);
-  margin-left: 1px;
+  letter-spacing: -0.2px;
+  color: var(--c-on-field-faint);
+  margin-left: 2px;
 }
+/* Uppercase and tracked, so a two-word label under a 46px numeral reads as a
+   caption for it rather than a second line of content. */
 .prog-field-label {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--c-on-field-faint);
 }
 
 .prog-section {
   margin-bottom: clamp(28px, 4vh, 40px);
-}
-.prog-section-quiet {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--c-border);
 }
 .prog-section-head {
   display: flex;
@@ -1678,7 +1688,6 @@ select {
   color: var(--c-muted);
 }
 
-.prog-list,
 .prog-subjects {
   display: flex;
   flex-direction: column;
@@ -1832,31 +1841,6 @@ select {
 
 .prog-subject-cats {
   padding: 0 0 6px;
-}
-
-.prog-disclose {
-  margin-bottom: 6px;
-}
-.prog-disclose-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 12px 4px;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--c-sub);
-  cursor: pointer;
-  text-align: left;
-  border-radius: var(--r-ctrl);
-}
-.prog-disclose-btn:hover {
-  color: var(--c-text);
-  background: var(--c-surface3);
 }
 
 .prog-reset {
@@ -2548,6 +2532,13 @@ select {
 }
 
 @media (max-width: 640px) {
+  .prog-field-stat {
+    padding-right: 20px;
+  }
+  .prog-field-stat + .prog-field-stat {
+    padding-left: 20px;
+  }
+
   /* .gen-grid deliberately keeps its two columns here. Collapsing it turned
      four fields into four full-width rows, which was the single biggest
      stretch of the form on a phone — and Subject, Topic, Year and Block all
