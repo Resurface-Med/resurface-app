@@ -65,6 +65,9 @@ function shortLabel(cat, deck) {
   return cat && deck && cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
 }
 
+const resumeBtn = { ...fieldBtn, padding: "9px 18px", fontSize: 14 };
+const resumeGhostBtn = { ...fieldGhostBtn, padding: "9px 16px", fontSize: 14 };
+
 /** Same measure as the dashboard, so the two screens sit on one grid. */
 const band = {
   maxWidth: 1180,
@@ -146,6 +149,33 @@ function dockChip(active, disabled) {
 
 const SESSION_KEY = "pq_practice_session";
 function loadSaved() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+
+/**
+ * What an unfinished session was on, read back out of its own queue.
+ *
+ * Derived rather than stored, on purpose: sessions saved before this existed
+ * carry no label, and the queue has always held each question's deck and cat.
+ * Reading it means an old saved session describes itself too, and the shape
+ * written to localStorage does not have to change.
+ */
+function describeSession(s) {
+  const qs = s?.queue ?? [];
+  if (!qs.length) return null;
+  const decks = [...new Set(qs.map(q => q.deck).filter(Boolean))];
+  const cats = [...new Set(qs.map(q => q.cat).filter(Boolean))];
+
+  const where = decks.length === 0 ? null
+    : decks.length > 1 ? `${decks.length} subjects`
+    : cats.length === 1 ? `${decks[0]} · ${shortLabel(cats[0], decks[0])}`
+    : `${decks[0]} · ${cats.length} topics`;
+
+  // Answered, not position. The old desktop pill read "3/20 left" off idx + 1,
+  // which is where you are rather than what is left — at question 3 of 20 it
+  // claimed 3 remained when 17 did.
+  const answered = Object.keys(s?.sels ?? {}).length;
+  const done = `${answered} of ${qs.length} answered`;
+  return where ? `${where} · ${done}` : done;
+}
 
 /**
  * The one place questions get answered.
@@ -344,10 +374,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             )}
 
             {savedSession && step === "topic" && (
-              <div className="setup-resume">
-                <span>Unfinished · {(savedSession.idx ?? 0) + 1}/{savedSession.queue?.length ?? 0}</span>
-                <button className="btn-press" style={fieldBtn} onClick={resumeSession}>Continue →</button>
-                <button className="btn-press" style={fieldGhostBtn} onClick={discardSession}>Discard</button>
+              <div className="setup-resume is-stacked">
+                <div className="setup-resume-body">
+                  <p className="setup-resume-q">Continue this session?</p>
+                  <p className="setup-resume-meta">{describeSession(savedSession)}</p>
+                </div>
+                <div className="setup-resume-acts">
+                  <button className="btn-press" style={resumeBtn} onClick={resumeSession}>Continue</button>
+                  <button className="btn-press" style={resumeGhostBtn} onClick={discardSession}>Discard</button>
+                </div>
               </div>
             )}
           </div>
@@ -464,16 +499,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
 
             {savedSession && (
-              <div style={{
-                display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
-                background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.28)",
-                borderRadius: "var(--r-pill)", padding: "6px 6px 6px 14px",
-              }}>
-                <span style={{ fontSize: 13.5, color: OF.soft, fontWeight: 500 }}>
-                  {(savedSession.idx ?? 0) + 1}/{savedSession.queue?.length ?? 0} left
-                </span>
-                <button className="btn-press" style={{ ...fieldBtn, padding: "8px 16px" }} onClick={resumeSession}>Continue</button>
-                <button className="btn-press" style={{ ...fieldGhostBtn, padding: "8px 14px", border: "none" }} onClick={discardSession}>Discard</button>
+              <div className="setup-resume">
+                <div className="setup-resume-body">
+                  <p className="setup-resume-q">Continue this session?</p>
+                  <p className="setup-resume-meta">{describeSession(savedSession)}</p>
+                </div>
+                <div className="setup-resume-acts">
+                  <button className="btn-press" style={resumeBtn} onClick={resumeSession}>Continue</button>
+                  <button className="btn-press" style={resumeGhostBtn} onClick={discardSession}>Discard</button>
+                </div>
               </div>
             )}
           </div>
