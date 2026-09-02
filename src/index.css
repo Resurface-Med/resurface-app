@@ -1700,12 +1700,48 @@ select {
 }
 .prog-subject-head {
   cursor: pointer;
-  padding: 14px 6px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 9px;
+  padding: 13px 6px 14px;
   transition: background 0.12s ease;
 }
 .prog-subject-head:hover,
 .prog-subject-head.is-open {
   background: var(--c-surface3);
+}
+.prog-subject-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+/* Nine of these read as a shape before they read as numbers, which is the
+   point — you should be able to run down the column and see where the gaps
+   are without parsing a single percentage. */
+.prog-subject-bar {
+  display: block;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+  overflow: hidden;
+}
+.prog-subject-head:hover .prog-subject-bar,
+.prog-subject-head.is-open .prog-subject-bar {
+  background: var(--c-overlay3);
+}
+.prog-subject-bar-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
+  /* scaleX from the left rather than width: width is layout and would reflow
+     the row on every frame, which is the note the dashboard's bars already
+     carry. */
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .prog-row + .prog-row,
 .prog-subject + .prog-subject {
@@ -1713,10 +1749,6 @@ select {
 }
 .prog-subject-cats .prog-row {
   padding-left: 14px;
-}
-.prog-row.is-dim .prog-row-title {
-  color: var(--c-sub);
-  font-weight: 500;
 }
 
 .prog-row-main {
@@ -1726,6 +1758,9 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+.prog-subject-line .prog-row-title {
+  flex: 1;
 }
 .prog-row-title {
   font-size: 15px;
@@ -1848,68 +1883,6 @@ select {
   color: var(--c-danger);
 }
 
-/* ─── Progress spotlight (one weak topic, field) ─────────────────── */
-.prog-spotlight {
-  margin-top: clamp(14px, 2.2vh, 20px);
-  max-width: 28em;
-}
-.prog-spotlight-kicker {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-on-field-faint);
-}
-.prog-spotlight-title {
-  margin: 6px 0 0;
-  font-size: clamp(22px, 2.8vw, 30px);
-  font-weight: 600;
-  letter-spacing: -0.9px;
-  line-height: 1.15;
-  color: var(--c-on-field);
-}
-.prog-spotlight-meta {
-  margin: 6px 0 0;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--c-on-field-soft);
-  letter-spacing: -0.1px;
-}
-.prog-spotlight-cta {
-  margin-top: 14px;
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--c-on-field);
-  cursor: pointer;
-  letter-spacing: -0.2px;
-}
-.prog-spotlight-cta:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.prog-field-stats.is-compact {
-  margin-top: 0;
-  gap: 20px 28px;
-}
-.prog-field-stats.is-compact .prog-field-value {
-  font-size: clamp(22px, 2.4vw, 28px);
-  letter-spacing: -0.8px;
-}
-.prog-field-stats.is-compact .prog-field-label {
-  font-size: 12px;
-}
-
-.prog-subject-focus .prog-subject-head {
-  background: var(--c-accent-dim);
-  box-shadow: inset 0 0 0 1.5px var(--c-accent-brd);
-}
-
 /* ─── Leaderboard ────────────────────────────────────────────────── */
 .lb-you {
   margin: 14px 0 0;
@@ -1994,13 +1967,6 @@ select {
   color: var(--c-muted);
   min-width: 2.2em;
   text-align: right;
-}
-
-@media (max-width: 640px) {
-  .prog-field-stats.is-compact {
-    width: 100%;
-    margin-top: 16px;
-  }
 }
 
 /* ─── Generate ───────────────────────────────────────────────────── */

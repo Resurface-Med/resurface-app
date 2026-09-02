@@ -4,11 +4,19 @@ import { QUESTIONS, DECK_MAP } from "../data";
 import Wave from "../ui/Wave";
 
 /**
- * Progress — personal depth, without the chart gimmick.
+ * Progress — what to open next, and how each subject is going.
  *
- * Signature is typographic: name the one topic still furthest under, then the
- * actionable list. Dashboard already owns “how far am I”; this page owns
- * “open this next”.
+ * Two questions, two sections, and nothing appears twice. The page used to
+ * answer four and repeat itself doing it: a spotlight card naming the weakest
+ * topic, a "Still under" list whose first row was that same topic, subject
+ * accordions containing it a third time, and two more disclosures for topics
+ * not started and topics doing fine. Four list treatments, three chevrons, one
+ * topic in up to three places.
+ *
+ * Now: the weak topics, then the subjects. Not-started and steady topics live
+ * inside their subject, which is where you would look for them, so the two
+ * extra disclosures are gone rather than relocated. Dashboard still owns "how
+ * far am I"; this page owns "what next".
  */
 
 const band = {
@@ -56,9 +64,9 @@ function FieldStat({ label, value, unit }) {
   );
 }
 
-function TopicActionRow({ title, meta, pct, onPractice, dim }) {
+function TopicActionRow({ title, meta, pct, onPractice }) {
   return (
-    <div className={`prog-row${dim ? " is-dim" : ""}`}>
+    <div className="prog-row">
       <div className="prog-row-main">
         <span className="prog-row-title">{title}</span>
         <span className="prog-row-meta">
@@ -100,15 +108,27 @@ function SubjectBlock({ deck, cats, pStats, open, onToggle, onPractice }) {
         onClick={onToggle}
         aria-expanded={open}
       >
-        <span className="prog-row-title">{deck}</span>
-        <span className="prog-row-meta">
-          {d.pct !== null && <span className="prog-pct">{d.pct}%</span>}
-          <span className="prog-seen">{d.seen}/{d.total}</span>
-          <span className={`prog-chevron${open ? " is-open" : ""}`} aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-              <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+        <span className="prog-subject-line">
+          <span className="prog-row-title">{deck}</span>
+          <span className="prog-row-meta">
+            {d.pct !== null && <span className="prog-pct">{d.pct}%</span>}
+            <span className="prog-seen">{d.seen}/{d.total}</span>
+            <span className={`prog-chevron${open ? " is-open" : ""}`} aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
           </span>
+        </span>
+        {/* Coverage, not accuracy — the number beside it is already accuracy,
+            and one row should not show the same quantity twice or two
+            quantities in one mark. Nine of these give the list a shape you can
+            read down without reading any of the numbers. */}
+        <span className="prog-subject-bar" aria-hidden="true">
+          <span
+            className="prog-subject-bar-fill"
+            style={{ transform: `scaleX(${d.total ? d.seen / d.total : 0})` }}
+          />
         </span>
       </button>
 
@@ -136,7 +156,6 @@ export default function StatsView({
   pStats, srCards, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
 }) {
   const [openDecks, setOpenDecks] = useState(() => new Set());
-  const [showRest, setShowRest] = useState({ untouched: false, steady: false });
 
   function practice(deck, cat) {
     setStudyScope?.("all");
@@ -161,27 +180,19 @@ export default function StatsView({
     return { accuracy, seen, learned };
   }, [pStats, srCards]);
 
-  const { weak, untouched, steady, decks, spotlight } = useMemo(() => {
+  const { weak, decks } = useMemo(() => {
     const weak = [];
-    const untouched = [];
-    const steady = [];
-
     const cats = [...new Set(QUESTIONS.map(q => q.cat))];
     for (const cat of cats) {
       const t = topicStats(cat, pStats);
-      const row = { cat, deck: t.deck, pct: t.pct, seen: t.seen, total: t.total };
-      if (t.pct === null) untouched.push(row);
-      else if (t.seen === t.total && t.pct >= 70) steady.push(row);
-      else if (t.pct < 60) weak.push(row);
+      if (t.pct !== null && t.pct < 60) {
+        weak.push({ cat, deck: t.deck, pct: t.pct, seen: t.seen, total: t.total });
+      }
     }
     weak.sort((a, b) => a.pct - b.pct);
-    return {
-      weak: weak.slice(0, 6),
-      untouched,
-      steady,
-      decks: Object.keys(DECK_MAP),
-      spotlight: weak[0] ?? null,
-    };
+    // Six is a list you act on. The rest of a bad week is in By subject, and
+    // a page that opens with twenty things to fix is one you close.
+    return { weak: weak.slice(0, 6), decks: Object.keys(DECK_MAP) };
   }, [pStats]);
 
   const { accuracy, seen, learned } = overview;
@@ -189,45 +200,22 @@ export default function StatsView({
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
-        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
-          <div data-in="left" style={{ minWidth: 0, flex: "1 1 280px", "--i": 0 }}>
-            <h1 style={{ ...h1, margin: 0 }}>Progress</h1>
-            {spotlight ? (
-              <div className="prog-spotlight">
-                <p className="prog-spotlight-kicker">Furthest under right now</p>
-                <p className="prog-spotlight-title">
-                  {shortCat(spotlight.cat, spotlight.deck)}
-                </p>
-                <p className="prog-spotlight-meta">
-                  {spotlight.deck} · {spotlight.pct}% · {spotlight.seen}/{spotlight.total} seen
-                </p>
-                <button
-                  type="button"
-                  className="prog-spotlight-cta btn-press"
-                  onClick={() => practice(spotlight.deck, spotlight.cat)}
-                >
-                  Practice this →
-                </button>
-              </div>
-            ) : (
-              <p style={{ marginTop: 10, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "34em" }}>
-                {seen === 0
-                  ? "Nothing attempted yet — start a session and this page fills in."
-                  : "Nothing’s critically under. Keep the rhythm going."}
-              </p>
-            )}
-          </div>
+        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
+        <p data-in="left" style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em", "--i": 1 }}>
+          {seen === 0
+            ? "Nothing attempted yet. Answer a few questions and this fills in."
+            : "What to open next, and how each subject is going."}
+        </p>
 
-          <div className="prog-field-stats is-compact" aria-label="Overview" data-in="rise" style={{ "--i": 1 }}>
-            <FieldStat
-              label="Accuracy"
-              value={accuracy === null ? "—" : accuracy}
-              unit={accuracy === null ? null : "%"}
-            />
-            <FieldStat label="Seen" value={`${seen}`} unit={`/${QUESTIONS.length}`} />
-            <FieldStat label="In rotation" value={learned} />
-          </div>
-        </header>
+        <div className="prog-field-stats" aria-label="Overview" data-in="rise" style={{ "--i": 2 }}>
+          <FieldStat
+            label="Accuracy"
+            value={accuracy === null ? "—" : accuracy}
+            unit={accuracy === null ? null : "%"}
+          />
+          <FieldStat label="Seen" value={`${seen}`} unit={`/${QUESTIONS.length}`} />
+          <FieldStat label="In rotation" value={learned} />
+        </div>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
@@ -236,10 +224,10 @@ export default function StatsView({
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
 
           {weak.length > 0 && (
-            <section className="prog-section" data-in="rise" style={{ "--i": 2 }}>
+            <section className="prog-section" data-in="rise" style={{ "--i": 3 }}>
               <div className="prog-section-head">
-                <h2 style={{ ...sectionH, margin: 0 }}>Still under</h2>
-                <span className="prog-section-note">Below 60% — pull these up first</span>
+                <h2 style={{ ...sectionH, margin: 0 }}>Open these next</h2>
+                <span className="prog-section-note">Under 60%, weakest first</span>
               </div>
               <div className="prog-list">
                 {weak.map(row => (
@@ -255,10 +243,10 @@ export default function StatsView({
             </section>
           )}
 
-          <section className="prog-section" data-in="rise" style={{ "--i": 3 }}>
+          <section className="prog-section" data-in="rise" style={{ "--i": 4 }}>
             <div className="prog-section-head">
               <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
-              <span className="prog-section-note">Weakest topics first inside each</span>
+              <span className="prog-section-note">Bar is how much you’ve seen</span>
             </div>
             <div className="prog-subjects">
               {decks.map(deck => (
@@ -274,74 +262,6 @@ export default function StatsView({
               ))}
             </div>
           </section>
-
-          {(untouched.length > 0 || steady.length > 0) && (
-            <section className="prog-section prog-section-quiet" data-in="rise" style={{ "--i": 4 }}>
-              {untouched.length > 0 && (
-                <div className="prog-disclose">
-                  <button
-                    type="button"
-                    className="prog-disclose-btn"
-                    onClick={() => setShowRest(s => ({ ...s, untouched: !s.untouched }))}
-                    aria-expanded={showRest.untouched}
-                  >
-                    <span>{untouched.length} not started yet</span>
-                    <span className={`prog-chevron${showRest.untouched ? " is-open" : ""}`} aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                        <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                  </button>
-                  {showRest.untouched && (
-                    <div className="prog-list">
-                      {untouched.map(row => (
-                        <TopicActionRow
-                          key={row.cat}
-                          title={shortCat(row.cat, row.deck)}
-                          meta={row.deck}
-                          pct={null}
-                          dim
-                          onPractice={() => practice(row.deck, row.cat)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {steady.length > 0 && (
-                <div className="prog-disclose">
-                  <button
-                    type="button"
-                    className="prog-disclose-btn"
-                    onClick={() => setShowRest(s => ({ ...s, steady: !s.steady }))}
-                    aria-expanded={showRest.steady}
-                  >
-                    <span>{steady.length} looking steady</span>
-                    <span className={`prog-chevron${showRest.steady ? " is-open" : ""}`} aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                        <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                  </button>
-                  {showRest.steady && (
-                    <div className="prog-list">
-                      {steady.map(row => (
-                        <TopicActionRow
-                          key={row.cat}
-                          title={shortCat(row.cat, row.deck)}
-                          meta={`${row.deck} · ${row.seen}/${row.total}`}
-                          pct={row.pct}
-                          dim
-                          onPractice={() => practice(row.deck, row.cat)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
 
           <div className="prog-reset">
             <button
