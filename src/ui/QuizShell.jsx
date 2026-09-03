@@ -64,16 +64,14 @@ export default function QuizShell({
   const progress = (idx + 1) / queue.length;
   const wrong = sel !== null && sel !== q.ans;
   const showAi = aiOpen && wrong;
-  const primaryLabel = controls.answered
-    ? (isLast ? "Finish" : "Next")
-    : "Check";
-  const primaryDisabled = controls.answered
-    ? false
-    : !controls.canSubmit;
+  const canCheck = !controls.answered && controls.canSubmit;
+  const primaryLabel = canCheck
+    ? "Check"
+    : (isLast ? "Finish" : "Next");
 
   function handlePrimary() {
-    if (controls.answered) controls.next?.();
-    else controls.submit?.();
+    if (canCheck) controls.submit?.();
+    else onNext?.();
   }
 
   return (
@@ -141,7 +139,6 @@ export default function QuizShell({
           <button
             type="button"
             className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"
-            disabled={primaryDisabled}
             onClick={handlePrimary}
           >
             {primaryLabel}
