@@ -298,6 +298,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           the eye. What is left is the part that teaches. */}
       {answered && (
         <div className="q-review anim-fade-up">
+          <p className="q-exp">{q.exp}</p>
+
           <button
             type="button"
             className="q-allopts"
@@ -306,13 +308,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           >
             {showAll ? "Hide the others" : `All ${q.opts.length} options`}
             <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                 <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
           </button>
-
-          <p className="q-exp">{q.exp}</p>
 
           {explaining && sel !== q.ans && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />

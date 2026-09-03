@@ -654,39 +654,36 @@ body::after {
 .q-allopts {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 12px 7px 13px;
-  margin-bottom: 12px;
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-pill);
-  background: var(--c-surface2);
-  color: var(--c-sub);
+  gap: 4px;
+  padding: 0;
+  margin-top: 14px;
+  border: 0;
+  background: none;
+  color: var(--c-muted);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: color 0.15s;
 }
-.q-allopts:hover {
-  color: var(--c-accent);
-  border-color: var(--c-accent-brd);
-  background: var(--c-accent-dim);
-}
+.q-allopts:hover { color: var(--c-accent); }
 .q-allopts-chev {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  color: var(--c-muted);
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s;
+  color: inherit;
+  opacity: 0.85;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.q-allopts:hover .q-allopts-chev { color: var(--c-accent); }
 .q-allopts-chev.is-open { transform: rotate(180deg); }
 
 .q-exp {
   margin: 0;
-  font-size: 14px;
-  color: var(--c-sub);
-  line-height: 1.7;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--c-text);
+  line-height: 1.72;
+  letter-spacing: -0.15px;
 }
 
 .q-review-extra {
@@ -3504,12 +3501,13 @@ select {
   padding-top: 18px;
 }
 .quiz-shell .q-card--focus .q-exp {
-  font-size: 16px;
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.75;
+  letter-spacing: -0.18px;
 }
 .quiz-shell .q-card--focus .q-allopts {
-  font-size: 13px;
-  margin-bottom: 14px;
+  margin-top: 16px;
+  font-size: 12px;
 }
 .quiz-shell .q-card--focus .q-review-extra {
   margin-top: 22px;
