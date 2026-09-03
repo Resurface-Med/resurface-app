@@ -1,0 +1,25 @@
+{
+  "name": "Resurface",
+  "short_name": "Resurface",
+  "description": "Spaced-repetition study for Year 1 MBChB.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#3562f5",
+  "theme_color": "#3562f5",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
