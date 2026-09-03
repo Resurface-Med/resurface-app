@@ -128,7 +128,16 @@ export default function ExplainChat({ q, picked, onClose }) {
   return (
     <aside className="ai-dock" aria-label="Resurface AI">
       <header className="ai-dock__head">
-        <h2 className="ai-dock__title">Resurface AI</h2>
+        <h2 className="ai-dock__brand" aria-label="Resurface AI">
+          <img
+            src="/logo-lockup.png"
+            alt=""
+            width="560"
+            height="131"
+            className="ai-dock__logo"
+          />
+          <span className="ai-dock__suffix">AI</span>
+        </h2>
         <button type="button" className="ai-dock__close btn-press" onClick={onClose} aria-label="Close">
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 4l8 8M12 4L4 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />

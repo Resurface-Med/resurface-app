@@ -729,14 +729,26 @@ body::after {
   padding: 22px 24px 18px;
   flex-shrink: 0;
 }
-.ai-dock__title {
-  margin: 0;
+.ai-dock__brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
   flex: 1;
-  font-size: 18px;
+  margin: 0;
+}
+.ai-dock__logo {
+  display: block;
+  width: auto;
+  height: 22px;
+  max-width: min(132px, 42vw);
+}
+.ai-dock__suffix {
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.35px;
   color: var(--c-accent);
+  line-height: 1;
 }
 .ai-dock__close {
   flex-shrink: 0;
