@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 
-import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
+
+const JUMP_FILTERS = [
+  { k: "all", label: "All questions" },
+  { k: "ok", label: "Correct" },
+  { k: "bad", label: "Incorrect" },
+  { k: "current", label: "Current" },
+  { k: "idle", label: "Unanswered" },
+  { k: "saved", label: "Bookmarked" },
+];
 
 /**
  * Full-screen study mode: no sidebar, no question rail beside the card.
@@ -18,6 +26,7 @@ export default function QuizShell({
   sels,
   results,
   isBookmarked,
+  bookmarks = [],
   isLast,
   onAnswer,
   onNext,
@@ -28,6 +37,7 @@ export default function QuizShell({
   onRequestExit,
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [jumpFilter, setJumpFilter] = useState("all");
   const [aiOpen, setAiOpen] = useState(false);
   const [controls, setControls] = useState({
     pending: null,
@@ -149,27 +159,54 @@ export default function QuizShell({
             className="quiz-shell__sheet"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
-            aria-label="Session options"
+            aria-labelledby="quiz-jump-title"
           >
             <div className="quiz-shell__sheet-head">
-              <span className="quiz-shell__sheet-title">Options</span>
+              <h2 id="quiz-jump-title" className="quiz-shell__sheet-title">Jump to question</h2>
               <button
                 type="button"
                 className="quiz-shell__sheet-close btn-press"
                 onClick={() => setOptionsOpen(false)}
-                aria-label="Close options"
               >
                 Done
               </button>
             </div>
 
-            <p className="quiz-shell__sheet-hint">
-              Jump to a question, or bookmark one to revisit later.
-            </p>
-
-            <div className="quiz-shell__sheet-tools">
-              <BmBtn active={isBookmarked} onClick={onToggleBookmark} />
-              <span>{isBookmarked ? "Saved to bookmarks" : "Bookmark this question"}</span>
+            <div className="quiz-shell__filters" role="toolbar" aria-label="Filter questions">
+              {JUMP_FILTERS.map(({ k, label }) => (
+                <button
+                  key={k}
+                  type="button"
+                  className={`quiz-shell__filter is-${k}${jumpFilter === k ? " is-on" : ""}`}
+                  aria-pressed={jumpFilter === k}
+                  aria-label={label}
+                  title={label}
+                  onClick={() => setJumpFilter(k)}
+                >
+                  {k === "all" && "All"}
+                  {k === "ok" && (
+                    <span className="quiz-shell__filter-mark is-ok" aria-hidden="true">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M3 6.2L5.1 8.2 9 3.8" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  )}
+                  {k === "bad" && (
+                    <span className="quiz-shell__filter-mark is-bad" aria-hidden="true">
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M4 4l4 4M8 4L4 8" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  )}
+                  {k === "current" && <span className="quiz-shell__filter-dot is-current" aria-hidden="true" />}
+                  {k === "idle" && <span className="quiz-shell__filter-dot is-idle" aria-hidden="true" />}
+                  {k === "saved" && (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M4 2.5h8v12l-4-2.4-4 2.4v-12z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+              ))}
             </div>
 
             <QuestionNavigator
@@ -177,11 +214,31 @@ export default function QuizShell({
               idx={idx}
               sels={sels}
               results={results}
+              bookmarks={bookmarks}
+              filter={jumpFilter}
               onJump={(i) => {
                 onJump(i);
                 setOptionsOpen(false);
               }}
             />
+
+            <button
+              type="button"
+              className={`quiz-shell__sheet-bm btn-press${isBookmarked ? " is-on" : ""}`}
+              onClick={onToggleBookmark}
+              aria-pressed={isBookmarked}
+            >
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path
+                  d="M4 2.5h8v12l-4-2.4-4 2.4v-12z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                  fill={isBookmarked ? "currentColor" : "none"}
+                />
+              </svg>
+              {isBookmarked ? "Bookmarked" : "Bookmark this question"}
+            </button>
           </div>
         </div>
       )}
