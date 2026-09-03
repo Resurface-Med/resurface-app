@@ -70,18 +70,11 @@ export function AuthProvider({ children }) {
     signIn: (email, password) =>
       supabase.auth.signInWithPassword({ email, password }),
 
-    signInWithGoogle: (marketingOptIn = false) => {
-      try {
-        if (marketingOptIn) sessionStorage.setItem("rs_marketing_opt_in", "1");
-        else sessionStorage.removeItem("rs_marketing_opt_in");
-      } catch {
-        /* private mode */
-      }
-      return supabase.auth.signInWithOAuth({
+    signInWithGoogle: () =>
+      supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: window.location.origin },
-      });
-    },
+      }),
 
     // Recovery template must use {{ .Token }} (no ConfirmationURL) so the
     // student gets a code instead of a link that mail apps burn.

@@ -100,15 +100,6 @@ export default function App() {
       setDisplayName(d.displayName || "");
       setShowOnLeaderboard(d.showOnLeaderboard !== false);
       setMarketingOptIn(d.marketingOptIn === true);
-      try {
-        if (sessionStorage.getItem("rs_marketing_opt_in") === "1") {
-          sessionStorage.removeItem("rs_marketing_opt_in");
-          remote.profile(user.id, { marketingOptIn: true });
-          setMarketingOptIn(true);
-        }
-      } catch {
-        /* private mode */
-      }
       setGenerated(d.generated);
       setDataLoading(false);
     })();

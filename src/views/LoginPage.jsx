@@ -323,18 +323,7 @@ export default function LoginPage() {
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
               </div>
 
-              {mode === "signin" && (
-                <label className="auth-consent" style={{ marginBottom: 12 }}>
-                  <input
-                    type="checkbox"
-                    checked={marketingOptIn}
-                    onChange={e => setMarketingOptIn(e.target.checked)}
-                  />
-                  <span>Email me news and study tips</span>
-                </label>
-              )}
-
-              <button type="button" onClick={() => signInWithGoogle(marketingOptIn)} className="btn-press" style={{
+              <button type="button" onClick={signInWithGoogle} className="btn-press" style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
                 color: C.text, background: "var(--c-surface3)",
