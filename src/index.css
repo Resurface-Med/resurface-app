@@ -853,13 +853,6 @@ body::after {
   gap: 14px;
 }
 
-.ai-dock__intro {
-  display: flex;
-  flex-direction: column;
-  margin: auto 0;
-  padding: 8px 0 12px;
-}
-
 .ai-dock__msg {
   display: flex;
   flex-direction: column;
@@ -993,6 +986,10 @@ body::after {
 
 .ai-dock__foot {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
   padding: 10px 16px calc(14px + var(--safe-b));
   background: transparent;
 }
@@ -1001,6 +998,7 @@ body::after {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 5px 5px 5px 16px;
   background: var(--c-surface2);
   border-radius: var(--r-pill);

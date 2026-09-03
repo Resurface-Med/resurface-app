@@ -147,10 +147,6 @@ export default function ExplainChat({ q, picked, onClose }) {
     )));
   }
 
-  const empty = messages.length === 0 && !sending;
-  const last = messages[messages.length - 1];
-  const showPills = empty || (last?.role === "assistant" && !sending);
-
   return (
     <aside className="ai-dock" aria-label="Resurface AI">
       <header className="ai-dock__head">
@@ -175,12 +171,6 @@ export default function ExplainChat({ q, picked, onClose }) {
       </header>
 
       <div ref={threadRef} className="ai-dock__thread">
-        {empty && (
-          <div className="ai-dock__intro">
-            <QuickPills sending={sending} onPick={(label, message) => void sendPrompt(label, message)} />
-          </div>
-        )}
-
         {messages.map(msg => (
           <div key={msg.id} className={`ai-dock__msg is-${msg.role}`}>
             {msg.role === "assistant" ? (
@@ -233,13 +223,10 @@ export default function ExplainChat({ q, picked, onClose }) {
         {error && (
           <p className="ai-dock__error" role="alert">{error}</p>
         )}
-
-        {!empty && showPills && (
-          <QuickPills sending={sending} onPick={(label, message) => void sendPrompt(label, message)} />
-        )}
       </div>
 
       <footer className="ai-dock__foot">
+        <QuickPills sending={sending} onPick={(label, message) => void sendPrompt(label, message)} />
         <form className="ai-dock__compose" onSubmit={handleSubmit}>
           <input
             ref={inputRef}
