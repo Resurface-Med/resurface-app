@@ -13,15 +13,15 @@ const API_BASE = import.meta.env.VITE_API_BASE
 const QUICK = [
   {
     label: "Explain further",
-    message: "Explain the correct answer in simple, everyday language. Keep it short and clear.",
+    message: "In 2–3 simple sentences, explain only why the correct answer is right. No extra topics.",
   },
   {
     label: "Why was I wrong?",
-    message: "Explain briefly why my answer was wrong and what I was probably confusing.",
+    message: "In 1–2 sentences, say why my pick was wrong. Name the one thing I confused.",
   },
   {
     label: "One line to remember",
-    message: "Give me one line worth remembering for the exam.",
+    message: "One sentence only — the single fact worth remembering for the exam.",
   },
 ];
 
@@ -123,6 +123,8 @@ export default function ExplainChat({ q, picked, onClose }) {
     void sendPrompt(text, text);
   }
 
+  const empty = messages.length === 0 && !sending;
+
   return (
     <aside className="ai-dock" aria-label="Resurface AI">
       <header className="ai-dock__head">
@@ -135,10 +137,23 @@ export default function ExplainChat({ q, picked, onClose }) {
       </header>
 
       <div ref={threadRef} className="ai-dock__thread">
-        {messages.length === 0 && !sending && (
-          <p className="ai-dock__empty">
-            Ask anything about this question — or tap a quick prompt below.
-          </p>
+        {empty && (
+          <div className="ai-dock__intro">
+            <p className="ai-dock__empty">Tap a prompt or type below.</p>
+            <div className="ai-dock__quick">
+              {QUICK.map(({ label, message }) => (
+                <button
+                  key={label}
+                  type="button"
+                  className="ai-dock__quick-btn btn-press"
+                  disabled={sending}
+                  onClick={() => void sendPrompt(label, message)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
         {messages.map(msg => (
@@ -163,42 +178,46 @@ export default function ExplainChat({ q, picked, onClose }) {
         )}
       </div>
 
-      <div className="ai-dock__quick">
-        {QUICK.map(({ label, message }) => (
-          <button
-            key={label}
-            type="button"
-            className="ai-dock__quick-btn btn-press"
-            disabled={sending}
-            onClick={() => void sendPrompt(label, message)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <footer className="ai-dock__foot">
+        {!empty && (
+          <div className="ai-dock__quick ai-dock__quick--compact">
+            {QUICK.map(({ label, message }) => (
+              <button
+                key={label}
+                type="button"
+                className="ai-dock__quick-chip btn-press"
+                disabled={sending}
+                onClick={() => void sendPrompt(label, message)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
-      <form className="ai-dock__compose" onSubmit={handleSubmit}>
-        <input
-          ref={inputRef}
-          type="text"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          placeholder="Ask a follow-up…"
-          disabled={sending}
-          className="ai-dock__input"
-          aria-label="Your question"
-        />
-        <button
-          type="submit"
-          className="ai-dock__send btn-press"
-          disabled={sending || !draft.trim()}
-          aria-label="Send"
-        >
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M8 12V4M8 4L5 7M8 4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-      </form>
+        <form className="ai-dock__compose" onSubmit={handleSubmit}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder="Ask a follow-up…"
+            disabled={sending}
+            className="ai-dock__input"
+            aria-label="Your question"
+          />
+          <button
+            type="submit"
+            className="ai-dock__send btn-press"
+            disabled={sending || !draft.trim()}
+            aria-label="Send"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 12V4M8 4L5 7M8 4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+        </form>
+      </footer>
     </aside>
   );
 }
