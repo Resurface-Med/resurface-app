@@ -726,7 +726,7 @@ body::after {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 22px 24px 18px;
+  padding: 16px 24px 18px;
   flex-shrink: 0;
 }
 .ai-dock__brand {
