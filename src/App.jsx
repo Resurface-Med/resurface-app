@@ -296,7 +296,8 @@ export default function App() {
           {view === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
-            launchFilter={launchFilter} onSessionActive={setPracticeSessionActive} />}
+            launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
+            onRequestExit={() => setPendingView(V.DASH)} />}
 
           {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}

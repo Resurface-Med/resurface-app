@@ -1,66 +1,17 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
 import Wave from "../ui/Wave";
-import QuestionCard from "../ui/QuestionCard";
+import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import TopicPicker from "../ui/TopicPicker";
 import SessionSummary from "../ui/SessionSummary";
 
-function QuestionNavigator({ queue, idx, sels, results, onJump, maxHeight }) {
-  const activeRef = useRef(null);
-
-  useEffect(() => { activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [idx]);
-
-  const answered = Object.keys(sels).length;
-
-  return (
-    <nav
-      className="q-nav"
-      aria-label="Question list"
-      style={{ maxHeight: maxHeight ?? undefined }}
-    >
-      {/* One line. The fraction and the percentage are the same fact twice, and
-          a control to hide one of them was a third element for it. */}
-      <div className="q-nav-head">
-        <span className="q-nav-count">{answered}/{queue.length}</span>
-        <span className="q-nav-label">answered</span>
-      </div>
-
-      <div className="q-nav-grid">
-        {queue.map((_, i) => {
-          const isCurrent  = i === idx;
-          const isAnswered = sels[i] !== undefined;
-          const isCorrect  = results[i]?.correct;
-          let state = "idle";
-          if (isCurrent) state = "current";
-          else if (isAnswered) state = isCorrect ? "ok" : "bad";
-
-          return (
-            <button
-              key={i}
-              ref={isCurrent ? activeRef : null}
-              type="button"
-              onClick={() => onJump(i)}
-              className={`q-nav-cell is-${state}`}
-              aria-current={isCurrent ? "true" : undefined}
-              aria-label={`Question ${i + 1}${isAnswered ? (isCorrect ? ", correct" : ", wrong") : ""}`}
-              title={`Question ${i + 1}`}
-            >
-              {i + 1}
-            </button>
-          );
-        })}
-      </div>
-    </nav>
-  );
-}
-
+/** Categories carry their subject as a prefix; the button already names it. */
 const COUNT_OPTIONS = [10, 20, 50, "All"];
 
-/** Categories carry their subject as a prefix; the button already names it. */
 function shortLabel(cat, deck) {
   return cat && deck && cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
 }
@@ -184,7 +135,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, srCards = {}, scope: initialScope = "all" }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all" }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -216,8 +167,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [sT, setST] = useState(0);
   const [savedSession, setSavedSession] = useState(loadSaved);
   const [sessionFilter, setSessionFilter] = useState(null);
-  const cardRef = useRef(null);
-  const [cardHeight, setCardHeight] = useState(null);
 
   // Persist session whenever active state changes
   useEffect(() => {
@@ -229,14 +178,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     onSessionActive?.(queue !== null);
     return () => onSessionActive?.(false);
   }, [queue]);
-
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([entry]) => setCardHeight(entry.contentRect.height));
-    ro.observe(el);
-    return () => ro.disconnect();
-  });
 
   /** The scope is the only thing that separates what used to be five modes. */
   function applyScope(list) {
@@ -664,70 +605,26 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const q = queue[idx];
   const sel = sels[idx] ?? null;
   const isBookmarked = bookmarks.includes(q?.id);
-  const topic = [
-    !filter.deck.includes("All") && filter.deck.join(", "),
-    !filter.cat.includes("All") && filter.cat.join(", "),
-  ].filter(Boolean).join(" · ") || SCOPES.find(s => s.k === scope)?.label || "Everything";
 
-  /**
-   * A session is one object — the question. Everything else is a thin rail.
-   *
-   * The old header carried a page title, the filter label and a live accuracy
-   * percentage set in 32px and coloured green or amber. The title and label
-   * restate what you chose one screen ago, and the running score is the exact
-   * thing the research on question banks warns about: students reported real
-   * anxiety watching it, and some skipped hard questions to protect it.
-   * Accuracy belongs in the summary, once the answering is done.
-   *
-   * The rail keeps position — the one thing you cannot know by looking — and
-   * the way out. The prev/next arrows are gone because the card already owns
-   * them, and two sets of the same control is how the other screens got noisy.
-   */
   return (
-    <div className="session-wrap" data-in="rise" style={{ "--i": 0, ...band, maxWidth: 1100, paddingTop: "clamp(18px, 3vh, 30px)", paddingBottom: "clamp(24px, 4vh, 48px)", display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <button
-          onClick={() => { setQueue(null); setSels({}); setResults({}); setSC(0); setST(0); }}
-          className="btn-press"
-          style={{
-            flexShrink: 0, background: "rgba(255,255,255,0.12)", border: "none",
-            borderRadius: "var(--r-pill)", padding: "8px 16px",
-            color: OF.text, fontFamily: "inherit", fontSize: 14, fontWeight: 500, cursor: "pointer",
-          }}
-        >Exit</button>
-
-        <span style={{ fontSize: 14, color: OF.soft, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {topic}
-        </span>
-
-        <span style={{
-          marginLeft: "auto", flexShrink: 0,
-          fontSize: 14, fontWeight: 600, color: OF.text, fontVariantNumeric: "tabular-nums",
-        }}>
-          {idx + 1} / {queue.length}
-        </span>
-      </div>
-
-      {/* Position, full width. One mark, one meaning. */}
-      <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.22)", overflow: "hidden" }}>
-        <div style={{
-          height: "100%", width: "100%",
-          transform: `scaleX(${(idx + 1) / queue.length})`,
-          transformOrigin: "left center",
-          background: "var(--c-field-object)", borderRadius: 99,
-          transition: "transform 0.3s cubic-bezier(0.22,1,0.36,1)",
-        }} />
-      </div>
-
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 18 }}>
-        <div ref={cardRef} style={{ flex: 1, minWidth: 0 }}>
-          <QuestionCard q={q} sel={sel} onAnswer={handleAnswer} onNext={handleNext} onPrev={handleBack}
-            onToggleBookmark={() => onToggleBookmark(q.id)} isBookmarked={isBookmarked}
-            isLast={idx + 1 >= queue.length} nextLabel="Next question"
-            onSaveEdit={updated => setQueue(prev => prev.map((item, i) => i === idx ? { ...item, ...updated } : item))} />
-        </div>
-        <QuestionNavigator queue={queue} idx={idx} sels={sels} results={results} onJump={setIdx} maxHeight={cardHeight} />
-      </div>
-    </div>
+    <QuizShell
+      q={q}
+      idx={idx}
+      queue={queue}
+      sel={sel}
+      sels={sels}
+      results={results}
+      isBookmarked={isBookmarked}
+      isLast={idx + 1 >= queue.length}
+      onAnswer={handleAnswer}
+      onNext={handleNext}
+      onPrev={idx > 0 ? handleBack : null}
+      onJump={setIdx}
+      onToggleBookmark={() => onToggleBookmark(q.id)}
+      onSaveEdit={(updated) =>
+        setQueue((prev) => prev.map((item, i) => (i === idx ? { ...item, ...updated } : item)))
+      }
+      onRequestExit={onRequestExit}
+    />
   );
 }

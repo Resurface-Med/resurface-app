@@ -13,7 +13,7 @@ import EditQuestionModal from "./EditQuestionModal";
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, onControlsChange }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -51,6 +51,22 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     setShowAll(false);
     setExplaining(false);
   }, [q?.id]);
+
+  useEffect(() => {
+    if (!onControlsChange) return;
+    const answeredNow = sel !== null || timedOut;
+    onControlsChange({
+      pending,
+      answered: answeredNow,
+      canSubmit: pending !== null && !answeredNow,
+      submit: () => {
+        if (pending !== null && !answeredNow) onAnswer(pending);
+      },
+      next: () => {
+        if (answeredNow) onNext?.();
+      },
+    });
+  }, [pending, sel, timedOut, onAnswer, onNext, onControlsChange]);
 
   useEffect(() => {
     if (!q) return;
@@ -140,13 +156,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
-    <div style={qcard} className="q-card anim-scale-in">
-      {/* No category label. "Hormone Signalling" printed above "Adrenergic
-          receptors B1 are coupled to:" narrows the answer space before the
-          options have been read — it is a hint the exam will not give you.
-          The session header already states the scope you chose, which you
-          know; what the individual question belongs to is the thing worth
-          not saying. */}
+    <div style={qcard} className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}`}>
+      {!focusMode && (
       <div className="q-card-meta">
         <div className="q-card-tools">
           <span className="q-tool-extra">
@@ -185,6 +196,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           {onToggleBookmark && <BmBtn active={isBookmarked} onClick={onToggleBookmark} />}
         </div>
       </div>
+      )}
 
       <p className="anim-fade-up delay-0" style={{ ...qstem, marginBottom: 20 }}>{q.q}</p>
 
@@ -317,7 +329,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           is submitted the explanation expands above it, and leaving the button
           at the end of the card meant scrolling past an explanation you may
           not want in order to reach the only way forward. */}
-      {(answered || pending !== null) && (
+      {(answered || pending !== null) && !hideActions && (
         <div className="q-actions">
           {answered ? (
             <>

@@ -3181,15 +3181,249 @@ select {
   );
 }
 
-/* Answering a question is a mode with one way out, and it has its own Exit
-   control in the same corner the menu button occupies. Two overlapping
-   escapes is worse than either: the drawer stands down while a session runs. */
+/* Answering a question is a mode with one way out. The sidebar steps aside on
+   every screen size so the quiz shell owns the viewport. */
+.app-shell.is-session {
+  gap: 0;
+}
+.app-shell.is-session .app-nav,
+.app-shell.is-session .app-nav__burger,
+.app-shell.is-session .app-nav__scrim {
+  display: none !important;
+}
+.app-shell.is-session .app-content {
+  width: 100%;
+}
+.app-shell.is-session .app-main {
+  overflow: hidden;
+}
+
 @media (max-width: 900px) {
   .app-shell.is-session .app-nav__burger { display: none; }
   .app-shell.is-session .page-band { padding-top: calc(env(safe-area-inset-top, 0px) + 14px) !important; }
 }
 
-/* ─── Answering, on a phone ─────────────────────────────────────── */
+/* ─── Focus quiz shell ───────────────────────────────────────────── */
+.quiz-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+.quiz-shell__header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) clamp(16px, 3vw, 28px) 12px;
+  border-bottom: 1px solid var(--c-border);
+}
+.quiz-shell__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--c-muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.quiz-shell__close:hover {
+  color: var(--c-text);
+  background: var(--c-surface2);
+}
+.quiz-shell__progress-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.quiz-shell__progress {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--c-surface3);
+  overflow: hidden;
+}
+.quiz-shell__progress-fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  border-radius: 99px;
+  background: var(--c-success);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.quiz-shell__count {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-sub);
+  font-variant-numeric: tabular-nums;
+}
+.quiz-shell__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  justify-content: center;
+  padding: clamp(20px, 4vh, 40px) clamp(16px, 4vw, 32px)
+    clamp(12px, 2vh, 24px);
+}
+.quiz-shell__card {
+  width: min(720px, 100%);
+  align-self: flex-start;
+}
+.quiz-shell .q-card--focus {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+.quiz-shell .q-opt {
+  background: var(--c-surface2);
+  border-color: transparent;
+}
+.quiz-shell .q-opt.is-idle.option-btn:hover {
+  background: var(--c-surface3);
+  border-color: var(--c-accent-brd);
+}
+.quiz-shell .q-opt.is-pending {
+  background: var(--c-accent-dim);
+}
+.quiz-shell__footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px clamp(16px, 3vw, 28px) calc(14px + var(--safe-b));
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+.quiz-shell__foot-btn {
+  min-width: 120px;
+  padding: 12px 28px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--c-accent-brd);
+  background: var(--c-surface);
+  color: var(--c-accent);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.quiz-shell__foot-btn:hover:not(:disabled) {
+  background: var(--c-accent-dim);
+}
+.quiz-shell__foot-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.quiz-shell__foot-btn--primary {
+  margin-left: auto;
+}
+.quiz-shell__sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(15, 27, 61, 0.35);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 12px calc(12px + var(--safe-b));
+}
+.quiz-shell__sheet {
+  width: min(480px, 100%);
+  max-height: min(70vh, 520px);
+  overflow: auto;
+  border-radius: 20px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  box-shadow: 0 24px 64px rgba(15, 27, 61, 0.18);
+  padding: 16px 16px 18px;
+}
+.quiz-shell__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.quiz-shell__sheet-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.quiz-shell__sheet-close {
+  border: none;
+  background: none;
+  color: var(--c-accent);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+.quiz-shell__sheet-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--c-sub);
+}
+.quiz-shell__sheet-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--r-ctrl);
+  background: var(--c-surface2);
+  font-size: 14px;
+  color: var(--c-sub);
+}
+.q-nav--sheet {
+  width: 100%;
+  border-color: var(--c-border);
+  background: var(--c-surface2);
+  backdrop-filter: none;
+}
+.q-nav--sheet .q-nav-head {
+  border-bottom-color: var(--c-border);
+}
+.q-nav--sheet .q-nav-count {
+  color: var(--c-text);
+}
+.q-nav--sheet .q-nav-label {
+  color: var(--c-muted);
+}
+.q-nav--sheet .q-nav-cell {
+  background: var(--c-surface);
+  color: var(--c-sub);
+}
+.q-nav--sheet .q-nav-cell.is-current {
+  background: var(--c-accent);
+  color: #fff;
+}
+.q-nav--sheet .q-nav-cell.is-ok {
+  background: color-mix(in srgb, var(--c-success) 16%, var(--c-surface));
+  color: var(--c-success);
+}
+.q-nav--sheet .q-nav-cell.is-bad {
+  background: color-mix(in srgb, var(--c-danger) 14%, var(--c-surface));
+  color: var(--c-danger);
+}
+
+/* ─── Answering, on a phone (legacy session-wrap — setup screens only) ─ */
 @media (max-width: 900px) {
   /* The card is the screen here. A 20px blue margin either side plus 22px of
      card padding spent 84px of a 390px viewport on framing a question that
