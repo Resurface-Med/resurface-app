@@ -3869,8 +3869,35 @@ select {
     width: 100%;
     min-height: min(48dvh, 480px);
   }
+  .quiz-shell__body {
+    padding: 10px 12px 8px;
+  }
   .quiz-shell .q-card--focus {
     max-width: none;
+    padding: 18px 16px;
+    border-radius: 20px;
+  }
+  .quiz-shell .q-stem--focus {
+    margin: 0 0 16px;
+    font-size: 17.5px;
+    letter-spacing: -0.3px;
+    line-height: 1.35;
+  }
+  .quiz-shell .q-card--focus .q-opts { gap: 7px; }
+  .quiz-shell .q-card--focus .q-opt {
+    padding: 11px 13px;
+    font-size: 15px;
+    line-height: 1.4;
+    border-radius: 12px;
+  }
+  .quiz-shell .q-card--focus .q-opt-letter { font-size: 13px; }
+  .quiz-shell .q-card--focus .q-exp {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .quiz-shell .q-card--focus .q-review {
+    margin-top: 14px;
+    padding-top: 14px;
   }
   .ai-dock__bubble { font-size: 16px; }
 }
