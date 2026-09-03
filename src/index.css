@@ -713,14 +713,14 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   line-height: 0;
 }
 .q-review-ai__mark {
   display: block;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
   /* books.webp sits optically low in its frame */
   transform: translateY(-1px);
@@ -3514,12 +3514,12 @@ select {
   border-radius: 18px;
 }
 .quiz-shell .q-card--focus .q-review-ai__icon {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
 }
 .quiz-shell .q-card--focus .q-review-ai__mark {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 .quiz-shell .q-card--focus .q-review-ai__label {
   font-size: 15.5px;
