@@ -689,76 +689,81 @@ body::after {
   line-height: 1.7;
 }
 
-.q-review-foot {
+.q-review-extra {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+.q-review-ai {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 18px;
-  padding: 7px 7px 7px 8px;
-  background: var(--c-surface2);
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
   border: 1px solid var(--c-border);
-  border-radius: 22px;
+  border-radius: 18px;
+  background: var(--c-surface);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(15, 27, 61, 0.04);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
-.q-review-actions {
+.q-review-ai:hover {
+  border-color: var(--c-accent-brd);
+  background: var(--c-accent-dim);
+  box-shadow: 0 4px 16px rgba(77, 142, 245, 0.12);
+}
+.q-review-ai__mark {
+  display: block;
+  flex-shrink: 0;
+  width: auto;
+  height: 20px;
+}
+.q-review-ai__copy {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: 18px;
+  flex-direction: column;
+  gap: 1px;
 }
-.q-review-actions .q-review-foot__ai {
-  flex: 1 1 100%;
+.q-review-ai__hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-muted);
+  letter-spacing: -0.05px;
 }
-.q-review-actions .q-flag-open {
+.q-review-ai__label {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--c-text);
+}
+.q-review-ai:hover .q-review-ai__label { color: var(--c-accent); }
+.q-review-ai__arrow {
+  flex-shrink: 0;
+  color: var(--c-muted);
+  transition: color 0.15s, transform 0.15s;
+}
+.q-review-ai:hover .q-review-ai__arrow {
+  color: var(--c-accent);
+  transform: translateX(2px);
+}
+.q-review-meta {
+  display: flex;
+  justify-content: center;
+}
+.q-review-meta .q-flag-open {
   margin-top: 0;
 }
-.q-review-foot__ai {
-  flex: 1 1 140px;
-  min-width: 0;
-  padding: 12px 18px;
-  border: none;
-  border-radius: var(--r-pill);
-  background: var(--c-accent);
-  color: #fff;
-  font-size: 14.5px;
-  font-weight: 600;
-  font-family: inherit;
-  letter-spacing: -0.1px;
-  cursor: pointer;
-  transition: background 0.16s;
-}
-.q-review-foot__ai:hover {
-  background: var(--c-accent-lt);
-}
-.q-review-foot .q-flag-open {
-  flex-shrink: 0;
-  margin: 0;
-  padding: 10px 14px;
-  border: none;
-  border-radius: var(--r-pill);
-  background: transparent;
-  color: var(--c-muted);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.q-review-foot .q-flag-open:hover {
-  background: var(--c-surface3);
-  color: var(--c-sub);
-}
-.q-review-foot .q-flag,
-.q-review-foot .q-flag-done {
-  flex: 1 1 100%;
+.q-review-meta .q-flag,
+.q-review-meta .q-flag-done {
   width: 100%;
-  margin: 4px 2px 2px;
+  margin-top: 0;
 }
-.q-review-foot .q-flag-done {
-  margin: 0;
-  padding: 8px 10px 4px;
+.q-review-meta .q-flag-done {
+  text-align: center;
   font-size: 13px;
   color: var(--c-sub);
 }
@@ -3500,14 +3505,19 @@ select {
   font-size: 13px;
   margin-bottom: 14px;
 }
-.quiz-shell .q-card--focus .q-review-foot {
+.quiz-shell .q-card--focus .q-review-extra {
   margin-top: 22px;
-  padding: 8px;
-  border-radius: 24px;
+  gap: 12px;
 }
-.quiz-shell .q-card--focus .q-review-foot__ai {
-  padding: 13px 20px;
-  font-size: 15px;
+.quiz-shell .q-card--focus .q-review-ai {
+  padding: 16px 18px;
+  border-radius: 20px;
+}
+.quiz-shell .q-card--focus .q-review-ai__mark {
+  height: 22px;
+}
+.quiz-shell .q-card--focus .q-review-ai__label {
+  font-size: 16px;
 }
 .quiz-shell .q-opt {
   background: var(--c-surface2);

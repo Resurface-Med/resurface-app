@@ -318,37 +318,37 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
-          {(() => {
-            const showAiBtn = sel !== q.ans && !explaining;
-            const showFlag = !q.gen;
-            if (!showAiBtn && !showFlag) return null;
-
-            const aiBtn = showAiBtn ? (
-              <button
-                type="button"
-                className="q-review-foot__ai btn-press"
-                onClick={() => setExplaining(true)}
-              >
-                Ask Resurface AI
-              </button>
-            ) : null;
-
-            if (showAiBtn && showFlag) {
-              return (
-                <div className="q-review-foot">
-                  {aiBtn}
+          {(sel !== q.ans && !explaining) || !q.gen ? (
+            <div className="q-review-extra">
+              {sel !== q.ans && !explaining && (
+                <button
+                  type="button"
+                  className="q-review-ai btn-press"
+                  onClick={() => setExplaining(true)}
+                >
+                  <img
+                    src="/logo-lockup.png"
+                    alt=""
+                    width="560"
+                    height="131"
+                    className="q-review-ai__mark"
+                  />
+                  <span className="q-review-ai__copy">
+                    <span className="q-review-ai__hint">Still stuck?</span>
+                    <span className="q-review-ai__label">Ask Resurface AI</span>
+                  </span>
+                  <svg className="q-review-ai__arrow" width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
+              {!q.gen && (
+                <div className="q-review-meta">
                   <FlagQuestion questionId={q.id} />
                 </div>
-              );
-            }
-
-            return (
-              <div className="q-review-actions">
-                {aiBtn}
-                {showFlag && <FlagQuestion questionId={q.id} />}
-              </div>
-            );
-          })()}
+              )}
+            </div>
+          ) : null}
         </div>
       )}
 
