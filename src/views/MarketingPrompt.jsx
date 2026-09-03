@@ -18,7 +18,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
   return (
     <div className="mail-prompt-scrim" role="dialog" aria-labelledby="mail-prompt-title">
       <form className="mail-prompt" onSubmit={submit}>
-        <h2 id="mail-prompt-title" className="mail-prompt__title">A couple of details</h2>
+        <h2 id="mail-prompt-title" className="mail-prompt__title">A couple of details first</h2>
         <div className="mail-prompt__block">
           <label className="mail-prompt__field" htmlFor="google-display-name">
             Display name
