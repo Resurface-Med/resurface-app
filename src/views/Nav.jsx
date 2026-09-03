@@ -34,17 +34,22 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
 
-  // Escape closes it, and while it is open the page behind must not scroll —
-  // otherwise a drag anywhere on the dimmed area moves the content underneath,
-  // which reads as the drawer having lost its place.
+  // Escape closes it, and while it is open the page behind must not scroll.
+  // Inline overflow:hidden alone makes iOS Safari drop the brand field in the
+  // notch and URL-bar gutters — fixed body + restored scroll position avoids that.
   useEffect(() => {
     if (!open) return;
     const onKey = e => { if (e.key === "Escape") setOpen(false); };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const scrollY = window.scrollY;
+    document.documentElement.classList.add("is-nav-open");
+    document.body.classList.add("is-nav-open");
+    document.body.style.setProperty("--nav-scroll-y", `${scrollY}px`);
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.classList.remove("is-nav-open");
+      document.body.classList.remove("is-nav-open");
+      document.body.style.removeProperty("--nav-scroll-y");
+      window.scrollTo(0, scrollY);
       window.removeEventListener("keydown", onKey);
     };
   }, [open]);

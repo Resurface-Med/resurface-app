@@ -2899,12 +2899,17 @@ select {
     transform: translateX(0);
   }
 
-  /* Nothing behind the drawer should be reachable while it is open. */
+  /* Nothing behind the drawer should be reachable while it is open. Bleed
+     into the safe areas so opening the menu does not flash white gutters. */
   .app-nav__scrim {
     position: fixed;
-    inset: 0;
+    left: 0;
+    right: 0;
+    top: calc(-1 * env(safe-area-inset-top, 0px));
+    bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+    min-height: calc(100dvh + env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px));
     z-index: 550;
-    background: rgba(15, 27, 61, 0.42);
+    background: var(--c-body-bg);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
@@ -2912,6 +2917,22 @@ select {
   .app-nav__scrim.is-open {
     opacity: 1;
     pointer-events: auto;
+    background:
+      rgba(15, 27, 61, 0.42),
+      var(--c-body-bg);
+  }
+
+  html.is-nav-open,
+  html.is-nav-open body {
+    background: var(--c-body-bg);
+  }
+  body.is-nav-open {
+    position: fixed;
+    top: calc(-1 * var(--nav-scroll-y, 0px));
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
   }
 
   .app-nav__burger {
