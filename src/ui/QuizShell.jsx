@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import BmBtn from "./BmBtn";
+import ExplainChat from "./ExplainChat";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 
@@ -27,6 +28,7 @@ export default function QuizShell({
   onRequestExit,
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [controls, setControls] = useState({
     pending: null,
     answered: false,
@@ -45,7 +47,13 @@ export default function QuizShell({
     return () => window.removeEventListener("keydown", onKey);
   }, [optionsOpen]);
 
+  useEffect(() => {
+    setAiOpen(false);
+  }, [q?.id]);
+
   const progress = (idx + 1) / queue.length;
+  const wrong = sel !== null && sel !== q.ans;
+  const showAi = aiOpen && wrong;
   const primaryLabel = controls.answered
     ? (isLast ? "Finish" : "Next")
     : "Check";
@@ -85,8 +93,8 @@ export default function QuizShell({
         </div>
       </header>
 
-      <div ref={bodyRef} className="quiz-shell__body">
-        <div className="quiz-shell__card">
+      <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}`}>
+        <div className="quiz-shell__main">
           <QuestionCard
             key={q.id}
             q={q}
@@ -101,9 +109,14 @@ export default function QuizShell({
             onSaveEdit={onSaveEdit}
             focusMode
             hideActions
+            aiOpen={aiOpen}
+            onAiOpenChange={setAiOpen}
             onControlsChange={setControls}
           />
         </div>
+        {showAi && (
+          <ExplainChat q={q} picked={sel} onClose={() => setAiOpen(false)} />
+        )}
       </div>
 
       <footer className="quiz-shell__footer">

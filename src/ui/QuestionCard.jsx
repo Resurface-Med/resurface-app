@@ -13,7 +13,7 @@ import EditQuestionModal from "./EditQuestionModal";
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, onControlsChange }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -21,7 +21,9 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const [explaining, setExplaining] = useState(false);
+  const [explainingLocal, setExplainingLocal] = useState(false);
+  const explaining = onAiOpenChange ? aiOpen : explainingLocal;
+  const setExplaining = onAiOpenChange ?? setExplainingLocal;
 
   function handleCopy() {
     const letters = "ABCDE";
@@ -300,7 +302,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
           <p className="q-exp">{q.exp}</p>
 
-          {explaining && sel !== q.ans && (
+          {explaining && sel !== q.ans && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
