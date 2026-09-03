@@ -120,21 +120,23 @@ export default function QuizShell({
       </div>
 
       <footer className="quiz-shell__footer">
-        <button
-          type="button"
-          className="quiz-shell__foot-btn btn-press"
-          onClick={() => setOptionsOpen(true)}
-        >
-          Options
-        </button>
-        <button
-          type="button"
-          className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"
-          disabled={primaryDisabled}
-          onClick={handlePrimary}
-        >
-          {primaryLabel}
-        </button>
+        <div className="quiz-shell__footer-bar">
+          <button
+            type="button"
+            className="quiz-shell__foot-btn btn-press"
+            onClick={() => setOptionsOpen(true)}
+          >
+            Options
+          </button>
+          <button
+            type="button"
+            className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"
+            disabled={primaryDisabled}
+            onClick={handlePrimary}
+          >
+            {primaryLabel}
+          </button>
+        </div>
       </footer>
 
       {optionsOpen && (

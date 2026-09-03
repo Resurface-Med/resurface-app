@@ -158,7 +158,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   return (
     <>
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
-    <div style={qcard} className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}`}>
+    <div
+      style={focusMode ? undefined : qcard}
+      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}`}
+    >
       {!focusMode && (
       <div className="q-card-meta">
         <div className="q-card-tools">
