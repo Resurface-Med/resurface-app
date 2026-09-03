@@ -2835,7 +2835,7 @@ select {
     margin: 0;
     border: none;
     border-right: 1px solid var(--c-nav-border);
-    border-radius: 0;
+    border-radius: 0 var(--r-panel) var(--r-panel) 0;
     z-index: 600;
     transform: translateX(-100%);
     transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
