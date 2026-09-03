@@ -314,21 +314,16 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
-          <div className="q-review-tools">
-            {/* Offered only on a wrong answer: there is a specific misconception
-                to address, and someone who was right does not need asking. */}
+          <div className={`q-review-foot${sel === q.ans || explaining ? " is-flag-only" : ""}${q.gen ? " is-ai-only" : ""}`}>
             {sel !== q.ans && !explaining && (
               <button
                 type="button"
-                className="q-deeper-btn btn-press"
+                className="q-review-foot__ai btn-press"
                 onClick={() => setExplaining(true)}
               >
                 Ask Resurface AI
               </button>
             )}
-            {/* Bank questions only. A generated question is one person's own, so
-                a flag on it tells the cohort nothing — and its id comes from a
-                different table whose serial overlaps the bank's. */}
             {!q.gen && <FlagQuestion questionId={q.id} />}
           </div>
         </div>
