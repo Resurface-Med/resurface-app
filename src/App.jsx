@@ -48,6 +48,11 @@ function isGoogleUser(user) {
   return user?.app_metadata?.provider === "google";
 }
 
+function googleName(user) {
+  const m = user?.user_metadata || {};
+  return String(m.full_name || m.name || "").trim();
+}
+
 /** Shared by both buttons in the leave-session dialog, so they cannot drift
  *  apart in height. nowrap because a wrapped label is what made them fat. */
 const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "nowrap" };
@@ -258,13 +263,14 @@ export default function App() {
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
         <MarketingPrompt
-          onYes={() => {
-            remote.profile(user.id, { marketingOptIn: true });
-            setMarketingOptIn(true);
-          }}
-          onNo={() => {
-            remote.profile(user.id, { marketingOptIn: false });
-            setMarketingOptIn(false);
+          googleName={displayName || googleName(user)}
+          onContinue={({ displayName: nextName, marketingOptIn: emails }) => {
+            remote.profile(user.id, {
+              marketingOptIn: emails,
+              ...(nextName ? { displayName: nextName } : {}),
+            });
+            setMarketingOptIn(emails);
+            if (nextName) setDisplayName(nextName);
           }}
         />
       )}

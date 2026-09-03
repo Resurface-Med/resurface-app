@@ -1497,50 +1497,60 @@ select {
 }
 .mail-prompt {
   width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding: 28px 24px 22px;
   border-radius: 22px;
   background: var(--c-card-solid);
   border: 1px solid var(--c-border);
   box-shadow: 0 28px 80px rgba(15, 27, 61, 0.18);
-  text-align: center;
-}
-.mail-prompt__mark {
-  display: block;
-  width: 40px;
-  height: 40px;
-  margin: 0 auto 14px;
-  object-fit: contain;
+  text-align: left;
 }
 .mail-prompt__title {
-  margin: 0;
+  margin: 0 0 4px;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.4px;
   color: var(--c-text);
 }
-.mail-prompt__copy {
-  margin: 10px 0 22px;
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: var(--c-sub);
-}
-.mail-prompt__actions {
+.mail-prompt__block {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
-.mail-prompt__actions .btn-press {
-  width: 100%;
-}
-.mail-prompt__skip {
-  padding: 10px;
-  border: none;
-  background: none;
-  color: var(--c-muted);
-  font-family: inherit;
-  font-size: 14px;
+.mail-prompt__field {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 600;
-  cursor: pointer;
+  color: var(--c-text);
+}
+.mail-prompt__optional {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-muted);
+}
+.mail-prompt input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 15px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-ctrl);
+  outline: none;
+}
+.mail-prompt input[type="text"]:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px var(--c-accent-glow);
+}
+.mail-prompt .btn-press {
+  width: 100%;
+  margin-top: 2px;
 }
 
 .code-cell:focus {
