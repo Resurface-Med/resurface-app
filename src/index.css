@@ -1485,6 +1485,64 @@ select {
   letter-spacing: -0.1px;
 }
 
+.mail-prompt-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 27, 61, 0.32);
+  backdrop-filter: blur(6px);
+}
+.mail-prompt {
+  width: min(400px, 100%);
+  padding: 28px 24px 22px;
+  border-radius: 22px;
+  background: var(--c-card-solid);
+  border: 1px solid var(--c-border);
+  box-shadow: 0 28px 80px rgba(15, 27, 61, 0.18);
+  text-align: center;
+}
+.mail-prompt__mark {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 14px;
+  object-fit: contain;
+}
+.mail-prompt__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--c-text);
+}
+.mail-prompt__copy {
+  margin: 10px 0 22px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--c-sub);
+}
+.mail-prompt__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mail-prompt__actions .btn-press {
+  width: 100%;
+}
+.mail-prompt__skip {
+  padding: 10px;
+  border: none;
+  background: none;
+  color: var(--c-muted);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .code-cell:focus {
   border-color: var(--c-accent) !important;
   box-shadow: 0 0 0 3px var(--c-accent-glow);

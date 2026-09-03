@@ -184,7 +184,7 @@ export async function loadAll(userId) {
     dailyGoal: profile.data?.daily_goal ?? 20,
     displayName: profile.data?.display_name ?? "",
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
-    marketingOptIn: profile.data?.marketing_opt_in === true,
+    marketingOptIn: profile.data?.marketing_opt_in ?? null,
     timedBests,
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything

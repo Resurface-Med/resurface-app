@@ -30,6 +30,7 @@ import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue } from "./lib/remote";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
+import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
 
@@ -40,6 +41,12 @@ const ProfileView     = lazy(() => import("./views/ProfileView"));
 const GenerateMode    = lazy(() => import("./views/GenerateMode"));
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
+
+function isGoogleUser(user) {
+  const providers = user?.app_metadata?.providers;
+  if (Array.isArray(providers) && providers.includes("google")) return true;
+  return user?.app_metadata?.provider === "google";
+}
 
 /** Shared by both buttons in the leave-session dialog, so they cannot drift
  *  apart in height. nowrap because a wrapped label is what made them fat. */
@@ -99,7 +106,7 @@ export default function App() {
       setDailyGoal(d.dailyGoal);
       setDisplayName(d.displayName || "");
       setShowOnLeaderboard(d.showOnLeaderboard !== false);
-      setMarketingOptIn(d.marketingOptIn === true);
+      setMarketingOptIn(d.marketingOptIn);
       setGenerated(d.generated);
       setDataLoading(false);
     })();
@@ -249,6 +256,18 @@ export default function App() {
     <ErrorBoundary>
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}`}>
       <Sidebar {...nav} />
+      {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
+        <MarketingPrompt
+          onYes={() => {
+            remote.profile(user.id, { marketingOptIn: true });
+            setMarketingOptIn(true);
+          }}
+          onNo={() => {
+            remote.profile(user.id, { marketingOptIn: false });
+            setMarketingOptIn(false);
+          }}
+        />
+      )}
       {pendingView && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",
