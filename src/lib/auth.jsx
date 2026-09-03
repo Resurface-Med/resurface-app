@@ -54,24 +54,34 @@ export function AuthProvider({ children }) {
     loading,
     configured: isConfigured,
 
-    signUp: (email, password, displayName) =>
+    signUp: (email, password, displayName, marketingOptIn = false) =>
       supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { display_name: String(displayName || "").trim() },
+          data: {
+            display_name: String(displayName || "").trim(),
+            marketing_opt_in: marketingOptIn ? "true" : "false",
+          },
         },
       }),
 
     signIn: (email, password) =>
       supabase.auth.signInWithPassword({ email, password }),
 
-    signInWithGoogle: () =>
-      supabase.auth.signInWithOAuth({
+    signInWithGoogle: (marketingOptIn = false) => {
+      try {
+        if (marketingOptIn) sessionStorage.setItem("rs_marketing_opt_in", "1");
+        else sessionStorage.removeItem("rs_marketing_opt_in");
+      } catch {
+        /* private mode */
+      }
+      return supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: window.location.origin },
-      }),
+      });
+    },
 
     // Recovery template must use {{ .Token }} (no ConfirmationURL) so the
     // student gets a code instead of a link that mail apps burn.

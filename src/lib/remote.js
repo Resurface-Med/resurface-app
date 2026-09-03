@@ -77,6 +77,7 @@ function apply(op) {
       return supabase.from("profiles").update({
         ...(op.displayName !== undefined ? { display_name: op.displayName } : {}),
         ...(op.showOnLeaderboard !== undefined ? { show_on_leaderboard: op.showOnLeaderboard } : {}),
+        ...(op.marketingOptIn !== undefined ? { marketing_opt_in: op.marketingOptIn } : {}),
         updated_at: new Date().toISOString(),
       }).eq("id", op.userId);
     case "timed-best":
@@ -183,6 +184,7 @@ export async function loadAll(userId) {
     dailyGoal: profile.data?.daily_goal ?? 20,
     displayName: profile.data?.display_name ?? "",
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
+    marketingOptIn: profile.data?.marketing_opt_in === true,
     timedBests,
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything
@@ -215,6 +217,7 @@ export const remote = {
     userId,
     displayName: patch.displayName,
     showOnLeaderboard: patch.showOnLeaderboard,
+    marketingOptIn: patch.marketingOptIn,
   }),
   timedBest:(userId, scope, score)=> send({ kind: "timed-best", userId, scope, score }),
   questionEdit: (userId, questionId, payload) => send({ kind: "question-edit", userId, questionId, payload }),

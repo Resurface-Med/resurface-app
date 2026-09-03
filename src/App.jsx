@@ -61,6 +61,7 @@ export default function App() {
   const [dailyGoal, setDailyGoal] = useState(20);
   const [displayName, setDisplayName] = useState("");
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [generated, setGenerated] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -98,6 +99,16 @@ export default function App() {
       setDailyGoal(d.dailyGoal);
       setDisplayName(d.displayName || "");
       setShowOnLeaderboard(d.showOnLeaderboard !== false);
+      setMarketingOptIn(d.marketingOptIn === true);
+      try {
+        if (sessionStorage.getItem("rs_marketing_opt_in") === "1") {
+          sessionStorage.removeItem("rs_marketing_opt_in");
+          remote.profile(user.id, { marketingOptIn: true });
+          setMarketingOptIn(true);
+        }
+      } catch {
+        /* private mode */
+      }
       setGenerated(d.generated);
       setDataLoading(false);
     })();
@@ -315,12 +326,14 @@ export default function App() {
               email={user.email}
               displayName={displayName}
               showOnLeaderboard={showOnLeaderboard}
+              marketingOptIn={marketingOptIn}
               dailyGoal={dailyGoal}
               theme={theme}
               onThemeChange={setTheme}
               onProfileChange={p => {
                 if (p.displayName !== undefined) setDisplayName(p.displayName);
                 if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);
+                if (p.marketingOptIn !== undefined) setMarketingOptIn(p.marketingOptIn);
                 if (p.dailyGoal !== undefined) setDailyGoal(p.dailyGoal);
               }}
               onSignOut={signOut}

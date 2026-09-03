@@ -29,11 +29,12 @@ const field = {
 };
 
 export default function ProfileView({
-  userId, email, displayName, showOnLeaderboard, dailyGoal,
+  userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal,
   onProfileChange, onSignOut, theme, onThemeChange,
 }) {
   const [name, setName] = useState(displayName || "");
   const [onBoard, setOnBoard] = useState(showOnLeaderboard !== false);
+  const [emails, setEmails] = useState(marketingOptIn === true);
   const [goal, setGoal] = useState(dailyGoal || 20);
   const [saved, setSaved] = useState(false);
 
@@ -42,9 +43,9 @@ export default function ProfileView({
     const trimmed = name.trim().slice(0, 32);
     if (!trimmed) return;
     const g = Math.min(500, Math.max(1, parseInt(goal, 10) || 20));
-    remote.profile(userId, { displayName: trimmed, showOnLeaderboard: onBoard });
+    remote.profile(userId, { displayName: trimmed, showOnLeaderboard: onBoard, marketingOptIn: emails });
     remote.goal(userId, g);
-    onProfileChange?.({ displayName: trimmed, showOnLeaderboard: onBoard, dailyGoal: g });
+    onProfileChange?.({ displayName: trimmed, showOnLeaderboard: onBoard, marketingOptIn: emails, dailyGoal: g });
     setSaved(true);
     setTimeout(() => setSaved(false), 1600);
   }
@@ -117,6 +118,15 @@ export default function ProfileView({
                 On by default. Hiding removes you from the weekly board.
               </p>
             </div>
+
+            <label className="auth-consent" style={{ marginTop: 4 }}>
+              <input
+                type="checkbox"
+                checked={emails}
+                onChange={e => setEmails(e.target.checked)}
+              />
+              <span>Send me news, tips, and study emails</span>
+            </label>
 
             <button type="submit" className="btn-press" style={{ ...primaryBtn, width: "100%" }}>
               {saved ? "Saved" : "Save changes"}

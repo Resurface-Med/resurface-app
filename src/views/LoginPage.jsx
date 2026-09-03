@@ -39,6 +39,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -93,7 +94,7 @@ export default function LoginPage() {
       } else if (mode === "signup") {
         const name = displayName.trim();
         if (name.length < 2) throw new Error("Pick a display name (at least 2 characters).");
-        const { data, error: err } = await signUp(trimmed, password, name);
+        const { data, error: err } = await signUp(trimmed, password, name, marketingOptIn);
         if (err) throw err;
         setEmail(trimmed);
         // With email confirmation on, Supabase returns a user but no session.
@@ -267,6 +268,17 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {mode === "signup" && (
+                <label className="auth-consent">
+                  <input
+                    type="checkbox"
+                    checked={marketingOptIn}
+                    onChange={e => setMarketingOptIn(e.target.checked)}
+                  />
+                  <span>I agree to receive news, tips, and study emails</span>
+                </label>
+              )}
+
               {error && <Alert kind="error">{error}</Alert>}
               {notice && <Alert kind="ok">{notice}</Alert>}
 
@@ -311,7 +323,18 @@ export default function LoginPage() {
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
               </div>
 
-              <button type="button" onClick={signInWithGoogle} className="btn-press" style={{
+              {mode === "signin" && (
+                <label className="auth-consent" style={{ marginBottom: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={marketingOptIn}
+                    onChange={e => setMarketingOptIn(e.target.checked)}
+                  />
+                  <span>Email me news and study tips</span>
+                </label>
+              )}
+
+              <button type="button" onClick={() => signInWithGoogle(marketingOptIn)} className="btn-press" style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
                 color: C.text, background: "var(--c-surface3)",

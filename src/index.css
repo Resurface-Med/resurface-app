@@ -1461,6 +1461,30 @@ select {
 .auth-alert  { animation: auth-shake 0.4s ease both; }
 .auth-notice { animation: auth-rise 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+.auth-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 2px 0 2px;
+  cursor: pointer;
+  text-align: left;
+}
+.auth-consent input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--c-accent);
+  cursor: pointer;
+}
+.auth-consent span {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-text);
+  line-height: 1.4;
+  letter-spacing: -0.1px;
+}
+
 .code-cell:focus {
   border-color: var(--c-accent) !important;
   box-shadow: 0 0 0 3px var(--c-accent-glow);
