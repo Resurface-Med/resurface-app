@@ -823,7 +823,7 @@ body::after {
   line-height: 1;
 }
 .ai-dock__name { color: var(--c-text); }
-.ai-dock__ai { color: var(--c-accent); }
+.ai-dock__ai { color: var(--c-text); }
 .ai-dock__close {
   flex-shrink: 0;
   display: grid;
