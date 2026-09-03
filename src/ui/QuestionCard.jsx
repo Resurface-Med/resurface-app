@@ -305,7 +305,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             aria-expanded={showAll}
           >
             {showAll ? "Hide the others" : `All ${q.opts.length} options`}
-            <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">▾</span>
+            <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
           </button>
 
           <p className="q-exp">{q.exp}</p>
@@ -314,8 +318,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
-          <div className={`q-review-foot${sel === q.ans || explaining ? " is-flag-only" : ""}${q.gen ? " is-ai-only" : ""}`}>
-            {sel !== q.ans && !explaining && (
+          {(() => {
+            const showAiBtn = sel !== q.ans && !explaining;
+            const showFlag = !q.gen;
+            if (!showAiBtn && !showFlag) return null;
+
+            const aiBtn = showAiBtn ? (
               <button
                 type="button"
                 className="q-review-foot__ai btn-press"
@@ -323,9 +331,24 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               >
                 Ask Resurface AI
               </button>
-            )}
-            {!q.gen && <FlagQuestion questionId={q.id} />}
-          </div>
+            ) : null;
+
+            if (showAiBtn && showFlag) {
+              return (
+                <div className="q-review-foot">
+                  {aiBtn}
+                  <FlagQuestion questionId={q.id} />
+                </div>
+              );
+            }
+
+            return (
+              <div className="q-review-actions">
+                {aiBtn}
+                {showFlag && <FlagQuestion questionId={q.id} />}
+              </div>
+            );
+          })()}
         </div>
       )}
 
