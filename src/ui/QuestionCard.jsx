@@ -300,57 +300,51 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         <div className="q-review anim-fade-up">
           <p className="q-exp">{q.exp}</p>
 
-          <button
-            type="button"
-            className="q-allopts"
-            onClick={() => setShowAll(v => !v)}
-            aria-expanded={showAll}
-          >
-            {showAll ? "Hide the others" : `All ${q.opts.length} options`}
-            <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
-          </button>
-
           {explaining && sel !== q.ans && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
-          {(sel !== q.ans && !explaining) || !q.gen ? (
-            <div className="q-review-extra">
-              {sel !== q.ans && !explaining && (
-                <button
-                  type="button"
-                  className="q-review-ai btn-press"
-                  onClick={() => setExplaining(true)}
-                >
-                  <span className="q-review-ai__icon" aria-hidden="true">
-                    <img
-                      src="/books.webp"
-                      alt=""
-                      width="64"
-                      height="64"
-                      className="q-review-ai__mark"
-                    />
-                  </span>
-                  <span className="q-review-ai__copy">
-                    <span className="q-review-ai__hint">Still stuck?</span>
-                    <span className="q-review-ai__label">Ask Resurface AI</span>
-                  </span>
-                  <svg className="q-review-ai__arrow" width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-              )}
-              {!q.gen && (
-                <div className="q-review-meta">
-                  <FlagQuestion questionId={q.id} />
-                </div>
-              )}
-            </div>
-          ) : null}
+          {sel !== q.ans && !explaining && (
+            <button
+              type="button"
+              className="q-review-ai btn-press"
+              onClick={() => setExplaining(true)}
+            >
+              <span className="q-review-ai__icon" aria-hidden="true">
+                <img
+                  src="/books.webp"
+                  alt=""
+                  width="64"
+                  height="64"
+                  className="q-review-ai__mark"
+                />
+              </span>
+              <span className="q-review-ai__copy">
+                <span className="q-review-ai__hint">Still stuck?</span>
+                <span className="q-review-ai__label">Ask Resurface AI</span>
+              </span>
+              <svg className="q-review-ai__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+
+          <div className="q-review-meta">
+            <button
+              type="button"
+              className="q-allopts"
+              onClick={() => setShowAll(v => !v)}
+              aria-expanded={showAll}
+            >
+              {showAll ? "Hide the others" : `All ${q.opts.length} options`}
+              <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </button>
+            {!q.gen && <FlagQuestion questionId={q.id} />}
+          </div>
         </div>
       )}
 

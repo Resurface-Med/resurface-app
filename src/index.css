@@ -656,7 +656,7 @@ body::after {
   align-items: center;
   gap: 4px;
   padding: 0;
-  margin-top: 14px;
+  margin: 0;
   border: 0;
   background: none;
   color: var(--c-muted);
@@ -686,21 +686,16 @@ body::after {
   letter-spacing: -0.15px;
 }
 
-.q-review-extra {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
 .q-review-ai {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: fit-content;
   max-width: 100%;
-  padding: 12px 14px 12px 12px;
+  margin-top: 18px;
+  padding: 11px 13px 11px 11px;
   border: 1px solid var(--c-border);
-  border-radius: 18px;
+  border-radius: 16px;
   background: var(--c-surface);
   font-family: inherit;
   text-align: left;
@@ -715,15 +710,20 @@ body::after {
 }
 .q-review-ai__icon {
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  line-height: 0;
 }
 .q-review-ai__mark {
   display: block;
-  width: 30px;
-  height: auto;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  /* books.webp sits optically low in its frame */
+  transform: translateY(-1px);
 }
 .q-review-ai__copy {
   flex: 0 1 auto;
@@ -756,18 +756,21 @@ body::after {
 }
 .q-review-meta {
   display: flex;
-  justify-content: flex-start;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 14px;
 }
 .q-review-meta .q-flag-open {
   margin-top: 0;
 }
 .q-review-meta .q-flag,
 .q-review-meta .q-flag-done {
+  flex: 1 1 100%;
   width: 100%;
-  margin-top: 0;
+  margin-top: 4px;
 }
 .q-review-meta .q-flag-done {
-  text-align: center;
   font-size: 13px;
   color: var(--c-sub);
 }
@@ -3505,27 +3508,24 @@ select {
   line-height: 1.75;
   letter-spacing: -0.18px;
 }
-.quiz-shell .q-card--focus .q-allopts {
-  margin-top: 16px;
-  font-size: 12px;
-}
-.quiz-shell .q-card--focus .q-review-extra {
-  margin-top: 22px;
-  gap: 12px;
-}
 .quiz-shell .q-card--focus .q-review-ai {
-  padding: 13px 14px 13px 12px;
-  border-radius: 20px;
+  margin-top: 20px;
+  padding: 12px 14px 12px 12px;
+  border-radius: 18px;
 }
 .quiz-shell .q-card--focus .q-review-ai__icon {
-  width: 38px;
-  height: 38px;
+  width: 26px;
+  height: 26px;
 }
 .quiz-shell .q-card--focus .q-review-ai__mark {
-  width: 34px;
+  width: 24px;
+  height: 24px;
 }
 .quiz-shell .q-card--focus .q-review-ai__label {
-  font-size: 16px;
+  font-size: 15.5px;
+}
+.quiz-shell .q-card--focus .q-review-meta {
+  margin-top: 16px;
 }
 .quiz-shell .q-opt {
   background: var(--c-surface2);
