@@ -2,9 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Resurface</title>
-    <meta name="theme-color" content="#3562f5" />
+    <meta name="theme-color" content="#3562f5" id="theme-color-meta" />
+    <meta name="color-scheme" content="light dark" />
     <!-- Added to the home screen it runs without browser chrome, which is how
          a study app gets used on a phone between lectures. -->
     <meta name="mobile-web-app-capable" content="yes" />
@@ -27,6 +28,8 @@
         try {
           var t = localStorage.getItem('pq_theme') || 'light';
           document.documentElement.setAttribute('data-theme', t);
+          var meta = document.getElementById('theme-color-meta');
+          if (meta) meta.content = t === 'dark' ? '#060a16' : '#3562f5';
         } catch(e) {
           document.documentElement.setAttribute('data-theme', 'light');
         }

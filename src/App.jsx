@@ -71,6 +71,8 @@ export default function App() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     themeStore.set(theme);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = theme === 'dark' ? '#060a16' : '#3562f5';
   }, [theme]);
 
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
