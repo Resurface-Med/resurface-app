@@ -76,6 +76,11 @@ export default function ExplainChat({ q, picked, onClose }) {
   const threadRef = useRef(null);
   const inputRef = useRef(null);
 
+  function isPhone() {
+    return window.matchMedia("(max-width: 900px)").matches
+      || window.matchMedia("(pointer: coarse)").matches;
+  }
+
   useEffect(() => {
     const el = threadRef.current;
     if (!el) return;
@@ -83,6 +88,7 @@ export default function ExplainChat({ q, picked, onClose }) {
   }, [messages, sending]);
 
   useEffect(() => {
+    if (isPhone()) return;
     inputRef.current?.focus();
   }, []);
 
@@ -130,7 +136,7 @@ export default function ExplainChat({ q, picked, onClose }) {
       if (apiText === undefined) setDraft(label);
     } finally {
       setSending(false);
-      inputRef.current?.focus();
+      if (!isPhone()) inputRef.current?.focus();
     }
   }
 
@@ -226,7 +232,9 @@ export default function ExplainChat({ q, picked, onClose }) {
       </div>
 
       <footer className="ai-dock__foot">
-        <QuickPills sending={sending} onPick={(label, message) => void sendPrompt(label, message)} />
+        {messages.length === 0 && (
+          <QuickPills sending={sending} onPick={(label, message) => void sendPrompt(label, message)} />
+        )}
         <form className="ai-dock__compose" onSubmit={handleSubmit}>
           <input
             ref={inputRef}

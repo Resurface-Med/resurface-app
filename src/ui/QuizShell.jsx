@@ -63,7 +63,7 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <header className="quiz-shell__header">
         <button
           type="button"
