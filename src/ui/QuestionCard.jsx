@@ -203,7 +203,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       </div>
       )}
 
-      <p className="anim-fade-up delay-0" style={{ ...qstem, marginBottom: 20 }}>{q.q}</p>
+      <p
+        className={`anim-fade-up delay-0${focusMode ? " q-stem--focus" : ""}`}
+        style={focusMode ? undefined : { ...qstem, marginBottom: 20 }}
+      >
+        {q.q}
+      </p>
 
       <div
         className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}

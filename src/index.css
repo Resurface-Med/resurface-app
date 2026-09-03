@@ -3330,7 +3330,7 @@ select {
 }
 .quiz-shell__main {
   width: 100%;
-  max-width: 560px;
+  max-width: min(720px, 100%);
   margin: 0 auto;
   align-self: flex-start;
 }
@@ -3367,9 +3367,9 @@ select {
 }
 .quiz-shell .q-card--focus {
   width: 100%;
-  max-width: 520px;
+  max-width: min(680px, 100%);
   margin: 0 auto;
-  padding: clamp(22px, 2.5vw, 28px);
+  padding: clamp(28px, 3.2vw, 38px);
   background: var(--c-card-solid);
   border: 1px solid var(--c-border);
   border-radius: var(--r-panel);
@@ -3377,9 +3377,48 @@ select {
     0 4px 16px rgba(20, 44, 130, 0.05),
     0 20px 48px rgba(20, 44, 130, 0.1);
 }
-.quiz-shell .q-card--focus .q-stem,
-.quiz-shell .q-card--focus > p:first-of-type {
-  max-width: 42ch;
+.quiz-shell .q-stem--focus {
+  margin: 0 0 24px;
+  font-size: clamp(20px, 2.5vw, 27px);
+  font-weight: 600;
+  letter-spacing: -0.55px;
+  line-height: 1.32;
+  color: var(--c-text);
+  max-width: none;
+}
+.quiz-shell .q-card--focus .q-opts {
+  gap: 10px;
+}
+.quiz-shell .q-card--focus .q-opt {
+  padding: 15px 18px;
+  font-size: 16.5px;
+  line-height: 1.52;
+  border-radius: 16px;
+  background: var(--c-surface2);
+  border-color: transparent;
+}
+.quiz-shell .q-card--focus .q-opt-letter {
+  font-size: 15px;
+}
+.quiz-shell .q-card--focus .q-opt-note {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.quiz-shell .q-card--focus .q-review {
+  margin-top: 20px;
+  padding-top: 18px;
+}
+.quiz-shell .q-card--focus .q-exp {
+  font-size: 16px;
+  line-height: 1.65;
+}
+.quiz-shell .q-card--focus .q-allopts {
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.quiz-shell .q-card--focus .q-deeper-btn {
+  padding: 12px 20px;
+  font-size: 15px;
 }
 .quiz-shell .q-opt {
   background: var(--c-surface2);
