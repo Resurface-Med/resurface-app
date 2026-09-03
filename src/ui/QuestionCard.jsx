@@ -326,13 +326,15 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                   className="q-review-ai btn-press"
                   onClick={() => setExplaining(true)}
                 >
-                  <img
-                    src="/logo-lockup.png"
-                    alt=""
-                    width="560"
-                    height="131"
-                    className="q-review-ai__mark"
-                  />
+                  <span className="q-review-ai__icon" aria-hidden="true">
+                    <img
+                      src="/books.webp"
+                      alt=""
+                      width="64"
+                      height="64"
+                      className="q-review-ai__mark"
+                    />
+                  </span>
                   <span className="q-review-ai__copy">
                     <span className="q-review-ai__hint">Still stuck?</span>
                     <span className="q-review-ai__label">Ask Resurface AI</span>
