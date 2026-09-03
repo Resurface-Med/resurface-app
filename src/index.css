@@ -3418,14 +3418,15 @@ select {
   overflow-y: auto;
   overscroll-behavior: contain;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 32px);
+  justify-content: center;
+  padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 32px)
+    clamp(12px, 2vh, 20px);
 }
 .quiz-shell__main {
   width: 100%;
   max-width: min(720px, 100%);
-  margin-block: auto;
+  margin: 0 auto;
+  align-self: flex-start;
 }
 .quiz-shell__body.has-ai {
   display: flex;
@@ -3443,18 +3444,11 @@ select {
   min-width: 0;
   max-width: none;
   width: auto;
-  margin-block: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.quiz-shell__body.has-ai .quiz-shell__main > * {
-  margin-block: auto;
-  width: 100%;
-  max-width: min(680px, 100%);
+  justify-content: center;
 }
 .quiz-shell__body.has-ai .ai-dock {
   flex: 0 0 clamp(320px, 30vw, 400px);
@@ -3463,6 +3457,7 @@ select {
 }
 .quiz-shell__card {
   width: min(720px, 100%);
+  align-self: flex-start;
 }
 .quiz-shell .q-card--focus {
   width: 100%;
@@ -3818,10 +3813,6 @@ select {
   .quiz-shell__body.has-ai .quiz-shell__main {
     flex: none;
     overflow: visible;
-  }
-  .quiz-shell__body.has-ai .quiz-shell__main > * {
-    margin-block: 0;
-    max-width: none;
   }
   .quiz-shell__body.has-ai .ai-dock {
     flex: none;
