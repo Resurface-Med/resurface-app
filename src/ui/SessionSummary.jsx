@@ -30,9 +30,11 @@ import Wave from "./Wave";
  * above this line, so "All correct" underneath it was the same redundancy in
  * miniature.
  *
- * The bottom tier stays plain and gives them something to do. A joke aimed at
- * someone who has just scored 40% reads as mockery, and that is the exact
- * moment they decide whether to close the app.
+ * The bottom tier is the one that must not be a joke at the reader's expense —
+ * a laugh aimed at someone who has just scored 40% is the exact thing that
+ * makes them close the app. "Lock in" is the opposite: it is said to someone,
+ * not about them. It also stays out of the way of the Practice again button
+ * directly below, where "Worth another go" was telling them to press it.
  */
 function verdictLine(correct, total) {
   if (total === 0) return "Nothing answered.";
@@ -40,7 +42,7 @@ function verdictLine(correct, total) {
   const pct = correct / total;
   if (pct >= 0.8) return "Barely missed a thing.";
   if (pct >= 0.6) return "Getting there.";
-  return "Rough one. Worth another go.";
+  return "Rough one. Lock in.";
 }
 
 const band = {
