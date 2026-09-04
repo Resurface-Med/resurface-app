@@ -38,7 +38,7 @@ function verdictLine(correct, total) {
   if (total === 0) return "Nothing answered.";
   if (correct === total) return "Suspiciously good.";
   const pct = correct / total;
-  if (pct >= 0.8) return "Close to clean.";
+  if (pct >= 0.8) return "Barely missed a thing.";
   if (pct >= 0.6) return "Getting there.";
   return "Rough one. Worth another go.";
 }
