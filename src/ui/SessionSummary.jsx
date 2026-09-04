@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C, h1, pageSub, sectionH, eyebrowField, primaryBtn, fieldBtn, btnGhost } from "./theme";
+import { C, h1, pageSub, sectionH, eyebrowField, primaryBtn, btnGhost } from "./theme";
 import ProgressBar from "./ProgressBar";
 import Wave from "./Wave";
 
@@ -144,24 +144,28 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
             </section>
           )}
 
+          {/* Three tiers, sized to their labels. They used to be stretched by
+              flex: 1 1 200px, which set their widths from a basis rather than
+              from anything meaningful and handed the longest label the
+              smallest one — so "Change settings" wrapped onto two lines while
+              the others did not, and the row came out ragged. */}
           <div className="sum-actions" data-in="rise" style={{ "--i": 5 }}>
-            <button type="button" className="btn-press" style={{ ...primaryBtn, flex: "1 1 200px" }} onClick={onRestart}>
+            <button type="button" className="btn-press" style={primaryBtn} onClick={onRestart}>
               Practice again
             </button>
 
             {onDrillWrong && wrongOnes.length > 0 && (
               <button
                 type="button"
-                className="btn-press"
+                className="btn-press sum-btn-soft"
                 onClick={() => onDrillWrong(wrongOnes.map(r => r.id))}
-                style={{ ...fieldBtn, flex: "1 1 200px" }}
               >
-                Redo the {wrongOnes.length} missed
+                Redo missed
               </button>
             )}
 
             {onChangeSettings && (
-              <button type="button" className="btn-press" onClick={onChangeSettings} style={{ ...btnGhost, flex: "1 1 160px" }}>
+              <button type="button" className="btn-press" onClick={onChangeSettings} style={btnGhost}>
                 Change settings
               </button>
             )}

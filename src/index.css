@@ -2329,9 +2329,52 @@ select {
 
 .sum-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
   margin-top: clamp(24px, 3.5vh, 34px);
+}
+/* Sized by their labels. A label that wraps makes one button taller than the
+   others, which is most of what made this row look wrong. */
+.sum-actions > button {
+  white-space: nowrap;
+}
+
+/* The middle tier, and the same recipe as Practice on the Progress rows —
+   tinted rather than filled, so it reads as secondary to the blue without
+   becoming a third outline. It was fieldBtn before, which is the white-on-blue
+   button for the field above: on the white sheet that is a white shape with a
+   drop shadow and nothing to sit against. */
+.sum-btn-soft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 26px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--c-accent-brd);
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.sum-btn-soft:hover {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
+}
+
+@media (max-width: 560px) {
+  .sum-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sum-actions > button {
+    width: 100%;
+  }
 }
 
 /* ─── Generate ───────────────────────────────────────────────────── */
