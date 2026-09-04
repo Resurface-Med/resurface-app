@@ -40,7 +40,7 @@ function verdictLine(correct, total) {
   if (total === 0) return "Nothing answered.";
   if (correct === total) return "Suspiciously good.";
   const pct = correct / total;
-  if (pct >= 0.8) return "Barely missed a thing.";
+  if (pct >= 0.8) return "Nearly perfect. Nearly.";
   if (pct >= 0.6) return "Getting there.";
   return "Rough one. Lock in.";
 }
