@@ -34,6 +34,19 @@ export default [
   },
 
   {
+    // A service worker runs in neither the browser nor node environment: self,
+    // clients, caches and the fetch event are its own globals. public/sw.js
+    // matched no block here, so it inherited none of them and linted as six
+    // undefined variables the moment it landed.
+    files: ["public/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: globals.serviceworker,
+    },
+  },
+
+  {
     files: ["api/**/*.js", "scripts/**/*.mjs", "tests/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,

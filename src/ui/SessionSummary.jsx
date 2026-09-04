@@ -1,28 +1,48 @@
 import { useState } from "react";
-import { C, h1, pageSub, sectionH, body, meta, primaryBtn, fieldBtn, btnGhost } from "./theme";
+import { C, h1, pageSub, sectionH, eyebrowField, primaryBtn, fieldBtn, btnGhost } from "./theme";
 import ProgressBar from "./ProgressBar";
 import Wave from "./Wave";
 
-function toneForPct(pct) {
-  if (pct >= 80) return { ink: C.success, wash: C.successDim, border: C.successBrd, label: "Strong finish" };
-  if (pct >= 60) return { ink: C.accent, wash: C.accentDim, border: C.accentBrd, label: "Solid base" };
-  return { ink: C.danger, wash: C.dangerDim, border: C.dangerBrd, label: "Needs another pass" };
+/**
+ * The end of a session.
+ *
+ * The previous version had four surfaces stacked inside each other — blue
+ * field, white sheet, a grey panel, then white cards on top of that — for a
+ * screen with three things on it. It also printed the same sentence twice,
+ * once under the title and again inside the panel, and led with a praise chip
+ * that told you nothing the score did not.
+ *
+ * This is the same shape as Dashboard, Progress and Leaderboard: eyebrow,
+ * result, one line, then sections separated by rules rather than by boxes.
+ * Nothing is repeated, and nothing is on the page that has no job.
+ */
+
+/**
+ * Says what happens next rather than how well you did — you can already see
+ * how well you did, and the schedule is the thing you cannot.
+ */
+function verdictLine(correct, total) {
+  if (total === 0) return "Nothing answered.";
+  if (correct === total) return "All correct. These come back later, spaced further apart.";
+  const pct = correct / total;
+  if (pct >= 0.8) return "Most of that stuck. The ones you missed come back sooner.";
+  if (pct >= 0.6) return "Close. The misses come back first, and soon.";
+  return "Worth staying on this one until the pattern sticks.";
 }
 
-function summaryLine(pct) {
-  if (pct >= 80) return "You can move on, then revisit later.";
-  if (pct >= 60) return "You are close. A short second pass should do it.";
-  return "Keep this one in rotation until the pattern sticks.";
-}
+const band = {
+  maxWidth: 1080,
+  margin: "0 auto",
+  padding: "0 clamp(20px, 3vw, 40px)",
+  width: "100%",
+};
 
 export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong }) {
   const [showWrong, setShowWrong] = useState(false);
 
   const total = results.length;
   const correct = results.filter(r => r.correct).length;
-  const wrong = total - correct;
-  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
-  const tone = toneForPct(pct);
+  const wrongOnes = results.filter(r => !r.correct);
 
   const byCat = {};
   for (const r of results) {
@@ -31,218 +51,120 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
     if (r.correct) byCat[r.cat].correct += 1;
   }
 
-  const catRows = Object.entries(byCat)
+  /* Only topics that actually lost marks. The old list included every topic in
+     the session, sorted, under the heading "Focus next on these topics" — so a
+     clean run was told to focus next on a topic it had just scored full marks
+     on, with a full green bar underneath saying so. */
+  const shaky = Object.entries(byCat)
     .map(([cat, s]) => ({ cat, ...s, pct: Math.round((s.correct / s.total) * 100) }))
-    .sort((a, b) => a.pct - b.pct);
-
-  const focusRows = catRows.filter(row => row.total > 0).slice(0, 4);
-  const wrongOnes = results.filter(r => !r.correct);
-
-  const band = {
-    maxWidth: 1080,
-    margin: "0 auto",
-    padding: "0 clamp(20px, 3vw, 40px)",
-    width: "100%",
-  };
+    .filter(row => row.correct < row.total)
+    .sort((a, b) => a.pct - b.pct)
+    .slice(0, 5);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div style={{ ...band, paddingTop: "clamp(24px, 4vh, 40px)", paddingBottom: "clamp(22px, 3vh, 30px)" }}>
-        <h1 style={h1}>{title}</h1>
-        <p style={{ ...pageSub, maxWidth: 560 }}>{summaryLine(pct)}</p>
+      <div style={{ ...band, paddingTop: "clamp(24px, 4vh, 40px)", paddingBottom: "clamp(22px, 3vh, 32px)" }}>
+        <span style={eyebrowField} data-in="left">{title}</span>
+
+        {/* The count, not a percentage. A single-question session scoring
+            "100%" in 88px type is the sort of thing only a computer thinks is
+            impressive, and the fraction carries the sample size with it. */}
+        <h1 data-in="left" style={{ ...h1, fontSize: "clamp(38px, 5.6vw, 60px)", letterSpacing: "-2.2px", margin: "12px 0 0", "--i": 1 }}>
+          {correct} <span className="sum-of">of</span> {total} <span className="sum-of">correct</span>
+        </h1>
+
+        <p data-in="left" style={{ ...pageSub, maxWidth: "44ch", "--i": 2 }}>
+          {verdictLine(correct, total)}
+        </p>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(28px, 4vh, 56px)" }}>
-        <div style={{ ...band, paddingTop: "clamp(18px, 2.8vh, 34px)" }}>
-          <div style={{ maxWidth: 760, margin: "0 auto", display: "flex", flexDirection: "column", gap: 28 }}>
-            <section style={{
-              padding: "clamp(28px, 4vw, 40px)",
-              borderRadius: "var(--r-panel)",
-              background: "var(--c-surface2)",
-              border: "1px solid var(--c-border)",
-              textAlign: "center",
-            }}>
-              <div style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px 14px",
-                borderRadius: "var(--r-pill)",
-                background: tone.wash,
-                border: `1px solid ${tone.border}`,
-                color: tone.ink,
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: -0.1,
-              }}>
-                {tone.label}
+        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}>
+
+          {shaky.length > 0 && (
+            <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>
+              <div className="prog-section-head">
+                <h2 style={{ ...sectionH, margin: 0 }}>Worth another look</h2>
+                <span className="prog-section-note">Fewest right first</span>
               </div>
-
-              <div style={{
-                marginTop: 18,
-                fontSize: "clamp(64px, 10vw, 88px)",
-                fontWeight: 600,
-                letterSpacing: "-3.5px",
-                lineHeight: 0.92,
-                color: "var(--c-accent)",
-              }}>
-                {pct}%
-              </div>
-
-              <p style={{
-                marginTop: 14,
-                fontSize: 17,
-                fontWeight: 600,
-                letterSpacing: -0.25,
-                color: C.text,
-              }}>
-                {correct} correct, {wrong} wrong.
-              </p>
-
-              <p style={{ ...body, margin: "8px auto 0", maxWidth: "34ch" }}>
-                {summaryLine(pct)}
-              </p>
-            </section>
-
-            {focusRows.length > 0 && (
-              <section style={{
-                padding: "clamp(22px, 3.2vw, 28px)",
-                borderRadius: "var(--r-panel)",
-                background: "var(--c-card-solid)",
-                border: "1px solid var(--c-border)",
-                boxShadow: "var(--c-card-shadow)",
-              }}>
-                <h2 style={sectionH}>Focus next on these topics</h2>
-                <p style={{ ...meta, marginTop: 6 }}>
-                  Weakest areas first. Keep the pass short and targeted.
-                </p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 18 }}>
-                  {focusRows.map(({ cat, correct: c, total: t, pct: p }) => {
-                    const col = p >= 70 ? C.success : p >= 50 ? C.warning : C.danger;
-                    return (
-                      <div key={cat}>
-                        <div style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "baseline",
-                          gap: 12,
-                          marginBottom: 8,
-                        }}>
-                          <span style={{ fontSize: 14.5, color: C.text, lineHeight: 1.4 }}>{cat}</span>
-                          <span style={{ ...meta, color: col, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                            {c}/{t}
-                          </span>
-                        </div>
-                        <ProgressBar value={p} colour={col} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            )}
-
-            {wrongOnes.length > 0 && (
-              <section style={{
-                padding: "clamp(22px, 3.2vw, 28px)",
-                borderRadius: "var(--r-panel)",
-                background: "var(--c-card-solid)",
-                border: "1px solid var(--c-border)",
-                boxShadow: "var(--c-card-shadow)",
-              }}>
-                <button
-                  type="button"
-                  onClick={() => setShowWrong(v => !v)}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    textAlign: "left",
-                  }}
-                >
-                  <span>
-                    <span style={{ ...sectionH, display: "block" }}>Missed questions</span>
-                    <span style={{ ...meta, display: "block", marginTop: 4 }}>
-                      {wrongOnes.length} to review
-                    </span>
-                  </span>
-                  <span style={{
-                    color: C.muted,
-                    fontSize: 18,
-                    transform: showWrong ? "rotate(180deg)" : "none",
-                    transition: "transform 0.18s ease",
-                  }}>
-                    ▾
-                  </span>
-                </button>
-
-                {showWrong && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 18 }}>
-                    {wrongOnes.map((r) => (
-                      <div key={r.id} style={{
-                        padding: "15px 16px",
-                        borderRadius: "var(--r-card)",
-                        background: "var(--c-surface2)",
-                        border: "1px solid var(--c-border)",
-                      }}>
-                        <p style={{ fontSize: 14.5, color: C.text, lineHeight: 1.55 }}>
-                          {r.q}
-                        </p>
-                        <p style={{ marginTop: 10, fontSize: 13.5, color: C.text }}>
-                          <strong>Correct:</strong> {r.correctAnswer}
-                        </p>
-                        {r.yourAnswer && (
-                          <p style={{ marginTop: 4, fontSize: 13.5, color: C.sub }}>
-                            <strong>Your answer:</strong> {r.yourAnswer}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+              <div className="sum-topics">
+                {shaky.map(({ cat, correct: c, total: t, pct: p }) => (
+                  <div key={cat} className="sum-topic">
+                    <div className="sum-topic-line">
+                      <span className="sum-topic-name">{cat}</span>
+                      <span className="sum-topic-count">{c}/{t}</span>
+                    </div>
+                    <ProgressBar value={p} colour={p < 50 ? C.danger : p < 80 ? C.warning : C.accent} />
                   </div>
-                )}
-              </section>
-            )}
+                ))}
+              </div>
+            </section>
+          )}
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {wrongOnes.length > 0 && (
+            <section className="sum-section" data-in="rise" style={{ "--i": 4 }}>
+              <button
+                type="button"
+                className="sum-disclose"
+                onClick={() => setShowWrong(v => !v)}
+                aria-expanded={showWrong}
+              >
+                <span>
+                  <span style={{ ...sectionH, display: "block" }}>Missed questions</span>
+                  <span className="prog-section-note">{wrongOnes.length} to review</span>
+                </span>
+                <span className={`prog-chevron${showWrong ? " is-open" : ""}`} aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                    <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              </button>
+
+              {showWrong && (
+                <ol className="sum-missed">
+                  {wrongOnes.map(r => (
+                    <li key={r.id} className="sum-missed-item">
+                      <p className="sum-missed-q">{r.q}</p>
+                      <p className="sum-missed-row">
+                        <span className="sum-missed-lbl is-ok">Answer</span>
+                        <span>{r.correctAnswer}</span>
+                      </p>
+                      {r.yourAnswer && (
+                        <p className="sum-missed-row">
+                          <span className="sum-missed-lbl is-bad">You put</span>
+                          <span>{r.yourAnswer}</span>
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          )}
+
+          <div className="sum-actions" data-in="rise" style={{ "--i": 5 }}>
+            <button type="button" className="btn-press" style={{ ...primaryBtn, flex: "1 1 200px" }} onClick={onRestart}>
+              Practice again
+            </button>
+
+            {onDrillWrong && wrongOnes.length > 0 && (
               <button
                 type="button"
                 className="btn-press"
-                style={{ ...primaryBtn, flex: "1 1 220px" }}
-                onClick={onRestart}
+                onClick={() => onDrillWrong(wrongOnes.map(r => r.id))}
+                style={{ ...fieldBtn, flex: "1 1 200px" }}
               >
-                Practice again
+                Redo the {wrongOnes.length} missed
               </button>
+            )}
 
-              {onDrillWrong && wrongOnes.length > 0 && (
-                <button
-                  type="button"
-                  className="btn-press"
-                  onClick={() => onDrillWrong(wrongOnes.map(r => r.id))}
-                  style={{ ...fieldBtn, flex: "1 1 220px" }}
-                >
-                  Redo missed questions
-                </button>
-              )}
-
-              {onChangeSettings && (
-                <button
-                  type="button"
-                  className="btn-press"
-                  onClick={onChangeSettings}
-                  style={{ ...btnGhost, flex: "1 1 180px" }}
-                >
-                  Change settings
-                </button>
-              )}
-            </div>
+            {onChangeSettings && (
+              <button type="button" className="btn-press" onClick={onChangeSettings} style={{ ...btnGhost, flex: "1 1 160px" }}>
+                Change settings
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -2220,6 +2220,120 @@ select {
   text-align: right;
 }
 
+/* ─── Session summary ────────────────────────────────────────────── */
+/* Sections are separated by a rule and space, not by boxes. The old version
+   put a bordered, shadowed card around each one, inside a grey panel, inside
+   the sheet — four nested surfaces for three pieces of content. */
+.sum-of {
+  color: var(--c-on-field-faint);
+  font-weight: 500;
+  letter-spacing: -1px;
+}
+
+.sum-section {
+  padding-top: clamp(20px, 3vh, 28px);
+  margin-top: clamp(20px, 3vh, 28px);
+  border-top: 1px solid var(--c-border);
+}
+.sum-section:first-child {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
+}
+
+.sum-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+.sum-topic-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 7px;
+}
+.sum-topic-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+  line-height: 1.4;
+  min-width: 0;
+}
+.sum-topic-count {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.sum-disclose {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.sum-missed {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+.sum-missed-item {
+  padding: 16px 0;
+  box-shadow: inset 0 1px 0 var(--c-border);
+}
+.sum-missed-item:first-child {
+  box-shadow: none;
+  padding-top: 4px;
+}
+.sum-missed-q {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-text);
+  line-height: 1.5;
+  letter-spacing: -0.2px;
+}
+.sum-missed-row {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--c-sub);
+}
+/* A label column rather than bold run into the sentence, so the two answers
+   line up and can be compared at a glance instead of read. */
+.sum-missed-lbl {
+  flex-shrink: 0;
+  width: 5.5em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding-top: 0.18em;
+}
+.sum-missed-lbl.is-ok { color: var(--c-success); }
+.sum-missed-lbl.is-bad { color: var(--c-danger); }
+
+.sum-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: clamp(24px, 3.5vh, 34px);
+}
+
 /* ─── Generate ───────────────────────────────────────────────────── */
 .gen-field-sub {
   margin: 8px 0 0;
