@@ -18,16 +18,29 @@ import Wave from "./Wave";
  */
 
 /**
- * Says what happens next rather than how well you did — you can already see
- * how well you did, and the schedule is the thing you cannot.
+ * A reaction, not an explanation.
+ *
+ * Every one of these used to end in the spaced-repetition mechanic — that the
+ * misses come back sooner and the rest come back spaced further apart. The
+ * landing page says that five times over, which is its job; saying it again
+ * after every session, forever, tells someone a fact they learned before they
+ * signed up.
+ *
+ * None of them restate the score either. The count is set in 60px directly
+ * above this line, so "All correct" underneath it was the same redundancy in
+ * miniature.
+ *
+ * The bottom tier stays plain and gives them something to do. A joke aimed at
+ * someone who has just scored 40% reads as mockery, and that is the exact
+ * moment they decide whether to close the app.
  */
 function verdictLine(correct, total) {
   if (total === 0) return "Nothing answered.";
-  if (correct === total) return "All correct. These come back later, spaced further apart.";
+  if (correct === total) return "Suspiciously good.";
   const pct = correct / total;
-  if (pct >= 0.8) return "Most of that stuck. The ones you missed come back sooner.";
-  if (pct >= 0.6) return "Close. The misses come back first, and soon.";
-  return "Worth staying on this one until the pattern sticks.";
+  if (pct >= 0.8) return "Close to clean.";
+  if (pct >= 0.6) return "Getting there.";
+  return "Rough one. Worth another go.";
 }
 
 const band = {
