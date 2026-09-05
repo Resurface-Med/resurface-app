@@ -3894,10 +3894,54 @@ select {
   display: flex;
   justify-content: center;
 }
-.quiz-shell__body.has-ai .ai-dock {
+/* Sizing sits on the wrapper, which is the flex child; the dock fills it. The
+   wrapper exists so the flying mark has something to measure the header
+   against before the dock has finished arriving. */
+.quiz-shell__body.has-ai .quiz-shell__dock {
   flex: 0 0 clamp(320px, 30vw, 400px);
   width: clamp(320px, 30vw, 400px);
   align-self: stretch;
+  display: flex;
+  min-height: 0;
+}
+.quiz-shell__dock > .ai-dock {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+/* If the mark was flown in it is already in place, so its own pop-in is off
+   for the life of the dock — otherwise it would run the instant the flight
+   landed and the mark would arrive twice. Order matters: is-flying comes after
+   and wins during the flight itself. */
+.quiz-shell__dock.has-flown .ai-dock__mark {
+  animation: none;
+  opacity: 1;
+}
+/* Hidden while it is still in the air, or the same mark is on screen twice. */
+.quiz-shell__dock.is-flying .ai-dock__mark {
+  opacity: 0;
+}
+
+/* The ghost. Fixed and inert: it is a picture of a control, not a control. */
+.ai-flight {
+  position: fixed;
+  z-index: 90;
+  pointer-events: none;
+  object-fit: contain;
+  will-change: transform, opacity;
+}
+
+/* The question does not snap into its new width, it moves into it. It goes
+   from centred to sharing the row, so it travels left — hence the offset
+   coming from the right. Transform only: animating the width itself would
+   re-wrap the stem on every frame. */
+.quiz-shell__body.has-ai .quiz-shell__main {
+  animation: ai-main-settle 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ai-main-settle {
+  from { transform: translate3d(22px, 0, 0) scale(1.02); }
+  to   { transform: none; }
 }
 .quiz-shell__card {
   width: min(720px, 100%);
@@ -4197,7 +4241,10 @@ select {
   .ai-dock__foot,
   .ai-dock__mark,
   .ai-dock__pill,
+  .ai-flight,
+  .quiz-shell__body.has-ai .quiz-shell__main,
   .quiz-shell__body.has-ai .ai-dock { animation: none; }
+  .quiz-shell__body.has-ai .quiz-shell__main { transform: none; }
 }
 
 /* Phone: AI dock stacks below the question — still no scrim. */
@@ -4263,6 +4310,13 @@ select {
   }
   .quiz-shell__body.has-ai .quiz-shell__main {
     display: none;
+  }
+  .quiz-shell__body.has-ai .quiz-shell__dock {
+    flex: 0 0 auto;
+    width: auto;
+  }
+  .quiz-shell__body.has-ai .quiz-shell__main {
+    animation: none;
   }
   .quiz-shell__body.has-ai .ai-dock {
     position: fixed;
