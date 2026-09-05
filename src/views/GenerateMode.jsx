@@ -596,6 +596,19 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   /* One requirement per step. The last has none — everything on it is already
      answered — so it is gated by canGenerate, which is the first two. */
   const stepReady = [Boolean(file || pastedText.trim()), Boolean(category.trim())];
+  /* A step is reachable once every earlier requirement is met. That lets you
+     jump forward again after going back — without letting anyone skip work. */
+  function canReach(i) {
+    for (let j = 0; j < i; j++) {
+      if (!stepReady[j]) return false;
+    }
+    return true;
+  }
+  function goToStep(i) {
+    if (!canReach(i) || i === step) return;
+    if (i === 0) setMode("ai");
+    setStep(i);
+  }
 
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
@@ -716,22 +729,24 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
         <GeneratingWindow count={countNum} onCancel={cancelGenerate} />
       )}
 
-      {/* Two labels on one rule, the live one lit. No circles and no fills —
-          a circle needs a fill to read as anything. Going back is allowed;
-          skipping ahead is not, which is the only rule the rail enforces. */}
       <nav className="gen-steps" aria-label="Progress">
-        {STEPS.map((st, i) => (
-          <button
-            key={st.k}
-            type="button"
-            className={`gen-step${i === step ? " is-current" : ""}${i < step ? " is-done" : ""}`}
-            onClick={() => i < step && setStep(i)}
-            disabled={i > step}
-            aria-current={i === step ? "step" : undefined}
-          >
-            {st.label}
-          </button>
-        ))}
+        {STEPS.map((st, i) => {
+          const reachable = canReach(i);
+          const current = i === step;
+          return (
+            <button
+              key={st.k}
+              type="button"
+              className={`gen-step${current ? " is-current" : ""}${reachable && !current ? " is-open" : ""}`}
+              onClick={() => goToStep(i)}
+              disabled={!reachable}
+              aria-current={current ? "step" : undefined}
+            >
+              <span className="gen-step__num" aria-hidden="true">{i + 1}</span>
+              <span className="gen-step__label">{st.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
       <h2 key={`${step}-${mode}`} className="gen-step-heading" data-in="rise">

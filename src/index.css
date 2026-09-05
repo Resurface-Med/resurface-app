@@ -2633,39 +2633,67 @@ select {
 }
 
 /* ─── Generate ───────────────────────────────────────────────────── */
-/* ── Generate, in two steps ───────────────────────────────────────── */
-/* Labels on a shared rule, the live one lit. State carried by weight and
-   colour rather than by a filled shape per step. */
+/* Numbered chips — same language as Study topic chips. Reachable steps are
+   clickable either way; locked ones stay quiet until their requirements are
+   met. */
 .gen-steps {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-bottom: clamp(18px, 2.6vh, 24px);
 }
 .gen-step {
-  flex: 1;
-  padding-right: 12px;
-  min-width: 0;
-  padding: 0 0 10px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid var(--c-border);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface3);
+  color: var(--c-muted);
   font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
-  color: var(--c-muted-dim);
-  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
   cursor: default;
-  transition: color 0.18s ease, border-color 0.18s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.gen-step.is-done {
+.gen-step__num {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(15, 27, 61, 0.08);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.gen-step.is-open {
   color: var(--c-sub);
-  border-bottom-color: var(--c-accent-brd);
   cursor: pointer;
 }
-.gen-step.is-done:hover { color: var(--c-text); }
+.gen-step.is-open:hover {
+  color: var(--c-text);
+  border-color: var(--c-accent-brd);
+  background: var(--c-accent-dim);
+}
 .gen-step.is-current {
-  color: var(--c-accent);
-  border-bottom-color: var(--c-accent);
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(20, 44, 130, 0.22);
+  cursor: default;
+}
+.gen-step.is-current .gen-step__num {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.gen-step:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Sits under the step heading, quiet enough to be reference rather than
