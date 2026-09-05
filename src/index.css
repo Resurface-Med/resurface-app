@@ -701,16 +701,20 @@ body::after {
 .q-review-ai {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   flex-shrink: 0;
+  /* Own line, so it can be sized as the feature it is. Sitting in the row
+     below capped it at that row's size and it went quiet — the escape hatch
+     for someone who is stuck ended up the least visible thing on the card. */
+  margin-top: 22px;
   padding: 0;
   border: none;
   background: none;
   color: var(--c-accent);
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
+  font-size: 17.5px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -722,8 +726,8 @@ body::after {
 .q-review-ai__mark {
   display: block;
   flex-shrink: 0;
-  width: 17px;
-  height: 17px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
 }
 .q-review-ai__arrow {
@@ -734,12 +738,14 @@ body::after {
   transform: translateX(2px);
 }
 
+/* Closer under the action above than the action is to the explanation, so the
+   two utility links read as sitting beneath it rather than as a third peer. */
 .q-review-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 16px;
-  margin-top: 18px;
+  margin-top: 16px;
 }
 .q-review-meta .q-flag-open {
   margin-top: 0;
@@ -3906,11 +3912,11 @@ select {
    rather than sitting small against 17px prose. The icon and label overrides
    that used to live here went with the card version of this button. */
 .quiz-shell .q-card--focus .q-review-ai {
-  font-size: 14.5px;
+  font-size: 19px;
 }
 .quiz-shell .q-card--focus .q-review-ai__mark {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
 }
 .quiz-shell .q-card--focus .q-review-meta {
   margin-top: 20px;
