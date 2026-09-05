@@ -3882,7 +3882,11 @@ select {
      read as unbranded. */
   background: var(--c-bg);
 }
-.quiz-shell__close {
+/* Shares the close button's shape and on-field ink, because it is the same
+   kind of thing: a chrome control sitting on the blue rather than an action
+   belonging to the question. */
+.quiz-shell__close,
+.quiz-shell__tool {
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -3902,9 +3906,18 @@ select {
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
-.quiz-shell__close:hover {
+.quiz-shell__close:hover,
+.quiz-shell__tool:hover {
   color: var(--c-on-field);
   background: rgba(255, 255, 255, 0.14);
+}
+/* Smaller than the close button. Leaving is the one thing you might do in a
+   hurry; editing is not, and matching it would have made the two read as a
+   pair of equals. */
+.quiz-shell__tool {
+  width: 34px;
+  height: 34px;
+  margin-left: 2px;
 }
 .quiz-shell__progress-wrap {
   flex: 1;

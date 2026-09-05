@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
+import EditQuestionModal from "./EditQuestionModal";
 import ExplainChat from "./ExplainChat";
 import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
@@ -43,6 +44,11 @@ export default function QuizShell({
 }) {
   const [railOpen, setRailOpen] = useState(false);
   const [railMounted, setRailMounted] = useState(false);
+  /* The editor is opened from the header here rather than from the card. The
+     card's own tools are suppressed in focus mode, and this needs to be
+     reachable before an answer as well as after — a typo in the stem is
+     usually the thing you notice first. */
+  const [editing, setEditing] = useState(false);
 
   /* Declared above the effects, because the Escape handler below closes the
      rail and a const arrow referenced before its declaration is a temporal
@@ -161,6 +167,22 @@ export default function QuizShell({
           <span className="quiz-shell__count">
             {idx + 1}/{queue.length}
           </span>
+
+          <button
+            type="button"
+            className="quiz-shell__tool btn-press"
+            onClick={() => setEditing(true)}
+            title="Edit question"
+            aria-label="Edit question"
+          >
+            <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <path
+                d="M10.5 1.5L13.5 4.5L5 13H2V10L10.5 1.5Z"
+                stroke="currentColor" strokeWidth="1.5"
+                strokeLinecap="round" strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -266,6 +288,14 @@ export default function QuizShell({
           )}
         </div>
       </div>
+
+      {editing && (
+        <EditQuestionModal
+          q={q}
+          onClose={() => setEditing(false)}
+          onSave={updated => { setEditing(false); onSaveEdit?.(updated); }}
+        />
+      )}
 
       <footer className="quiz-shell__footer">
         <div className="quiz-shell__footer-bar">
