@@ -3671,7 +3671,16 @@ select {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: calc(env(safe-area-inset-top, 0px) + 14px) clamp(16px, 3vw, 28px) 12px;
+  /* Held to the same measure as the content. On a wide window this bar ran
+     the full width while the card stayed at 720, so the progress bar and the
+     count sat at the screen edges with nothing between them and the question —
+     the chrome and the content were on two different grids.
+   *
+     max() rather than a wrapper: below the measure it is the normal gutter,
+     above it the extra space becomes padding, which centres the row without
+     another element and without the blue band stopping short. */
+  padding: calc(env(safe-area-inset-top, 0px) + 14px)
+    max(clamp(16px, 3vw, 28px), calc((100% - 1180px) / 2)) 12px;
   /* The blue field, as on every other tab: field, wave, sheet. This screen was
      the only one that never left the sheet, which is the other half of why it
      read as unbranded. */
@@ -4028,7 +4037,10 @@ select {
 }
 .quiz-shell__footer {
   flex-shrink: 0;
-  padding: 0 clamp(16px, 3vw, 28px) calc(14px + var(--safe-b));
+  /* Same measure as the header and the card, for the same reason: a 1900px
+     pill holding four controls at its two ends is mostly gap. */
+  padding: 0 max(clamp(16px, 3vw, 28px), calc((100% - 1180px) / 2))
+    calc(14px + var(--safe-b));
   background: transparent;
 }
 .quiz-shell__footer-bar {
