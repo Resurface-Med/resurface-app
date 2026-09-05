@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { h1, sectionH, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { DECK_MAP, BLOCKS, CURRICULUM } from "../data";
+import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
@@ -369,11 +370,19 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
  * gates on its own requirement, which means Continue is what tells you
  * something is missing, at the point where you would fix it.
  */
+/** An empty question, for writing one rather than correcting one. */
+const BLANK_QUESTION = { q: "", opts: ["", "", "", "", ""], ans: 0, exp: "", optExp: [] };
+
 const STEPS = [
   { k: "source", label: "Lecture/notes", heading: "Drop in your lectures or notes" },
   { k: "place", label: "Topic", heading: "Where does it belong?" },
   { k: "detail", label: "Questions", heading: "How many, and how hard?" },
 ];
+
+/* The last step is a different question when you are writing them yourself. */
+const MANUAL_LAST = { k: "detail", label: "Questions", heading: "Write your questions" };
+
+
 
 // ── Quiet generating state ──────────────────────────────────────────────────
 
@@ -513,6 +522,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
      typing is the exception. */
   const [newTopic, setNewTopic] = useState(false);
   const [newBlock, setNewBlock] = useState(false);
+  /* "ai" writes them from a lecture, "manual" is you writing them. The steps
+     are the same either way until the last one, which is where the two
+     diverge: difficulty and count mean nothing for a question you are typing
+     out yourself. */
+  const [mode, setMode] = useState("ai");
+  const [written, setWritten] = useState([]);
+  const [writing, setWriting] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
   // reply lands later and drops the user into a review screen they backed out
   // of. Held in a ref because aborting must not itself trigger a render.
@@ -702,7 +718,9 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
         ))}
       </nav>
 
-      <h2 key={step} className="gen-step-heading" data-in="rise">{STEPS[step].heading}</h2>
+      <h2 key={`${step}-${mode}`} className="gen-step-heading" data-in="rise">
+        {step === 2 && mode === "manual" ? MANUAL_LAST.heading : STEPS[step].heading}
+      </h2>
 
       {/* What you uploaded, carried forward. Two steps later you are being
           asked to name a topic for something you can no longer see, and if the
@@ -776,6 +794,16 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             rows={3}
           />
         )}
+        {/* The third way in. Text rather than a third box, because it is not a
+            third kind of source — it is the case where there is no source at
+            all and you are the one writing. */}
+        <button
+          type="button"
+          className="gen-scratch"
+          onClick={() => { setMode("manual"); setStep(1); }}
+        >
+          Or write your own questions from scratch
+        </button>
       </section>
       </>)}
 
@@ -905,9 +933,41 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       </section>
       </>)}
 
+      {/* Writing them yourself: the same editor used for correcting a
+          question, opened empty, with what you have written so far listed
+          under it. Reusing that form rather than building a second one means
+          per-option explanations come along for free. */}
+      {step === 2 && mode === "manual" && (
+        <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
+          {written.length > 0 && (
+            <ol className="gen-written">
+              {written.map((w, i) => (
+                <li key={i} className="gen-written-item">
+                  <span className="gen-written-n">{i + 1}</span>
+                  <span className="gen-written-q">{w.q}</span>
+                  <button
+                    type="button"
+                    className="gen-written-del"
+                    onClick={() => setWritten(list => list.filter((_, j) => j !== i))}
+                    aria-label={`Remove question ${i + 1}`}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          <button type="button" className="gen-write-btn btn-press" onClick={() => setWriting(true)}>
+            <span aria-hidden="true">＋</span>
+            {written.length === 0 ? "Write a question" : "Write another"}
+          </button>
+        </section>
+      )}
+
       {/* Both of these already have an answer, so this step is somewhere to
           change one rather than somewhere to supply one. */}
-      {step === 2 && (<>
+      {step === 2 && mode === "ai" && (<>
       <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
         <div className="gen-chip-row">
           <div className="gen-chip-group">
@@ -966,11 +1026,26 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       </section>
       </>)}
 
+      {writing && (
+        <EditQuestionModal
+          q={BLANK_QUESTION}
+          onClose={() => setWriting(false)}
+          onSave={qn => {
+            setWriting(false);
+            setWritten(list => [...list, { ...qn, gen: true, cat: category.trim(), year, block, deck }]);
+          }}
+        />
+      )}
+
       {error && <p className="gen-error">{error}</p>}
 
       <div className="gen-nav">
         {step > 0 && (
-          <button type="button" className="gen-nav-back btn-press" onClick={() => setStep(step - 1)}>
+          <button
+            type="button"
+            className="gen-nav-back btn-press"
+            onClick={() => { if (step === 1) setMode("ai"); setStep(step - 1); }}
+          >
             <span aria-hidden="true">←</span> Back
           </button>
         )}
@@ -987,7 +1062,26 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           </button>
         )}
 
-        {step === 2 && (
+        {step === 2 && mode === "manual" && (
+          <button
+            type="button"
+            className="btn-press gen-nav-go"
+            style={{ ...primaryBtn, opacity: written.length ? 1 : 0.45 }}
+            disabled={!written.length}
+            onClick={async () => {
+              if (user) await remote.addGenerated(user.id, written);
+              const merged = [...savedQs, ...written];
+              setSavedQs(merged);
+              onGeneratedChange?.(merged);
+              setWritten([]);
+              setPhase("done");
+            }}
+          >
+            Add {written.length} to bank →
+          </button>
+        )}
+
+        {step === 2 && mode === "ai" && (
       <button
         type="button"
         className="btn-press gen-nav-go"

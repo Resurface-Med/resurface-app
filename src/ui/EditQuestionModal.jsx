@@ -31,6 +31,11 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
   function setOpt(i, val) { setOpts(o => o.map((v, j) => j === i ? val : v)); }
   function setOptExpItem(i, val) { setOptExp(o => o.map((v, j) => j === i ? val : v)); }
 
+  /* A question with no id has never existed, so there is no edit to record
+     against it — the caller stores it instead. Everything else about writing
+     one is identical to correcting one, which is why this is the same form. */
+  const isNew = q.id === undefined || q.id === null;
+
   function handleSave() {
     const updated = {
       q: question.trim(),
@@ -39,9 +44,12 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
       exp: exp.trim(),
       optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
     };
-    if (user) remote.questionEdit(user.id, q.id, updated);
+    if (!isNew && user) remote.questionEdit(user.id, q.id, updated);
     onSave({ ...q, ...updated });
   }
+
+  const canSave = question.trim() && opts.filter(o => o.trim()).length >= 2
+    && opts[ans]?.trim();
 
   return (
     <div style={{
@@ -148,8 +156,16 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
 
         {/* Actions */}
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={handleSave} className="btn-press hover-lift" style={{ ...primaryBtn, flex: 1 }}>
-            Save &amp; Reload
+          {/* "Save & Reload" described the mechanism rather than the result,
+              and it was never true for a question being written for the first
+              time. */}
+          <button
+            onClick={handleSave}
+            disabled={!canSave}
+            className="btn-press hover-lift"
+            style={{ ...primaryBtn, flex: 1, opacity: canSave ? 1 : 0.45 }}
+          >
+            {isNew ? "Add question" : "Save changes"}
           </button>
           <button onClick={onClose} className="btn-press" style={{
             padding: "11px 20px", borderRadius: "var(--r-pill)",
