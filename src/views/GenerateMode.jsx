@@ -70,6 +70,94 @@ const field = {
   outline: "none",
 };
 
+// ── Guessing where a file belongs ───────────────────────────────────────────
+
+/* Words that appear in lecture filenames and mean nothing about the content.
+   Without these, "Lecture 3 notes" scores against any topic containing a
+   common word and the matcher starts guessing for the sake of it. */
+const FILENAME_NOISE = new Set([
+  "lecture", "lec", "week", "wk", "notes", "note", "slides", "slide", "final",
+  "edited", "tagged", "copy", "part", "session", "year", "handout", "revision",
+  "tutorial", "seminar", "workshop", "and", "the", "for", "with", "intro",
+  "introduction", "draft", "updated", "new",
+]);
+
+function fileWords(str) {
+  return String(str)
+    .toLowerCase()
+    .replace(/\.[a-z0-9]+$/, "")
+    .replace(/[^a-z]+/g, " ")
+    .split(" ")
+    .filter(t => t.length > 2 && !FILENAME_NOISE.has(t));
+}
+
+/**
+ * Where a file probably belongs, or nothing.
+ *
+ * Topics are searched across every subject rather than inside a guessed one.
+ * A topic name is far more distinctive than a subject name — "Glycolysis"
+ * identifies one topic on its own, while plenty of lectures never say
+ * "Biochemistry" anywhere in the filename — so the subject is taken from
+ * whichever topic wins.
+ *
+ * Three gates, all of them about refusing to guess: half the topic's words
+ * must appear, one of them must be a real word rather than a short common
+ * one, and the runner-up must be clearly behind. That last gate is what makes
+ * "Immunity.pdf" return nothing instead of picking Innate or Adaptive at
+ * random, which is the failure that would matter — a wrong topic files
+ * questions somewhere they will not be found again.
+ */
+function guessPlacement(name) {
+  const w = fileWords(name);
+  if (!w.length) return { deck: null, cat: null };
+
+  const scored = [];
+  for (const [deck, cats] of Object.entries(DECK_MAP)) {
+    for (const cat of cats || []) {
+      const ct = fileWords(shortCat(cat, deck));
+      if (!ct.length) continue;
+      const hits = ct.filter(t => w.some(f =>
+        f === t || (t.length >= 4 && f.startsWith(t)) || (f.length >= 4 && t.startsWith(f))));
+      scored.push({ deck, cat, score: hits.length / ct.length, strong: hits.some(t => t.length >= 5) });
+    }
+  }
+  scored.sort((a, b) => b.score - a.score);
+  const [top, second] = scored;
+  const confident = top && top.score >= 0.5 && top.strong
+    && (!second || top.score - second.score >= 0.2);
+  if (confident) return { deck: top.deck, cat: top.cat };
+
+  // No topic, but the subject may still be named outright.
+  for (const deck of Object.keys(DECK_MAP)) {
+    const d = deck.toLowerCase();
+    if (w.some(t => t.length >= 4 && (d.startsWith(t) || t.startsWith(d)))) {
+      return { deck, cat: null };
+    }
+  }
+  return { deck: null, cat: null };
+}
+
+/** A readable topic name out of a filename, for when none of the above hits. */
+function suggestTopicName(name) {
+  const base = String(name).replace(/\.[a-z0-9]+$/i, "");
+  const longest = base.split(/\s+-\s+/).sort((a, b) => b.length - a.length)[0] || base;
+  const cleaned = longest
+    .replace(/\(.*?\)/g, " ")
+    .split(/[\s_]+/)
+    .filter(t => {
+      const bare = t.toLowerCase().replace(/[^a-z]/g, "");
+      return bare.length > 2 && !FILENAME_NOISE.has(bare) && !/^\d/.test(t);
+    })
+    .join(" ")
+    .trim();
+  if (cleaned.split(" ").length < 2 || cleaned.length > 60) return "";
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function shortCat(cat, deck) {
+  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
+}
+
 // ── File extraction ─────────────────────────────────────────────────────────
 
 async function extractPptx(file) {
@@ -391,6 +479,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
   const [phase, setPhase] = useState("setup");
   const [step, setStep] = useState(0);
+  /* Whether Topic is being chosen or written. Chosen by default: the lists are
+     two to twelve long, so picking is nearly always the right control and
+     typing is the exception. */
+  const [newTopic, setNewTopic] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
   // reply lands later and drops the user into a review screen they backed out
   // of. Held in a ref because aborting must not itself trigger a render.
@@ -402,6 +494,18 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
   const [savedQs, setSavedQs] = useState(savedGenerated);
   const [bankOpen, setBankOpen] = useState(false);
+
+  /* Both ways in — the picker and the drop target — go through here, so the
+     guess cannot be wired to one and forgotten on the other. */
+  function acceptFile(f) {
+    if (!f) return;
+    setFile(f);
+    setPastedText("");
+    const { deck: d, cat } = guessPlacement(f.name);
+    if (d) setDeck(d);
+    if (cat) { setCategory(cat); setNewTopic(false); }
+    else if (d) setCategory("");
+  }
 
   const cancelGenerate = useCallback(() => {
     abortRef.current?.abort();
@@ -566,6 +670,21 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
       <h2 key={step} className="gen-step-heading" data-in="rise">{STEPS[step].heading}</h2>
 
+      {/* What you uploaded, carried forward. Two steps later you are being
+          asked to name a topic for something you can no longer see, and if the
+          subject and topic were guessed from the filename then this is the
+          evidence for that guess — a pre-filled answer next to the thing it
+          was inferred from is checkable, the same answer on its own is just a
+          decision made for you. */}
+      {step > 0 && (file || pastedText.trim()) && (
+        <p className="gen-source-note">
+          <span className="gen-source-label">From</span>
+          <span className="gen-source-name">
+            {file ? file.name : `pasted text · ${pastedText.trim().split(/\s+/).length} words`}
+          </span>
+        </p>
+      )}
+
       {/* Source */}
       {step === 0 && (<>
       <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
@@ -577,8 +696,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           onDragOver={e => e.preventDefault()}
           onDrop={e => {
             e.preventDefault();
-            const f = e.dataTransfer.files[0];
-            if (f) { setFile(f); setPastedText(""); }
+            acceptFile(e.dataTransfer.files[0]);
           }}
         >
           <input
@@ -586,12 +704,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             type="file"
             accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
             style={{ display: "none" }}
-            onChange={e => {
-              if (e.target.files[0]) {
-                setFile(e.target.files[0]);
-                setPastedText("");
-              }
-            }}
+            onChange={e => acceptFile(e.target.files[0])}
           />
           {file ? (
             <span className="gen-drop-file">
@@ -644,26 +757,64 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             <span className="gen-field-label">Subject</span>
             <select
               value={deck}
-              onChange={e => { setDeck(e.target.value); setCategory(""); }}
+              onChange={e => { setDeck(e.target.value); setCategory(""); setNewTopic(false); }}
               style={{ ...field, cursor: "pointer" }}
             >
               {decks.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
+          {/* A picker, not a text field. A subject has between two and twelve
+              topics, so the whole set fits on screen — asking someone to
+              recall and retype an exact string from a list that short is how
+              you end up with "Glycolysis" and "Glycolysis & Bioenergetics" as
+              two different topics, and a near-miss name fragments Progress
+              permanently.
+
+              Writing one stays available, because the bank does not cover
+              everything: Anatomy has two topics, so a respiratory lecture has
+              nowhere to go and needs a new one. */}
           <label className="gen-field">
             <span className="gen-field-label">Topic</span>
-            <input
-              type="text"
-              value={category}
-              onChange={e => setCategory(e.target.value)}
-              placeholder={existingCats[0] || "e.g. Glycolysis"}
-              list="gen-cat-suggestions"
-              style={field}
-              required
-            />
-            <datalist id="gen-cat-suggestions">
-              {existingCats.map(c => <option key={c} value={c} />)}
-            </datalist>
+            {newTopic || existingCats.length === 0 ? (
+              <input
+                type="text"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                placeholder="e.g. Glycolysis"
+                style={field}
+                autoFocus={newTopic}
+                required
+              />
+            ) : (
+              <select
+                value={category}
+                onChange={e => {
+                  if (e.target.value === "__new__") {
+                    setNewTopic(true);
+                    setCategory(file ? suggestTopicName(file.name) : "");
+                  } else {
+                    setCategory(e.target.value);
+                  }
+                }}
+                style={{ ...field, cursor: "pointer" }}
+                required
+              >
+                <option value="">Choose a topic…</option>
+                {existingCats.map(c => (
+                  <option key={c} value={c}>{shortCat(c, deck)}</option>
+                ))}
+                <option value="__new__">＋ New topic…</option>
+              </select>
+            )}
+            {newTopic && existingCats.length > 0 && (
+              <button
+                type="button"
+                className="gen-topic-back"
+                onClick={() => { setNewTopic(false); setCategory(""); }}
+              >
+                Pick an existing topic instead
+              </button>
+            )}
           </label>
           <label className="gen-field">
             <span className="gen-field-label">Year</span>

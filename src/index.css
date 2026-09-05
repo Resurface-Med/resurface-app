@@ -2454,6 +2454,50 @@ select {
   border-bottom-color: var(--c-accent);
 }
 
+/* Sits under the step heading, quiet enough to be reference rather than
+   content. Truncates because lecture filenames are long and the point is
+   recognition, not reading. */
+.gen-source-note {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: -8px 0 clamp(16px, 2.4vh, 22px);
+  min-width: 0;
+  font-size: 13.5px;
+}
+.gen-source-label {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted-dim);
+}
+.gen-source-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: var(--c-sub);
+}
+
+/* The way back out of writing a topic. */
+.gen-topic-back {
+  align-self: flex-start;
+  margin-top: 7px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.gen-topic-back:hover { color: var(--c-accent); }
+
 .gen-step-heading {
   margin: 0 0 clamp(16px, 2.4vh, 22px);
   font-size: clamp(19px, 2vw, 23px);
