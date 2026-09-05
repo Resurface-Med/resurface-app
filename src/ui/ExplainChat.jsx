@@ -288,12 +288,12 @@ export default function ExplainChat({ q, picked, onClose }) {
       <footer className="ai-dock__foot">
         {atLimit && (
           <p className="ai-dock__quota" role="status">
-            No more AI asks on this question — try another one.
+            That's all for this question — try another.
           </p>
         )}
         {!atLimit && remaining === 1 && (
           <p className="ai-dock__quota" aria-live="polite">
-            1 AI ask left on this question
+            One more on this question
           </p>
         )}
         {!atLimit && messages.length === 0 && (
