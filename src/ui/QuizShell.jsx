@@ -46,11 +46,33 @@ export default function QuizShell({
   /* Declared above the effects, because the Escape handler below closes the
      rail and a const arrow referenced before its declaration is a temporal
      dead zone waiting for someone to move an effect. */
+  /* Mount and open are two frames, not one.
+   *
+   * Done together, the browser lays out the whole navigator — one row per
+   * question — in the same frame that begins the column transition, and that
+   * first frame overruns. The result is a hitch right at the start and then a
+   * clean animation, which is exactly what it looked like.
+   *
+   * So: mount, let a frame pass so the panel is laid out and painted while
+   * nothing is moving, then flip the class. Two rAFs because one still lands
+   * inside the same style-and-layout pass in Chrome.
+   *
+   * The ref guards a fast toggle. Without it a click-close during those two
+   * frames is overwritten by the queued open, and the rail reopens itself.
+   */
+  const railWanted = useRef(false);
+
   function openRail() {
+    railWanted.current = true;
     setRailMounted(true);
-    setRailOpen(true);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (railWanted.current) setRailOpen(true);
+    }));
   }
-  const closeRail = () => setRailOpen(false);
+  const closeRail = () => {
+    railWanted.current = false;
+    setRailOpen(false);
+  };
 
   const [aiOpen, setAiOpen] = useState(false);
   const [controls, setControls] = useState({

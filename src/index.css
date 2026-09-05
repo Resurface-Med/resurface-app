@@ -3702,6 +3702,11 @@ select {
   grid-column: 1;
   min-width: 0;
   overflow: hidden;
+  /* The stage is animating a grid track, which is layout — so every frame
+     re-runs layout for whatever sits inside it. Containment stops the rail's
+     own rows being re-measured against the rest of the page each time, which
+     is the difference between a cheap frame and a long one. */
+  contain: layout;
 }
 .quiz-rail__inner {
   display: flex;
@@ -3752,6 +3757,9 @@ select {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Reserved up front. Otherwise the scrollbar appears the moment the list is
+     tall enough to need one, mid-animation, and everything beside it shifts. */
+  scrollbar-gutter: stable;
   overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
@@ -3759,6 +3767,11 @@ select {
   padding-right: 4px;
 }
 .quiz-rail__row {
+  /* Held back so the cascade starts after the column is already moving.
+     Beginning both at once put the setup cost of twenty animations on the
+     transition's first frame, and it reads better as a panel that opens and
+     then fills rather than one that does both at once. */
+  animation-delay: calc(110ms + var(--i, 0) * var(--step, 26ms));
   display: flex;
   align-items: center;
   gap: 10px;
