@@ -94,7 +94,7 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     themeStore.set(theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = theme === 'dark' ? '#05070f' : '#3562f5';
+    if (meta) meta.content = theme === 'dark' ? '#111214' : '#3562f5';
   }, [theme]);
 
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
