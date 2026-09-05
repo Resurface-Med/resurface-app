@@ -341,7 +341,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
  * something is missing, at the point where you would fix it.
  */
 const STEPS = [
-  { k: "source", label: "Lecture/notes", heading: "Lecture or notes" },
+  { k: "source", label: "Lecture/notes", heading: "Drop in your lectures or notes" },
   { k: "place", label: "Topic", heading: "Where does it belong?" },
   { k: "detail", label: "Questions", heading: "How many, and how hard?" },
 ];
