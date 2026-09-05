@@ -1,5 +1,6 @@
-import { useRef, useLayoutEffect, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
+import Wave from "../ui/Wave";
 
 function initials(displayName, email) {
   const n = String(displayName || "").trim();
@@ -13,20 +14,6 @@ function initials(displayName, email) {
 }
 
 export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut }) {
-  const navRef  = useRef(null);
-  const itemRefs = useRef([]);
-  const [pill, setPill] = useState({ top: 12, height: 40, visible: true });
-
-  useLayoutEffect(() => {
-    const idx = NAV.findIndex(i => i && i.k === view);
-    const el  = itemRefs.current[idx];
-    if (idx < 0 || !el || !navRef.current) {
-      setPill(p => ({ ...p, visible: false }));
-      return;
-    }
-    setPill({ top: el.offsetTop, height: el.offsetHeight, visible: true });
-  }, [view]);
-
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
 
@@ -78,112 +65,86 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         aria-hidden="true"
       />
 
-    <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
-      <div className="app-nav__brand">
-        <img
-          src="/logo-lockup.png"
-          alt="Resurface"
-          width="720"
-          height="190"
-          className="nav-logo nav-logo-day"
-          style={{
-            width: "100%",
-            maxWidth: 172,
-            height: "auto",
-            display: "block",
-          }}
-        />
-        <img
-          src="/logo-lockup-white.png"
-          alt=""
-          aria-hidden="true"
-          width="720"
-          height="190"
-          className="nav-logo nav-logo-night"
-          style={{
-            width: "100%",
-            maxWidth: 172,
-            height: "auto",
-            display: "none",
-          }}
-        />
-      </div>
-
-      <nav ref={navRef} className="app-nav__list">
-        <div style={{
-          position: "absolute",
-          left: 8, right: 8, top: 0,
-          height: pill.height,
-          transform: `translateY(${pill.top}px)`,
-          borderRadius: "var(--r-pill)",
-          background: "var(--c-accent)",
-          boxShadow: "0 8px 20px rgba(20, 44, 130, 0.28)",
-          transition: "transform 0.24s cubic-bezier(0.22,1,0.36,1), opacity 0.18s",
-          willChange: "transform",
-          // class hook so the bottom bar can drop it entirely
-          pointerEvents: "none", zIndex: 0,
-          opacity: pill.visible ? 1 : 0,
-        }} className="app-nav__pill" />
-
-        {NAV.map((item, idx) => {
-          if (!item) return (
-            <div key={`div-${idx}`} style={{
-              height: 1, background: "var(--c-nav-border)",
-              margin: "8px 8px",
-            }} />
-          );
-
-          const active = view === item.k;
-          const badge = item.k === V.STUDY ? dueCount : 0;
-
-          return (
-            <button
-              key={item.k}
-              ref={el => { if (item) itemRefs.current[idx] = el; }}
-              onClick={() => go(item.k)}
-              className={`btn-press app-nav__item${active ? " is-active" : ""}`}
-              aria-current={active ? "page" : undefined}
-            >
-              <span className="app-nav__label" style={{ fontWeight: active ? 600 : 500 }}>{item.label}</span>
-
-              {badge > 0 && (
-                <span className="app-nav__badge">{badge}</span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="app-nav__foot">
-        <button
-          type="button"
-          onClick={() => go(V.PROFILE)}
-          className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
-          title="Profile"
-          aria-current={activeProfile ? "page" : undefined}
-        >
-          <span className="app-nav__avatar">
-            {initials(displayName, email)}
-          </span>
-          <span className="app-nav__profile-text" style={{ minWidth: 0, flex: 1 }}>
-            <span className="app-nav__profile-name">
-              {displayName?.trim() || "Profile"}
-            </span>
-            {email && (
-              <span className="app-nav__profile-email">
-                {email}
-              </span>
-            )}
-          </span>
-        </button>
-        <div className="app-nav__foot-meta">
-          <span className="app-nav__copy">© Resurface 2026</span>
-          <button type="button" onClick={onSignOut} className="btn-press app-nav__signout">
-            Sign out
+      <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
+        {/* Same blue field → wave → white sheet the rest of the app uses. */}
+        <div className="app-nav__field">
+          <img
+            src="/logo-lockup-white.png"
+            alt="Resurface"
+            width="720"
+            height="190"
+            className="nav-logo app-nav__logo"
+          />
+          <button
+            type="button"
+            className="app-nav__close btn-press"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+            </svg>
           </button>
         </div>
-      </div>
-    </aside>
+
+        <div className="app-nav__wave">
+          <Wave from="transparent" to="var(--c-card-solid)" height="clamp(28px, 4vw, 40px)" />
+        </div>
+
+        <div className="app-nav__sheet">
+          <nav className="app-nav__list">
+            {NAV.map((item, idx) => {
+              if (!item) {
+                return <div key={`div-${idx}`} className="app-nav__rule" />;
+              }
+
+              const active = view === item.k;
+              const badge = item.k === V.STUDY ? dueCount : 0;
+
+              return (
+                <button
+                  key={item.k}
+                  type="button"
+                  onClick={() => go(item.k)}
+                  className={`btn-press app-nav__item${active ? " is-active" : ""}`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <span className="app-nav__label">{item.label}</span>
+                  {badge > 0 && <span className="app-nav__badge">{badge}</span>}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="app-nav__foot">
+            <button
+              type="button"
+              onClick={() => go(V.PROFILE)}
+              className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
+              title="Profile"
+              aria-current={activeProfile ? "page" : undefined}
+            >
+              <span className="app-nav__avatar">
+                {initials(displayName, email)}
+              </span>
+              <span className="app-nav__profile-text">
+                <span className="app-nav__profile-name">
+                  {displayName?.trim() || "Profile"}
+                </span>
+                {email && (
+                  <span className="app-nav__profile-email">{email}</span>
+                )}
+              </span>
+            </button>
+            <div className="app-nav__foot-meta">
+              <span className="app-nav__copy">© Resurface 2026</span>
+              <button type="button" onClick={onSignOut} className="btn-press app-nav__signout">
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
     </>
   );
 }

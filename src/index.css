@@ -3491,19 +3491,16 @@ select {
 }
 
 /* ─── Navigation ────────────────────────────────────────────────── */
-/* These live here rather than inline because inline styles win against every
-   media query — the phone rules below cannot override a width the element is
-   carrying in its style attribute. */
+/* Same language as Dashboard / SessionSummary: blue field, wave, white sheet.
+   Desktop is a sticky panel; phone is an off-canvas drawer of the same parts. */
 
 .app-nav {
   width: 248px;
   margin: 14px 0 14px 14px;
-  background: var(--c-nav-bg);
-  border: 1px solid var(--c-nav-border);
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
   border-radius: var(--r-panel);
-  box-shadow: var(--c-nav-shadow);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--c-card-shadow-lift);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -3511,6 +3508,51 @@ select {
   top: 14px;
   height: calc(var(--app-vh) - 28px);
   overflow: hidden;
+}
+
+.app-nav__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 16px 10px;
+  background: var(--c-bg);
+  flex-shrink: 0;
+}
+
+.app-nav__logo {
+  width: 100%;
+  max-width: 156px;
+  height: auto;
+  display: block;
+}
+
+.app-nav__close {
+  display: none;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--c-on-field);
+  cursor: pointer;
+}
+
+.app-nav__wave {
+  flex-shrink: 0;
+  background: var(--c-bg);
+  line-height: 0;
+}
+
+.app-nav__sheet {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--c-card-solid);
 }
 
 .app-shell {
@@ -3534,6 +3576,54 @@ select {
   overflow-y: auto;
 }
 
+.app-nav__list {
+  padding: 8px 12px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.app-nav__rule {
+  height: 1px;
+  background: var(--c-border);
+  margin: 6px 8px;
+}
+
+.app-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid transparent;
+  background: transparent;
+  color: var(--c-sub);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  letter-spacing: -0.15px;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.app-nav__item:hover {
+  background: var(--c-surface2);
+  color: var(--c-text);
+}
+.app-nav__item.is-active {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(20, 44, 130, 0.22);
+}
+.app-nav__label {
+  min-width: 0;
+}
+
 .app-nav__badge {
   margin-left: auto;
   background: var(--c-accent);
@@ -3544,7 +3634,73 @@ select {
   padding: 2px 8px;
   line-height: 1.5;
 }
-.app-nav__item.is-active .app-nav__badge { background: rgba(255, 255, 255, 0.25); }
+.app-nav__item.is-active .app-nav__badge {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.app-nav__foot {
+  padding: 12px 12px 14px;
+  border-top: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+
+.app-nav__profile {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-card);
+  border: 1px solid transparent;
+  background: var(--c-surface2);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--c-sub);
+}
+.app-nav__profile.is-active {
+  border-color: var(--c-accent-brd);
+  background: var(--c-accent-dim);
+}
+.app-nav__profile-text {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-nav__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.app-nav__profile-name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-text);
+}
+
+.app-nav__profile-email {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--c-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .app-nav__foot-meta {
   display: flex;
@@ -3554,104 +3710,8 @@ select {
   padding: 0 4px;
 }
 
-.app-nav__brand {
-  padding: 18px 16px 16px;
-  border-bottom: 1px solid var(--c-nav-border);
-}
-
-.app-nav__list {
-  padding: 12px 10px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  position: relative;
-  overflow-y: auto;
-}
-
-.app-nav__item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border-radius: var(--r-pill);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--c-nav-sub);
-  font-size: 14.5px;
-  font-family: inherit;
-  letter-spacing: -0.15px;
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-  position: relative;
-  z-index: 1;
-  transition: color 0.2s;
-}
-.app-nav__item.is-active { color: #fff; }
-
-.app-nav__foot {
-  padding: 12px 12px 14px;
-  border-top: 1px solid var(--c-nav-border);
-}
-
-.app-nav__profile {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: var(--r-pill);
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  font-family: inherit;
-  text-align: left;
-  color: var(--c-nav-sub);
-  position: relative;
-}
-.app-nav__profile.is-active {
-  border-color: var(--c-accent-brd);
-  background: var(--c-accent-dim);
-}
-
-.app-nav__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  background: var(--c-accent);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-}
-
-.app-nav__profile-name {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--c-nav-text);
-}
-
-.app-nav__profile-email {
-  display: block;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--c-nav-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .app-nav__copy {
-  color: var(--c-nav-muted-dim);
+  color: var(--c-muted);
   font-size: 11.5px;
   font-weight: 500;
 }
@@ -3662,25 +3722,12 @@ select {
   padding: 0;
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--c-nav-sub);
+  color: var(--c-sub);
 }
 
-/* One component, two shapes. On a desktop it is a sidebar; on a phone it is a
-   bottom tab bar, because a phone is held one-handed and the bottom of the
-   screen is the only region the thumb reaches without regripping. Putting
-   primary navigation at the top of a phone screen is the single most common
-   way a desktop layout fails on mobile.
-   CSS decides which, not JavaScript — no breakpoint state to get out of sync,
-   and no window measuring on every resize. */
-
-/* On a phone the sidebar becomes a drawer.
-   A bottom bar wanted one slot per destination, and there are six; at ~65px
-   each the labels collided. A drawer is indifferent to how many there are,
-   which also means adding a year or a section later costs nothing here.
-   It is off-canvas rather than display:none so the panel keeps its identity —
-   same logo, same order, same profile row — and slides rather than appears. */
+/* Phone: same parts, off-canvas. */
 @media (max-width: 900px) {
   .app-nav {
     position: fixed;
@@ -3688,50 +3735,48 @@ select {
     left: 0;
     bottom: 0;
     height: 100dvh;
-    width: min(84vw, 320px);
+    width: min(82vw, 300px);
     margin: 0;
     border: none;
-    border-right: 1px solid var(--c-nav-border);
+    border-right: 1px solid var(--c-border);
     border-radius: 0 var(--r-panel) var(--r-panel) 0;
     z-index: 600;
     transform: translateX(-100%);
     transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
     padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: var(--c-surface);
+    box-shadow: 0 24px 60px rgba(15, 27, 61, 0.28);
   }
 
   .app-nav.is-open {
     transform: translateX(0);
   }
 
-  .app-nav__brand {
-    padding: 20px 18px 16px;
+  .app-nav__field {
+    padding: 18px 16px 8px;
   }
-  .app-nav__brand .nav-logo {
-    max-width: 184px !important;
+
+  .app-nav__logo {
+    max-width: 168px;
+  }
+
+  .app-nav__close {
+    display: inline-flex;
   }
 
   .app-nav__list {
-    padding: 14px 12px;
-    gap: 4px;
+    padding: 6px 14px 14px;
+    gap: 5px;
   }
 
   .app-nav__item {
-    min-height: 48px;
+    min-height: 46px;
     padding: 12px 16px;
-    gap: 11px;
-    font-size: 16px;
-    letter-spacing: -0.2px;
+    font-size: 15.5px;
   }
 
   .app-nav__badge {
     font-size: 12px;
     padding: 3px 9px;
-    min-width: 26px;
-    text-align: center;
   }
 
   .app-nav__foot {
@@ -3739,43 +3784,39 @@ select {
   }
 
   .app-nav__profile {
-    min-height: 52px;
+    min-height: 50px;
     gap: 11px;
-    padding: 10px 11px;
+    padding: 10px 12px;
   }
 
   .app-nav__avatar {
-    width: 38px;
-    height: 38px;
-    font-size: 14px;
+    width: 36px;
+    height: 36px;
+    font-size: 13.5px;
   }
 
   .app-nav__profile-name {
-    font-size: 15px;
-    letter-spacing: -0.18px;
+    font-size: 14.5px;
   }
 
   .app-nav__profile-email {
-    font-size: 12.5px;
-    margin-top: 2px;
+    font-size: 12px;
+    margin-top: 1px;
   }
 
   .app-nav__foot-meta {
     margin-top: 12px;
-    padding: 0 6px;
   }
 
   .app-nav__copy {
-    font-size: 12.5px;
+    font-size: 12px;
   }
 
   .app-nav__signout {
-    font-size: 13.5px;
-    padding: 6px 4px;
+    font-size: 13px;
+    padding: 6px 2px;
   }
 
-  /* Nothing behind the drawer should be reachable while it is open. Bleed
-     into the safe areas so opening the menu does not flash white gutters. */
   .app-nav__scrim {
     position: fixed;
     left: 0;
@@ -3830,9 +3871,6 @@ select {
     cursor: pointer;
   }
 
-  /* Classed, not `span`. A descendant `span` rule also matched the count
-     badge — and at 0,1,1 it outranked .app-nav__burger-dot's 0,1,0 — so the
-     badge was being squashed into a 17x2px bar hanging off the corner. */
   .app-nav__burger-line {
     display: block;
     width: 17px;
@@ -3842,8 +3880,6 @@ select {
   }
   .app-nav__burger-line + .app-nav__burger-line { margin-top: 4px; }
 
-  /* A badge on a hidden drawer is invisible, so the count rides the button
-     that opens it — otherwise nothing on screen says anything is due. */
   .app-nav__burger-dot {
     position: absolute;
     top: -3px;
