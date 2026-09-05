@@ -484,6 +484,13 @@ body::after {
   outline: 2px solid var(--c-accent, #3562f5);
   outline-offset: 2px;
 }
+@media (max-width: 900px) {
+  /* Unanswered only — answered already shrinks via :has(.q-review). On a phone
+     the default clamp still ate too much of the first screen before options. */
+  .q-card.has-img:not(:has(.q-review)) .q-image {
+    height: clamp(160px, calc(var(--app-vh) * 0.28), 260px);
+  }
+}
 
 .q-lightbox {
   position: fixed;
