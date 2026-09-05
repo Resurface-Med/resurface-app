@@ -423,24 +423,113 @@ body::after {
 
 /* The frame is reserved before the picture arrives, so the options do not
    jump down the screen when a signed URL comes back. */
+/* A frame of fixed height, not an image at its natural size.
+   width:100%/height:auto let a 4:3 photo run to ~470px on a 630px card and
+   pushed the five options off the bottom of the screen. Fixing the height caps
+   that and reserves the space before the image arrives, so nothing shifts down
+   under the cursor when it loads — and every image question keeps the same
+   geometry, so the option rows stay put as you move through a session.
+   --app-vh, not vh: #root carries a zoom and viewport units ignore it. */
 .q-image {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: clamp(200px, calc(var(--app-vh) * 0.36), 380px);
   margin: 0 0 18px;
+  padding: 0;
+  border: none;
   border-radius: var(--r-card);
   overflow: hidden;
   background: var(--c-surface2);
-  min-height: 120px;
-  transition: min-height 0.2s ease;
+  font: inherit;
+  color: inherit;
 }
-.q-image.is-loaded {
-  min-height: 0;
-  background: none;
-}
+/* Only once there is something to open. The frame is drawn before the signed
+   URL resolves, and a zoom cursor over an empty box promises nothing. */
+.q-image.is-loaded { cursor: zoom-in; }
 .q-image img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  /* contain, not cover. A slide cropped to fill the frame can lose the very
+     structure the question turns on. */
+  object-fit: contain;
   border-radius: var(--r-card);
 }
+/* The frame is smaller than the image deserves, so it has to say that the full
+   thing is one tap away. Quiet until the pointer is on it. */
+.q-image__zoom {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(12, 24, 60, 0.55);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+  pointer-events: none;
+}
+.q-image:hover .q-image__zoom,
+.q-image:focus-visible .q-image__zoom { opacity: 1; }
+/* Touch has no hover, and the affordance is the whole point of the frame. */
+@media (hover: none) {
+  .q-image__zoom { opacity: 1; }
+}
+.q-image:focus-visible {
+  outline: 2px solid var(--c-accent, #3562f5);
+  outline-offset: 2px;
+}
+
+.q-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(9, 18, 46, 0.88);
+  backdrop-filter: blur(3px);
+  cursor: zoom-out;
+  animation: q-lightbox-in 0.18s ease;
+}
+@keyframes q-lightbox-in { from { opacity: 0; } to { opacity: 1; } }
+.q-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+.q-lightbox__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.q-lightbox__close:hover { background: rgba(255, 255, 255, 0.24); }
+@media (prefers-reduced-motion: reduce) {
+  .q-lightbox { animation: none; }
+}
+
+/* Stacked everywhere by default: the wrapper is inert, and the card lays out
+   exactly as it does without an image. */
+.q-body { display: contents; }
 
 /* Editor */
 .qedit-img {
@@ -4775,5 +4864,40 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .ai-dock, .ai-dock__dots span {
     animation: none !important;
+  }
+}
+
+/* ─── Image questions, side by side ──────────────────────────────── */
+/* Stacked, an image and five options come to more than a laptop viewport is
+   tall, so one of the two is always off screen. Given the width they sit next
+   to each other instead: the image keeps a size worth reading and the options
+   stay put. Below this width, or with the AI dock open, the room is not there
+   and it goes back to stacked — which is why the frame in the stacked case is
+   capped as well, rather than this being the only fix.
+
+   1240px of viewport, not 1040 of layout: #root carries a 1.12 zoom, so the
+   card's 1040 occupies about 1165 real pixels before any padding. */
+@media (min-width: 1240px) {
+  .quiz-shell__body:not(.has-ai) .quiz-shell__main:has(.q-card.has-img),
+  .quiz-shell__body:not(.has-ai) .q-card--focus.has-img {
+    max-width: min(1040px, 100%);
+  }
+  /* A stem set across the full 1040 runs to well over a hundred characters a
+     line. The card got wider to hold a picture, not to change how the question
+     reads. */
+  .quiz-shell__body:not(.has-ai) .q-card--focus.has-img .q-stem--focus {
+    max-width: 62ch;
+  }
+  .quiz-shell__body:not(.has-ai) .q-card.has-img .q-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(20px, 2.2vw, 30px);
+    align-items: start;
+  }
+  /* Taller than the stacked frame: the height this layout saves is exactly the
+     height there now is to give it. */
+  .quiz-shell__body:not(.has-ai) .q-card.has-img .q-body .q-image {
+    height: clamp(280px, calc(var(--app-vh) * 0.46), 470px);
+    margin-bottom: 0;
   }
 }

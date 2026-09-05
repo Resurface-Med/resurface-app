@@ -161,7 +161,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div
       style={focusMode ? undefined : qcard}
-      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}`}
+      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}`}
     >
       {!focusMode && (
       <div className="q-card-meta">
@@ -211,6 +211,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         {q.q}
       </p>
 
+      {/* The image and the options are wrapped together so that a wide enough
+          card can set them side by side — the image stays large and the options
+          stay on screen, which stacked they cannot both do. The wrapper is
+          display:contents everywhere else, so a question without an image lays
+          out exactly as it did before it existed. */}
+      <div className="q-body">
       {/* Between the stem and the options, because it is part of the question
           being asked rather than decoration above it. */}
       <QuestionImage key={q.img || "none"} path={q.img} />
@@ -289,6 +295,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             </button>
           );
         })}
+      </div>
       </div>
 
       {timedOut && sel === null && (
