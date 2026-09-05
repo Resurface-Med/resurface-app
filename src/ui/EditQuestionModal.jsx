@@ -3,6 +3,7 @@ import { C, primaryBtn } from "./theme";
 import { remote } from "../lib/remote";
 import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
 import { useAuth } from "../lib/auth";
+import { applyQuestionEdit } from "../data";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
@@ -74,7 +75,13 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
       optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
       img: img ?? null,
     };
-    if (!isNew && user) remote.questionEdit(user.id, q.id, updated);
+    /* Both halves of recording a correction: the pool the app reads from, and
+       the table it is reloaded from. It used to be only the table, so every
+       correction was discarded on the next load. */
+    if (!isNew) {
+      applyQuestionEdit(q.id, updated);
+      if (user) remote.questionEdit(user.id, q.id, updated);
+    }
     onSave({ ...q, ...updated });
   }
 

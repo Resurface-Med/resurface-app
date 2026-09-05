@@ -64,12 +64,48 @@ function blockRank(name) {
 const deckQs = [];
 let userQs = [];
 
+/* Your corrections, keyed on question id. A correction is a whole replacement
+   of the answerable part of a question — stem, options, answer, explanations,
+   image — not a diff, so it is spread over the original wholesale. Options and
+   answer index have to travel together or the answer would point at the wrong
+   option, which is exactly why the edit form saves them as one payload.
+
+   Applied over a pristine deckQs rather than into it, so editing the same
+   question twice starts from the original both times. */
+let edits = {};
+
+function withEdits(q) {
+  const e = edits[q.id];
+  return e ? { ...q, ...e } : q;
+}
+
 function syncQuestions() {
   QUESTIONS.length = 0;
-  QUESTIONS.push(...deckQs, ...userQs);
+  for (const q of deckQs) QUESTIONS.push(withEdits(q));
+  for (const q of userQs) QUESTIONS.push(withEdits(q));
   CURRICULUM.length = 0;
   BLOCKS.length = 0;
   buildCurriculum();
+}
+
+/** The whole set, as loaded on sign-in. */
+export function setQuestionEdits(map) {
+  edits = map ?? {};
+  syncQuestions();
+}
+
+/**
+ * One correction, as it is made.
+ *
+ * Deliberately not routed through React state: the screen showing the question
+ * patches its own copy so the change is visible immediately, and every other
+ * screen is remounted by the view switch before it can read a stale pool. The
+ * point of this call is that the correction is still there after that switch,
+ * which is what it was not doing before.
+ */
+export function applyQuestionEdit(id, payload) {
+  edits = { ...edits, [id]: payload };
+  syncQuestions();
 }
 
 /**

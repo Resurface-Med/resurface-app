@@ -23,7 +23,7 @@ class ErrorBoundary extends Component {
   }
 }
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
-import { QUESTIONS, loadDecks, setUserQuestions } from "./data";
+import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
@@ -121,6 +121,8 @@ export default function App() {
       setDisplayName(d.displayName || "");
       setShowOnLeaderboard(d.showOnLeaderboard !== false);
       setMarketingOptIn(d.marketingOptIn);
+      // Before the questions, so the pool is only rebuilt with both in hand.
+      setQuestionEdits(d.questionEdits);
       applyGenerated(d.generated);
       setDataLoading(false);
     })();
