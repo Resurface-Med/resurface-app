@@ -170,31 +170,21 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             {initials(displayName, email)}
           </span>
           <span className="app-nav__profile-text" style={{ minWidth: 0, flex: 1 }}>
-            <span style={{
-              display: "block",
-              fontSize: 13, fontWeight: 600, letterSpacing: -0.15,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              color: "var(--c-nav-text)",
-            }}>
+            <span className="app-nav__profile-name">
               {displayName?.trim() || "Profile"}
             </span>
             {email && (
-              <span style={{
-                display: "block",
-                fontSize: 11, fontWeight: 500, color: NAV_MUTED,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
+              <span className="app-nav__profile-email">
                 {email}
               </span>
             )}
           </span>
         </button>
         <div className="app-nav__foot-meta">
-          <span style={{ color: NAV_MUTDIM, fontSize: 11.5, fontWeight: 500 }}>© Resurface 2026</span>
-          <button onClick={onSignOut} className="btn-press" style={{
-            background: "none", border: "none", padding: 0, cursor: "pointer",
-            fontFamily: "inherit", fontSize: 12, fontWeight: 600, color: NAV_SUB,
-          }}>Sign out</button>
+          <span className="app-nav__copy">© Resurface 2026</span>
+          <button type="button" onClick={onSignOut} className="btn-press app-nav__signout">
+            Sign out
+          </button>
         </div>
       </div>
     </aside>

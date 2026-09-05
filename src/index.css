@@ -3629,6 +3629,44 @@ select {
   letter-spacing: -0.2px;
 }
 
+.app-nav__profile-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--c-nav-text);
+}
+
+.app-nav__profile-email {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--c-nav-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-nav__copy {
+  color: var(--c-nav-muted-dim);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.app-nav__signout {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-nav-sub);
+}
+
 /* One component, two shapes. On a desktop it is a sidebar; on a phone it is a
    bottom tab bar, because a phone is held one-handed and the bottom of the
    screen is the only region the thumb reaches without regripping. Putting
@@ -3650,7 +3688,9 @@ select {
     left: 0;
     bottom: 0;
     height: 100dvh;
-    width: min(82vw, 300px);
+    /* Wider than the desktop sidebar — a phone drawer needs room for thumb-
+       sized rows, not a slim rail of labels. */
+    width: min(88vw, 340px);
     margin: 0;
     border: none;
     border-right: 1px solid var(--c-nav-border);
@@ -3660,7 +3700,6 @@ select {
     transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    /* Cheap on a phone GPU, and the panel is opaque anyway once open. */
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background: var(--c-surface);
@@ -3668,6 +3707,73 @@ select {
 
   .app-nav.is-open {
     transform: translateX(0);
+  }
+
+  .app-nav__brand {
+    padding: 22px 20px 18px;
+  }
+  .app-nav__brand .nav-logo {
+    max-width: 196px !important;
+  }
+
+  .app-nav__list {
+    padding: 16px 14px;
+    gap: 6px;
+  }
+
+  .app-nav__item {
+    min-height: 52px;
+    padding: 14px 18px;
+    gap: 12px;
+    font-size: 17.5px;
+    letter-spacing: -0.25px;
+  }
+
+  .app-nav__badge {
+    font-size: 13px;
+    padding: 4px 10px;
+    min-width: 28px;
+    text-align: center;
+  }
+
+  .app-nav__foot {
+    padding: 16px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-nav__profile {
+    min-height: 56px;
+    gap: 12px;
+    padding: 12px 12px;
+  }
+
+  .app-nav__avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 15px;
+  }
+
+  .app-nav__profile-name {
+    font-size: 16px;
+    letter-spacing: -0.2px;
+  }
+
+  .app-nav__profile-email {
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .app-nav__foot-meta {
+    margin-top: 14px;
+    padding: 0 6px;
+  }
+
+  .app-nav__copy {
+    font-size: 13px;
+  }
+
+  .app-nav__signout {
+    font-size: 14.5px;
+    padding: 8px 4px;
   }
 
   /* Nothing behind the drawer should be reachable while it is open. Bleed
