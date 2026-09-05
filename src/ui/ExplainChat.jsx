@@ -288,7 +288,7 @@ export default function ExplainChat({ q, picked, onClose }) {
       <footer className="ai-dock__foot">
         {atLimit && (
           <p className="ai-dock__quota" role="status">
-            No more AI responses on this question — try another.
+            No more AI responses on this question
           </p>
         )}
         {!atLimit && remaining === 1 && (
