@@ -96,7 +96,7 @@ export const qcard = {
   borderRadius: 24,
   padding: "clamp(18px, 2.2vw, 24px)",
   border: "none",
-  boxShadow: "0 4px 16px rgba(20, 44, 130, 0.04), 0 24px 56px rgba(20, 44, 130, 0.1)",
+  boxShadow: "var(--c-card-shadow-lift)",
 };
 
 /** The landing's .qstem. */
@@ -286,7 +286,7 @@ export const btnGhost = {
 export const btnGhostField = {
   ...btnGhost,
   color: "#fff",
-  border: "1.5px solid rgba(255,255,255,0.5)",
+  border: "1.5px solid var(--c-field-ghost-border)",
 };
 
 // Existing call sites keep working: the old names are these three now, so the

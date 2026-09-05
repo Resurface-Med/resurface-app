@@ -99,7 +99,7 @@ html, body {
   --c-card-solid: #ffffff;
   /* Matches the landing exactly. Cards rest on the page; they don't hover. */
   --c-card-shadow: 0 10px 28px rgba(20, 44, 130, 0.06);
-  --c-card-shadow-lift: 0 16px 40px rgba(20, 44, 130, 0.1);
+  --c-card-shadow-lift: 0 4px 16px rgba(20, 44, 130, 0.04), 0 24px 56px rgba(20, 44, 130, 0.1);
   --c-cta-shadow: 0 12px 30px rgba(20, 44, 130, 0.22);
   /* The landing's rule is white objects floating on the blue field, and its
      nav is rgba(255,255,255,0.82). The sidebar was 0.12 — a blue pane, not a
@@ -132,69 +132,102 @@ html, body {
   /* Primary actions that sit on the blue field (not on a panel) */
   --c-field-object: #ffffff;
   --c-field-object-ink: #3562f5;
+  --c-field-ghost-border: rgba(255, 255, 255, 0.5);
 }
 
-/* ─── Dark (night study): elevated dark panels, no white sheets ─── */
-/* Field goes near-black navy. Sheets, nav, and inputs lift as cooler
-   dark islands with light ink. Field chrome uses peri objects. */
+/* ─── Dark: true night surfaces with clear elevation steps ─────────── */
+/* Floor is near-black. Sheets lift. Controls lift again. Muted ink stays
+   readable (previous greys sat too close to the floor and washed out). */
 [data-theme="dark"] {
   color-scheme: dark;
-  --c-bg: #060a16;
-  --c-surface: #12182c;
-  --c-surface2: #171e34;
-  --c-surface3: #1d2540;
-  --c-border: rgba(170, 186, 230, 0.12);
-  --c-border-blu: rgba(123, 150, 248, 0.38);
-  --c-text: #eef2ff;
-  --c-sub: #a8b4d4;
-  --c-muted: #7d8bb0;
-  --c-muted-dim: #5c6a8f;
-  --c-accent: #7b96f8;
-  --c-accent-lt: #a1c0ff;
-  --c-accent-dim: rgba(123, 150, 248, 0.16);
-  --c-accent-brd: rgba(161, 192, 255, 0.36);
-  --c-accent-glow: rgba(123, 150, 248, 0.22);
-  --c-success: #3ecf8e;
-  --c-success-dim: rgba(62, 207, 142, 0.14);
-  --c-success-brd: rgba(62, 207, 142, 0.34);
-  --c-danger: #f56565;
-  --c-danger-dim: rgba(245, 101, 101, 0.14);
-  --c-danger-brd: rgba(245, 101, 101, 0.34);
-  --c-warning: #f0c14d;
-  --c-warning-dim: rgba(240, 193, 77, 0.14);
-  --c-warning-brd: rgba(240, 193, 77, 0.34);
-  --c-orange: #f97b3d;
-  --c-orange-dim: rgba(249, 123, 61, 0.14);
-  --c-orange-brd: rgba(249, 123, 61, 0.34);
-  --c-card-bg: #0e1426;
-  --c-card-solid: #141b30;
-  --c-card-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
-  --c-card-shadow-lift: 0 18px 48px rgba(0, 0, 0, 0.55);
-  --c-cta-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
-  --c-nav-bg: rgba(14, 20, 38, 0.92);
-  --c-nav-border: rgba(170, 186, 230, 0.12);
-  --c-nav-text: #eef2ff;
-  --c-nav-sub: rgba(238, 242, 255, 0.78);
-  --c-nav-muted: rgba(238, 242, 255, 0.5);
-  --c-nav-muted-dim: rgba(238, 242, 255, 0.32);
-  --c-nav-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 40px rgba(0, 0, 0, 0.45);
-  --c-on-field: #eef2ff;
-  --c-on-field-soft: rgba(238, 242, 255, 0.9);
-  --c-on-field-faint: rgba(238, 242, 255, 0.72);
-  --c-overlay: rgba(255, 255, 255, 0.03);
-  --c-overlay2: rgba(255, 255, 255, 0.05);
-  --c-overlay3: rgba(255, 255, 255, 0.08);
-  --c-body-bg: #060a16;
+  --c-bg: #05070f;
+  --c-surface: #1a2238;
+  --c-surface2: #242e48;
+  --c-surface3: #323e5c;
+  --c-border: rgba(200, 214, 255, 0.18);
+  --c-border-blu: rgba(145, 170, 255, 0.48);
+  --c-text: #f5f7ff;
+  --c-sub: #c9d2ea;
+  --c-muted: #a9b6d2;
+  --c-muted-dim: #8794b2;
+  --c-accent: #8fa6ff;
+  --c-accent-lt: #b8c9ff;
+  --c-accent-dim: rgba(143, 166, 255, 0.2);
+  --c-accent-brd: rgba(184, 201, 255, 0.45);
+  --c-accent-glow: rgba(143, 166, 255, 0.28);
+  --c-success: #45d69a;
+  --c-success-dim: rgba(69, 214, 154, 0.16);
+  --c-success-brd: rgba(69, 214, 154, 0.4);
+  --c-danger: #ff6b6b;
+  --c-danger-dim: rgba(255, 107, 107, 0.16);
+  --c-danger-brd: rgba(255, 107, 107, 0.4);
+  --c-warning: #f5c84c;
+  --c-warning-dim: rgba(245, 200, 76, 0.16);
+  --c-warning-brd: rgba(245, 200, 76, 0.4);
+  --c-orange: #ff8447;
+  --c-orange-dim: rgba(255, 132, 71, 0.16);
+  --c-orange-brd: rgba(255, 132, 71, 0.4);
+  --c-card-bg: #1c2540;
+  --c-card-solid: #141b2e;
+  --c-card-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  --c-card-shadow-lift: 0 20px 52px rgba(0, 0, 0, 0.65);
+  --c-cta-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  --c-nav-bg: rgba(8, 11, 20, 0.94);
+  --c-nav-border: rgba(200, 214, 255, 0.14);
+  --c-nav-text: #f5f7ff;
+  --c-nav-sub: rgba(245, 247, 255, 0.82);
+  --c-nav-muted: rgba(245, 247, 255, 0.58);
+  --c-nav-muted-dim: rgba(245, 247, 255, 0.38);
+  --c-nav-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.5);
+  --c-on-field: #f5f7ff;
+  --c-on-field-soft: rgba(245, 247, 255, 0.92);
+  --c-on-field-faint: rgba(245, 247, 255, 0.74);
+  --c-overlay: rgba(255, 255, 255, 0.04);
+  --c-overlay2: rgba(255, 255, 255, 0.07);
+  --c-overlay3: rgba(255, 255, 255, 0.11);
+  --c-body-bg: #05070f;
   --c-body-overlay-bg:
-    radial-gradient(ellipse 50% 44% at 12% 14%, rgba(53, 98, 245, 0.22) 0%, transparent 70%),
-    radial-gradient(ellipse 38% 36% at 88% 10%, rgba(123, 150, 248, 0.16) 0%, transparent 68%),
-    radial-gradient(ellipse 55% 42% at 70% 90%, rgba(161, 192, 255, 0.08) 0%, transparent 72%);
-  --c-scrollbar: rgba(167, 179, 212, 0.28);
-  --c-scrollbar-hover: rgba(167, 179, 212, 0.48);
-  --c-field-soft: rgba(238, 242, 255, 0.78);
-  --c-wash: #1d2540;
-  --c-field-object: #d7e2ff;
-  --c-field-object-ink: #152a6e;
+    radial-gradient(ellipse 52% 46% at 10% 12%, rgba(80, 120, 255, 0.28) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 38% at 90% 8%, rgba(143, 166, 255, 0.18) 0%, transparent 68%),
+    radial-gradient(ellipse 55% 42% at 72% 92%, rgba(100, 140, 255, 0.1) 0%, transparent 72%);
+  --c-scrollbar: rgba(180, 194, 230, 0.32);
+  --c-scrollbar-hover: rgba(180, 194, 230, 0.52);
+  --c-field-soft: rgba(245, 247, 255, 0.82);
+  --c-wash: #323e5c;
+  --c-field-object: #e0e8ff;
+  --c-field-object-ink: #14245c;
+  --c-field-ghost-border: rgba(245, 247, 255, 0.42);
+}
+
+/* Option rows share --c-card-solid with the question card in light mode
+   (white on white, saved by the border). In dark that collapses — lift them
+   one step so each choice is a clear chip. */
+[data-theme="dark"] .q-opt {
+  background: var(--c-surface2);
+  border-color: rgba(200, 214, 255, 0.22);
+}
+[data-theme="dark"] .q-opt.is-idle.option-btn:hover {
+  background: var(--c-surface3);
+  border-color: var(--c-accent-brd);
+}
+[data-theme="dark"] .q-opt-letter {
+  background: var(--c-surface3);
+  color: var(--c-sub);
+}
+[data-theme="dark"] .q-opt.is-faded .q-opt-letter {
+  background: var(--c-surface3);
+  color: var(--c-muted);
+}
+
+/* Quiz focus card already uses surface2 for options; give them an edge so
+   they don't melt into the card when the border was transparent. */
+[data-theme="dark"] .quiz-shell .q-opt,
+[data-theme="dark"] .quiz-shell .q-card--focus .q-opt {
+  border-color: rgba(200, 214, 255, 0.16);
+}
+[data-theme="dark"] .quiz-shell__footer-bar {
+  border-color: rgba(200, 214, 255, 0.2);
+  background: var(--c-surface);
 }
 
 html {
