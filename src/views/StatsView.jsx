@@ -177,11 +177,9 @@ export default function StatsView({
     return { accuracy, seen };
   }, [pStats]);
 
-  /* Blocks, each with the subjects taught inside it. One block is the whole
-     course today, so its name is not worth a heading that never changes — it
-     appears when a second block does. */
+  /* Blocks, each with the subjects taught inside it. Named even while there is
+     one, so the structure is visible before there is a second. */
   const blocks = CURRICULUM;
-  const showBlocks = blocks.length > 1;
 
   const { accuracy, seen } = overview;
 
@@ -217,7 +215,7 @@ export default function StatsView({
             </div>
             {blocks.map(b => (
               <div key={b.block} className="prog-block">
-                {showBlocks && <h3 className="prog-block-name">{b.block}</h3>}
+                <h3 className="prog-block-name">{b.block}</h3>
                 <div className="prog-subjects">
                   {b.decks.map(d => (
                     <SubjectBlock

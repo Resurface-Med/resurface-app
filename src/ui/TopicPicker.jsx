@@ -175,10 +175,11 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
       .filter(b => b.decks.length > 0);
   }, [full, q]);
 
-  /* One block is the whole course right now, so naming it above every subject
-     would be a heading that never varies. It appears the moment a second one
-     does. */
-  const showBlocks = tree.length > 1;
+  /* Shown even when there is only one. A heading naming the single thing on
+     screen adds no information, which is the usual reason to hide it — but
+     here it is teaching the shape of the course, so that the day Respiratory
+     appears underneath Principles it reads as the list continuing rather than
+     as the screen changing. */
 
   const isAll = selected === null;
 
@@ -250,12 +251,10 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
 
       {tree.map(b => (
         <div key={b.block} className="topic-block">
-          {showBlocks && (
-            <div className="topic-block-head">
-              <span className="topic-block-name">{b.block}</span>
-              <span className="topic-block-count">{b.avail}</span>
-            </div>
-          )}
+          <div className="topic-block-head">
+            <span className="topic-block-name">{b.block}</span>
+            <span className="topic-block-count">{b.avail}</span>
+          </div>
 
       {b.decks.map(d => {
         const empty = d.avail === 0;
