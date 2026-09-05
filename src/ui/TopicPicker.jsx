@@ -181,6 +181,41 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
      appears underneath Principles it reads as the list continuing rather than
      as the screen changing. */
 
+  /* Blocks open one at a time by default rather than all at once. Nine
+     subjects a block across four blocks is thirty-six rows before a single
+     topic is shown, which is the reason these are rows and not headings. */
+  const [openBlocks, setOpenBlocks] = useState(() => {
+    const first = (value.cat ?? []).find(c => c && c !== "All");
+    const owner = first && full.find(b => b.decks.some(d => d.cats.some(c => c.cat === first)));
+    return new Set([owner?.block ?? full[0]?.block].filter(Boolean));
+  });
+
+  function toggleBlock(name) {
+    setOpenBlocks(prev => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  }
+
+  /** A block is its topics, the same way a subject is. */
+  function toggleBlockPick(b) {
+    const cats = b.decks.flatMap(d => d.cats.filter(c => c.avail > 0).map(c => c.cat));
+    if (!cats.length) return;
+    const next = new Set(selected ?? []);
+    const allOn = cats.every(c => next.has(c));
+    cats.forEach(c => (allOn ? next.delete(c) : next.add(c)));
+    emit(next);
+  }
+
+  function blockState(b) {
+    if (!selected) return false;
+    const cats = b.decks.flatMap(d => d.cats.map(c => c.cat));
+    const on = cats.filter(c => selected.has(c)).length;
+    if (on === 0) return false;
+    return on === cats.length ? true : "mixed";
+  }
+
   const isAll = selected === null;
 
   /* Empty set means nothing is chosen, which is not a state worth having on a
@@ -249,14 +284,39 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         </p>
       )}
 
-      {tree.map(b => (
+      {tree.map(b => {
+        const bOpen = q ? true : openBlocks.has(b.block);
+        const bState = blockState(b);
+        const bEmpty = b.avail === 0;
+        return (
         <div key={b.block} className="topic-block">
-          <div className="topic-block-head">
-            <span className="topic-block-name">{b.block}</span>
-            <span className="topic-block-count">{b.avail}</span>
+          <div className={`topic-row topic-row-roomy is-block${bState === true ? " is-active" : ""}${bEmpty ? " is-empty" : ""}`}>
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={bState === "mixed" ? "mixed" : bState}
+              disabled={bEmpty}
+              onClick={() => toggleBlockPick(b)}
+              className="topic-hit"
+            >
+              <Check state={bState} />
+              <span className="topic-name is-block">{b.block}</span>
+              <span className="topic-meta">
+                <span className="topic-avail">{b.avail}</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleBlock(b.block)}
+              aria-expanded={bOpen}
+              aria-label={`${bOpen ? "Hide" : "Show"} ${b.block} subjects`}
+              className={`topic-expand${bOpen ? " is-open" : ""}`}
+            >
+              <Chevron open={bOpen} />
+            </button>
           </div>
 
-      {b.decks.map(d => {
+      {bOpen && b.decks.map(d => {
         const empty = d.avail === 0;
         const isOpen = q ? true : open.has(d.deck);
         const many = d.cats.length > 1;
@@ -314,7 +374,8 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         );
       })}
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

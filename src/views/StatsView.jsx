@@ -154,6 +154,18 @@ export default function StatsView({
   pStats, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
 }) {
   const [openDecks, setOpenDecks] = useState(() => new Set());
+  /* First block open, the rest shut. Every block teaches the same nine
+     subjects, so leaving them all open is thirty-six accordion rows on a page
+     whose job is to be scanned. */
+  const [openBlocks, setOpenBlocks] = useState(() => new Set([CURRICULUM[0]?.block].filter(Boolean)));
+
+  function toggleBlockOpen(name) {
+    setOpenBlocks(prev => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  }
 
   function practice(deck, cat) {
     setStudyScope?.("all");
@@ -213,24 +225,46 @@ export default function StatsView({
               <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
               <span className="prog-section-note">Bar is how much you’ve seen</span>
             </div>
-            {blocks.map(b => (
-              <div key={b.block} className="prog-block">
-                <h3 className="prog-block-name">{b.block}</h3>
-                <div className="prog-subjects">
-                  {b.decks.map(d => (
-                    <SubjectBlock
-                      key={`${b.block}/${d.deck}`}
-                      deck={d.deck}
-                      cats={d.cats}
-                      pStats={pStats}
-                      open={openDecks.has(d.deck)}
-                      onToggle={() => toggleDeck(d.deck)}
-                      onPractice={practice}
-                    />
-                  ))}
+            {blocks.map(b => {
+              const bOpen = openBlocks.has(b.block);
+              const seen = b.decks.reduce((n, d) => n + d.cats.length, 0);
+              return (
+                <div key={b.block} className="prog-block">
+                  <button
+                    type="button"
+                    className={`prog-block-head${bOpen ? " is-open" : ""}`}
+                    onClick={() => toggleBlockOpen(b.block)}
+                    aria-expanded={bOpen}
+                  >
+                    <span className="prog-block-name">{b.block}</span>
+                    <span className="prog-block-meta">
+                      {b.decks.length} subject{b.decks.length === 1 ? "" : "s"} · {seen} topics
+                    </span>
+                    <span className={`prog-chevron${bOpen ? " is-open" : ""}`} aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                        <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  </button>
+
+                  {bOpen && (
+                    <div className="prog-subjects">
+                      {b.decks.map(d => (
+                        <SubjectBlock
+                          key={`${b.block}/${d.deck}`}
+                          deck={d.deck}
+                          cats={d.cats}
+                          pStats={pStats}
+                          open={openDecks.has(d.deck)}
+                          onToggle={() => toggleDeck(d.deck)}
+                          onPractice={practice}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </section>
 
           <div className="prog-reset">

@@ -1719,42 +1719,55 @@ select {
   opacity: 0.4;
 }
 
-/* Block headings. Set as a quiet rule-and-label rather than another row, so
-   the grouping reads without competing with the subjects it groups — the rows
-   underneath are the things you press. */
-.topic-block + .topic-block { margin-top: 18px; }
-.topic-block-head {
+/* Blocks are rows, not headings. Every block teaches roughly the same nine
+   subjects, so four blocks laid out flat is thirty-six subject rows before a
+   topic is reached — headings group that but do not shorten it. */
+.topic-block + .topic-block { margin-top: 6px; }
+.topic-row.is-block {
+  background: var(--c-surface2);
+}
+.topic-row.is-block.is-active { background: var(--c-accent-dim); }
+.topic-name.is-block {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+/* Subjects sit in from their block, topics in again from their subject, so
+   depth is legible without a rule or a box at either level. */
+.topic-block .topic-group { padding-left: 12px; }
+.topic-block .topic-row.is-child { padding-left: 34px; }
+
+.prog-block + .prog-block { margin-top: 10px; }
+.prog-block-head {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
   gap: 12px;
-  padding: 0 6px 8px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--c-border);
+  width: 100%;
+  padding: 15px 6px;
+  background: none;
+  border: none;
+  border-radius: var(--r-ctrl);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
 }
-.topic-block-name {
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-}
-.topic-block-count {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-muted-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.prog-block + .prog-block { margin-top: clamp(22px, 3vh, 32px); }
+.prog-block-head:hover,
+.prog-block-head.is-open { background: var(--c-surface3); }
 .prog-block-name {
-  margin: 0 0 10px;
-  font-size: 11.5px;
+  margin: 0;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: -0.3px;
+  color: var(--c-text);
+}
+.prog-block-meta {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--c-muted);
 }
+.prog-block .prog-subjects { padding-left: 12px; }
 
 .topic-group { margin-bottom: 10px; }
 .topic-group .topic-row-roomy { margin-bottom: 0; }
