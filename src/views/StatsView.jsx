@@ -183,37 +183,36 @@ export default function StatsView({
             ? "Nothing attempted yet. Answer a few questions and this fills in."
             : "Coverage and accuracy across the bank."}
         </p>
+
+        <div className="prog-field-stats" aria-label="Overview" data-in="rise" style={{ "--i": 2 }}>
+          <div className="prog-field-stat">
+            <span className="prog-field-value">
+              {accuracy === null ? "—" : accuracy}
+              {accuracy !== null && <span className="prog-field-unit">%</span>}
+            </span>
+            <span className="prog-field-label">Accuracy</span>
+          </div>
+          <div className="prog-field-stat">
+            <span className="prog-field-value">
+              {seen}
+              <span className="prog-field-unit">/{QUESTIONS.length}</span>
+            </span>
+            <span className="prog-field-label">Seen</span>
+          </div>
+        </div>
+
+        <div className="prog-field-cover" data-in="rise" style={{ "--i": 3 }}>
+          <CoverageBar value={cover} label="Overall coverage" />
+          <span className="prog-field-cover-note">
+            {Math.round(cover * 100)}% of the bank seen
+          </span>
+        </div>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div className="prog-sheet" style={{ ...band }}>
-          <div className="prog-overview" aria-label="Overview" data-in="rise" style={{ "--i": 2 }}>
-            <div className="prog-overview-stats">
-              <div className="prog-field-stat">
-                <span className="prog-field-value">
-                  {accuracy === null ? "—" : accuracy}
-                  {accuracy !== null && <span className="prog-field-unit">%</span>}
-                </span>
-                <span className="prog-field-label">Accuracy</span>
-              </div>
-              <div className="prog-field-stat">
-                <span className="prog-field-value">
-                  {seen}
-                  <span className="prog-field-unit">/{QUESTIONS.length}</span>
-                </span>
-                <span className="prog-field-label">Seen</span>
-              </div>
-            </div>
-            <div className="prog-overview-cover">
-              <CoverageBar value={cover} label="Overall coverage" />
-              <span className="prog-overview-cover-note">
-                {Math.round(cover * 100)}% of the bank seen
-              </span>
-            </div>
-          </div>
-
           <h2 className="prog-sheet-title" style={sectionH}>Subjects</h2>
 
           {blocks.map(b => {
