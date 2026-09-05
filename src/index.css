@@ -710,12 +710,7 @@ body::after {
   padding: 0;
   border: none;
   background: none;
-  /* Ink, not accent. At 17.5px/700 an accent-coloured label reads as a large
-     link, and the blue competes with the mark beside it; black lets the mark
-     carry the colour and the type carry the weight. It still reads as
-     actionable — the mark and the chevron say so, and it goes accent on
-     hover. */
-  color: var(--c-text);
+  color: var(--c-accent);
   font-family: inherit;
   font-size: 17.5px;
   font-weight: 700;
@@ -726,7 +721,7 @@ body::after {
   transition: color 0.15s ease;
 }
 .q-review-ai:hover {
-  color: var(--c-accent);
+  color: var(--c-accent-lt);
 }
 .q-review-ai__mark {
   display: block;
@@ -735,15 +730,9 @@ body::after {
   height: 26px;
   object-fit: contain;
 }
-/* Muted while the label is ink, so the row does not end on a black arrow
-   heavier than the words it follows. */
 .q-review-ai__arrow {
   flex-shrink: 0;
-  color: var(--c-muted);
-  transition: transform 0.15s ease, color 0.15s ease;
-}
-.q-review-ai:hover .q-review-ai__arrow {
-  color: var(--c-accent);
+  transition: transform 0.15s ease;
 }
 .q-review-ai:hover .q-review-ai__arrow {
   transform: translateX(2px);
