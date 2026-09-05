@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
-import { h1, sectionH, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
+import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { DECK_MAP, BLOCKS, CURRICULUM } from "../data";
 import EditQuestionModal from "../ui/EditQuestionModal";
@@ -539,7 +539,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const fileRef = useRef();
 
   const [savedQs, setSavedQs] = useState(savedGenerated);
-  const [bankOpen, setBankOpen] = useState(false);
 
   /* Both ways in — the picker and the drop target — go through here, so the
      guess cannot be wired to one and forgotten on the other. */
@@ -568,21 +567,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     if (!user) return list;
     const ids = await remote.addGenerated(user.id, list);
     return ids ? list.map((q, i) => ({ ...q, id: ids[i] })) : list;
-  }
-
-  function deleteQuestion(id) {
-    // Local-only removal used to be all this did, so a deleted question came
-    // straight back on the next load.
-    if (user) remote.removeGenerated(user.id, id);
-    const updated = savedQs.filter(q => q.id !== id);
-    setSavedQs(updated);
-    onGeneratedChange?.(updated);
-  }
-
-  function clearAll() {
-    if (user) remote.clearGenerated(user.id);
-    setSavedQs([]);
-    onGeneratedChange?.([]);
   }
 
   const decks = Object.keys(DECK_MAP);
@@ -1153,60 +1137,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       </button>
         )}
       </div>
-
-      {/* The bank belongs to the screen, not to a step: there when you arrive,
-          gone once you have started. */}
-      {step === 0 && savedQs.length > 0 && (
-        <section className="gen-bank">
-          <div className="prog-section-head" style={{ marginBottom: 8 }}>
-            <button
-              type="button"
-              className="gen-bank-toggle"
-              onClick={() => setBankOpen(v => !v)}
-            >
-              <h2 style={{ ...sectionH, margin: 0 }}>In your bank</h2>
-              <span className="prog-section-note">{savedQs.length}</span>
-              <span className={`gen-bank-chevron${bankOpen ? " is-open" : ""}`} aria-hidden="true">▾</span>
-            </button>
-            <button
-              type="button"
-              className="gen-text-btn is-danger"
-              onClick={() => {
-                if (window.confirm("Delete all generated questions?")) {
-                  clearAll();
-                  setBankOpen(false);
-                  window.location.reload();
-                }
-              }}
-            >
-              Clear all
-            </button>
-          </div>
-
-          {bankOpen && (
-            <ul className="gen-bank-list">
-              {savedQs.map(q => (
-                <li key={q.id} className="gen-bank-row">
-                  <div className="gen-bank-main">
-                    <span className="gen-bank-meta">{q.deck} · {q.cat}</span>
-                    <span className="gen-bank-q">{q.q}</span>
-                    <span className="gen-bank-ans">
-                      {"ABCDE"[q.ans]} — {q.opts[q.ans]}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className="gen-text-btn is-danger"
-                    onClick={() => { deleteQuestion(q.id); window.location.reload(); }}
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
     </Shell>
   );
 }
