@@ -3899,11 +3899,17 @@ select {
   padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 32px)
     clamp(12px, 2vh, 20px);
 }
+/* margin: auto, not align-items: center on the parent.
+ *
+ * Both centre a short card, but the body scrolls, and a flex item centred by
+ * alignment cannot be scrolled back to once it is taller than its container —
+ * the overflow goes off the top edge and is unreachable. Auto margins give up
+ * their space when there is none to give, so a long question still starts at
+ * the top and scrolls normally. */
 .quiz-shell__main {
   width: 100%;
   max-width: min(720px, 100%);
-  margin: 0 auto;
-  align-self: flex-start;
+  margin: auto;
 }
 .quiz-shell__body.has-ai {
   display: flex;
@@ -3944,9 +3950,11 @@ select {
   from { transform: translate3d(22px, 0, 0) scale(1.02); }
   to   { transform: none; }
 }
+/* Same again for the AI-open layout, where the card sits inside main rather
+   than being it. */
 .quiz-shell__card {
   width: min(720px, 100%);
-  align-self: flex-start;
+  margin: auto;
 }
 .quiz-shell .q-card--focus {
   width: 100%;
