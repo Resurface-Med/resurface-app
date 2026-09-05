@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
 import { h1, sectionH, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
-import { DECK_MAP } from "../data";
+import { DECK_MAP, BLOCKS, CURRICULUM } from "../data";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
@@ -512,6 +512,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
      two to twelve long, so picking is nearly always the right control and
      typing is the exception. */
   const [newTopic, setNewTopic] = useState(false);
+  const [newBlock, setNewBlock] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
   // reply lands later and drops the user into a review screen they backed out
   // of. Held in a ref because aborting must not itself trigger a render.
@@ -553,7 +554,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   }
 
   const decks = Object.keys(DECK_MAP);
-  const existingCats = DECK_MAP[deck] || [];
+  /* Scoped to the block, because the same subject carries different topics in
+     each one — Physiology in Principles is not Physiology in Respiratory. */
+  const blockNode = CURRICULUM.find(b => b.block === block);
+  const deckNode = blockNode?.decks.find(d => d.deck === deck);
+  const existingCats = deckNode?.cats ?? (blockNode ? [] : DECK_MAP[deck] || []);
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
   const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
   /* One requirement per step. The last has none — everything on it is already
@@ -793,21 +798,44 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               ))}
             </select>
           </label>
+          {/* Blocks come from the bank rather than from a fixed list. The old
+              suggestions had Pathology and Anatomy in them, which are subjects
+              — a block is Principles, then Respiratory, then Cardiovascular,
+              with those subjects taught inside each. Starting a new one is a
+              real case, since every block after the first begins empty. */}
           <label className="gen-field">
             <span className="gen-field-label">Block</span>
-            <input
-              type="text"
-              value={block}
-              onChange={e => setBlock(e.target.value)}
-              placeholder="e.g. Principles"
-              list="gen-block-suggestions"
-              style={field}
-            />
-            <datalist id="gen-block-suggestions">
-              {["Principles", "Clinical", "Pathology", "Pharmacology", "Anatomy", "Physiology"].map(b => (
-                <option key={b} value={b} />
-              ))}
-            </datalist>
+            {newBlock || BLOCKS.length === 0 ? (
+              <input
+                type="text"
+                value={block}
+                onChange={e => setBlock(e.target.value)}
+                placeholder="e.g. Respiratory"
+                style={field}
+                autoFocus={newBlock}
+              />
+            ) : (
+              <select
+                value={block}
+                onChange={e => {
+                  if (e.target.value === "__new__") { setNewBlock(true); setBlock(""); }
+                  else setBlock(e.target.value);
+                }}
+                style={{ ...field, cursor: "pointer" }}
+              >
+                {BLOCKS.map(b => <option key={b} value={b}>{b}</option>)}
+                <option value="__new__">＋ New block…</option>
+              </select>
+            )}
+            {newBlock && BLOCKS.length > 0 && (
+              <button
+                type="button"
+                className="gen-topic-back"
+                onClick={() => { setNewBlock(false); setBlock(BLOCKS[0]); }}
+              >
+                Pick an existing block instead
+              </button>
+            )}
           </label>
           <label className="gen-field">
             <span className="gen-field-label">Subject</span>

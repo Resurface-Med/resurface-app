@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { V, h1, sectionH, OF } from "../ui/theme";
-import { QUESTIONS, DECK_MAP } from "../data";
+import { QUESTIONS, CURRICULUM } from "../data";
 import Wave from "../ui/Wave";
 
 /**
@@ -177,7 +177,11 @@ export default function StatsView({
     return { accuracy, seen };
   }, [pStats]);
 
-  const decks = Object.keys(DECK_MAP);
+  /* Blocks, each with the subjects taught inside it. One block is the whole
+     course today, so its name is not worth a heading that never changes — it
+     appears when a second block does. */
+  const blocks = CURRICULUM;
+  const showBlocks = blocks.length > 1;
 
   const { accuracy, seen } = overview;
 
@@ -211,19 +215,24 @@ export default function StatsView({
               <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
               <span className="prog-section-note">Bar is how much you’ve seen</span>
             </div>
-            <div className="prog-subjects">
-              {decks.map(deck => (
-                <SubjectBlock
-                  key={deck}
-                  deck={deck}
-                  cats={DECK_MAP[deck] || []}
-                  pStats={pStats}
-                  open={openDecks.has(deck)}
-                  onToggle={() => toggleDeck(deck)}
-                  onPractice={practice}
-                />
-              ))}
-            </div>
+            {blocks.map(b => (
+              <div key={b.block} className="prog-block">
+                {showBlocks && <h3 className="prog-block-name">{b.block}</h3>}
+                <div className="prog-subjects">
+                  {b.decks.map(d => (
+                    <SubjectBlock
+                      key={`${b.block}/${d.deck}`}
+                      deck={d.deck}
+                      cats={d.cats}
+                      pStats={pStats}
+                      open={openDecks.has(d.deck)}
+                      onToggle={() => toggleDeck(d.deck)}
+                      onPractice={practice}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </section>
 
           <div className="prog-reset">

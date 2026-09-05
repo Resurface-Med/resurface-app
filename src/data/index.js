@@ -13,6 +13,62 @@
 export const QUESTIONS = [];
 export const DECK_MAP = {};
 
+/**
+ * The curriculum, as it is actually taught: block → subject → topic.
+ *
+ * A Year 1 student does Principles as a block, and inside it Biochemistry,
+ * Physiology and the rest, each with its own topics. Then Respiratory, with
+ * the same subjects underneath. So the block is the outer level and the
+ * subjects repeat inside each one — which is why this is derived from the
+ * questions rather than from the deck files: a deck file is one subject across
+ * every block it appears in, and only the questions know which block each
+ * question belongs to.
+ *
+ * CURRICULUM is [{ block, decks: [{ deck, cats: [...] }] }], in teaching order.
+ */
+export const CURRICULUM = [];
+export const BLOCKS = [];
+
+/* Teaching order, not alphabetical — Principles comes first because it is
+   taught first, and Respiratory before Cardiovascular for the same reason.
+   Anything not listed sorts after these, alphabetically, so a block nobody
+   has told this file about still appears rather than disappearing. */
+const BLOCK_ORDER = [
+  "Principles",
+  "Respiratory",
+  "Cardiovascular",
+  "Gastrointestinal",
+];
+
+function blockRank(name) {
+  const i = BLOCK_ORDER.indexOf(name);
+  return i === -1 ? BLOCK_ORDER.length : i;
+}
+
+function buildCurriculum() {
+  const blocks = new Map();
+
+  for (const q of QUESTIONS) {
+    const b = q.block || "Other";
+    if (!blocks.has(b)) blocks.set(b, new Map());
+    const decks = blocks.get(b);
+    if (!decks.has(q.deck)) decks.set(q.deck, new Set());
+    decks.get(q.deck).add(q.cat);
+  }
+
+  const out = [...blocks.entries()]
+    .sort((a, b) => blockRank(a[0]) - blockRank(b[0]) || a[0].localeCompare(b[0]))
+    .map(([block, decks]) => ({
+      block,
+      decks: [...decks.entries()]
+        .sort((a, b) => b[1].size - a[1].size)
+        .map(([deck, cats]) => ({ deck, cats: [...cats] })),
+    }));
+
+  CURRICULUM.push(...out);
+  BLOCKS.push(...out.map(b => b.block));
+}
+
 let loaded = null;
 
 /** Idempotent: repeated calls return the same in-flight or settled promise. */
@@ -31,7 +87,9 @@ export function loadDecks() {
       DECK_MAP[deck.deck] = deck.categories;
     }
 
-    return { count: QUESTIONS.length, decks: decks.length };
+    buildCurriculum();
+
+    return { count: QUESTIONS.length, decks: decks.length, blocks: BLOCKS.length };
   })();
 
   return loaded;

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { C } from "./theme";
-import { QUESTIONS } from "../data";
+import { QUESTIONS, BLOCKS } from "../data";
 
 /**
  * Choosing what to practise, by topic. Several at once.
@@ -22,12 +22,25 @@ import { QUESTIONS } from "../data";
  * else the same way.
  */
 
+/**
+ * block → subject → topic, counted.
+ *
+ * Blocks are the outer level because that is how the course runs: Principles,
+ * then Respiratory, then Cardiovascular, each containing the same subjects
+ * again. They are rendered as headings rather than as a third thing to expand
+ * — three levels of disclosure to reach a topic is two taps too many, and a
+ * heading gives the same grouping for free.
+ */
 function buildTree(pStats, eligible) {
-  const decks = new Map();
+  const blocks = new Map();
 
   for (const q of QUESTIONS) {
-    let d = decks.get(q.deck);
-    if (!d) { d = { deck: q.deck, total: 0, seen: 0, avail: 0, cats: new Map() }; decks.set(q.deck, d); }
+    const bName = q.block || "Other";
+    let b = blocks.get(bName);
+    if (!b) { b = { block: bName, total: 0, avail: 0, decks: new Map() }; blocks.set(bName, b); }
+
+    let d = b.decks.get(q.deck);
+    if (!d) { d = { deck: q.deck, total: 0, seen: 0, avail: 0, cats: new Map() }; b.decks.set(q.deck, d); }
 
     let c = d.cats.get(q.cat);
     if (!c) { c = { cat: q.cat, total: 0, seen: 0, avail: 0 }; d.cats.set(q.cat, c); }
@@ -35,14 +48,23 @@ function buildTree(pStats, eligible) {
     const isSeen = Boolean(pStats[q.id]);
     const isAvail = eligible.has(q.id);
 
-    d.total += 1; c.total += 1;
+    b.total += 1; d.total += 1; c.total += 1;
     if (isSeen)  { d.seen  += 1; c.seen  += 1; }
-    if (isAvail) { d.avail += 1; c.avail += 1; }
+    if (isAvail) { b.avail += 1; d.avail += 1; c.avail += 1; }
   }
 
-  return [...decks.values()]
-    .sort((a, b) => b.total - a.total)
-    .map(d => ({ ...d, cats: [...d.cats.values()].sort((a, b) => b.total - a.total) }));
+  const order = BLOCKS.length ? BLOCKS : [...blocks.keys()];
+  return order
+    .filter(name => blocks.has(name))
+    .map(name => {
+      const b = blocks.get(name);
+      return {
+        ...b,
+        decks: [...b.decks.values()]
+          .sort((x, y) => y.total - x.total)
+          .map(d => ({ ...d, cats: [...d.cats.values()].sort((x, y) => y.total - x.total) })),
+      };
+    });
 }
 
 function shortCat(cat, deck) {
@@ -130,19 +152,33 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
   const [open, setOpen] = useState(() => {
     const first = (value.cat ?? []).find(c => c && c !== "All");
     if (!first) return new Set();
-    const owner = full.find(d => d.cats.some(c => c.cat === first));
+    const owner = full
+      .flatMap(b => b.decks)
+      .find(d => d.cats.some(c => c.cat === first));
     return new Set(owner ? [owner.deck] : []);
   });
 
   const q = query.trim().toLowerCase();
+  /* Search filters inside blocks and then drops any block left with nothing,
+     so a query never leaves a heading standing over an empty space. */
   const tree = useMemo(() => {
     if (!q) return full;
-    return full.flatMap(d => {
-      if (d.deck.toLowerCase().includes(q)) return [d];
-      const cats = d.cats.filter(c => c.cat.toLowerCase().includes(q));
-      return cats.length ? [{ ...d, cats }] : [];
-    });
+    return full
+      .map(b => ({
+        ...b,
+        decks: b.decks.flatMap(d => {
+          if (d.deck.toLowerCase().includes(q)) return [d];
+          const cats = d.cats.filter(c => c.cat.toLowerCase().includes(q));
+          return cats.length ? [{ ...d, cats }] : [];
+        }),
+      }))
+      .filter(b => b.decks.length > 0);
   }, [full, q]);
+
+  /* One block is the whole course right now, so naming it above every subject
+     would be a heading that never varies. It appears the moment a second one
+     does. */
+  const showBlocks = tree.length > 1;
 
   const isAll = selected === null;
 
@@ -212,7 +248,16 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
         </p>
       )}
 
-      {tree.map(d => {
+      {tree.map(b => (
+        <div key={b.block} className="topic-block">
+          {showBlocks && (
+            <div className="topic-block-head">
+              <span className="topic-block-name">{b.block}</span>
+              <span className="topic-block-count">{b.avail}</span>
+            </div>
+          )}
+
+      {b.decks.map(d => {
         const empty = d.avail === 0;
         const isOpen = q ? true : open.has(d.deck);
         const many = d.cats.length > 1;
@@ -269,6 +314,8 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
           </div>
         );
       })}
+        </div>
+      ))}
     </div>
   );
 }
