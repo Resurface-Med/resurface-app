@@ -751,8 +751,35 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           own, so a heading over them was a second level of hierarchy naming
           what four labels already named — and on a phone it cost a whole row
           to do it. */}
+      {/* Year, Block, Subject, Topic — widest first. Each row narrows the one
+          under it, and Topic, the only required field of the four, is the last
+          thing you fill and the one nearest Continue. */}
       <section className="gen-block" data-in="rise" style={{ "--i": 2 }}>
         <div className="gen-grid">
+          <label className="gen-field">
+            <span className="gen-field-label">Year</span>
+            <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
+              {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          </label>
+          <label className="gen-field">
+            <span className="gen-field-label">Block</span>
+            <input
+              type="text"
+              value={block}
+              onChange={e => setBlock(e.target.value)}
+              placeholder="e.g. Principles"
+              list="gen-block-suggestions"
+              style={field}
+            />
+            <datalist id="gen-block-suggestions">
+              {["Principles", "Clinical", "Pathology", "Pharmacology", "Anatomy", "Physiology"].map(b => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+          </label>
           <label className="gen-field">
             <span className="gen-field-label">Subject</span>
             <select
@@ -815,30 +842,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                 Pick an existing topic instead
               </button>
             )}
-          </label>
-          <label className="gen-field">
-            <span className="gen-field-label">Year</span>
-            <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
-              {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"].map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </label>
-          <label className="gen-field">
-            <span className="gen-field-label">Block</span>
-            <input
-              type="text"
-              value={block}
-              onChange={e => setBlock(e.target.value)}
-              placeholder="e.g. Principles"
-              list="gen-block-suggestions"
-              style={field}
-            />
-            <datalist id="gen-block-suggestions">
-              {["Principles", "Clinical", "Pathology", "Pharmacology", "Anatomy", "Physiology"].map(b => (
-                <option key={b} value={b} />
-              ))}
-            </datalist>
           </label>
         </div>
 
