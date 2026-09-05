@@ -4382,19 +4382,24 @@ select {
 }
 .quiz-shell__body.has-ai .quiz-shell__main {
   flex: 1 1 0;
+  /* Without this, a tall image card grows the flex item instead of scrolling
+     it — the body is overflow:hidden, so options below the fold disappear. */
   min-width: 0;
+  min-height: 0;
   max-width: none;
   width: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0;
+  padding: 0 0 12px;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 .quiz-shell__body.has-ai .ai-dock {
   flex: 0 0 clamp(320px, 30vw, 400px);
   width: clamp(320px, 30vw, 400px);
   align-self: stretch;
+  min-height: 0;
 }
 
 /* The question does not snap into its new width, it moves into it. It goes
@@ -4452,13 +4457,20 @@ select {
   line-height: 1.5;
 }
 .quiz-shell .q-card--focus .q-review {
-  margin-top: 20px;
-  padding-top: 18px;
+  margin-top: 16px;
+  padding-top: 14px;
 }
 .quiz-shell .q-card--focus .q-exp {
-  font-size: 17px;
-  line-height: 1.75;
+  font-size: 16px;
+  line-height: 1.6;
   letter-spacing: -0.18px;
+}
+/* After check, the explanation and Ask AI sit under the image/options. Keep
+   the frame shorter so the review lands on screen instead of growing the card
+   another half-viewport. */
+.q-card.has-img:has(.q-review) .q-image {
+  height: clamp(140px, calc(var(--app-vh) * 0.22), 220px);
+  margin-bottom: 12px;
 }
 /* In focus mode the card's type is a notch larger, so the pill grows with it
    rather than sitting small against 17px prose. The icon and label overrides
@@ -4471,7 +4483,7 @@ select {
   height: 28px;
 }
 .quiz-shell .q-card--focus .q-review-meta {
-  margin-top: 20px;
+  margin-top: 14px;
 }
 .quiz-shell .q-opt {
   background: var(--c-surface2);
@@ -4871,9 +4883,8 @@ select {
 /* Stacked, an image and five options come to more than a laptop viewport is
    tall, so one of the two is always off screen. Given the width they sit next
    to each other instead: the image keeps a size worth reading and the options
-   stay put. Below this width, or with the AI dock open, the room is not there
-   and it goes back to stacked — which is why the frame in the stacked case is
-   capped as well, rather than this being the only fix.
+   stay put. Below this width it stacks — which is why the frame in the stacked
+   case is capped as well, rather than this being the only fix.
 
    1240px of viewport, not 1040 of layout: #root carries a 1.12 zoom, so the
    card's 1040 occupies about 1165 real pixels before any padding. */
@@ -4899,5 +4910,31 @@ select {
   .quiz-shell__body:not(.has-ai) .q-card.has-img .q-body .q-image {
     height: clamp(280px, calc(var(--app-vh) * 0.46), 470px);
     margin-bottom: 0;
+  }
+  .quiz-shell__body:not(.has-ai) .q-card.has-img:has(.q-review) .q-body .q-image {
+    height: clamp(200px, calc(var(--app-vh) * 0.3), 300px);
+  }
+}
+
+/* With the AI dock open the main column is narrower, but on a wide laptop
+   there is still room for a compact side-by-side — better than stacking a
+   capped image on top of five options and forcing a scroll. */
+@media (min-width: 1480px) {
+  .quiz-shell__body.has-ai .quiz-shell__main:has(.q-card.has-img),
+  .quiz-shell__body.has-ai .q-card--focus.has-img {
+    max-width: min(920px, 100%);
+  }
+  .quiz-shell__body.has-ai .q-card.has-img .q-body {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .quiz-shell__body.has-ai .q-card.has-img .q-body .q-image {
+    height: clamp(220px, calc(var(--app-vh) * 0.36), 340px);
+    margin-bottom: 0;
+  }
+  .quiz-shell__body.has-ai .q-card.has-img:has(.q-review) .q-body .q-image {
+    height: clamp(160px, calc(var(--app-vh) * 0.24), 240px);
   }
 }
