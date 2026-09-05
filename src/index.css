@@ -686,24 +686,26 @@ body::after {
   letter-spacing: -0.15px;
 }
 
-/* One line, pill, tinted. It was a bordered and shadowed card carrying a
-   26px crop of books.webp and a two-line label — the hero illustration shrunk
-   to icon size, where it reads as a stray emoji rather than a mark. The image
-   is gone: "Ask Resurface AI" names itself, and an icon that has to be
-   explained is not doing any work.
-
-   "Still stuck?" went with it. You are reading this because you got the
-   question wrong and have just read why — the question it asks is already
-   answered by where it sits. */
+/* No container.
+ *
+ * It was a pale accent fill with a matching border and matching text, which is
+ * the stock secondary button of every generated interface — and it was nested:
+ * a white tile inside a tinted pill inside a white card, three surfaces for
+ * one control. It leads its row on colour and weight now, with the two beside
+ * it staying muted, which is the same hierarchy without any chrome to carry
+ * it.
+ *
+ * It also fixes the mark. icon-192 is an app-icon tile — 97% opaque, white
+ * fill, transparent corners only — so against any coloured fill you see the
+ * square. Against the card it simply disappears and the books are left. */
 .q-review-ai {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex-shrink: 0;
-  padding: 8px 14px 8px 11px;
-  border: 1.5px solid var(--c-accent-brd);
-  border-radius: var(--r-pill);
-  background: var(--c-accent-dim);
+  padding: 0;
+  border: none;
+  background: none;
   color: var(--c-accent);
   font-family: inherit;
   font-size: 14px;
@@ -712,14 +714,10 @@ body::after {
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: color 0.15s ease;
 }
-/* Deepens rather than inverting. Filling it solid accent would put the blue
-   mark on blue and lose it — a hover state that erases part of the control is
-   worse than a quieter one. */
 .q-review-ai:hover {
-  background: var(--c-accent-glow);
-  border-color: var(--c-accent);
+  color: var(--c-accent-lt);
 }
 .q-review-ai__mark {
   display: block;
@@ -3908,7 +3906,6 @@ select {
    rather than sitting small against 17px prose. The icon and label overrides
    that used to live here went with the card version of this button. */
 .quiz-shell .q-card--focus .q-review-ai {
-  padding: 9px 16px 9px 12px;
   font-size: 14.5px;
 }
 .quiz-shell .q-card--focus .q-review-ai__mark {
