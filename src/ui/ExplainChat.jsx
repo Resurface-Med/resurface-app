@@ -4,11 +4,14 @@ import { splitMarks } from "../lib/formatExplain";
 
 /**
  * Inline tutor dock beside the question — no auto-explain, only what the
- * student asks (quick prompts or free text).
+ * student asks (quick prompts or free text). Cap: 3 asks per question.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
   || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
+
+const ASK_LIMIT = 3;
+const ASK_STORE = "rs_ai_asks";
 
 const QUICK = [
   {
@@ -24,6 +27,28 @@ const QUICK = [
     message: "One short clinical or exam-style example. Two sentences max.",
   },
 ];
+
+function loadUsed(questionId) {
+  if (questionId == null) return 0;
+  try {
+    const map = JSON.parse(localStorage.getItem(ASK_STORE) || "{}");
+    const n = Number(map[String(questionId)]);
+    return Number.isFinite(n) ? Math.min(ASK_LIMIT, Math.max(0, n)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function saveUsed(questionId, used) {
+  if (questionId == null) return;
+  try {
+    const map = JSON.parse(localStorage.getItem(ASK_STORE) || "{}");
+    map[String(questionId)] = Math.min(ASK_LIMIT, Math.max(0, used));
+    localStorage.setItem(ASK_STORE, JSON.stringify(map));
+  } catch {
+    /* ignore quota persistence failures */
+  }
+}
 
 function ExplainText({ text }) {
   return splitMarks(text).map((part, i) => {
@@ -42,6 +67,7 @@ function authHeaders(token) {
 
 function contextBody(q, picked) {
   return {
+    questionId: q.id,
     question: q.q,
     options: q.opts,
     correct: q.ans,
@@ -50,7 +76,7 @@ function contextBody(q, picked) {
   };
 }
 
-function QuickPills({ sending, onPick }) {
+function QuickPills({ sending, disabled, onPick }) {
   return (
     <div className="ai-dock__pills">
       {QUICK.map(({ label, message }) => (
@@ -58,7 +84,7 @@ function QuickPills({ sending, onPick }) {
           key={label}
           type="button"
           className="ai-dock__pill btn-press"
-          disabled={sending}
+          disabled={sending || disabled}
           onClick={() => onPick(label, message)}
         >
           {label}
@@ -73,13 +99,24 @@ export default function ExplainChat({ q, picked, onClose }) {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [used, setUsed] = useState(() => loadUsed(q.id));
   const threadRef = useRef(null);
   const inputRef = useRef(null);
+
+  const remaining = Math.max(0, ASK_LIMIT - used);
+  const atLimit = remaining <= 0;
 
   function isPhone() {
     return window.matchMedia("(max-width: 900px)").matches
       || window.matchMedia("(pointer: coarse)").matches;
   }
+
+  useEffect(() => {
+    setUsed(loadUsed(q.id));
+    setMessages([]);
+    setDraft("");
+    setError("");
+  }, [q.id]);
 
   useEffect(() => {
     const el = threadRef.current;
@@ -88,13 +125,19 @@ export default function ExplainChat({ q, picked, onClose }) {
   }, [messages, sending]);
 
   useEffect(() => {
-    if (isPhone()) return;
+    if (isPhone() || atLimit) return;
     inputRef.current?.focus();
-  }, []);
+  }, [atLimit]);
+
+  function markUsed(nextUsed) {
+    const capped = Math.min(ASK_LIMIT, Math.max(0, nextUsed));
+    setUsed(capped);
+    saveUsed(q.id, capped);
+  }
 
   async function sendPrompt(label, apiText) {
     const trimmed = (apiText || label).trim();
-    if (!trimmed || sending) return;
+    if (!trimmed || sending || atLimit) return;
 
     setSending(true);
     setError("");
@@ -124,7 +167,18 @@ export default function ExplainChat({ q, picked, onClose }) {
         }),
       });
       const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body?.error || "Couldn't get a reply.");
+      if (!res.ok) {
+        if (res.status === 429 && body?.remaining === 0) {
+          markUsed(ASK_LIMIT);
+        }
+        throw new Error(body?.error || "Couldn't get a reply.");
+      }
+
+      if (typeof body.remaining === "number") {
+        markUsed(ASK_LIMIT - body.remaining);
+      } else {
+        markUsed(used + 1);
+      }
 
       setMessages(prev => [
         ...prev,
@@ -136,14 +190,14 @@ export default function ExplainChat({ q, picked, onClose }) {
       if (apiText === undefined) setDraft(label);
     } finally {
       setSending(false);
-      if (!isPhone()) inputRef.current?.focus();
+      if (!isPhone() && !atLimit) inputRef.current?.focus();
     }
   }
 
   function handleSubmit(e) {
     e.preventDefault();
     const text = draft.trim();
-    if (!text) return;
+    if (!text || atLimit) return;
     void sendPrompt(text, text);
   }
 
@@ -232,31 +286,42 @@ export default function ExplainChat({ q, picked, onClose }) {
       </div>
 
       <footer className="ai-dock__foot">
-        {messages.length === 0 && (
-          <QuickPills sending={sending} onPick={(label, message) => void sendPrompt(label, message)} />
-        )}
-        <form className="ai-dock__compose" onSubmit={handleSubmit}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            placeholder="Ask a follow-up…"
-            disabled={sending}
-            className="ai-dock__input"
-            aria-label="Your question"
+        <p className="ai-dock__quota" aria-live="polite">
+          {atLimit
+            ? `You've used all ${ASK_LIMIT} AI asks on this question.`
+            : `${remaining} of ${ASK_LIMIT} AI asks left on this question`}
+        </p>
+        {!atLimit && messages.length === 0 && (
+          <QuickPills
+            sending={sending}
+            disabled={atLimit}
+            onPick={(label, message) => void sendPrompt(label, message)}
           />
-          <button
-            type="submit"
-            className="ai-dock__send btn-press"
-            disabled={sending || !draft.trim()}
-            aria-label="Send"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M8 12V4M8 4L5 7M8 4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-        </form>
+        )}
+        {!atLimit && (
+          <form className="ai-dock__compose" onSubmit={handleSubmit}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              placeholder="Ask a follow-up…"
+              disabled={sending}
+              className="ai-dock__input"
+              aria-label="Your question"
+            />
+            <button
+              type="submit"
+              className="ai-dock__send btn-press"
+              disabled={sending || !draft.trim()}
+              aria-label="Send"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 12V4M8 4L5 7M8 4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </form>
+        )}
       </footer>
     </aside>
   );

@@ -1206,6 +1206,15 @@ body::after {
   background: transparent;
 }
 
+.ai-dock__quota {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-muted);
+  letter-spacing: -0.1px;
+  text-align: center;
+}
+
 .ai-dock__compose {
   display: flex;
   align-items: center;
