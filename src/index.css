@@ -2885,6 +2885,36 @@ select {
   align-items: center;
   gap: 8px;
 }
+/* Reads as a field, not a fifth chip. It sat in the same fill as an unselected
+   preset with the same rounding, so a row of four options plus a box looked
+   like five options — and with the selected number echoed inside it, one of
+   them appeared twice. A visible edge, a squarer corner than a pill and a
+   placeholder are what separate somewhere you type from something you press. */
+.gen-count-input {
+  width: 74px;
+  padding: 10px 8px;
+  box-sizing: border-box;
+  text-align: center;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+  background: var(--c-surface);
+  border: 1.5px dashed var(--c-border);
+  border-radius: var(--r-ctrl);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.gen-count-input::placeholder {
+  color: var(--c-muted-dim);
+  font-weight: 500;
+}
+.gen-count-input:hover { border-color: var(--c-muted-dim); }
+.gen-count-input:focus {
+  border-style: solid;
+  border-color: var(--c-accent);
+  background: var(--c-card-solid);
+}
 .gen-error {
   margin: 0 0 14px;
   padding: 12px 14px;

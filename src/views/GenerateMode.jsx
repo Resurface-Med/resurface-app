@@ -137,6 +137,35 @@ function guessPlacement(name) {
   return { deck: null, cat: null };
 }
 
+/**
+ * The part of a filename a person would recognise.
+ *
+ * Lecture files are named for the timetable, not the reader:
+ * "ANAT-RESP-WK2-2.1 - Larynx, trachea, anterior chest wall 2025-26 ARU
+ * edited - Tagged (1) (1).pdf". Truncating that from the right cuts off the
+ * only words that identify it, because the course code comes first and the
+ * title is in the middle. Taking the longest hyphen-separated run and dropping
+ * the version noise leaves "Larynx, trachea, anterior chest wall".
+ *
+ * The full name is still on the element's title, so nothing is actually
+ * hidden — it is just not the thing shown first.
+ */
+function sourceLabel(name) {
+  const base = String(name).replace(/\.[a-z0-9]+$/i, "").replace(/\(.*?\)/g, " ");
+  const longest = base.split(/\s+-\s+/).sort((a, b) => b.length - a.length)[0] || base;
+  const kept = longest
+    .split(/[\s_]+/)
+    .filter(t => {
+      const bare = t.toLowerCase().replace(/[^a-z]/g, "");
+      return t && !FILENAME_NOISE.has(bare) && !/^\d/.test(t);
+    })
+    .join(" ")
+    .trim();
+  /* If stripping left almost nothing — "IMG_20260904.jpg" reduces to "IMG" —
+     the cleaned version is less use than the name it came from. */
+  return kept.length >= 6 ? kept : String(name);
+}
+
 /** A readable topic name out of a filename, for when none of the above hits. */
 function suggestTopicName(name) {
   const base = String(name).replace(/\.[a-z0-9]+$/i, "");
@@ -679,8 +708,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       {step > 0 && (file || pastedText.trim()) && (
         <p className="gen-source-note">
           <span className="gen-source-label">From</span>
-          <span className="gen-source-name">
-            {file ? file.name : `pasted text · ${pastedText.trim().split(/\s+/).length} words`}
+          <span className="gen-source-name" title={file ? file.name : undefined}>
+            {file ? sourceLabel(file.name) : `pasted text · ${pastedText.trim().split(/\s+/).length} words`}
           </span>
         </p>
       )}
@@ -887,16 +916,21 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                 ))}
               </div>
               {/* Outside the radiogroup on purpose — a textbox is not one of
-                  the radios, and putting it inside would say it was. */}
+                  the radios, and putting it inside would say it was.
+
+                  Empty while a preset is chosen. Bound straight to countRaw it
+                  showed the selected number too, so the row read as five
+                  options with 10 offered twice; blank with a placeholder makes
+                  it plainly the box for a number that is not on the list. */}
               <input
                 type="text"
                 inputMode="numeric"
                 aria-label="Or type a number of questions"
                 className="gen-count-input"
-                value={countRaw}
+                placeholder="Other"
+                value={COUNT_PRESETS.includes(countNum) ? "" : countRaw}
                 onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
-                onBlur={() => setCountRaw(String(countNum || 10))}
-                style={{ ...field, width: 58, textAlign: "center", padding: "10px 6px" }}
+                onBlur={e => { if (!e.target.value.trim()) setCountRaw(String(countNum || 10)); }}
               />
             </div>
           </div>
