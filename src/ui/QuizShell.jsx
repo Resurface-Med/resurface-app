@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ExplainChat from "./ExplainChat";
 import QuestionCard from "./QuestionCard";
@@ -75,64 +75,7 @@ export default function QuizShell({
   };
 
   const [aiOpen, setAiOpen] = useState(false);
-  /* Where the mark was when it was pressed, so it can be flown from there into
-     the dock's header. Cleared when the flight lands. */
-  const [flightFrom, setFlightFrom] = useState(null);
-  const ghostRef = useRef(null);
-  const dockWrapRef = useRef(null);
-  /* Sticky for as long as the dock is open, unlike flightFrom which clears on
-     landing. The header mark has its own pop-in; without this it would run the
-     moment the flight ended, so the mark would arrive, disappear and arrive
-     again. If it was flown in, it is already there. */
-  const [flew, setFlew] = useState(false);
 
-  function openAi(next, rect) {
-    if (next && rect) { setFlightFrom(rect); setFlew(true); }
-    if (!next) setFlew(false);
-    setAiOpen(next);
-  }
-
-  /**
-   * One mark, two places: it leaves the button and arrives as the dock's
-   * header mark. Measured after layout rather than guessed, because the dock
-   * does not exist until this render and its header lands wherever the panel
-   * ends up.
-   *
-   * A fixed ghost sits on the destination and is transformed back to the
-   * origin, then animated to nothing — so the numbers are a delta between two
-   * real rects and the whole move is one composited transform. The dock's own
-   * mark stays hidden until it lands, or there would briefly be two.
-   */
-  useLayoutEffect(() => {
-    if (!flightFrom) return;
-    const ghost = ghostRef.current;
-    const target = dockWrapRef.current?.querySelector(".ai-dock__mark");
-    if (!ghost || !target) { setFlightFrom(null); return; }
-
-    const to = target.getBoundingClientRect();
-    if (!to.width) { setFlightFrom(null); return; }
-
-    ghost.style.left = `${to.left}px`;
-    ghost.style.top = `${to.top}px`;
-    ghost.style.width = `${to.width}px`;
-    ghost.style.height = `${to.height}px`;
-
-    const dx = flightFrom.left - to.left;
-    const dy = flightFrom.top - to.top;
-    const scale = flightFrom.width / to.width;
-
-    const anim = ghost.animate(
-      [
-        { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, opacity: 1, offset: 0 },
-        { opacity: 1, offset: 0.72 },
-        { transform: "translate(0px, 0px) scale(1)", opacity: 0, offset: 1 },
-      ],
-      { duration: 560, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "both" },
-    );
-    const done = () => setFlightFrom(null);
-    anim.addEventListener("finish", done);
-    return () => { anim.cancel(); anim.removeEventListener("finish", done); };
-  }, [flightFrom]);
   const [controls, setControls] = useState({
     pending: null,
     answered: false,
@@ -292,30 +235,15 @@ export default function QuizShell({
               focusMode
               hideActions
               aiOpen={aiOpen}
-              onAiOpenChange={openAi}
+              onAiOpenChange={setAiOpen}
               onControlsChange={setControls}
             />
           </div>
           {showAi && (
-            <div
-              ref={dockWrapRef}
-              className={`quiz-shell__dock${flew ? " has-flown" : ""}${flightFrom ? " is-flying" : ""}`}
-            >
-              <ExplainChat q={q} picked={sel} onClose={() => openAi(false)} />
-            </div>
+            <ExplainChat q={q} picked={sel} onClose={() => setAiOpen(false)} />
           )}
         </div>
       </div>
-
-      {flightFrom && (
-        <img
-          ref={ghostRef}
-          src="/icon-192.png"
-          alt=""
-          aria-hidden="true"
-          className="ai-flight"
-        />
-      )}
 
       <footer className="quiz-shell__footer">
         <div className="quiz-shell__footer-bar">

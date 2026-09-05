@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
@@ -22,7 +22,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const [editing, setEditing] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [explainingLocal, setExplainingLocal] = useState(false);
-  const aiBtnRef = useRef(null);
   const explaining = onAiOpenChange ? aiOpen : explainingLocal;
   const setExplaining = onAiOpenChange ?? setExplainingLocal;
 
@@ -314,13 +313,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <div className="q-review-ask">
             <button
               type="button"
-              ref={aiBtnRef}
               className="q-review-ai btn-press"
-              /* The mark's rect goes up with the open, because the shell needs
-                 somewhere to fly it from and by the time the dock exists this
-                 button is gone. Harmless when the local setState is the
-                 handler — it ignores the second argument. */
-              onClick={() => setExplaining(true, aiBtnRef.current?.querySelector(".q-review-ai__mark")?.getBoundingClientRect())}
+              onClick={() => setExplaining(true)}
             >
               {/* icon-192, not books.webp. Same mark, but this is the one
                   drawn as an icon — flat, high contrast, made to survive
