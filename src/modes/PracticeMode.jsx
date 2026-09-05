@@ -314,7 +314,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   className="btn-press setup-back"
                   onClick={() => setStep("topic")}
                 >
-                  <span aria-hidden="true">←</span> {topicLabel ?? "All subjects"}
+                  <span aria-hidden="true">←</span> {topicLabel ?? "All blocks"}
                 </button>
                 <h1 style={{ ...h1, fontSize: 27, margin: "10px 0 0" }}>How much?</h1>
               </>

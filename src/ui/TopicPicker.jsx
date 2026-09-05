@@ -271,7 +271,7 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
           className={`topic-row topic-row-roomy${isAll ? " is-active" : ""}`}
         >
           <Check state={isAll} />
-          <span className="topic-name" style={{ fontWeight: 600 }}>All subjects</span>
+          <span className="topic-name" style={{ fontWeight: 600 }}>All blocks</span>
           <span className="topic-meta">
             <span className="topic-avail">{totalAvail}</span>
           </span>
