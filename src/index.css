@@ -703,10 +703,7 @@ body::after {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
-  /* Own line, so it can be sized as the feature it is. Sitting in the row
-     below capped it at that row's size and it went quiet — the escape hatch
-     for someone who is stuck ended up the least visible thing on the card. */
-  margin-top: 22px;
+  margin-top: 0;
   padding: 0;
   border: none;
   background: none;
@@ -738,14 +735,31 @@ body::after {
   transform: translateX(2px);
 }
 
-/* Closer under the action above than the action is to the explanation, so the
-   two utility links read as sitting beneath it rather than as a third peer. */
+/* Three zones after the question, separated three different ways so the card
+   reads as sectioned without being ruled into boxes.
+ *
+ *   the question and its options
+ *   ── hairline ──                 answered: the explanation
+ *   ── hairline ──                 asking: Resurface AI
+ *   (space only)                   the utility links
+ *
+ * Two rules and a gap, not three rules. The last break does not need one: the
+ * links beneath are 13px and muted against a 17.5px action, so the type has
+ * already made the distinction and a third line would only start to feel like
+ * a grid. The gaps either side of each rule differ too — 14px above the first,
+ * 22px above the second — because evenly spaced rules are what turn sectioning
+ * into filing. */
+.q-review-ask {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--c-border);
+}
 .q-review-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 16px;
-  margin-top: 16px;
+  margin-top: 24px;
 }
 .q-review-meta .q-flag-open {
   margin-top: 0;

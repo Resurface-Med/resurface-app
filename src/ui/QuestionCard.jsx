@@ -311,6 +311,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               quietest item on the card. Size gives it the prominence the
               tinted pill used to, without a container to do it. */}
           {sel !== q.ans && !explaining && (
+            <div className="q-review-ask">
             <button
               type="button"
               ref={aiBtnRef}
@@ -337,6 +338,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
+            </div>
           )}
 
           <div className="q-review-meta">
