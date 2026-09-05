@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import ExplainChat from "./ExplainChat";
+import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 
@@ -163,20 +164,20 @@ export default function QuizShell({
         </div>
       </header>
 
-      {/* The waterline. Every other screen in the app opens with a filled Wave;
-          this one had none, which is most of why it read as unbranded. Filled
-          would cost 36-64px of a view whose whole job is the question, so it is
-          the same curve from Wave.jsx drawn as a hairline — the motif at the
-          boundary between the chrome and the question, for the price of a
-          rule. */}
-      <svg
-        className="quiz-shell__wave"
-        viewBox="0 0 1440 90"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <path d="M0,44 C240,6 480,82 720,44 C960,6 1200,82 1440,44" />
-      </svg>
+      {/* The waterline: the header is a shade of chrome, the question sits
+          below it, and the wave is the edge between them.
+       *
+       * Drawn as a hairline first, and it read as a straight line. Two periods
+       * stretched across a wide screen is a wavelength near 1000px against
+       * about 12px of amplitude, and a stroke cannot survive that ratio — the
+       * landing's wave only reads at similar proportions because it is filled,
+       * so the curve is an edge between two tones rather than a line. Filled
+       * here too, just short, and between two surfaces a step apart. */}
+      <Wave
+        from="var(--c-surface3)"
+        to="var(--c-surface2)"
+        height="clamp(18px, 2vw, 30px)"
+      />
 
       <div className="quiz-shell__stage">
         {railMounted && (

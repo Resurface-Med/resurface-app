@@ -9,7 +9,7 @@
  * which guarantees the fill reaches the bottom edge instead of leaving a
  * hairline when the scaled height lands on a subpixel.
  */
-export default function Wave({ from, to, flip = false }) {
+export default function Wave({ from, to, flip = false, height }) {
   return (
     <div style={{ lineHeight: 0, background: from }} aria-hidden="true">
       <svg
@@ -18,7 +18,9 @@ export default function Wave({ from, to, flip = false }) {
         style={{
           display: "block",
           width: "100%",
-          height: "clamp(36px, 4vw, 64px)",
+          /* Section breaks want the full 36-64; a boundary inside a view wants
+             far less. Same curve either way. */
+          height: height ?? "clamp(36px, 4vw, 64px)",
           transform: flip ? "scaleX(-1)" : undefined,
         }}
       >

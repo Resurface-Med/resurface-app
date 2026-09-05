@@ -3672,26 +3672,11 @@ select {
   align-items: center;
   gap: 16px;
   padding: calc(env(safe-area-inset-top, 0px) + 14px) clamp(16px, 3vw, 28px) 12px;
-  background: transparent;
+  /* A step off the body, so the wave beneath has two tones to be an edge
+     between. One step only — #e9eefd against #f3f6fe is enough to draw the
+     curve and not enough to read as a toolbar. */
+  background: var(--c-surface3);
 }
-/* preserveAspectRatio: none stretches the curve to whatever width the screen
-   is, which is what makes it a boundary rather than a picture — and
-   non-scaling-stroke is what stops that stretch thinning the line at one end,
-   the trap the landing's ribbon comment already documents. */
-.quiz-shell__wave {
-  display: block;
-  flex-shrink: 0;
-  width: 100%;
-  height: clamp(9px, 1.2vw, 14px);
-  overflow: visible;
-}
-.quiz-shell__wave path {
-  fill: none;
-  stroke: var(--c-border-blu);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
-
 .quiz-shell__close {
   flex-shrink: 0;
   display: grid;
