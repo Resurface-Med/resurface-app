@@ -132,9 +132,6 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
               <span className="app-nav__profile-name">
                 {displayName?.trim() || "Profile"}
               </span>
-              {email && (
-                <span className="app-nav__profile-email">{email}</span>
-              )}
             </span>
           </button>
           <div className="app-nav__foot-meta">

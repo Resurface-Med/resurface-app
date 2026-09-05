@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { h1, OF, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
+import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -49,8 +49,6 @@ export default function ProfileView({
   const { user, updatePassword } = useAuth();
   const providers = authProviders(user);
   const canChangePassword = providers.includes("email");
-  const signedWith = providers.map(providerLabel).join(" · ") || "Email";
-
   const [name, setName] = useState(displayName || "");
   const [onBoard, setOnBoard] = useState(showOnLeaderboard !== false);
   const [emails, setEmails] = useState(marketingOptIn === true);
@@ -149,12 +147,6 @@ export default function ProfileView({
             <h1 style={{ ...h1, margin: 0 }}>
               {displayName?.trim() || "Profile"}
             </h1>
-            <p style={{ marginTop: 6, fontSize: 15, color: OF.soft, fontWeight: 500 }}>
-              {email}
-            </p>
-            <p style={{ marginTop: 4, fontSize: 13, color: OF.faint, fontWeight: 500 }}>
-              Signed in with {signedWith}
-            </p>
           </div>
         </div>
       </div>
