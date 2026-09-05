@@ -132,7 +132,7 @@ export default function ProfileView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+      <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <div className="profile-identity" data-in="left" style={{ "--i": 0 }}>
           <span className="profile-avatar" aria-hidden="true">
             {initials(displayName, email)}

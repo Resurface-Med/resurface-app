@@ -3773,7 +3773,7 @@ select {
   .app-nav__burger {
     position: fixed;
     z-index: 500;
-    top: calc(env(safe-area-inset-top, 0px) + 14px);
+    top: calc(var(--safe-t) + 14px);
     left: 12px;
     width: 44px;
     height: 44px;
@@ -3907,7 +3907,8 @@ select {
      They overlap the top of the page, not the side of it, so the page starts
      below them and keeps its full width. */
   .page-band {
-    padding-top: calc(env(safe-area-inset-top, 0px) + 66px) !important;
+    /* Notch/status bar + room under the floating menu button. */
+    padding-top: calc(var(--safe-t) + 66px) !important;
   }
 }
 
@@ -4286,7 +4287,7 @@ select {
 
 @media (max-width: 900px) {
   .app-shell.is-session .app-nav__burger { display: none; }
-  .app-shell.is-session .page-band { padding-top: calc(env(safe-area-inset-top, 0px) + 14px) !important; }
+  .app-shell.is-session .page-band { padding-top: calc(var(--safe-t) + 14px) !important; }
 }
 
 /* ─── Focus quiz shell ───────────────────────────────────────────── */
