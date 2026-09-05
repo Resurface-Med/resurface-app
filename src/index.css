@@ -2428,6 +2428,7 @@ select {
 }
 .gen-step {
   flex: 1;
+  padding-right: 12px;
   min-width: 0;
   padding: 0 0 10px;
   background: none;
@@ -2460,39 +2461,6 @@ select {
   letter-spacing: -0.5px;
   line-height: 1.25;
   color: var(--c-text);
-}
-
-/* Quiet, because opening it is the uncommon choice. */
-.gen-more {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-top: 16px;
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.1px;
-  color: var(--c-muted);
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.gen-more:hover { color: var(--c-accent); }
-.gen-more-chev {
-  display: grid;
-  place-items: center;
-  transition: transform 0.18s ease;
-}
-.gen-more-chev.is-open { transform: rotate(180deg); }
-.gen-more-body {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin-top: 16px;
-  padding-top: 18px;
-  border-top: 1px solid var(--c-border);
 }
 
 /* Back undoes, forward commits — so one is text and one is filled. */

@@ -240,21 +240,22 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 }
 
 /**
- * The form, as two questions.
+ * The form, split into three.
  *
- * It used to ask seven: source, subject, topic, year, block, difficulty and
- * count. Only three of those change anything you would notice, and one of the
- * remaining four — Year — has a single plausible answer in a bank that covers
- * one year of one course.
+ * It was one page asking seven things at once — source, subject, topic, year,
+ * block, difficulty and count — with a button at the end that would not say
+ * which of them was still missing.
  *
- * So it asks for the lecture, then for where it goes, and generates. The other
- * four keep the defaults they already had and sit behind one disclosure for
- * the times someone wants them. Fewer things to decide is the whole change;
- * nothing is explained harder than it was.
+ * Two questions carry it: what you have, and what it is about. The last step
+ * holds the four that already have the right answer filled in, so it is a
+ * place to change your mind rather than a place to make a decision. Each step
+ * gates on its own requirement, which means Continue is what tells you
+ * something is missing, at the point where you would fix it.
  */
 const STEPS = [
-  { k: "source", label: "Lecture", heading: "Drop your lecture in" },
+  { k: "source", label: "Lecture/notes", heading: "Lecture or notes" },
   { k: "place", label: "Topic", heading: "What's it about?" },
+  { k: "detail", label: "Details", heading: "Anything to adjust?" },
 ];
 
 // ── Quiet generating state ──────────────────────────────────────────────────
@@ -390,7 +391,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
   const [phase, setPhase] = useState("setup");
   const [step, setStep] = useState(0);
-  const [moreOpen, setMoreOpen] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
   // reply lands later and drops the user into a review screen they backed out
   // of. Held in a ref because aborting must not itself trigger a render.
@@ -423,7 +423,9 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const existingCats = DECK_MAP[deck] || [];
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
   const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
-  const sourceReady = Boolean(file || pastedText.trim());
+  /* One requirement per step. The last has none — everything on it is already
+     answered — so it is gated by canGenerate, which is the first two. */
+  const stepReady = [Boolean(file || pastedText.trim()), Boolean(category.trim())];
 
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
@@ -665,26 +667,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           </label>
         </div>
 
-        {/* One disclosure for the four that have a right answer nearly every
-            time. They keep the defaults they always had, so leaving this shut
-            is the same as filling it in the way almost everyone would. */}
-        <button
-          type="button"
-          className="gen-more"
-          onClick={() => setMoreOpen(v => !v)}
-          aria-expanded={moreOpen}
-        >
-          More options
-          <span className={`gen-more-chev${moreOpen ? " is-open" : ""}`} aria-hidden="true">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        </button>
+      </section>
+      </>)}
 
-        {moreOpen && (
-          <div className="gen-more-body" data-in="rise">
-            <div className="gen-grid">
+      {/* Details — everything here already has an answer, so this step is for
+          changing one rather than supplying one. */}
+      {step === 2 && (<>
+        <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
+          <div className="gen-grid">
           <label className="gen-field">
             <span className="gen-field-label">Year</span>
             <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
@@ -761,33 +751,31 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           </div>
         </div>
       </section>
-          </div>
-        )}
-      </section>
+        </section>
       </>)}
 
       {error && <p className="gen-error">{error}</p>}
 
       <div className="gen-nav">
         {step > 0 && (
-          <button type="button" className="gen-nav-back btn-press" onClick={() => setStep(0)}>
+          <button type="button" className="gen-nav-back btn-press" onClick={() => setStep(step - 1)}>
             <span aria-hidden="true">←</span> Back
           </button>
         )}
 
-        {step === 0 && (
+        {step < 2 && (
           <button
             type="button"
             className="btn-press gen-nav-go"
-            style={{ ...primaryBtn, opacity: sourceReady ? 1 : 0.45 }}
-            disabled={!sourceReady}
-            onClick={() => setStep(1)}
+            style={{ ...primaryBtn, opacity: stepReady[step] ? 1 : 0.45 }}
+            disabled={!stepReady[step]}
+            onClick={() => setStep(step + 1)}
           >
             Continue <span aria-hidden="true">→</span>
           </button>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
       <button
         type="button"
         className="btn-press gen-nav-go"
