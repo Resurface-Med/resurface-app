@@ -55,7 +55,8 @@ export default function ProfileView({
   const [onBoard, setOnBoard] = useState(showOnLeaderboard !== false);
   const [emails, setEmails] = useState(marketingOptIn === true);
   const [goal, setGoal] = useState(dailyGoal || 20);
-  const [saved, setSaved] = useState(false);
+  const [nameSaved, setNameSaved] = useState(false);
+  const [prefSaved, setPrefSaved] = useState(false);
 
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -65,22 +66,35 @@ export default function ProfileView({
 
   const [resetBusy, setResetBusy] = useState(false);
 
-  function saveAccount(e) {
+  function flashPrefs() {
+    setPrefSaved(true);
+    setTimeout(() => setPrefSaved(false), 1400);
+  }
+
+  function saveName(e) {
     e.preventDefault();
     const trimmed = name.trim().slice(0, 32);
     if (!trimmed) return;
-    remote.profile(userId, {
-      displayName: trimmed,
-      showOnLeaderboard: onBoard,
-      marketingOptIn: emails,
-    });
-    onProfileChange?.({
-      displayName: trimmed,
-      showOnLeaderboard: onBoard,
-      marketingOptIn: emails,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1600);
+    remote.profile(userId, { displayName: trimmed });
+    onProfileChange?.({ displayName: trimmed });
+    setName(trimmed);
+    setNameSaved(true);
+    setTimeout(() => setNameSaved(false), 1400);
+  }
+
+  function setLeaderboard(next) {
+    if (next === onBoard) return;
+    setOnBoard(next);
+    remote.profile(userId, { showOnLeaderboard: next });
+    onProfileChange?.({ showOnLeaderboard: next });
+    flashPrefs();
+  }
+
+  function setEmailOptIn(next) {
+    setEmails(next);
+    remote.profile(userId, { marketingOptIn: next });
+    onProfileChange?.({ marketingOptIn: next });
+    flashPrefs();
   }
 
   function saveGoal(e) {
@@ -89,8 +103,7 @@ export default function ProfileView({
     setGoal(g);
     remote.goal(userId, g);
     onProfileChange?.({ dailyGoal: g });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1600);
+    flashPrefs();
   }
 
   async function changePassword(e) {
@@ -155,18 +168,23 @@ export default function ProfileView({
             <h2 style={sectionH}>Account</h2>
             <p style={{ ...meta, marginTop: 4 }}>How you appear on Resurface.</p>
 
-            <form onSubmit={saveAccount} className="profile-stack">
-              <label className="profile-field">
+            <div className="profile-stack">
+              <form onSubmit={saveName} className="profile-field">
                 <span className="profile-label">Display name</span>
-                <input
-                  className="profile-input"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  maxLength={32}
-                  placeholder="What shows on the leaderboard"
-                  required
-                />
-              </label>
+                <div className="profile-name-row">
+                  <input
+                    className="profile-input"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    maxLength={32}
+                    placeholder="What shows on the leaderboard"
+                    required
+                  />
+                  <button type="submit" className="btn-press profile-inline-save" style={primaryBtn}>
+                    {nameSaved ? "Saved" : "Save"}
+                  </button>
+                </div>
+              </form>
 
               <div>
                 <span className="profile-label">Leaderboard</span>
@@ -174,7 +192,7 @@ export default function ProfileView({
                   <button
                     type="button"
                     className="btn-press"
-                    onClick={() => setOnBoard(true)}
+                    onClick={() => setLeaderboard(true)}
                     style={onBoard ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
                   >
                     Show me
@@ -182,7 +200,7 @@ export default function ProfileView({
                   <button
                     type="button"
                     className="btn-press"
-                    onClick={() => setOnBoard(false)}
+                    onClick={() => setLeaderboard(false)}
                     style={!onBoard ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
                   >
                     Hide me
@@ -190,6 +208,7 @@ export default function ProfileView({
                 </div>
                 <p style={{ ...meta, marginTop: 8 }}>
                   On by default. Hiding removes you from the weekly board.
+                  {prefSaved ? " · Saved" : ""}
                 </p>
               </div>
 
@@ -197,15 +216,11 @@ export default function ProfileView({
                 <input
                   type="checkbox"
                   checked={emails}
-                  onChange={e => setEmails(e.target.checked)}
+                  onChange={e => setEmailOptIn(e.target.checked)}
                 />
                 <span>Send me news, tips, and study emails</span>
               </label>
-
-              <button type="submit" className="btn-press" style={{ ...primaryBtn, alignSelf: "flex-start" }}>
-                {saved ? "Saved" : "Save account"}
-              </button>
-            </form>
+            </div>
           </section>
 
           <section className="profile-section" data-in="rise" style={{ "--i": 2 }}>

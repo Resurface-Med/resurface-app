@@ -4054,6 +4054,20 @@ select {
   margin-top: 8px;
   flex-wrap: wrap;
 }
+.profile-name-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.profile-name-row .profile-input {
+  flex: 1;
+  min-width: 0;
+}
+.profile-inline-save {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  min-width: 84px;
+}
 .profile-err {
   margin: 0;
   font-size: 13.5px;
