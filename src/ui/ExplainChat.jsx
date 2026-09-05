@@ -286,11 +286,16 @@ export default function ExplainChat({ q, picked, onClose }) {
       </div>
 
       <footer className="ai-dock__foot">
-        <p className="ai-dock__quota" aria-live="polite">
-          {atLimit
-            ? `You've used all ${ASK_LIMIT} AI asks on this question.`
-            : `${remaining} of ${ASK_LIMIT} AI asks left on this question`}
-        </p>
+        {atLimit && (
+          <p className="ai-dock__quota" role="status">
+            No more AI asks on this question — try another one.
+          </p>
+        )}
+        {!atLimit && remaining === 1 && (
+          <p className="ai-dock__quota" aria-live="polite">
+            1 AI ask left on this question
+          </p>
+        )}
         {!atLimit && messages.length === 0 && (
           <QuickPills
             sending={sending}
