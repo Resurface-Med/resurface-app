@@ -363,6 +363,12 @@ export default function App() {
                 if (p.marketingOptIn !== undefined) setMarketingOptIn(p.marketingOptIn);
                 if (p.dailyGoal !== undefined) setDailyGoal(p.dailyGoal);
               }}
+              onResetProgress={() => {
+                remote.clearPractice(user.id);
+                remote.clearSR(user.id);
+                setPStats({});
+                setSrCards({});
+              }}
               onSignOut={signOut}
             />
           )}

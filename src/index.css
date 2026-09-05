@@ -3978,15 +3978,137 @@ select {
   .dash-split { gap: 26px; }
 }
 
-/* The theme switch lives in one place per size. On a phone it is a row in
-   Profile, so the floating button goes; on a desktop the floating button is
-   the control, so the Profile row goes. Never both — one setting with two
-   switches is how they end up disagreeing in someone's head. */
-.profile-appearance { display: none; }
+/* Profile sheet — identity on the blue field, settings on the white sheet. */
+.profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.profile-avatar {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--c-field-object);
+  color: var(--c-field-object-ink);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  box-shadow: 0 8px 20px rgba(15, 27, 61, 0.16);
+}
+.profile-identity__text {
+  min-width: 0;
+}
+.profile-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(28px, 4vh, 40px);
+}
+.profile-section {
+  padding-bottom: clamp(24px, 3.4vh, 32px);
+  border-bottom: 1px solid var(--c-border);
+}
+.profile-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.profile-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+}
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-sub);
+  letter-spacing: -0.1px;
+}
+.profile-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 15px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-ctrl);
+  outline: none;
+}
+.profile-input:focus {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px var(--c-accent-glow);
+}
+.profile-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.profile-err {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-danger);
+}
+.profile-ok {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-success);
+}
+.profile-danger-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+.profile-danger-btn {
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--c-danger-brd);
+  background: var(--c-danger-dim);
+  color: var(--c-danger);
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.profile-danger-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.profile-signout {
+  padding: 12px 18px;
+  border-radius: var(--r-pill);
+  border: 1.5px solid var(--c-border);
+  background: transparent;
+  color: var(--c-sub);
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 @media (max-width: 900px) {
-  .profile-appearance { display: block; margin-top: 22px; }
+  .profile-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
 }
+
+/* Legacy hook — appearance now lives in Preferences for every size. */
+.profile-appearance { display: block; margin-top: 0; }
 
 /* ─── Practice dock on a phone ──────────────────────────────────── */
 /* It is a sheet rising from the bottom edge, not a strip cut across the page.
