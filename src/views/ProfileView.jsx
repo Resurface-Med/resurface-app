@@ -36,12 +36,6 @@ function authProviders(user) {
   return one ? [one] : [];
 }
 
-function providerLabel(p) {
-  if (p === "google") return "Google";
-  if (p === "email") return "Email";
-  return p;
-}
-
 export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal,
   onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
