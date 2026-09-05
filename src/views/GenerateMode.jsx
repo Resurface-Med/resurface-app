@@ -742,8 +742,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               disabled={!reachable}
               aria-current={current ? "step" : undefined}
             >
-              <span className="gen-step__num" aria-hidden="true">{i + 1}</span>
-              <span className="gen-step__label">{st.label}</span>
+              {st.label}
             </button>
           );
         })}
