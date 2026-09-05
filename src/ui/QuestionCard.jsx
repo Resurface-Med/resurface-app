@@ -4,6 +4,7 @@ import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
 import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
+import QuestionImage from "./QuestionImage";
 
 /**
  * The question is the only solid object on the field.
@@ -209,6 +210,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       >
         {q.q}
       </p>
+
+      {/* Between the stem and the options, because it is part of the question
+          being asked rather than decoration above it. */}
+      <QuestionImage key={q.img || "none"} path={q.img} />
 
       <div
         className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}

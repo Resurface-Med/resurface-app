@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { C, primaryBtn } from "./theme";
 import { remote } from "../lib/remote";
+import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
 import { useAuth } from "../lib/auth";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
@@ -28,6 +29,34 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
     q.optExp ? [...q.optExp].map(e => e ?? "") : Array(q.opts.length).fill("")
   );
 
+  const [img, setImg] = useState(q.img ?? null);
+  const [imgUrl, setImgUrl] = useState(null);
+  const [imgBusy, setImgBusy] = useState(false);
+  const [imgError, setImgError] = useState("");
+
+  /* The question stores a path; the picture needs a signed URL, which expires.
+     Resolved here rather than saved, so an old question never carries a dead
+     link around with it. */
+  useEffect(() => {
+    let cancelled = false;
+    if (!img) return;
+    questionImageUrl(img).then(u => { if (!cancelled) setImgUrl(u); });
+    return () => { cancelled = true; };
+  }, [img]);
+
+  async function handleImage(file) {
+    if (!file || !user) return;
+    setImgError("");
+    setImgBusy(true);
+    try {
+      setImg(await uploadQuestionImage(user.id, file));
+    } catch (e) {
+      setImgError(e.message || "That image would not upload.");
+    } finally {
+      setImgBusy(false);
+    }
+  }
+
   function setOpt(i, val) { setOpts(o => o.map((v, j) => j === i ? val : v)); }
   function setOptExpItem(i, val) { setOptExp(o => o.map((v, j) => j === i ? val : v)); }
 
@@ -43,6 +72,7 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
       ans,
       exp: exp.trim(),
       optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
+      img: img ?? null,
     };
     if (!isNew && user) remote.questionEdit(user.id, q.id, updated);
     onSave({ ...q, ...updated });
@@ -84,6 +114,33 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
             value={question} onChange={e => setQuestion(e.target.value)}
             rows={3} style={inputStyle}
           />
+        </div>
+
+        {/* Image — optional, and the reason histology and anatomy questions can
+            exist at all. Downscaled and re-encoded before it leaves the
+            browser, so what is stored is about fifty kilobytes rather than the
+            five megabytes a phone camera produces. */}
+        <div>
+          <label style={labelStyle}>Image (optional)</label>
+          {img && imgUrl && <img src={imgUrl} alt="" className="qedit-img" />}
+          <div className="qedit-img-row">
+            <label className="qedit-img-btn">
+              {imgBusy ? "Adding…" : img ? "Replace" : "Add an image"}
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                disabled={imgBusy}
+                onChange={e => handleImage(e.target.files?.[0])}
+              />
+            </label>
+            {img && !imgBusy && (
+              <button type="button" className="qedit-img-del" onClick={() => setImg(null)}>
+                Remove
+              </button>
+            )}
+          </div>
+          {imgError && <p className="qedit-img-error">{imgError}</p>}
         </div>
 
         {/* Options + correct answer */}
