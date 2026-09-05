@@ -7,6 +7,22 @@ import QuestionNavigator from "./QuestionNavigator";
 /**
  * Full-screen study mode: no sidebar until you ask for the question list.
  */
+/** The same chevron the rail and Progress draw, mirrored for back. */
+function NavChevron({ back }) {
+  return (
+    <svg
+      width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"
+      style={back ? { transform: "scaleX(-1)" } : undefined}
+    >
+      <path
+        d="M6.5 3.5L12 9l-5.5 5.5"
+        stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function QuizShell({
   q,
   idx,
@@ -38,11 +54,21 @@ export default function QuizShell({
   useEffect(() => {
     if (!railOpen) return;
     function onKey(e) {
-      if (e.key === "Escape") setRailOpen(false);
+      if (e.key === "Escape") { setRailOpen(false); return; }
+
+      // Not while a modifier is held — those are browser navigation — and not
+      // while someone is typing, or asking Resurface AI a question would move
+      // the quiz underneath them every time they pressed left.
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target;
+      if (el?.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName || "")) return;
+
+      if (e.key === "ArrowLeft" && onPrev) { e.preventDefault(); onPrev(); }
+      if (e.key === "ArrowRight" && !isLast) { e.preventDefault(); onNext?.(); }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [railOpen]);
+  }, [railOpen, onPrev, onNext, isLast]);
 
   useEffect(() => {
     setAiOpen(false);
@@ -167,14 +193,45 @@ export default function QuizShell({
 
       <footer className="quiz-shell__footer">
         <div className="quiz-shell__footer-bar">
-          <button
-            type="button"
-            className={`quiz-shell__foot-btn btn-press${railOpen ? " is-on" : ""}`}
-            aria-pressed={railOpen}
-            onClick={() => setRailOpen(v => !v)}
-          >
-            Questions
-          </button>
+          {/* Arrows flank the rail toggle rather than sitting by the primary:
+              these three are all "which question am I on", and the button on
+              the right is "what do I do with this one". Grouping them says so
+              without a label.
+
+              Not a duplicate of that button either. While a question is
+              unanswered the primary reads "Check", so forward is the only way
+              to skip one — and back had no footer control at all, it meant
+              opening the rail. */}
+          <div className="quiz-shell__nav">
+            <button
+              type="button"
+              className="quiz-shell__arrow btn-press"
+              onClick={() => onPrev?.()}
+              disabled={!onPrev}
+              aria-label="Previous question"
+            >
+              <NavChevron back />
+            </button>
+
+            <button
+              type="button"
+              className={`quiz-shell__foot-btn btn-press${railOpen ? " is-on" : ""}`}
+              aria-pressed={railOpen}
+              onClick={() => setRailOpen(v => !v)}
+            >
+              Questions
+            </button>
+
+            <button
+              type="button"
+              className="quiz-shell__arrow btn-press"
+              onClick={() => onNext?.()}
+              disabled={isLast}
+              aria-label="Next question"
+            >
+              <NavChevron />
+            </button>
+          </div>
           <button
             type="button"
             className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"

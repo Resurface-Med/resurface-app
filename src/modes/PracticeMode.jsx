@@ -616,7 +616,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       results={results}
       isBookmarked={isBookmarked}
       isLast={idx + 1 >= queue.length}
-      isLast={idx + 1 >= queue.length}
       onAnswer={handleAnswer}
       onNext={handleNext}
       onPrev={idx > 0 ? handleBack : null}

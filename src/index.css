@@ -3957,6 +3957,43 @@ select {
   opacity: 0.4;
   cursor: not-allowed;
 }
+/* The three "which question" controls, kept together and away from the
+   primary. */
+.quiz-shell__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Same border, fill and accent as the rail toggle beside it, drawn round
+   because it holds a glyph rather than a word. 44px so it is a real target on
+   a phone, which is where there is no arrow key to fall back on. */
+.quiz-shell__arrow {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-accent-brd);
+  background: var(--c-surface2);
+  color: var(--c-accent);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.quiz-shell__arrow:hover:not(:disabled) {
+  background: var(--c-accent-dim);
+}
+/* Kept in place rather than hidden at the ends of the queue: a control that
+   vanishes moves the two beside it, and the row would shift every time you
+   reached the first or last question. */
+.quiz-shell__arrow:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
 .quiz-shell__foot-btn--primary {
   margin-left: auto;
   border-color: transparent;
@@ -4156,6 +4193,25 @@ select {
   }
   .quiz-shell__body {
     padding: 10px 12px 8px;
+  }
+  .quiz-shell__footer-bar {
+    gap: 8px;
+    padding: 7px 8px 7px 8px;
+  }
+  .quiz-shell__nav { gap: 6px; }
+  .quiz-shell__arrow {
+    width: 42px;
+    height: 42px;
+  }
+  /* The rail toggle gives up its 112px floor first — it is the one control
+     here whose width was a minimum rather than a requirement. */
+  .quiz-shell__foot-btn {
+    min-width: 0;
+    padding: 11px 16px;
+    font-size: 14.5px;
+  }
+  .quiz-shell__foot-btn--primary {
+    padding: 11px 20px;
   }
   .quiz-shell .q-card--focus {
     max-width: none;
