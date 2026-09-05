@@ -4,10 +4,8 @@ import { QUESTIONS, CURRICULUM } from "../data";
 import Wave from "../ui/Wave";
 
 /**
- * Progress — coverage and accuracy by subject, then drill into topics.
- *
- * One list you can scan: block → subjects with a real coverage bar → topics
- * with a Practice action. Weak topics sort first inside each subject.
+ * Progress — same quiet list language as Leaderboard / Home stats.
+ * Scan subjects, open a topic, practise. No hero numerals.
  */
 
 const band = {
@@ -40,22 +38,15 @@ function deckStats(deck, pStats) {
     if (s) { correct += s.correct; attempts += s.total; seen++; }
   }
   const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
-  return { total: qs.length, seen, pct, cover: qs.length ? seen / qs.length : 0 };
+  return { total: qs.length, seen, pct };
 }
 
-function CoverageBar({ value, label }) {
-  const v = Math.max(0, Math.min(1, value || 0));
+function OverviewRow({ label, value, first = false }) {
   return (
-    <span
-      className="prog-bar"
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(v * 100)}
-      aria-label={label}
-    >
-      <span className="prog-bar-fill" style={{ transform: `scaleX(${v})` }} />
-    </span>
+    <div className={`prog-ov-row${first ? " is-first" : ""}`}>
+      <span className="prog-ov-label">{label}</span>
+      <span className="prog-ov-value">{value}</span>
+    </div>
   );
 }
 
@@ -72,6 +63,8 @@ function SubjectBlock({ deck, cats, pStats, open, onToggle, onPractice }) {
     });
   }, [cats, pStats]);
 
+  const cover = d.total ? Math.round((d.seen / d.total) * 100) : 0;
+
   return (
     <div className={`prog-subject${open ? " is-open" : ""}`}>
       <button
@@ -81,20 +74,16 @@ function SubjectBlock({ deck, cats, pStats, open, onToggle, onPractice }) {
         aria-expanded={open}
       >
         <span className="prog-subject-name">{deck}</span>
-        <CoverageBar value={d.cover} label={`${deck} coverage`} />
-        <span className="prog-subject-nums">
-          {d.pct !== null ? (
-            <span className={`prog-pct${d.pct < 60 ? " is-weak" : d.pct >= 70 ? " is-ok" : ""}`}>
-              {d.pct}%
-            </span>
-          ) : (
-            <span className="prog-pct is-empty">—</span>
+        <span className="prog-subject-meta">
+          {d.pct !== null && (
+            <span className={`prog-acc${d.pct < 60 ? " is-weak" : ""}`}>{d.pct}%</span>
           )}
-          <span className="prog-seen">{d.seen}/{d.total}</span>
+          <span>{d.seen}/{d.total}</span>
+          <span className="prog-cover">{cover}%</span>
         </span>
         <span className={`prog-chevron${open ? " is-open" : ""}`} aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-            <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
       </button>
@@ -105,17 +94,15 @@ function SubjectBlock({ deck, cats, pStats, open, onToggle, onPractice }) {
             const t = topicStats(cat, pStats);
             return (
               <li key={cat} className="prog-topic">
-                <div className="prog-topic-main">
+                <div className="prog-topic-copy">
                   <span className="prog-topic-name">{shortCat(cat, deck)}</span>
                   <span className="prog-topic-meta">
                     {t.pct !== null ? (
-                      <span className={`prog-pct${t.pct < 60 ? " is-weak" : t.pct >= 70 ? " is-ok" : ""}`}>
-                        {t.pct}%
-                      </span>
+                      <span className={`prog-acc${t.pct < 60 ? " is-weak" : ""}`}>{t.pct}%</span>
                     ) : (
-                      <span className="prog-pct is-empty">—</span>
+                      <span className="prog-acc is-empty">—</span>
                     )}
-                    <span className="prog-seen">{t.seen}/{t.total}</span>
+                    <span>{t.seen}/{t.total}</span>
                   </span>
                 </div>
                 <button
@@ -138,7 +125,6 @@ export default function StatsView({
   pStats, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
 }) {
   const [openDecks, setOpenDecks] = useState(() => new Set());
-  /* First block open, the rest shut — every block repeats the same subjects. */
   const [openBlocks, setOpenBlocks] = useState(() => new Set([CURRICULUM[0]?.block].filter(Boolean)));
 
   function toggleBlockOpen(name) {
@@ -168,7 +154,8 @@ export default function StatsView({
     const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
     const accuracy = totalT > 0 ? Math.round((totalC / totalT) * 100) : null;
     const seen = Object.keys(pStats).length;
-    return { accuracy, seen, cover: QUESTIONS.length ? seen / QUESTIONS.length : 0 };
+    const cover = QUESTIONS.length ? Math.round((seen / QUESTIONS.length) * 100) : 0;
+    return { accuracy, seen, cover };
   }, [pStats]);
 
   const blocks = CURRICULUM;
@@ -178,49 +165,45 @@ export default function StatsView({
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
-        <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
+        <p data-in="left" style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em", "--i": 1 }}>
           {seen === 0
             ? "Nothing attempted yet. Answer a few questions and this fills in."
-            : "Coverage and accuracy across the bank."}
+            : "How each subject is going — open one to practise a topic."}
         </p>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div className="prog-sheet" style={{ ...band }}>
-          <div className="prog-overview" aria-label="Overview" data-in="rise" style={{ "--i": 2 }}>
-            <div className="prog-overview-stats">
-              <div className="prog-field-stat">
-                <span className="prog-field-value">
-                  {accuracy === null ? "—" : accuracy}
-                  {accuracy !== null && <span className="prog-field-unit">%</span>}
-                </span>
-                <span className="prog-field-label">Accuracy</span>
-              </div>
-              <div className="prog-field-stat">
-                <span className="prog-field-value">
-                  {seen}
-                  <span className="prog-field-unit">/{QUESTIONS.length}</span>
-                </span>
-                <span className="prog-field-label">Seen</span>
-              </div>
-            </div>
-            <div className="prog-overview-cover">
-              <CoverageBar value={cover} label="Overall coverage" />
-              <span className="prog-overview-cover-note">
-                {Math.round(cover * 100)}% of the bank seen
-              </span>
-            </div>
-          </div>
+        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
 
-          <h2 className="prog-sheet-title" style={sectionH}>Subjects</h2>
+          <section className="prog-overview" data-in="rise" style={{ "--i": 2 }} aria-label="Overview">
+            <div className="prog-section-head">
+              <h2 style={{ ...sectionH, margin: 0 }}>Overview</h2>
+            </div>
+            <OverviewRow
+              first
+              label="Accuracy"
+              value={accuracy === null ? "—" : `${accuracy}%`}
+            />
+            <OverviewRow
+              label="Seen"
+              value={`${seen.toLocaleString()} of ${QUESTIONS.length.toLocaleString()}`}
+            />
+            <OverviewRow
+              label="Bank covered"
+              value={`${cover}%`}
+            />
+            <div className="prog-ov-track" aria-hidden="true">
+              <span style={{ width: `${cover}%` }} />
+            </div>
+          </section>
 
-          {blocks.map(b => {
+          {blocks.map((b, bi) => {
             const bOpen = openBlocks.has(b.block);
             const topicCount = b.decks.reduce((n, d) => n + d.cats.length, 0);
             return (
-              <section key={b.block} className="prog-block" data-in="rise" style={{ "--i": 4 }}>
+              <section key={b.block} className="prog-block" data-in="rise" style={{ "--i": 3 + bi }}>
                 <button
                   type="button"
                   className={`prog-block-head${bOpen ? " is-open" : ""}`}
@@ -229,19 +212,21 @@ export default function StatsView({
                 >
                   <span className="prog-block-name">{b.block}</span>
                   <span className="prog-block-meta">
-                    {b.decks.length} subject{b.decks.length === 1 ? "" : "s"}
-                    <span aria-hidden="true"> · </span>
-                    {topicCount} topics
+                    {b.decks.length} subjects · {topicCount} topics
                   </span>
                   <span className={`prog-chevron${bOpen ? " is-open" : ""}`} aria-hidden="true">
                     <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                      <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </span>
                 </button>
 
                 {bOpen && (
                   <div className="prog-subjects">
+                    <div className="prog-col-head" aria-hidden="true">
+                      <span>Subject</span>
+                      <span>Accuracy · seen · covered</span>
+                    </div>
                     {b.decks.map(d => (
                       <SubjectBlock
                         key={`${b.block}/${d.deck}`}
