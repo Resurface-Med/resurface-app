@@ -1,10 +1,6 @@
 import { useRef, useLayoutEffect, useEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
 
-const NAV_SUB    = "var(--c-nav-sub)";
-const NAV_MUTED  = "var(--c-nav-muted)";
-const NAV_MUTDIM = "var(--c-nav-muted-dim)";
-
 function initials(displayName, email) {
   const n = String(displayName || "").trim();
   if (n) {
