@@ -2080,7 +2080,7 @@ select {
 .setup-dock-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px 14px;
 }
 .setup-dock-group {
@@ -2090,11 +2090,10 @@ select {
   min-width: 0;
 }
 .setup-dock-label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--c-muted-dim);
+  letter-spacing: -0.1px;
+  color: var(--c-muted);
   padding-left: 2px;
   line-height: 1;
 }

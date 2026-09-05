@@ -516,6 +516,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               ) : (
                 <div className="setup-options">
                   <div className="setup-opt-group">
+                    <span className="setup-dock-label">From</span>
                     <div className="setup-seg" role="radiogroup" aria-label="Question pool">
                       {SCOPES.map(s => {
                         const n = scopeCount(s.k);
@@ -533,6 +534,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <div className="setup-opt-group">
+                    <span className="setup-dock-label">How many</span>
                     <div className="setup-seg" role="radiogroup" aria-label="Session length">
                       {COUNT_OPTIONS.map(o => {
                         const disabled = o !== "All" && o > scoped;
@@ -549,6 +551,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <div className="setup-opt-group">
+                    <span className="setup-dock-label">Filter</span>
                     <button
                       type="button"
                       className="btn-press"
@@ -645,56 +648,65 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
             <div className="setup-dock" data-in="rise" style={{ "--i": 3 }}>
               <div className="setup-dock-row">
-                <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Question pool">
-                  {SCOPES.map(s => {
-                    const n = scopeCount(s.k);
-                    const disabled = n === 0 && s.k !== "all";
-                    const active = scope === s.k;
-                    return (
-                      <button
-                        key={s.k}
-                        role="radio"
-                        aria-checked={active}
-                        className="btn-press"
-                        disabled={disabled}
-                        onClick={() => !disabled && setScope(s.k)}
-                        style={dockChip(active, disabled)}
-                      >
-                        {s.label}
-                      </button>
-                    );
-                  })}
+                <div className="setup-dock-group">
+                  <span className="setup-dock-label">From</span>
+                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Question pool">
+                    {SCOPES.map(s => {
+                      const n = scopeCount(s.k);
+                      const disabled = n === 0 && s.k !== "all";
+                      const active = scope === s.k;
+                      return (
+                        <button
+                          key={s.k}
+                          role="radio"
+                          aria-checked={active}
+                          className="btn-press"
+                          disabled={disabled}
+                          onClick={() => !disabled && setScope(s.k)}
+                          style={dockChip(active, disabled)}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Session length">
-                  {COUNT_OPTIONS.map(o => {
-                    const disabled = o !== "All" && o > scoped;
-                    const active = o === countOpt;
-                    return (
-                      <button
-                        key={o}
-                        role="radio"
-                        aria-checked={active}
-                        disabled={disabled}
-                        className="btn-press"
-                        style={dockChip(active, disabled)}
-                        onClick={() => !disabled && setCountOpt(o)}
-                      >
-                        {o === "All" ? "All" : o}
-                      </button>
-                    );
-                  })}
+                <div className="setup-dock-group">
+                  <span className="setup-dock-label">How many</span>
+                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Session length">
+                    {COUNT_OPTIONS.map(o => {
+                      const disabled = o !== "All" && o > scoped;
+                      const active = o === countOpt;
+                      return (
+                        <button
+                          key={o}
+                          role="radio"
+                          aria-checked={active}
+                          disabled={disabled}
+                          className="btn-press"
+                          style={dockChip(active, disabled)}
+                          onClick={() => !disabled && setCountOpt(o)}
+                        >
+                          {o === "All" ? "All" : o}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  className="btn-press"
-                  onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
-                  aria-pressed={filter.unseenOnly}
-                  style={toggleChip(filter.unseenOnly)}
-                >
-                  Unseen only
-                </button>
+                <div className="setup-dock-group">
+                  <span className="setup-dock-label">Filter</span>
+                  <button
+                    type="button"
+                    className="btn-press"
+                    onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
+                    aria-pressed={filter.unseenOnly}
+                    style={toggleChip(filter.unseenOnly)}
+                  >
+                    Unseen only
+                  </button>
+                </div>
               </div>
 
               <button
