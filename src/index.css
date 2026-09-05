@@ -3688,8 +3688,12 @@ select {
   background: transparent;
   /* On-field, not ink. C.muted and C.sub assume a panel underneath and go
      near-invisible on the blue — the theme's OF tokens exist for exactly this
-     and the comment on them says so. */
-  color: var(--c-on-field-faint);
+     and the comment on them says so.
+   *
+   * Measured against #3562F5: soft (0.94 white) is 4.61:1 and faint (0.82) is
+   * 4.03:1. Both clear the 3:1 a graphical control needs, but there is no
+   * reason to spend the difference on the one button that closes the session. */
+  color: var(--c-on-field-soft);
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
