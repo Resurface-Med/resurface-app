@@ -3672,10 +3672,10 @@ select {
   align-items: center;
   gap: 16px;
   padding: calc(env(safe-area-inset-top, 0px) + 14px) clamp(16px, 3vw, 28px) 12px;
-  /* A step off the body, so the wave beneath has two tones to be an edge
-     between. One step only — #e9eefd against #f3f6fe is enough to draw the
-     curve and not enough to read as a toolbar. */
-  background: var(--c-surface3);
+  /* The blue field, as on every other tab: field, wave, sheet. This screen was
+     the only one that never left the sheet, which is the other half of why it
+     read as unbranded. */
+  background: var(--c-bg);
 }
 .quiz-shell__close {
   flex-shrink: 0;
@@ -3686,13 +3686,16 @@ select {
   border: none;
   border-radius: var(--r-pill);
   background: transparent;
-  color: var(--c-muted);
+  /* On-field, not ink. C.muted and C.sub assume a panel underneath and go
+     near-invisible on the blue — the theme's OF tokens exist for exactly this
+     and the comment on them says so. */
+  color: var(--c-on-field-faint);
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
 }
 .quiz-shell__close:hover {
-  color: var(--c-text);
-  background: var(--c-surface2);
+  color: var(--c-on-field);
+  background: rgba(255, 255, 255, 0.14);
 }
 .quiz-shell__progress-wrap {
   flex: 1;
@@ -3705,30 +3708,30 @@ select {
   flex: 1;
   height: 6px;
   border-radius: 99px;
-  background: var(--c-surface3);
+  background: rgba(255, 255, 255, 0.22);
   overflow: hidden;
 }
-/* Brand, not green. This bar is (idx + 1) / queue.length — where you are in
-   the queue, not how many you have right — so green was quietly congratulating
-   someone for scrolling. It also frees green to mean one thing in this view:
-   correct. The navigator rows and the answered options are the only places it
-   should appear.
+/* White on the field, which is the landing's rule for objects sitting on the
+   blue and the reason the accent gradient came off: blue on blue is not a
+   meter.
  *
- * The gradient is the app's existing accent-bar treatment, lifted from
- * ProgressBar, so it reads as depth rather than as a flat meter. */
+ * It is also not green any more, and that mattered before the field arrived.
+ * The bar is (idx + 1) / queue.length — where you are in the queue, not how
+ * many you have right — so green was congratulating people for scrolling, and
+ * it left green free to mean one thing here: correct. */
 .quiz-shell__progress-fill {
   height: 100%;
   width: 100%;
   transform-origin: left center;
   border-radius: 99px;
-  background: linear-gradient(90deg, #6e8ff7, var(--c-accent));
+  background: var(--c-field-object);
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .quiz-shell__count {
   flex-shrink: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--c-sub);
+  color: var(--c-on-field-soft);
   font-variant-numeric: tabular-nums;
 }
 /* Two tracks in both states, the first collapsing to nothing when the rail is

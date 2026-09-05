@@ -171,12 +171,15 @@ export default function QuizShell({
        * stretched across a wide screen is a wavelength near 1000px against
        * about 12px of amplitude, and a stroke cannot survive that ratio — the
        * landing's wave only reads at similar proportions because it is filled,
-       * so the curve is an edge between two tones rather than a line. Filled
-       * here too, just short, and between two surfaces a step apart. */}
+       * so the curve is an edge between two tones rather than a line.
+       *
+       * Shorter than a section break, though: 22 to 36 against the landing's
+       * 36 to 64, because this is a boundary inside a view rather than the
+       * gap between two of them. */}
       <Wave
-        from="var(--c-surface3)"
+        from="var(--c-bg)"
         to="var(--c-surface2)"
-        height="clamp(18px, 2vw, 30px)"
+        height="clamp(22px, 2.6vw, 36px)"
       />
 
       <div className="quiz-shell__stage">
