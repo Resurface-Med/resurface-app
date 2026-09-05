@@ -317,6 +317,17 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 className="q-review-ai btn-press"
                 onClick={() => setExplaining(true)}
               >
+                {/* icon-192, not books.webp. Same mark, but this is the one
+                    drawn as an icon — flat, high contrast, made to survive
+                    being small. The hero render put detail at 26px that had
+                    nowhere to go and came out looking like an emoji. */}
+                <img
+                  src="/icon-192.png"
+                  alt=""
+                  width="192"
+                  height="192"
+                  className="q-review-ai__mark"
+                />
                 Ask Resurface AI
                 <svg className="q-review-ai__arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

@@ -700,7 +700,7 @@ body::after {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  padding: 9px 14px 9px 16px;
+  padding: 8px 14px 8px 11px;
   border: 1.5px solid var(--c-accent-brd);
   border-radius: var(--r-pill);
   background: var(--c-accent-dim);
@@ -714,10 +714,19 @@ body::after {
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
+/* Deepens rather than inverting. Filling it solid accent would put the blue
+   mark on blue and lose it — a hover state that erases part of the control is
+   worse than a quieter one. */
 .q-review-ai:hover {
-  background: var(--c-accent);
+  background: var(--c-accent-glow);
   border-color: var(--c-accent);
-  color: #fff;
+}
+.q-review-ai__mark {
+  display: block;
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  object-fit: contain;
 }
 .q-review-ai__arrow {
   flex-shrink: 0;
@@ -3899,8 +3908,12 @@ select {
    rather than sitting small against 17px prose. The icon and label overrides
    that used to live here went with the card version of this button. */
 .quiz-shell .q-card--focus .q-review-ai {
-  padding: 10px 16px 10px 18px;
+  padding: 9px 16px 9px 12px;
   font-size: 14.5px;
+}
+.quiz-shell .q-card--focus .q-review-ai__mark {
+  width: 18px;
+  height: 18px;
 }
 .quiz-shell .q-card--focus .q-review-meta {
   margin-top: 20px;
