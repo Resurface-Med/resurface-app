@@ -239,6 +239,24 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   }));
 }
 
+/**
+ * The form, as two questions.
+ *
+ * It used to ask seven: source, subject, topic, year, block, difficulty and
+ * count. Only three of those change anything you would notice, and one of the
+ * remaining four — Year — has a single plausible answer in a bank that covers
+ * one year of one course.
+ *
+ * So it asks for the lecture, then for where it goes, and generates. The other
+ * four keep the defaults they already had and sit behind one disclosure for
+ * the times someone wants them. Fewer things to decide is the whole change;
+ * nothing is explained harder than it was.
+ */
+const STEPS = [
+  { k: "source", label: "Lecture", heading: "Drop your lecture in" },
+  { k: "place", label: "Topic", heading: "What's it about?" },
+];
+
 // ── Quiet generating state ──────────────────────────────────────────────────
 
 /**
@@ -371,6 +389,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
+  const [step, setStep] = useState(0);
+  const [moreOpen, setMoreOpen] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
   // reply lands later and drops the user into a review screen they backed out
   // of. Held in a ref because aborting must not itself trigger a render.
@@ -403,6 +423,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const existingCats = DECK_MAP[deck] || [];
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
   const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
+  const sourceReady = Boolean(file || pastedText.trim());
 
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
@@ -522,7 +543,29 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       {phase === "generating" && (
         <GeneratingWindow count={countNum} onCancel={cancelGenerate} />
       )}
+
+      {/* Two labels on one rule, the live one lit. No circles and no fills —
+          a circle needs a fill to read as anything. Going back is allowed;
+          skipping ahead is not, which is the only rule the rail enforces. */}
+      <nav className="gen-steps" aria-label="Progress">
+        {STEPS.map((st, i) => (
+          <button
+            key={st.k}
+            type="button"
+            className={`gen-step${i === step ? " is-current" : ""}${i < step ? " is-done" : ""}`}
+            onClick={() => i < step && setStep(i)}
+            disabled={i > step}
+            aria-current={i === step ? "step" : undefined}
+          >
+            {st.label}
+          </button>
+        ))}
+      </nav>
+
+      <h2 key={step} className="gen-step-heading" data-in="rise">{STEPS[step].heading}</h2>
+
       {/* Source */}
+      {step === 0 && (<>
       <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
         <span style={whisper}>Source</span>
         <button
@@ -585,8 +628,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           />
         )}
       </section>
+      </>)}
 
       {/* Placement */}
+      {step === 1 && (<>
       {/* No group label here. Subject, Topic, Year and Block each carry their
           own, so a heading over them was a second level of hierarchy naming
           what four labels already named — and on a phone it cost a whole row
@@ -618,6 +663,28 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               {existingCats.map(c => <option key={c} value={c} />)}
             </datalist>
           </label>
+        </div>
+
+        {/* One disclosure for the four that have a right answer nearly every
+            time. They keep the defaults they always had, so leaving this shut
+            is the same as filling it in the way almost everyone would. */}
+        <button
+          type="button"
+          className="gen-more"
+          onClick={() => setMoreOpen(v => !v)}
+          aria-expanded={moreOpen}
+        >
+          More options
+          <span className={`gen-more-chev${moreOpen ? " is-open" : ""}`} aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </button>
+
+        {moreOpen && (
+          <div className="gen-more-body" data-in="rise">
+            <div className="gen-grid">
           <label className="gen-field">
             <span className="gen-field-label">Year</span>
             <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
@@ -642,11 +709,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               ))}
             </datalist>
           </label>
-        </div>
-      </section>
-
-      {/* Difficulty + count */}
-      <section className="gen-block" data-in="rise" style={{ "--i": 3 }}>
+            </div>
+            <section className="gen-block" data-in="rise" style={{ "--i": 3 }}>
         <div className="gen-chip-row">
           <div className="gen-chip-group">
             <span style={whisper}>Difficulty</span>
@@ -697,13 +761,37 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           </div>
         </div>
       </section>
+          </div>
+        )}
+      </section>
+      </>)}
 
       {error && <p className="gen-error">{error}</p>}
 
+      <div className="gen-nav">
+        {step > 0 && (
+          <button type="button" className="gen-nav-back btn-press" onClick={() => setStep(0)}>
+            <span aria-hidden="true">←</span> Back
+          </button>
+        )}
+
+        {step === 0 && (
+          <button
+            type="button"
+            className="btn-press gen-nav-go"
+            style={{ ...primaryBtn, opacity: sourceReady ? 1 : 0.45 }}
+            disabled={!sourceReady}
+            onClick={() => setStep(1)}
+          >
+            Continue <span aria-hidden="true">→</span>
+          </button>
+        )}
+
+        {step === 1 && (
       <button
         type="button"
-        className="btn-press"
-        style={{ ...primaryBtn, width: "100%", opacity: canGenerate ? 1 : 0.45 }}
+        className="btn-press gen-nav-go"
+        style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
         disabled={!canGenerate}
         onClick={async () => {
           setError("");
@@ -739,9 +827,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       >
         Generate {countNum} question{countNum !== 1 ? "s" : ""} →
       </button>
+        )}
+      </div>
 
-      {/* Bank */}
-      {savedQs.length > 0 && (
+      {/* The bank belongs to the screen, not to a step: there when you arrive,
+          gone once you have started. */}
+      {step === 0 && savedQs.length > 0 && (
         <section className="gen-bank">
           <div className="prog-section-head" style={{ marginBottom: 8 }}>
             <button

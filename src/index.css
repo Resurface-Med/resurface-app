@@ -2419,6 +2419,110 @@ select {
 }
 
 /* ─── Generate ───────────────────────────────────────────────────── */
+/* ── Generate, in two steps ───────────────────────────────────────── */
+/* Labels on a shared rule, the live one lit. State carried by weight and
+   colour rather than by a filled shape per step. */
+.gen-steps {
+  display: flex;
+  margin-bottom: clamp(18px, 2.6vh, 24px);
+}
+.gen-step {
+  flex: 1;
+  min-width: 0;
+  padding: 0 0 10px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid var(--c-border);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  color: var(--c-muted-dim);
+  text-align: left;
+  cursor: default;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+.gen-step.is-done {
+  color: var(--c-sub);
+  border-bottom-color: var(--c-accent-brd);
+  cursor: pointer;
+}
+.gen-step.is-done:hover { color: var(--c-text); }
+.gen-step.is-current {
+  color: var(--c-accent);
+  border-bottom-color: var(--c-accent);
+}
+
+.gen-step-heading {
+  margin: 0 0 clamp(16px, 2.4vh, 22px);
+  font-size: clamp(19px, 2vw, 23px);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.25;
+  color: var(--c-text);
+}
+
+/* Quiet, because opening it is the uncommon choice. */
+.gen-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 16px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--c-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.gen-more:hover { color: var(--c-accent); }
+.gen-more-chev {
+  display: grid;
+  place-items: center;
+  transition: transform 0.18s ease;
+}
+.gen-more-chev.is-open { transform: rotate(180deg); }
+.gen-more-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 16px;
+  padding-top: 18px;
+  border-top: 1px solid var(--c-border);
+}
+
+/* Back undoes, forward commits — so one is text and one is filled. */
+.gen-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: clamp(20px, 2.8vh, 28px);
+}
+.gen-nav-back {
+  padding: 12px 4px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  color: var(--c-sub);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.gen-nav-back:hover { color: var(--c-text); }
+.gen-nav-go {
+  margin-left: auto;
+  min-width: 190px;
+}
+@media (max-width: 560px) {
+  .gen-nav-go { min-width: 0; flex: 1; }
+}
+
 .gen-field-sub {
   margin: 8px 0 0;
   font-size: 15px;
