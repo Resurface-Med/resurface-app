@@ -43,16 +43,10 @@ const SCOPE_HINT = {
 
 /** Where the question came from — orthogonal to Due / Wrong / Saved. */
 const BANKS = [
-  { k: "app",  label: "App's questions" },
-  { k: "mine", label: "Ones I made" },
-  { k: "both", label: "Both" },
+  { k: "both", label: "All questions" },
+  { k: "app",  label: "Course questions" },
+  { k: "mine", label: "Questions you made" },
 ];
-
-const BANK_HINT = {
-  app:  "The Year 1 set that comes with Resurface",
-  mine: "Questions you generated or wrote yourself",
-  both: "App's questions and ones you made",
-};
 
 function applyBank(list, bank) {
   if (bank === "app") return list.filter(q => !q.gen);
@@ -227,40 +221,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
-  function BankPicker({ className = "" }) {
+  function BankSelect() {
     const mineCount = QUESTIONS.filter(q => q.gen).length;
     return (
-      <div className={`setup-bank${className ? ` ${className}` : ""}`}>
-        <span className="setup-dock-label" id="setup-bank-label">Whose questions</span>
-        <div
-          className="setup-seg setup-bank-seg"
-          role="radiogroup"
-          aria-labelledby="setup-bank-label"
-        >
-          {BANKS.map(b => {
-            const on = bank === b.k;
-            return (
-              <button
-                key={b.k}
-                type="button"
-                role="radio"
-                aria-checked={on}
-                className="btn-press"
-                title={BANK_HINT[b.k]}
-                onClick={() => setBank(b.k)}
-                style={dockChip(on, false)}
-              >
-                {b.label}
-              </button>
-            );
-          })}
-        </div>
-        <p className="setup-bank-hint" aria-live="polite">
-          {bank === "mine" && mineCount === 0
-            ? "You haven’t made any yet — open Generate to add some"
-            : BANK_HINT[bank]}
-        </p>
-      </div>
+      <select
+        className="setup-bank-select"
+        value={bank}
+        onChange={e => setBank(e.target.value)}
+        aria-label="Whose questions"
+      >
+        {BANKS.map(b => (
+          <option key={b.k} value={b.k}>
+            {b.k === "mine" && mineCount === 0
+              ? "Questions you made (none yet)"
+              : b.label}
+          </option>
+        ))}
+      </select>
     );
   }
 
@@ -366,7 +343,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="setup-frame" style={{ display: "flex", flexDirection: "column", minHeight: "100dvh" }}>
           <div className="page-band" style={{ ...band, paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
             {step === "topic" ? (
-              <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
+              <div className="setup-title-row">
+                <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
+                <BankSelect />
+              </div>
             ) : (
               <>
                 <button
@@ -401,7 +381,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  <BankPicker />
                   <input
                     type="search"
                     value={topicQuery}
@@ -491,7 +470,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <p className="setup-dock-hint" aria-live="polite">
-                    {BANK_HINT[bank]} · {SCOPE_HINT[scope]}
+                    {SCOPE_HINT[scope]}
                     {filter.unseenOnly ? " · unseen only" : ""}
                   </p>
 
@@ -518,22 +497,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
          gets height without a second screen or a tall settings stack. */
       <div className="setup-frame" style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
         <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div className="setup-title-row">
             <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
-
-            {savedSession && (
-              <div className="setup-resume">
-                <div className="setup-resume-body">
-                  <p className="setup-resume-q">Continue this session?</p>
-                  <p className="setup-resume-meta">{describeSession(savedSession)}</p>
-                </div>
-                <div className="setup-resume-acts">
-                  <button className="btn-press" style={resumeBtn} onClick={resumeSession}>Continue</button>
-                  <button className="btn-press" style={resumeGhostBtn} onClick={discardSession}>Discard</button>
-                </div>
-              </div>
-            )}
+            <BankSelect />
           </div>
+
+          {savedSession && (
+            <div className="setup-resume" style={{ marginTop: 14 }}>
+              <div className="setup-resume-body">
+                <p className="setup-resume-q">Continue this session?</p>
+                <p className="setup-resume-meta">{describeSession(savedSession)}</p>
+              </div>
+              <div className="setup-resume-acts">
+                <button className="btn-press" style={resumeBtn} onClick={resumeSession}>Continue</button>
+                <button className="btn-press" style={resumeGhostBtn} onClick={discardSession}>Discard</button>
+              </div>
+            </div>
+          )}
         </div>
 
         <Wave from="transparent" to="var(--c-card-solid)" />
@@ -548,7 +528,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   {scoped} available
                 </span>
               </div>
-              <BankPicker />
               <input
                 type="search"
                 value={topicQuery}
@@ -639,7 +618,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               </div>
 
               <p className="setup-dock-hint" aria-live="polite">
-                {BANK_HINT[bank]} · {SCOPE_HINT[scope]}
+                {SCOPE_HINT[scope]}
                 {filter.unseenOnly ? " · unseen only" : ""}
               </p>
 
