@@ -254,8 +254,8 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
  */
 const STEPS = [
   { k: "source", label: "Lecture/notes", heading: "Lecture or notes" },
-  { k: "place", label: "Topic", heading: "What's it about?" },
-  { k: "detail", label: "Details", heading: "Anything to adjust?" },
+  { k: "place", label: "Topic", heading: "Where does it belong?" },
+  { k: "detail", label: "Questions", heading: "How many, and how hard?" },
 ];
 
 // ── Quiet generating state ──────────────────────────────────────────────────
@@ -665,16 +665,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               {existingCats.map(c => <option key={c} value={c} />)}
             </datalist>
           </label>
-        </div>
-
-      </section>
-      </>)}
-
-      {/* Details — everything here already has an answer, so this step is for
-          changing one rather than supplying one. */}
-      {step === 2 && (<>
-        <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
-          <div className="gen-grid">
           <label className="gen-field">
             <span className="gen-field-label">Year</span>
             <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
@@ -699,8 +689,15 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               ))}
             </datalist>
           </label>
-            </div>
-            <section className="gen-block" data-in="rise" style={{ "--i": 3 }}>
+        </div>
+
+      </section>
+      </>)}
+
+      {/* Both of these already have an answer, so this step is somewhere to
+          change one rather than somewhere to supply one. */}
+      {step === 2 && (<>
+      <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
         <div className="gen-chip-row">
           <div className="gen-chip-group">
             <span style={whisper}>Difficulty</span>
@@ -751,7 +748,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           </div>
         </div>
       </section>
-        </section>
       </>)}
 
       {error && <p className="gen-error">{error}</p>}
