@@ -4,17 +4,10 @@ import { QUESTIONS, CURRICULUM } from "../data";
 import Wave from "../ui/Wave";
 
 /**
- * Progress — how each subject is going.
+ * Progress — coverage and accuracy by subject, then drill into topics.
  *
- * One question, one list. This page previously answered four and repeated
- * itself doing it: a spotlight card naming the weakest topic, a list whose
- * first row was that same topic, subject accordions containing it a third
- * time, and two more disclosures for topics not started and topics doing
- * fine.
- *
- * Everything is in the accordions, where a topic sits under the subject you
- * would look for it in. The weakest topics still sort to the top inside each,
- * so the ordering does the surfacing that a separate list used to.
+ * One list you can scan: block → subjects with a real coverage bar → topics
+ * with a Practice action. Weak topics sort first inside each subject.
  */
 
 const band = {
@@ -36,7 +29,7 @@ function topicStats(cat, pStats) {
     if (s) { correct += s.correct; attempts += s.total; seen++; }
   }
   const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
-  return { total: qs.length, seen, pct, deck: qs[0]?.deck ?? "" };
+  return { total: qs.length, seen, pct };
 }
 
 function deckStats(deck, pStats) {
@@ -47,41 +40,22 @@ function deckStats(deck, pStats) {
     if (s) { correct += s.correct; attempts += s.total; seen++; }
   }
   const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
-  return { total: qs.length, seen, pct };
+  return { total: qs.length, seen, pct, cover: qs.length ? seen / qs.length : 0 };
 }
 
-function FieldStat({ label, value, unit }) {
+function CoverageBar({ value, label }) {
+  const v = Math.max(0, Math.min(1, value || 0));
   return (
-    <div className="prog-field-stat">
-      <span className="prog-field-value">
-        {value}
-        {unit ? <span className="prog-field-unit">{unit}</span> : null}
-      </span>
-      <span className="prog-field-label">{label}</span>
-    </div>
-  );
-}
-
-function TopicActionRow({ title, meta, pct, onPractice }) {
-  return (
-    <div className="prog-row">
-      <div className="prog-row-main">
-        <span className="prog-row-title">{title}</span>
-        <span className="prog-row-meta">
-          {pct !== null && pct !== undefined && (
-            <span className={`prog-pct${pct < 60 ? " is-weak" : pct >= 70 ? " is-ok" : ""}`}>
-              {pct}%
-            </span>
-          )}
-          <span className="prog-seen">{meta}</span>
-        </span>
-      </div>
-      {onPractice && (
-        <button type="button" className="prog-practice btn-press" onClick={onPractice}>
-          Practice
-        </button>
-      )}
-    </div>
+    <span
+      className="prog-bar"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(v * 100)}
+      aria-label={label}
+    >
+      <span className="prog-bar-fill" style={{ transform: `scaleX(${v})` }} />
+    </span>
   );
 }
 
@@ -99,52 +73,62 @@ function SubjectBlock({ deck, cats, pStats, open, onToggle, onPractice }) {
   }, [cats, pStats]);
 
   return (
-    <div className="prog-subject">
+    <div className={`prog-subject${open ? " is-open" : ""}`}>
       <button
         type="button"
-        className={`prog-subject-head${open ? " is-open" : ""}`}
+        className="prog-subject-head"
         onClick={onToggle}
         aria-expanded={open}
       >
-        <span className="prog-subject-line">
-          <span className="prog-row-title">{deck}</span>
-          <span className="prog-row-meta">
-            {d.pct !== null && <span className="prog-pct">{d.pct}%</span>}
-            <span className="prog-seen">{d.seen}/{d.total}</span>
-            <span className={`prog-chevron${open ? " is-open" : ""}`} aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+        <span className="prog-subject-name">{deck}</span>
+        <CoverageBar value={d.cover} label={`${deck} coverage`} />
+        <span className="prog-subject-nums">
+          {d.pct !== null ? (
+            <span className={`prog-pct${d.pct < 60 ? " is-weak" : d.pct >= 70 ? " is-ok" : ""}`}>
+              {d.pct}%
             </span>
-          </span>
+          ) : (
+            <span className="prog-pct is-empty">—</span>
+          )}
+          <span className="prog-seen">{d.seen}/{d.total}</span>
         </span>
-        {/* Coverage, not accuracy — the number beside it is already accuracy,
-            and one row should not show the same quantity twice or two
-            quantities in one mark. Nine of these give the list a shape you can
-            read down without reading any of the numbers. */}
-        <span className="prog-subject-bar" aria-hidden="true">
-          <span
-            className="prog-subject-bar-fill"
-            style={{ transform: `scaleX(${d.total ? d.seen / d.total : 0})` }}
-          />
+        <span className={`prog-chevron${open ? " is-open" : ""}`} aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+            <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </span>
       </button>
 
       {open && (
-        <div className="prog-subject-cats">
+        <ul className="prog-topics">
           {sorted.map(cat => {
             const t = topicStats(cat, pStats);
             return (
-              <TopicActionRow
-                key={cat}
-                title={shortCat(cat, deck)}
-                meta={`${t.seen}/${t.total}`}
-                pct={t.pct}
-                onPractice={() => onPractice(deck, cat)}
-              />
+              <li key={cat} className="prog-topic">
+                <div className="prog-topic-main">
+                  <span className="prog-topic-name">{shortCat(cat, deck)}</span>
+                  <span className="prog-topic-meta">
+                    {t.pct !== null ? (
+                      <span className={`prog-pct${t.pct < 60 ? " is-weak" : t.pct >= 70 ? " is-ok" : ""}`}>
+                        {t.pct}%
+                      </span>
+                    ) : (
+                      <span className="prog-pct is-empty">—</span>
+                    )}
+                    <span className="prog-seen">{t.seen}/{t.total}</span>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="prog-practice btn-press"
+                  onClick={() => onPractice(deck, cat)}
+                >
+                  Practice
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
     </div>
   );
@@ -154,9 +138,7 @@ export default function StatsView({
   pStats, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
 }) {
   const [openDecks, setOpenDecks] = useState(() => new Set());
-  /* First block open, the rest shut. Every block teaches the same nine
-     subjects, so leaving them all open is thirty-six accordion rows on a page
-     whose job is to be scanned. */
+  /* First block open, the rest shut — every block repeats the same subjects. */
   const [openBlocks, setOpenBlocks] = useState(() => new Set([CURRICULUM[0]?.block].filter(Boolean)));
 
   function toggleBlockOpen(name) {
@@ -186,86 +168,95 @@ export default function StatsView({
     const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
     const accuracy = totalT > 0 ? Math.round((totalC / totalT) * 100) : null;
     const seen = Object.keys(pStats).length;
-    return { accuracy, seen };
+    return { accuracy, seen, cover: QUESTIONS.length ? seen / QUESTIONS.length : 0 };
   }, [pStats]);
 
-  /* Blocks, each with the subjects taught inside it. Named even while there is
-     one, so the structure is visible before there is a second. */
   const blocks = CURRICULUM;
-
-  const { accuracy, seen } = overview;
+  const { accuracy, seen, cover } = overview;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
-        <p data-in="left" style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em", "--i": 1 }}>
+        <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
           {seen === 0
             ? "Nothing attempted yet. Answer a few questions and this fills in."
-            : "What to open next, and how each subject is going."}
+            : "Coverage and accuracy across the bank."}
         </p>
 
         <div className="prog-field-stats" aria-label="Overview" data-in="rise" style={{ "--i": 2 }}>
-          <FieldStat
-            label="Accuracy"
-            value={accuracy === null ? "—" : accuracy}
-            unit={accuracy === null ? null : "%"}
-          />
-          <FieldStat label="Seen" value={`${seen}`} unit={`/${QUESTIONS.length}`} />
+          <div className="prog-field-stat">
+            <span className="prog-field-value">
+              {accuracy === null ? "—" : accuracy}
+              {accuracy !== null && <span className="prog-field-unit">%</span>}
+            </span>
+            <span className="prog-field-label">Accuracy</span>
+          </div>
+          <div className="prog-field-stat">
+            <span className="prog-field-value">
+              {seen}
+              <span className="prog-field-unit">/{QUESTIONS.length}</span>
+            </span>
+            <span className="prog-field-label">Seen</span>
+          </div>
+        </div>
+
+        <div className="prog-field-cover" data-in="rise" style={{ "--i": 3 }}>
+          <CoverageBar value={cover} label="Overall coverage" />
+          <span className="prog-field-cover-note">
+            {Math.round(cover * 100)}% of the bank seen
+          </span>
         </div>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+        <div className="prog-sheet" style={{ ...band }}>
+          <h2 className="prog-sheet-title" style={sectionH}>Subjects</h2>
 
-          <section className="prog-section" data-in="rise" style={{ "--i": 3 }}>
-            <div className="prog-section-head">
-              <h2 style={{ ...sectionH, margin: 0 }}>By subject</h2>
-              <span className="prog-section-note">Bar is how much you’ve seen</span>
-            </div>
-            {blocks.map(b => {
-              const bOpen = openBlocks.has(b.block);
-              const seen = b.decks.reduce((n, d) => n + d.cats.length, 0);
-              return (
-                <div key={b.block} className="prog-block">
-                  <button
-                    type="button"
-                    className={`prog-block-head${bOpen ? " is-open" : ""}`}
-                    onClick={() => toggleBlockOpen(b.block)}
-                    aria-expanded={bOpen}
-                  >
-                    <span className="prog-block-name">{b.block}</span>
-                    <span className="prog-block-meta">
-                      {b.decks.length} subject{b.decks.length === 1 ? "" : "s"} · {seen} topics
-                    </span>
-                    <span className={`prog-chevron${bOpen ? " is-open" : ""}`} aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                        <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </span>
-                  </button>
+          {blocks.map(b => {
+            const bOpen = openBlocks.has(b.block);
+            const topicCount = b.decks.reduce((n, d) => n + d.cats.length, 0);
+            return (
+              <section key={b.block} className="prog-block" data-in="rise" style={{ "--i": 4 }}>
+                <button
+                  type="button"
+                  className={`prog-block-head${bOpen ? " is-open" : ""}`}
+                  onClick={() => toggleBlockOpen(b.block)}
+                  aria-expanded={bOpen}
+                >
+                  <span className="prog-block-name">{b.block}</span>
+                  <span className="prog-block-meta">
+                    {b.decks.length} subject{b.decks.length === 1 ? "" : "s"}
+                    <span aria-hidden="true"> · </span>
+                    {topicCount} topics
+                  </span>
+                  <span className={`prog-chevron${bOpen ? " is-open" : ""}`} aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                      <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </button>
 
-                  {bOpen && (
-                    <div className="prog-subjects">
-                      {b.decks.map(d => (
-                        <SubjectBlock
-                          key={`${b.block}/${d.deck}`}
-                          deck={d.deck}
-                          cats={d.cats}
-                          pStats={pStats}
-                          open={openDecks.has(d.deck)}
-                          onToggle={() => toggleDeck(d.deck)}
-                          onPractice={practice}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </section>
+                {bOpen && (
+                  <div className="prog-subjects">
+                    {b.decks.map(d => (
+                      <SubjectBlock
+                        key={`${b.block}/${d.deck}`}
+                        deck={d.deck}
+                        cats={d.cats}
+                        pStats={pStats}
+                        open={openDecks.has(d.deck)}
+                        onToggle={() => toggleDeck(d.deck)}
+                        onPractice={practice}
+                      />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
 
           <div className="prog-reset">
             <button
