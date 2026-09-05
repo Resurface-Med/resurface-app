@@ -14,6 +14,18 @@ export const QUESTIONS = [];
 export const DECK_MAP = {};
 
 /**
+ * Where a user's own question ids start.
+ *
+ * Questions you write or generate live in their own table, whose ids restart
+ * at 1 — the same range the deck files already use (1–510). Progress, SR cards
+ * and bookmarks are all keyed on a bare question id, so if the two sets shared
+ * numbers, answering your own question #2 would record against bank question
+ * #2. The offset is added once, where the rows are read, and taken off once,
+ * where a row is deleted.
+ */
+export const GEN_ID_BASE = 1_000_000;
+
+/**
  * The curriculum, as it is actually taught: block → subject → topic.
  *
  * A Year 1 student does Principles as a block, and inside it Biochemistry,
@@ -43,6 +55,34 @@ const BLOCK_ORDER = [
 function blockRank(name) {
   const i = BLOCK_ORDER.indexOf(name);
   return i === -1 ? BLOCK_ORDER.length : i;
+}
+
+/* Two sources, one pool. Deck questions arrive once; yours arrive after
+   sign-in and change whenever you add or delete one, so QUESTIONS is rebuilt
+   from both rather than appended to — appending would have to assume where in
+   the array the previous set ended. */
+const deckQs = [];
+let userQs = [];
+
+function syncQuestions() {
+  QUESTIONS.length = 0;
+  QUESTIONS.push(...deckQs, ...userQs);
+  CURRICULUM.length = 0;
+  BLOCKS.length = 0;
+  buildCurriculum();
+}
+
+/**
+ * Puts the signed-in user's own questions into the bank.
+ *
+ * Called with the full set every time, not a delta. A question that never
+ * reached the database has no stable id and so cannot carry progress; it stays
+ * listed in Generate and joins the study pool on the next load, once its
+ * queued write has gone through.
+ */
+export function setUserQuestions(rows) {
+  userQs = (rows ?? []).filter(q => typeof q.id === "number");
+  syncQuestions();
 }
 
 function buildCurriculum() {
@@ -83,11 +123,11 @@ export function loadDecks() {
     );
 
     for (const deck of decks) {
-      QUESTIONS.push(...deck.questions);
+      deckQs.push(...deck.questions);
       DECK_MAP[deck.deck] = deck.categories;
     }
 
-    buildCurriculum();
+    syncQuestions();
 
     return { count: QUESTIONS.length, decks: decks.length, blocks: BLOCKS.length };
   })();

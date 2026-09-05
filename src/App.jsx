@@ -23,7 +23,7 @@ class ErrorBoundary extends Component {
   }
 }
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
-import { QUESTIONS, loadDecks } from "./data";
+import { QUESTIONS, loadDecks, setUserQuestions } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
@@ -75,6 +75,15 @@ export default function App() {
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [generated, setGenerated] = useState([]);
+
+  /* The bank is one pool: the decks plus whatever you have written yourself.
+     Every screen that shows or serves a question reads QUESTIONS, so this is
+     the one place your own questions get into it — anything that changes the
+     set goes through here rather than calling setGenerated directly. */
+  function applyGenerated(rows) {
+    setUserQuestions(rows);
+    setGenerated(rows);
+  }
   const [dataLoading, setDataLoading] = useState(true);
 
   // Theme is the one thing still read locally, so the page doesn't paint the
@@ -112,7 +121,7 @@ export default function App() {
       setDisplayName(d.displayName || "");
       setShowOnLeaderboard(d.showOnLeaderboard !== false);
       setMarketingOptIn(d.marketingOptIn);
-      setGenerated(d.generated);
+      applyGenerated(d.generated);
       setDataLoading(false);
     })();
     return () => { cancelled = true; };
@@ -356,7 +365,7 @@ export default function App() {
             />
           )}
 
-          {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={setGenerated} />}
+          {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated} />}
 
 
           </Suspense>

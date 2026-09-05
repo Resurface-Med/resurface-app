@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { GEN_ID_BASE } from "../data";
 
 // Server-first data access.
 //
@@ -100,6 +101,9 @@ function apply(op) {
       });
     case "generated-add":
       return supabase.from("generated_questions").insert(op.rows);
+    case "generated-remove":
+      return supabase.from("generated_questions").delete()
+        .eq("user_id", op.userId).eq("id", op.id);
     case "generated-clear":
       return supabase.from("generated_questions").delete().eq("user_id", op.userId);
     case "practice-clear":
@@ -189,7 +193,7 @@ export async function loadAll(userId) {
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything
     // keyed on question_id — flags are cohort-wide, these are not.
-    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: Number(r.id), gen: true })),
+    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true })),
     questionEdits,
   };
 }
@@ -223,8 +227,28 @@ export const remote = {
   questionEdit: (userId, questionId, payload) => send({ kind: "question-edit", userId, questionId, payload }),
   flag:       (userId, questionId, reason, note) => send({ kind: "flag", userId, questionId, reason, note }),
   unflag:     (userId, questionId)               => send({ kind: "flag-remove", userId, questionId }),
-  addGenerated: (userId, questions) =>
-    send({ kind: "generated-add", rows: questions.map(q => ({ user_id: userId, payload: q })) }),
+  /**
+   * Saves questions you wrote or generated, and hands back their ids.
+   *
+   * The ids are the point: progress, spaced repetition and bookmarks all key
+   * on them, so a question added mid-session has to carry the same id it will
+   * have after a reload. Returns null if the write failed — it is queued for
+   * retry like any other, and the questions join the bank on the next load.
+   */
+  addGenerated: async (userId, questions) => {
+    const rows = questions.map(q => ({ user_id: userId, payload: q }));
+    try {
+      const { data, error } = await supabase
+        .from("generated_questions").insert(rows).select("id");
+      if (error) throw error;
+      return (data ?? []).map(r => GEN_ID_BASE + Number(r.id));
+    } catch {
+      enqueue({ kind: "generated-add", rows });
+      return null;
+    }
+  },
+  removeGenerated: (userId, id) =>
+    send({ kind: "generated-remove", userId, id: id - GEN_ID_BASE }),
   clearGenerated: (userId) => send({ kind: "generated-clear", userId }),
   clearPractice:  (userId) => send({ kind: "practice-clear", userId }),
   clearSR:        (userId) => send({ kind: "sr-clear", userId }),

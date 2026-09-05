@@ -557,7 +557,23 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     abortRef.current?.abort();
   }, []);
 
+  /**
+   * Saves a batch and stamps the ids the database gave them.
+   *
+   * Without this the questions sit in the bank with no id until a reload, and
+   * an id is what progress and spaced repetition are keyed on — a question
+   * answered before that reload would have nowhere to record the answer.
+   */
+  async function withIds(list) {
+    if (!user) return list;
+    const ids = await remote.addGenerated(user.id, list);
+    return ids ? list.map((q, i) => ({ ...q, id: ids[i] })) : list;
+  }
+
   function deleteQuestion(id) {
+    // Local-only removal used to be all this did, so a deleted question came
+    // straight back on the next load.
+    if (user) remote.removeGenerated(user.id, id);
     const updated = savedQs.filter(q => q.id !== id);
     setSavedQs(updated);
     onGeneratedChange?.(updated);
@@ -597,8 +613,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                 style={{ ...primaryBtn, flex: 1 }}
                 disabled={keptList.length === 0}
                 onClick={async () => {
-                  if (user) await remote.addGenerated(user.id, keptList);
-                  const merged = [...savedQs, ...keptList];
+                  const saved = await withIds(keptList);
+                  const merged = [...savedQs, ...saved];
                   setSavedQs(merged);
                   onGeneratedChange?.(merged);
                   setPhase("done");
@@ -1069,8 +1085,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             style={{ ...primaryBtn, opacity: written.length ? 1 : 0.45 }}
             disabled={!written.length}
             onClick={async () => {
-              if (user) await remote.addGenerated(user.id, written);
-              const merged = [...savedQs, ...written];
+              const saved = await withIds(written);
+              const merged = [...savedQs, ...saved];
               setSavedQs(merged);
               onGeneratedChange?.(merged);
               setWritten([]);
