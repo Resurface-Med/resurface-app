@@ -163,6 +163,21 @@ export default function QuizShell({
         </div>
       </header>
 
+      {/* The waterline. Every other screen in the app opens with a filled Wave;
+          this one had none, which is most of why it read as unbranded. Filled
+          would cost 36-64px of a view whose whole job is the question, so it is
+          the same curve from Wave.jsx drawn as a hairline — the motif at the
+          boundary between the chrome and the question, for the price of a
+          rule. */}
+      <svg
+        className="quiz-shell__wave"
+        viewBox="0 0 1440 90"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path d="M0,44 C240,6 480,82 720,44 C960,6 1200,82 1440,44" />
+      </svg>
+
       <div className="quiz-shell__stage">
         {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">

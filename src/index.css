@@ -3674,6 +3674,24 @@ select {
   padding: calc(env(safe-area-inset-top, 0px) + 14px) clamp(16px, 3vw, 28px) 12px;
   background: transparent;
 }
+/* preserveAspectRatio: none stretches the curve to whatever width the screen
+   is, which is what makes it a boundary rather than a picture — and
+   non-scaling-stroke is what stops that stretch thinning the line at one end,
+   the trap the landing's ribbon comment already documents. */
+.quiz-shell__wave {
+  display: block;
+  flex-shrink: 0;
+  width: 100%;
+  height: clamp(9px, 1.2vw, 14px);
+  overflow: visible;
+}
+.quiz-shell__wave path {
+  fill: none;
+  stroke: var(--c-border-blu);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
 .quiz-shell__close {
   flex-shrink: 0;
   display: grid;
@@ -3705,12 +3723,20 @@ select {
   background: var(--c-surface3);
   overflow: hidden;
 }
+/* Brand, not green. This bar is (idx + 1) / queue.length — where you are in
+   the queue, not how many you have right — so green was quietly congratulating
+   someone for scrolling. It also frees green to mean one thing in this view:
+   correct. The navigator rows and the answered options are the only places it
+   should appear.
+ *
+ * The gradient is the app's existing accent-bar treatment, lifted from
+ * ProgressBar, so it reads as depth rather than as a flat meter. */
 .quiz-shell__progress-fill {
   height: 100%;
   width: 100%;
   transform-origin: left center;
   border-radius: 99px;
-  background: var(--c-success);
+  background: linear-gradient(90deg, #6e8ff7, var(--c-accent));
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .quiz-shell__count {
@@ -3786,12 +3812,13 @@ select {
   background: var(--c-surface3);
   overflow: hidden;
 }
+/* Same reasoning as the header bar: this counts answered, not correct. */
 .quiz-rail__bar-fill {
   height: 100%;
   width: 100%;
   transform-origin: left center;
   border-radius: 99px;
-  background: var(--c-success);
+  background: linear-gradient(90deg, #6e8ff7, var(--c-accent));
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .quiz-rail__list {
