@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { NAV, V } from "../ui/theme";
-import Wave from "../ui/Wave";
 
 function initials(displayName, email) {
   const n = String(displayName || "").trim();
@@ -66,14 +65,21 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
       />
 
       <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
-        {/* Same blue field → wave → white sheet the rest of the app uses. */}
-        <div className="app-nav__field">
+        <div className="app-nav__brand">
           <img
-            src="/logo-lockup-white.png"
+            src="/logo-lockup.png"
             alt="Resurface"
             width="720"
             height="190"
-            className="nav-logo app-nav__logo"
+            className="nav-logo nav-logo-day app-nav__logo"
+          />
+          <img
+            src="/logo-lockup-white.png"
+            alt=""
+            aria-hidden="true"
+            width="720"
+            height="190"
+            className="nav-logo nav-logo-night app-nav__logo"
           />
           <button
             type="button"
@@ -87,61 +93,55 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
           </button>
         </div>
 
-        <div className="app-nav__wave">
-          <Wave from="transparent" to="var(--c-card-solid)" height="clamp(28px, 4vw, 40px)" />
-        </div>
+        <nav className="app-nav__list">
+          {NAV.map((item, idx) => {
+            if (!item) {
+              return <div key={`div-${idx}`} className="app-nav__rule" />;
+            }
 
-        <div className="app-nav__sheet">
-          <nav className="app-nav__list">
-            {NAV.map((item, idx) => {
-              if (!item) {
-                return <div key={`div-${idx}`} className="app-nav__rule" />;
-              }
+            const active = view === item.k;
+            const badge = item.k === V.STUDY ? dueCount : 0;
 
-              const active = view === item.k;
-              const badge = item.k === V.STUDY ? dueCount : 0;
-
-              return (
-                <button
-                  key={item.k}
-                  type="button"
-                  onClick={() => go(item.k)}
-                  className={`btn-press app-nav__item${active ? " is-active" : ""}`}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <span className="app-nav__label">{item.label}</span>
-                  {badge > 0 && <span className="app-nav__badge">{badge}</span>}
-                </button>
-              );
-            })}
-          </nav>
-
-          <div className="app-nav__foot">
-            <button
-              type="button"
-              onClick={() => go(V.PROFILE)}
-              className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
-              title="Profile"
-              aria-current={activeProfile ? "page" : undefined}
-            >
-              <span className="app-nav__avatar">
-                {initials(displayName, email)}
-              </span>
-              <span className="app-nav__profile-text">
-                <span className="app-nav__profile-name">
-                  {displayName?.trim() || "Profile"}
-                </span>
-                {email && (
-                  <span className="app-nav__profile-email">{email}</span>
-                )}
-              </span>
-            </button>
-            <div className="app-nav__foot-meta">
-              <span className="app-nav__copy">© Resurface 2026</span>
-              <button type="button" onClick={onSignOut} className="btn-press app-nav__signout">
-                Sign out
+            return (
+              <button
+                key={item.k}
+                type="button"
+                onClick={() => go(item.k)}
+                className={`btn-press app-nav__item${active ? " is-active" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
+                <span className="app-nav__label">{item.label}</span>
+                {badge > 0 && <span className="app-nav__badge">{badge}</span>}
               </button>
-            </div>
+            );
+          })}
+        </nav>
+
+        <div className="app-nav__foot">
+          <button
+            type="button"
+            onClick={() => go(V.PROFILE)}
+            className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
+            title="Profile"
+            aria-current={activeProfile ? "page" : undefined}
+          >
+            <span className="app-nav__avatar">
+              {initials(displayName, email)}
+            </span>
+            <span className="app-nav__profile-text">
+              <span className="app-nav__profile-name">
+                {displayName?.trim() || "Profile"}
+              </span>
+              {email && (
+                <span className="app-nav__profile-email">{email}</span>
+              )}
+            </span>
+          </button>
+          <div className="app-nav__foot-meta">
+            <span className="app-nav__copy">© Resurface 2026</span>
+            <button type="button" onClick={onSignOut} className="btn-press app-nav__signout">
+              Sign out
+            </button>
           </div>
         </div>
       </aside>
