@@ -3905,8 +3905,13 @@ select {
   overscroll-behavior: contain;
   display: flex;
   justify-content: center;
+  /* Bottom padding does the lifting. The card is centred by auto margins, so
+     the way to raise it is to leave more room beneath than above — which is
+     also the optical centre: a block centred by measurement reads as sitting
+     slightly low, because the eye puts the middle of a page a little above the
+     geometric one. */
   padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 32px)
-    clamp(12px, 2vh, 20px);
+    clamp(36px, 7vh, 96px);
 }
 /* margin: auto, not align-items: center on the parent.
  *
