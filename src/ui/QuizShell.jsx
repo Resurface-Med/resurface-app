@@ -41,6 +41,17 @@ export default function QuizShell({
   onRequestExit,
 }) {
   const [railOpen, setRailOpen] = useState(false);
+  const [railMounted, setRailMounted] = useState(false);
+
+  /* Declared above the effects, because the Escape handler below closes the
+     rail and a const arrow referenced before its declaration is a temporal
+     dead zone waiting for someone to move an effect. */
+  function openRail() {
+    setRailMounted(true);
+    setRailOpen(true);
+  }
+  const closeRail = () => setRailOpen(false);
+
   const [aiOpen, setAiOpen] = useState(false);
   const [controls, setControls] = useState({
     pending: null,
@@ -54,7 +65,7 @@ export default function QuizShell({
   useEffect(() => {
     if (!railOpen) return;
     function onKey(e) {
-      if (e.key === "Escape") { setRailOpen(false); return; }
+      if (e.key === "Escape") { closeRail(); return; }
 
       // Not while a modifier is held — those are browser navigation — and not
       // while someone is typing, or asking Resurface AI a question would move
@@ -73,6 +84,20 @@ export default function QuizShell({
   useEffect(() => {
     setAiOpen(false);
   }, [q?.id]);
+
+  /* The rail has to outlive its own close. Unmounting on the click leaves the
+     grid column animating shut around an empty space, which looks like the
+     panel was deleted rather than closed — so it stays for the length of the
+     transition and goes after.
+   *
+   * Mounting happens in openRail rather than here. Doing it in an effect would
+   * be reacting to a state change the click already knew about, and it costs a
+   * render. Only the delayed unmount needs a timer. */
+  useEffect(() => {
+    if (railOpen) return;
+    const t = setTimeout(() => setRailMounted(false), 420);
+    return () => clearTimeout(t);
+  }, [railOpen]);
 
   const progress = (idx + 1) / queue.length;
   const answered = Object.keys(sels).length;
@@ -116,8 +141,13 @@ export default function QuizShell({
       </header>
 
       <div className="quiz-shell__stage">
-        {railOpen && (
+        {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">
+            {/* Fixed-width inner, clipped by the aside. Without it the content
+                reflows on every frame as the grid column widens — the title
+                and the rows re-wrap the whole way open, which is the thing
+                that makes an animated panel look cheap. */}
+            <div className="quiz-rail__inner">
             <div className="quiz-rail__head">
               <h2 className="quiz-rail__title">Questions</h2>
               <span className="quiz-rail__count">{answered}/{queue.length}</span>
@@ -152,6 +182,7 @@ export default function QuizShell({
               </svg>
               {isBookmarked ? "Bookmarked" : "Bookmark"}
             </button>
+            </div>
           </aside>
         )}
 
@@ -160,7 +191,7 @@ export default function QuizShell({
             type="button"
             className="quiz-rail__scrim"
             aria-label="Close questions"
-            onClick={() => setRailOpen(false)}
+            onClick={closeRail}
           />
         )}
 
@@ -217,7 +248,7 @@ export default function QuizShell({
               type="button"
               className={`quiz-shell__foot-btn btn-press${railOpen ? " is-on" : ""}`}
               aria-pressed={railOpen}
-              onClick={() => setRailOpen(v => !v)}
+              onClick={() => (railOpen ? closeRail() : openRail())}
             >
               Questions
             </button>

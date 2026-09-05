@@ -27,6 +27,13 @@ export default function QuestionNavigator({ queue, idx, sels, results, onJump })
             type="button"
             onClick={() => onJump(i)}
             className={`quiz-rail__row is-${state}`}
+            /* The app's own stagger, so the cascade matches every other list
+               here. Capped at 14: past that the tail of a long queue is still
+               arriving after the drawer has finished opening, which reads as
+               the list struggling rather than cascading — the same cap the
+               leaderboard already applies for the same reason. */
+            data-in="left"
+            style={{ "--i": Math.min(i, 14), "--step": "26ms" }}
             aria-current={isCurrent ? "true" : undefined}
             aria-label={`Question ${i + 1}${state === "ok" ? ", correct" : state === "bad" ? ", wrong" : isCurrent ? ", current" : ""}`}
           >
