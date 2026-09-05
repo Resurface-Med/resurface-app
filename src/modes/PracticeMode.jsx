@@ -48,6 +48,15 @@ const BANKS = [
   { k: "mine", label: "Questions you made" },
 ];
 
+const YEARS = [
+  { k: "Year 1", label: "Year 1" },
+  { k: "Year 2", label: "Year 2" },
+  { k: "Year 3", label: "Year 3" },
+  { k: "Year 4", label: "Year 4" },
+  { k: "Year 5", label: "Year 5" },
+  { k: "All",    label: "All years" },
+];
+
 function applyBank(list, bank) {
   if (bank === "app") return list.filter(q => !q.gen);
   if (bank === "mine") return list.filter(q => q.gen);
@@ -56,11 +65,10 @@ function applyBank(list, bank) {
 
 /** Anchored menu — native <select> recenters on the chosen row on iOS and
  *  drifts into the status bar when you pick a lower option. */
-function BankSelect({ value, onChange }) {
+function SetupMenu({ value, onChange, options, ariaLabel, optionLabel }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
-  const mineCount = QUESTIONS.filter(q => q.gen).length;
-  const current = BANKS.find(b => b.k === value) || BANKS[0];
+  const current = options.find(o => o.k === value) || options[0];
 
   useEffect(() => {
     if (!open) return;
@@ -79,38 +87,36 @@ function BankSelect({ value, onChange }) {
   }, [open]);
 
   return (
-    <div className={`setup-bank${open ? " is-open" : ""}`} ref={rootRef}>
+    <div className={`setup-menu${open ? " is-open" : ""}`} ref={rootRef}>
       <button
         type="button"
-        className="setup-bank-trigger btn-press"
-        aria-label="Whose questions"
+        className="setup-menu-trigger btn-press"
+        aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen(v => !v)}
       >
-        <span className="setup-bank-trigger-label">{current.label}</span>
-        <span className="setup-bank-chevron" aria-hidden="true" />
+        <span className="setup-menu-trigger-label">{current.label}</span>
+        <span className="setup-menu-chevron" aria-hidden="true" />
       </button>
       {open && (
-        <ul className="setup-bank-menu" role="listbox" aria-label="Whose questions">
-          {BANKS.map(b => {
-            const selected = b.k === value;
-            const label = b.k === "mine" && mineCount === 0
-              ? "Questions you made (none yet)"
-              : b.label;
+        <ul className="setup-menu-list" role="listbox" aria-label={ariaLabel}>
+          {options.map(o => {
+            const selected = o.k === value;
+            const label = optionLabel ? optionLabel(o) : o.label;
             return (
-              <li key={b.k} role="presentation">
+              <li key={o.k} role="presentation">
                 <button
                   type="button"
                   role="option"
                   aria-selected={selected}
-                  className={`setup-bank-option${selected ? " is-selected" : ""}`}
+                  className={`setup-menu-option${selected ? " is-selected" : ""}`}
                   onClick={() => {
-                    onChange(b.k);
+                    onChange(o.k);
                     setOpen(false);
                   }}
                 >
-                  <span className="setup-bank-check" aria-hidden="true">{selected ? "✓" : ""}</span>
+                  <span className="setup-menu-check" aria-hidden="true">{selected ? "✓" : ""}</span>
                   <span>{label}</span>
                 </button>
               </li>
@@ -119,6 +125,34 @@ function BankSelect({ value, onChange }) {
         </ul>
       )}
     </div>
+  );
+}
+
+function BankSelect({ value, onChange }) {
+  const mineCount = QUESTIONS.filter(q => q.gen).length;
+  return (
+    <SetupMenu
+      value={value}
+      onChange={onChange}
+      options={BANKS}
+      ariaLabel="Whose questions"
+      optionLabel={o => (
+        o.k === "mine" && mineCount === 0
+          ? "Questions you made (none yet)"
+          : o.label
+      )}
+    />
+  );
+}
+
+function YearSelect({ value, onChange }) {
+  return (
+    <SetupMenu
+      value={value}
+      onChange={onChange}
+      options={YEARS}
+      ariaLabel="Year"
+    />
   );
 }
 
@@ -232,8 +266,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return pool.length;
   }
   const [filter, setFilter] = useState(launchFilter
-    ? { year: ["All"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
-    : defaultFilter
+    ? { year: ["Year 1"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
+    : { ...defaultFilter, year: ["Year 1"] }
   );
   const [countOpt, setCountOpt] = useState(20);
   const [topicQuery, setTopicQuery] = useState("");
@@ -288,6 +322,22 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setSessionFilter(f);
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
+
+  function setYear(next) {
+    setFilter(f => ({
+      ...f,
+      year: next === "All" ? ["All"] : [next],
+      // Narrower picks were under the old year — drop them so the topic list
+      // is not left pointing at a subject that year does not have.
+      block: ["All"],
+      deck: ["All"],
+      cat: ["All"],
+    }));
+  }
+
+  const yearValue = filter.year?.includes("All") || !filter.year?.length
+    ? "All"
+    : filter.year[0];
 
   function resumeSession() {
     const s = savedSession;
@@ -393,7 +443,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {step === "topic" ? (
               <div className="setup-title-row">
                 <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
-                <BankSelect value={bank} onChange={setBank} />
+                <div className="setup-title-filters">
+                  <YearSelect value={yearValue} onChange={setYear} />
+                  <BankSelect value={bank} onChange={setBank} />
+                </div>
               </div>
             ) : (
               <>
@@ -547,7 +600,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div className="setup-title-row">
             <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
-            <BankSelect value={bank} onChange={setBank} />
+            <div className="setup-title-filters">
+              <YearSelect value={yearValue} onChange={setYear} />
+              <BankSelect value={bank} onChange={setBank} />
+            </div>
           </div>
 
           {savedSession && (

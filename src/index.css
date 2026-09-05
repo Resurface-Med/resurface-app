@@ -4243,14 +4243,22 @@ select {
   flex-wrap: wrap;
 }
 
-/* Custom bank menu — fixed under the trigger so iOS cannot recenter it. */
-.setup-bank {
+.setup-title-filters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* Custom setup menus — fixed under the trigger so iOS cannot recenter them. */
+.setup-menu {
   position: relative;
   flex-shrink: 0;
-  margin-left: auto;
   z-index: 40;
 }
-.setup-bank-trigger {
+.setup-menu-trigger {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -4266,17 +4274,17 @@ select {
   letter-spacing: -0.15px;
   cursor: pointer;
 }
-.setup-bank-trigger:focus-visible {
+.setup-menu-trigger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
 }
-.setup-bank-trigger-label {
+.setup-menu-trigger-label {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.setup-bank-chevron {
+.setup-menu-chevron {
   flex-shrink: 0;
   width: 10px;
   height: 10px;
@@ -4285,15 +4293,15 @@ select {
   opacity: 0.9;
   transition: transform 0.15s ease;
 }
-.setup-bank.is-open .setup-bank-chevron {
+.setup-menu.is-open .setup-menu-chevron {
   transform: rotate(180deg);
 }
-.setup-bank-menu {
+.setup-menu-list {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   left: auto;
-  min-width: max(100%, 220px);
+  min-width: max(100%, 200px);
   margin: 0;
   padding: 6px;
   list-style: none;
@@ -4302,7 +4310,7 @@ select {
   background: var(--c-card-solid);
   box-shadow: var(--c-card-shadow-lift);
 }
-.setup-bank-option {
+.setup-menu-option {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -4319,30 +4327,30 @@ select {
   text-align: left;
   cursor: pointer;
 }
-.setup-bank-option.is-selected {
+.setup-menu-option.is-selected {
   background: var(--c-accent-dim);
   color: var(--c-accent);
   font-weight: 600;
 }
-.setup-bank-option:hover,
-.setup-bank-option:focus-visible {
+.setup-menu-option:hover,
+.setup-menu-option:focus-visible {
   background: var(--c-surface2);
   color: var(--c-text);
   outline: none;
 }
-.setup-bank-option.is-selected:hover,
-.setup-bank-option.is-selected:focus-visible {
+.setup-menu-option.is-selected:hover,
+.setup-menu-option.is-selected:focus-visible {
   background: var(--c-accent-dim);
   color: var(--c-accent);
 }
-.setup-bank-check {
+.setup-menu-check {
   flex-shrink: 0;
   width: 1em;
   font-size: 13px;
   font-weight: 700;
   text-align: center;
 }
-.setup-bank-option:not(.is-selected) .setup-bank-check {
+.setup-menu-option:not(.is-selected) .setup-menu-check {
   visibility: hidden;
 }
 
