@@ -44,7 +44,7 @@ const SCOPE_HINT = {
 /** Where the question came from — orthogonal to Due / Wrong / Saved. */
 const BANKS = [
   { k: "both", label: "All questions" },
-  { k: "app",  label: "Course questions" },
+  { k: "app",  label: "Built-in questions" },
   { k: "mine", label: "Questions you made" },
 ];
 
