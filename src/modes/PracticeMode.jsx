@@ -34,13 +34,6 @@ const SCOPES = [
   { k: "saved", label: "Saved" },
 ];
 
-const SCOPE_HINT = {
-  all:   "Any question in this topic",
-  due:   "Due to resurface now",
-  wrong: "Ones you got wrong",
-  saved: "Ones you bookmarked",
-};
-
 /** Where the question came from — orthogonal to Due / Wrong / Saved. */
 const BANKS = [
   { k: "both", label: "All questions" },
@@ -523,7 +516,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               ) : (
                 <div className="setup-options">
                   <div className="setup-opt-group">
-                    <span className="setup-dock-label">From</span>
                     <div className="setup-seg" role="radiogroup" aria-label="Question pool">
                       {SCOPES.map(s => {
                         const n = scopeCount(s.k);
@@ -541,7 +533,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <div className="setup-opt-group">
-                    <span className="setup-dock-label">How many</span>
                     <div className="setup-seg" role="radiogroup" aria-label="Session length">
                       {COUNT_OPTIONS.map(o => {
                         const disabled = o !== "All" && o > scoped;
@@ -558,7 +549,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <div className="setup-opt-group">
-                    <span className="setup-dock-label">Filter</span>
                     <button
                       type="button"
                       className="btn-press"
@@ -569,11 +559,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       Unseen only
                     </button>
                   </div>
-
-                  <p className="setup-dock-hint" aria-live="polite">
-                    {SCOPE_HINT[scope]}
-                    {filter.unseenOnly ? " · unseen only" : ""}
-                  </p>
 
                   <button
                     className="btn-press setup-start"
@@ -660,71 +645,57 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
             <div className="setup-dock" data-in="rise" style={{ "--i": 3 }}>
               <div className="setup-dock-row">
-                <div className="setup-dock-group">
-                  <span className="setup-dock-label">From</span>
-                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Question pool">
-                    {SCOPES.map(s => {
-                      const n = scopeCount(s.k);
-                      const disabled = n === 0 && s.k !== "all";
-                      const active = scope === s.k;
-                      return (
-                        <button
-                          key={s.k}
-                          role="radio"
-                          aria-checked={active}
-                          className="btn-press"
-                          disabled={disabled}
-                          onClick={() => !disabled && setScope(s.k)}
-                          style={dockChip(active, disabled)}
-                        >
-                          {s.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Question pool">
+                  {SCOPES.map(s => {
+                    const n = scopeCount(s.k);
+                    const disabled = n === 0 && s.k !== "all";
+                    const active = scope === s.k;
+                    return (
+                      <button
+                        key={s.k}
+                        role="radio"
+                        aria-checked={active}
+                        className="btn-press"
+                        disabled={disabled}
+                        onClick={() => !disabled && setScope(s.k)}
+                        style={dockChip(active, disabled)}
+                      >
+                        {s.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <div className="setup-dock-group">
-                  <span className="setup-dock-label">How many</span>
-                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Session length">
-                    {COUNT_OPTIONS.map(o => {
-                      const disabled = o !== "All" && o > scoped;
-                      const active = o === countOpt;
-                      return (
-                        <button
-                          key={o}
-                          role="radio"
-                          aria-checked={active}
-                          disabled={disabled}
-                          className="btn-press"
-                          style={dockChip(active, disabled)}
-                          onClick={() => !disabled && setCountOpt(o)}
-                        >
-                          {o === "All" ? "All" : o}
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Session length">
+                  {COUNT_OPTIONS.map(o => {
+                    const disabled = o !== "All" && o > scoped;
+                    const active = o === countOpt;
+                    return (
+                      <button
+                        key={o}
+                        role="radio"
+                        aria-checked={active}
+                        disabled={disabled}
+                        className="btn-press"
+                        style={dockChip(active, disabled)}
+                        onClick={() => !disabled && setCountOpt(o)}
+                      >
+                        {o === "All" ? "All" : o}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <div className="setup-dock-group">
-                  <span className="setup-dock-label">Filter</span>
-                  <button
-                    type="button"
-                    className="btn-press"
-                    onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
-                    aria-pressed={filter.unseenOnly}
-                    style={toggleChip(filter.unseenOnly)}
-                  >
-                    Unseen only
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="btn-press"
+                  onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
+                  aria-pressed={filter.unseenOnly}
+                  style={toggleChip(filter.unseenOnly)}
+                >
+                  Unseen only
+                </button>
               </div>
-
-              <p className="setup-dock-hint" aria-live="polite">
-                {SCOPE_HINT[scope]}
-                {filter.unseenOnly ? " · unseen only" : ""}
-              </p>
 
               <button
                 className="btn-press"

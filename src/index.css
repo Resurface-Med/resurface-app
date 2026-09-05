@@ -2080,7 +2080,7 @@ select {
 .setup-dock-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px 14px;
 }
 .setup-dock-group {
