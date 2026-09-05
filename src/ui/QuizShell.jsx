@@ -173,13 +173,16 @@ export default function QuizShell({
        * landing's wave only reads at similar proportions because it is filled,
        * so the curve is an edge between two tones rather than a line.
        *
-       * Shorter than a section break, though: 22 to 36 against the landing's
-       * 36 to 64, because this is a boundary inside a view rather than the
-       * gap between two of them. */}
+       * Still shorter than a section break — 28 to 46 against the landing's 36
+       * to 64 — because this is a boundary inside a view rather than the gap
+       * between two of them. Height is the only lever for how wavy it looks:
+       * the curve's excursion is a proportion of the viewBox, so a taller wave
+       * is a deeper one. Changing the path instead would have made every wave
+       * in the app deeper, and the others sit where the landing put them. */}
       <Wave
         from="var(--c-bg)"
         to="var(--c-surface2)"
-        height="clamp(22px, 2.6vw, 36px)"
+        height="clamp(28px, 3.2vw, 46px)"
       />
 
       <div className="quiz-shell__stage">
