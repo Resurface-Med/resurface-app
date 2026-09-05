@@ -774,12 +774,53 @@ body::after {
   border-radius: var(--r-panel);
   box-shadow: var(--c-card-shadow-lift);
   overflow: hidden;
-  animation: ai-dock-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* Grows out of the question rather than sliding in beside it: the origin is
+     the edge nearest the button that opened it, so the panel reads as coming
+     from the press. Expo-out — almost all of the distance is covered in the
+     first third, which is what makes a long move feel effortless instead of
+     slow.
+
+     Transform and opacity only, no blur. Two earlier attempts at drama in
+     this app were reverted for animating filter, and a Gaussian pass per
+     frame is exactly what a panel this size cannot afford. */
+  transform-origin: left center;
+  animation: ai-dock-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes ai-dock-in {
-  from { opacity: 0; transform: translateX(20px) scale(0.98); }
+  0%   { opacity: 0; transform: translate3d(-16px, 16px, 0) scale(0.92); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* The panel arrives, then fills. Each part rises on the same curve a beat
+   after the one above it, so the eye is led down the dock instead of being
+   handed all of it at once — which is the whole difference between dramatic
+   and abrupt. */
+@keyframes ai-part-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
   to   { opacity: 1; transform: none; }
 }
+.ai-dock__head   { animation: ai-part-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) 0.10s both; }
+.ai-dock__thread { animation: ai-part-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both; }
+.ai-dock__foot   { animation: ai-part-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
+
+/* The mark lands last and overshoots slightly. One small thing that behaves
+   differently from everything around it is what the eye catches. */
+.ai-dock__mark {
+  animation: ai-mark-in 0.54s cubic-bezier(0.34, 1.56, 0.64, 1) 0.18s both;
+}
+@keyframes ai-mark-in {
+  from { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* And the prompts cascade, because they are the thing being offered. */
+.ai-dock__pill {
+  animation: ai-part-in 0.44s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ai-dock__pill:nth-child(1) { animation-delay: 0.26s; }
+.ai-dock__pill:nth-child(2) { animation-delay: 0.32s; }
+.ai-dock__pill:nth-child(3) { animation-delay: 0.38s; }
 
 .ai-dock__head {
   display: flex;
@@ -4150,6 +4191,13 @@ select {
   .quiz-rail__scrim,
   .quiz-rail__head,
   .quiz-rail__bar { animation: none; }
+  .ai-dock,
+  .ai-dock__head,
+  .ai-dock__thread,
+  .ai-dock__foot,
+  .ai-dock__mark,
+  .ai-dock__pill,
+  .quiz-shell__body.has-ai .ai-dock { animation: none; }
 }
 
 /* Phone: AI dock stacks below the question — still no scrim. */
@@ -4226,7 +4274,15 @@ select {
     border-radius: 0;
     border: none;
     box-shadow: none;
-    animation: none;
+    /* Full screen here, so it rises as a sheet rather than growing from a
+       corner — a scale on something that fills the viewport reads as the page
+       zooming. It had `animation: none` and simply appeared. */
+    transform-origin: center bottom;
+    animation: ai-sheet-in 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes ai-sheet-in {
+    from { opacity: 0.4; transform: translate3d(0, 100%, 0); }
+    to   { opacity: 1; transform: translate3d(0, 0, 0); }
   }
   .quiz-shell__body.has-ai .ai-dock__head {
     padding: calc(12px + var(--safe-t)) 16px 10px;
