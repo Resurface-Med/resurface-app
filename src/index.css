@@ -1956,10 +1956,17 @@ select {
   color: var(--c-on-field-soft);
 }
 
-.prog-field-stats {
+.prog-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: clamp(26px, 3.6vh, 36px);
+  padding-bottom: clamp(22px, 3vh, 28px);
+  border-bottom: 1px solid var(--c-border);
+}
+.prog-overview-stats {
   display: flex;
   flex-wrap: wrap;
-  margin-top: clamp(22px, 3.2vh, 30px);
 }
 .prog-field-stat {
   display: flex;
@@ -1969,13 +1976,13 @@ select {
 }
 .prog-field-stat + .prog-field-stat {
   padding-left: clamp(28px, 4.5vw, 56px);
-  border-left: 1px solid rgba(255, 255, 255, 0.22);
+  border-left: 1px solid var(--c-border);
 }
 .prog-field-value {
-  font-size: clamp(36px, 4.2vw, 48px);
+  font-size: clamp(32px, 3.8vw, 42px);
   font-weight: 700;
-  letter-spacing: -1.8px;
-  color: var(--c-on-field);
+  letter-spacing: -1.6px;
+  color: var(--c-text);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
@@ -1983,34 +1990,26 @@ select {
   font-size: 0.42em;
   font-weight: 600;
   letter-spacing: -0.2px;
-  color: var(--c-on-field-faint);
+  color: var(--c-muted);
   margin-left: 2px;
 }
 .prog-field-label {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--c-on-field-faint);
+  color: var(--c-muted);
 }
 
-.prog-field-cover {
+.prog-overview-cover {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: clamp(18px, 2.6vh, 24px);
   max-width: 420px;
 }
-.prog-field-cover .prog-bar {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.18);
-}
-.prog-field-cover .prog-bar-fill {
-  background: #fff;
-}
-.prog-field-cover-note {
+.prog-overview-cover-note {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--c-on-field-faint);
+  color: var(--c-muted);
 }
 
 .prog-sheet {
@@ -2020,6 +2019,21 @@ select {
 }
 .prog-sheet-title {
   margin: 0 0 22px;
+}
+
+/* Shared by Leaderboard / Session summary section headers. */
+.prog-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.prog-section-note {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--c-muted);
 }
 
 .prog-bar {
