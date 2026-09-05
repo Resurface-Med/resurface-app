@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
@@ -52,6 +52,74 @@ function applyBank(list, bank) {
   if (bank === "app") return list.filter(q => !q.gen);
   if (bank === "mine") return list.filter(q => q.gen);
   return list;
+}
+
+/** Anchored menu — native <select> recenters on the chosen row on iOS and
+ *  drifts into the status bar when you pick a lower option. */
+function BankSelect({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const mineCount = QUESTIONS.filter(q => q.gen).length;
+  const current = BANKS.find(b => b.k === value) || BANKS[0];
+
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e) {
+      if (!rootRef.current?.contains(e.target)) setOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className={`setup-bank${open ? " is-open" : ""}`} ref={rootRef}>
+      <button
+        type="button"
+        className="setup-bank-trigger btn-press"
+        aria-label="Whose questions"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen(v => !v)}
+      >
+        <span className="setup-bank-trigger-label">{current.label}</span>
+        <span className="setup-bank-chevron" aria-hidden="true" />
+      </button>
+      {open && (
+        <ul className="setup-bank-menu" role="listbox" aria-label="Whose questions">
+          {BANKS.map(b => {
+            const selected = b.k === value;
+            const label = b.k === "mine" && mineCount === 0
+              ? "Questions you made (none yet)"
+              : b.label;
+            return (
+              <li key={b.k} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  className={`setup-bank-option${selected ? " is-selected" : ""}`}
+                  onClick={() => {
+                    onChange(b.k);
+                    setOpen(false);
+                  }}
+                >
+                  <span className="setup-bank-check" aria-hidden="true">{selected ? "✓" : ""}</span>
+                  <span>{label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 /** Compact chips for the setup dock — secondary choices, not a second page. */
@@ -221,26 +289,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
-  function BankSelect() {
-    const mineCount = QUESTIONS.filter(q => q.gen).length;
-    return (
-      <select
-        className="setup-bank-select"
-        value={bank}
-        onChange={e => setBank(e.target.value)}
-        aria-label="Whose questions"
-      >
-        {BANKS.map(b => (
-          <option key={b.k} value={b.k}>
-            {b.k === "mine" && mineCount === 0
-              ? "Questions you made (none yet)"
-              : b.label}
-          </option>
-        ))}
-      </select>
-    );
-  }
-
   function resumeSession() {
     const s = savedSession;
     const restoredQueue = s.queue ?? [];
@@ -345,7 +393,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {step === "topic" ? (
               <div className="setup-title-row">
                 <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
-                <BankSelect />
+                <BankSelect value={bank} onChange={setBank} />
               </div>
             ) : (
               <>
@@ -499,7 +547,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
           <div className="setup-title-row">
             <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
-            <BankSelect />
+            <BankSelect value={bank} onChange={setBank} />
           </div>
 
           {savedSession && (

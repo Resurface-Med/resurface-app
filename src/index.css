@@ -4243,34 +4243,107 @@ select {
   flex-wrap: wrap;
 }
 
-.setup-bank-select {
+/* Custom bank menu — fixed under the trigger so iOS cannot recenter it. */
+.setup-bank {
+  position: relative;
   flex-shrink: 0;
   margin-left: auto;
-  max-width: min(100%, 220px);
-  padding: 8px 32px 8px 12px;
+  z-index: 40;
+}
+.setup-bank-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(100vw - 48px, 220px);
+  padding: 8px 12px 8px 14px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.14)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='white' d='M1.1 1.2L6 6.1l4.9-4.9 1.1 1.1L6 8.3.0 2.3z'/%3E%3C/svg%3E")
-    no-repeat right 12px center;
-  background-size: 10px;
+  background: rgba(255, 255, 255, 0.14);
   color: var(--c-on-field);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: -0.15px;
-  appearance: none;
-  -webkit-appearance: none;
   cursor: pointer;
 }
-.setup-bank-select:focus {
+.setup-bank-trigger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
 }
-.setup-bank-select option {
-  color: var(--c-text);
+.setup-bank-trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.setup-bank-chevron {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  background: center / 10px no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='white' d='M1.1 1.2L6 6.1l4.9-4.9 1.1 1.1L6 8.3.0 2.3z'/%3E%3C/svg%3E");
+  opacity: 0.9;
+  transition: transform 0.15s ease;
+}
+.setup-bank.is-open .setup-bank-chevron {
+  transform: rotate(180deg);
+}
+.setup-bank-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: auto;
+  min-width: max(100%, 220px);
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border-radius: 16px;
+  border: 1px solid var(--c-border);
   background: var(--c-card-solid);
+  box-shadow: var(--c-card-shadow-lift);
+}
+.setup-bank-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--c-sub);
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 500;
+  letter-spacing: -0.15px;
+  text-align: left;
+  cursor: pointer;
+}
+.setup-bank-option.is-selected {
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
+  font-weight: 600;
+}
+.setup-bank-option:hover,
+.setup-bank-option:focus-visible {
+  background: var(--c-surface2);
+  color: var(--c-text);
+  outline: none;
+}
+.setup-bank-option.is-selected:hover,
+.setup-bank-option.is-selected:focus-visible {
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
+}
+.setup-bank-check {
+  flex-shrink: 0;
+  width: 1em;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+.setup-bank-option:not(.is-selected) .setup-bank-check {
+  visibility: hidden;
 }
 
 .setup-options {
