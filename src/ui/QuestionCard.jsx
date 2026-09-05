@@ -304,32 +304,25 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
-          {sel !== q.ans && !explaining && (
-            <button
-              type="button"
-              className="q-review-ai btn-press"
-              onClick={() => setExplaining(true)}
-            >
-              <span className="q-review-ai__icon" aria-hidden="true">
-                <img
-                  src="/books.webp"
-                  alt=""
-                  width="64"
-                  height="64"
-                  className="q-review-ai__mark"
-                />
-              </span>
-              <span className="q-review-ai__copy">
-                <span className="q-review-ai__hint">Still stuck?</span>
-                <span className="q-review-ai__label">Ask Resurface AI</span>
-              </span>
-              <svg className="q-review-ai__arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-          )}
-
+          {/* In the row with the other two, not floating above it in a card of
+              its own. All three are things you can do with this question once
+              it is answered, and giving one a border, a shadow and two lines
+              of copy made a secondary action the heaviest object on the card —
+              heavier than the answer it sits under. It stays the important one
+              of the three by being tinted while they stay plain text. */}
           <div className="q-review-meta">
+            {sel !== q.ans && !explaining && (
+              <button
+                type="button"
+                className="q-review-ai btn-press"
+                onClick={() => setExplaining(true)}
+              >
+                Ask Resurface AI
+                <svg className="q-review-ai__arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
             <button
               type="button"
               className="q-allopts"

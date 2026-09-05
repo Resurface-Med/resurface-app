@@ -686,80 +686,53 @@ body::after {
   letter-spacing: -0.15px;
 }
 
+/* One line, pill, tinted. It was a bordered and shadowed card carrying a
+   26px crop of books.webp and a two-line label — the hero illustration shrunk
+   to icon size, where it reads as a stray emoji rather than a mark. The image
+   is gone: "Ask Resurface AI" names itself, and an icon that has to be
+   explained is not doing any work.
+
+   "Still stuck?" went with it. You are reading this because you got the
+   question wrong and have just read why — the question it asks is already
+   answered by where it sits. */
 .q-review-ai {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  width: fit-content;
-  max-width: 100%;
-  margin-top: 18px;
-  padding: 11px 13px 11px 11px;
-  border: 1px solid var(--c-border);
-  border-radius: 16px;
-  background: var(--c-surface);
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 9px 14px 9px 16px;
+  border: 1.5px solid var(--c-accent-brd);
+  border-radius: var(--r-pill);
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
   font-family: inherit;
-  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(15, 27, 61, 0.04);
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .q-review-ai:hover {
-  border-color: var(--c-accent-brd);
-  background: var(--c-accent-dim);
-  box-shadow: 0 4px 16px rgba(77, 142, 245, 0.12);
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
 }
-.q-review-ai__icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  line-height: 0;
-}
-.q-review-ai__mark {
-  display: block;
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-  /* books.webp sits optically low in its frame */
-  transform: translateY(-1px);
-}
-.q-review-ai__copy {
-  flex: 0 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.q-review-ai__hint {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-muted);
-  letter-spacing: -0.05px;
-}
-.q-review-ai__label {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  color: var(--c-text);
-}
-.q-review-ai:hover .q-review-ai__label { color: var(--c-accent); }
 .q-review-ai__arrow {
   flex-shrink: 0;
-  color: var(--c-muted);
-  transition: color 0.15s, transform 0.15s;
+  transition: transform 0.15s ease;
 }
 .q-review-ai:hover .q-review-ai__arrow {
-  color: var(--c-accent);
   transform: translateX(2px);
 }
+
 .q-review-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 14px;
-  margin-top: 14px;
+  gap: 10px 16px;
+  margin-top: 18px;
 }
 .q-review-meta .q-flag-open {
   margin-top: 0;
@@ -3922,24 +3895,15 @@ select {
   line-height: 1.75;
   letter-spacing: -0.18px;
 }
+/* In focus mode the card's type is a notch larger, so the pill grows with it
+   rather than sitting small against 17px prose. The icon and label overrides
+   that used to live here went with the card version of this button. */
 .quiz-shell .q-card--focus .q-review-ai {
-  margin-top: 20px;
-  padding: 12px 14px 12px 12px;
-  border-radius: 18px;
-}
-.quiz-shell .q-card--focus .q-review-ai__icon {
-  width: 30px;
-  height: 30px;
-}
-.quiz-shell .q-card--focus .q-review-ai__mark {
-  width: 28px;
-  height: 28px;
-}
-.quiz-shell .q-card--focus .q-review-ai__label {
-  font-size: 15.5px;
+  padding: 10px 16px 10px 18px;
+  font-size: 14.5px;
 }
 .quiz-shell .q-card--focus .q-review-meta {
-  margin-top: 16px;
+  margin-top: 20px;
 }
 .quiz-shell .q-opt {
   background: var(--c-surface2);
