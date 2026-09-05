@@ -35,6 +35,7 @@ import { Sidebar } from "./views/Nav";
 import Dashboard from "./views/Dashboard";
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
+const AnatomyView     = lazy(() => import("./views/AnatomyView"));
 const ProgressView    = lazy(() => import("./views/StatsView"));
 const LeaderboardView = lazy(() => import("./views/LeaderboardView"));
 const ProfileView     = lazy(() => import("./views/ProfileView"));
@@ -338,6 +339,8 @@ export default function App() {
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
             onRequestExit={() => setPendingView(V.DASH)} />}
+
+          {view === V.ANATOMY && <AnatomyView />}
 
           {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}

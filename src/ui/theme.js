@@ -41,7 +41,7 @@ export const C = {
  * STUDY, chosen on its setup screen. Subjects and Stats merge into PROGRESS,
  * which also rescues Subjects: nothing linked to it, so it was unreachable.
  */
-export const V = { DASH:"dash", STUDY:"study", PROGRESS:"progress", LEADERBOARD:"leaderboard", GENERATE:"generate", PROFILE:"profile" };
+export const V = { DASH:"dash", STUDY:"study", ANATOMY:"anatomy", PROGRESS:"progress", LEADERBOARD:"leaderboard", GENERATE:"generate", PROFILE:"profile" };
 
 
 /** What STUDY draws from. Set before opening it. */
@@ -382,6 +382,7 @@ export const chipFieldActive = {
 export const NAV = [
   { k: V.DASH,        label: "Home" },
   { k: V.STUDY,       label: "Study" },
+  { k: V.ANATOMY,     label: "Anatomy" },
   { k: V.PROGRESS,    label: "Progress" },
   { k: V.LEADERBOARD, label: "Leaderboard" },
   { k: V.GENERATE,    label: "Generate" },
