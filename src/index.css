@@ -4235,6 +4235,27 @@ select {
   outline: none;
 }
 
+/* Whose questions — sits above the topic list so counts change with the choice. */
+.setup-bank {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.setup-bank-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.setup-bank-hint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--c-muted);
+  line-height: 1.4;
+}
+
 .setup-options {
   display: flex;
   flex-direction: column;

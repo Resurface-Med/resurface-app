@@ -41,6 +41,25 @@ const SCOPE_HINT = {
   saved: "Ones you bookmarked",
 };
 
+/** Where the question came from — orthogonal to Due / Wrong / Saved. */
+const BANKS = [
+  { k: "app",  label: "App's questions" },
+  { k: "mine", label: "Ones I made" },
+  { k: "both", label: "Both" },
+];
+
+const BANK_HINT = {
+  app:  "The Year 1 set that comes with Resurface",
+  mine: "Questions you generated or wrote yourself",
+  both: "App's questions and ones you made",
+};
+
+function applyBank(list, bank) {
+  if (bank === "app") return list.filter(q => !q.gen);
+  if (bank === "mine") return list.filter(q => q.gen);
+  return list;
+}
+
 /** Compact chips for the setup dock — secondary choices, not a second page. */
 /**
  * Whether we are on a phone.
@@ -137,16 +156,18 @@ function describeSession(s) {
  */
 export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all" }) {
   const [scope, setScope] = useState(initialScope);
+  const [bank, setBank] = useState("both");
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
   function scopeCount(k) {
-    if (k === "due")   return QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length;
-    if (k === "saved") return bookmarks.length;
-    if (k === "wrong") return QUESTIONS.filter(q => {
+    const pool = applyBank(QUESTIONS, bank);
+    if (k === "due")   return pool.filter(q => isReviewDue(srCards[q.id])).length;
+    if (k === "saved") return pool.filter(q => bookmarks.includes(q.id)).length;
+    if (k === "wrong") return pool.filter(q => {
       const s = pStats[q.id];
       return s && s.total > 0 && s.correct / s.total < 0.6;
     }).length;
-    return QUESTIONS.length;
+    return pool.length;
   }
   const [filter, setFilter] = useState(launchFilter
     ? { year: ["All"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
@@ -192,18 +213,55 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   /** Exactly what a Start press would queue, so the button can say so. */
   function scopedCount(f) {
-    return applyScope(filteredQuestions(f, pStats)).length;
+    return applyScope(applyBank(filteredQuestions(f, pStats), bank)).length;
   }
 
   function start(filterOverride) {
     const f = filterOverride ?? filter;
-    const base = applyScope(filteredQuestions(f, pStats));
+    const base = applyScope(applyBank(filteredQuestions(f, pStats), bank));
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
     const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
     setSessionFilter(f);
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
+  }
+
+  function BankPicker({ className = "" }) {
+    const mineCount = QUESTIONS.filter(q => q.gen).length;
+    return (
+      <div className={`setup-bank${className ? ` ${className}` : ""}`}>
+        <span className="setup-dock-label" id="setup-bank-label">Whose questions</span>
+        <div
+          className="setup-seg setup-bank-seg"
+          role="radiogroup"
+          aria-labelledby="setup-bank-label"
+        >
+          {BANKS.map(b => {
+            const on = bank === b.k;
+            return (
+              <button
+                key={b.k}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                className="btn-press"
+                title={BANK_HINT[b.k]}
+                onClick={() => setBank(b.k)}
+                style={dockChip(on, false)}
+              >
+                {b.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="setup-bank-hint" aria-live="polite">
+          {bank === "mine" && mineCount === 0
+            ? "You haven’t made any yet — open Generate to add some"
+            : BANK_HINT[bank]}
+        </p>
+      </div>
+    );
   }
 
   function resumeSession() {
@@ -286,7 +344,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   if (!queue) {
     // Scope decides which questions exist at all, so the topic rows can each
     // say how many they would actually give you under it.
-    const inScope = applyScope(QUESTIONS.filter(x => !filter.unseenOnly || !pStats[x.id]));
+    const inScope = applyScope(
+      applyBank(QUESTIONS, bank).filter(x => !filter.unseenOnly || !pStats[x.id]),
+    );
     const eligibleIds = inScope.map(x => x.id);
     const scoped = scopedCount(filter);
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
@@ -341,6 +401,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
+                  <BankPicker />
                   <input
                     type="search"
                     value={topicQuery}
@@ -430,7 +491,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <p className="setup-dock-hint" aria-live="polite">
-                    {SCOPE_HINT[scope]}
+                    {BANK_HINT[bank]} · {SCOPE_HINT[scope]}
                     {filter.unseenOnly ? " · unseen only" : ""}
                   </p>
 
@@ -487,6 +548,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   {scoped} available
                 </span>
               </div>
+              <BankPicker />
               <input
                 type="search"
                 value={topicQuery}
@@ -577,7 +639,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               </div>
 
               <p className="setup-dock-hint" aria-live="polite">
-                {SCOPE_HINT[scope]}
+                {BANK_HINT[bank]} · {SCOPE_HINT[scope]}
                 {filter.unseenOnly ? " · unseen only" : ""}
               </p>
 
