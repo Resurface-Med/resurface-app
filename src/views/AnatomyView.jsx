@@ -253,7 +253,6 @@ export default function AnatomyView({ region: initial = "heart" }) {
 
   return (
     <div className="anat">
-      <Wave />
       <div className="anat__head">
         <h1 style={{ ...h1, color: OF.text, margin: 0 }}>Anatomy</h1>
         <div className="anat__regions">
@@ -270,6 +269,14 @@ export default function AnatomyView({ region: initial = "heart" }) {
         </div>
       </div>
 
+      {/* The same waterline every other screen uses, with the same two colours.
+          It was rendered here with no props at all, and an SVG path with no
+          fill paints black — which is the bar that was across the top. The
+          model sits on the sheet below it now rather than straight on the
+          field, so the boundary reads the way it does on every other tab. */}
+      <Wave from="transparent" to="var(--c-card-solid)" />
+
+      <div className="anat__sheet">
       <div className="anat__stage">
         <div ref={hostRef} className="anat__canvas" />
 
@@ -306,6 +313,7 @@ export default function AnatomyView({ region: initial = "heart" }) {
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   );

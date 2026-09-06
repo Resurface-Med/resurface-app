@@ -5328,22 +5328,31 @@ select {
    screen puts its content on paper because the content is text; this one is an
    object being looked at, and the darker ground is what a specimen is normally
    photographed against — it also stops the pale bone tones washing out. */
+/* Field, waterline, sheet — the same three bands as Home and Progress. The
+   model belongs on the sheet: it is the content, and the field is for the
+   title and the controls that choose what is shown. */
 .anat {
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: var(--screen-h);
-  padding: clamp(18px, 3vh, 30px) clamp(16px, 4vw, 36px) 0;
 }
 .anat__head {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: clamp(14px, 2vh, 22px);
+  padding: clamp(18px, 3vh, 30px) clamp(16px, 4vw, 36px) clamp(14px, 2vh, 22px);
+}
+.anat__sheet {
+  background: var(--c-card-solid);
+  flex: 1;
+  /* min-height:0 so the canvas can be sized by its box rather than growing it;
+     without it a WebGL canvas in a flex column ratchets taller every resize. */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 .anat__regions { display: flex; gap: 8px; }
 .anat__region {
@@ -5369,10 +5378,9 @@ select {
 .anat__stage {
   position: relative;
   flex: 1;
-  min-height: 0;
-  margin: 0 calc(-1 * clamp(16px, 4vw, 36px));
-  /* The canvas is the whole remaining screen. Anything overlaying it is
-     positioned against this, so the model never has to make room for a panel. */
+  /* The canvas fills the sheet. Anything overlaying it is positioned against
+     this, so the model never has to make room for a panel. */
+  min-height: min(56vh, 460px);
 }
 .anat__canvas { position: absolute; inset: 0; }
 .anat__canvas canvas { display: block; touch-action: none; }
@@ -5383,13 +5391,13 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--c-on-field-soft);
+  color: var(--c-muted);
   font-size: 15px;
   font-weight: 500;
   text-align: center;
   padding: 24px;
 }
-.anat__veil.is-error { color: #ffd9d4; }
+.anat__veil.is-error { color: var(--c-danger, #d64545); }
 
 /* Down the left on a desktop, along the bottom on a phone — in both cases out
    of the middle, which is where the model is. */
@@ -5411,20 +5419,22 @@ select {
   align-items: center;
   gap: 8px;
   padding: 6px 13px 6px 9px;
-  border: none;
+  border: 1px solid var(--c-border);
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.14);
-  color: var(--c-on-field);
+  background: var(--c-surface2);
+  color: var(--c-text);
   font: inherit;
   font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-.anat__sys:hover { background: rgba(255, 255, 255, 0.24); }
-.anat__sys.is-off { opacity: 0.42; }
-.anat__sys.is-off .anat__swatch { background: transparent !important; box-shadow: inset 0 0 0 1.5px currentColor; }
+.anat__sys:hover { background: var(--c-surface3); }
+/* Hidden reads as an outline rather than a fade: at 12.5px a dimmed label is
+   just hard to read, where a hollow swatch says "off" at a glance. */
+.anat__sys.is-off { color: var(--c-muted); background: transparent; }
+.anat__sys.is-off .anat__swatch { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--c-muted); }
 .anat__swatch { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
 
 /* Bottom centre, and always present — a label that appears and disappears
@@ -5438,21 +5448,22 @@ select {
   max-width: min(560px, 90vw);
   padding: 11px 22px;
   border-radius: var(--r-card);
-  background: rgba(9, 22, 60, 0.42);
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--c-border);
+  background: var(--c-card-solid);
+  box-shadow: var(--c-card-shadow);
   text-align: center;
-  transition: background 0.2s;
+  transition: border-color 0.2s;
 }
-.anat__name.is-on { background: rgba(9, 22, 60, 0.6); }
+.anat__name.is-on { border-color: var(--c-accent-brd, var(--c-border)); }
 .anat__name-label {
-  color: var(--c-on-field);
+  color: var(--c-text);
   font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.3px;
   line-height: 1.3;
 }
 .anat__name-sub {
-  color: var(--c-on-field-soft);
+  color: var(--c-muted);
   font-size: 12.5px;
   margin-top: 2px;
 }
