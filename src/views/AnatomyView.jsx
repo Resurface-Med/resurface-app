@@ -32,6 +32,27 @@ const REGION_LABEL = { heart: "Heart", thorax: "Chest", abdomen: "Abdomen" };
 const wantsAO = () =>
   typeof location !== "undefined" && new URLSearchParams(location.search).get("ao") === "1";
 
+/* How far vessels are lifted clear of the organ they run on, as a fraction of
+   the model's size. Overridable with ?lift= for tuning without a rebuild. */
+const DEFAULT_LIFT = 0.012;
+const liftAmount = () => {
+  if (typeof location === "undefined") return DEFAULT_LIFT;
+  const v = new URLSearchParams(location.search).get("lift");
+  return v === null || Number.isNaN(Number(v)) ? DEFAULT_LIFT : Number(v);
+};
+
+/* Vessels lie on the surface of the thing they supply, and the surface they
+   lie on is a separate mesh that was segmented independently — so the two
+   interpenetrate, and a coronary artery spends half its length inside the
+   myocardium. It reads as a dashed line: the artery is one continuous tube,
+   verified, and what you see is only the part that surfaces.
+
+   Nothing in the data says how deep any given point is buried, so this pushes
+   vessels radially out from the model's centre. That is only an approximation
+   of "outwards", but a heart is convex enough for it to hold, and it moves the
+   whole tube rather than closing a gap that was never there. */
+const LIFTED = new Set(["arterial", "venous"]);
+
 /* The atlas's own system colours, which are anatomical convention — arteries
    red, veins blue, bone off-white — rather than a palette choice to make here. */
 const SYSTEM_COLOUR = {
@@ -158,10 +179,41 @@ export default function AnatomyView({ region: initial = "heart" }) {
         names.forEach((n, i) => rank.set(sys + "\u0000" + n, i));
       }
 
+      /* The model's centre, from the manifest rather than from the built scene,
+         because the vessels need it while their geometry is being made. */
+      const lo = [Infinity, Infinity, Infinity], hiB = [-Infinity, -Infinity, -Infinity];
+      for (const part of data.parts) {
+        for (let c = 0; c < 3; c++) {
+          if (part.bounds[0][c] < lo[c]) lo[c] = part.bounds[0][c];
+          if (part.bounds[1][c] > hiB[c]) hiB[c] = part.bounds[1][c];
+        }
+      }
+      const mid = lo.map((v, i) => (v + hiB[i]) / 2);
+      const modelSpan = Math.hypot(hiB[0] - lo[0], hiB[1] - lo[1], hiB[2] - lo[2]);
+      const lift = liftAmount() * modelSpan;
+
       for (const part of data.parts) {
         const g = data.get(part.id);
+
+        let positions = g.positions;
+        if (lift > 0 && LIFTED.has(part.system)) {
+          /* A copy: the loader caches decoded geometry, and displacing in place
+             would move the vessel again every time the region is reopened. */
+          positions = Float32Array.from(g.positions);
+          for (let i = 0; i < positions.length; i += 3) {
+            const dx = positions[i] - mid[0];
+            const dy = positions[i + 1] - mid[1];
+            const dz = positions[i + 2] - mid[2];
+            const d = Math.hypot(dx, dy, dz);
+            if (d < 1e-6) continue;
+            positions[i] += (dx / d) * lift;
+            positions[i + 1] += (dy / d) * lift;
+            positions[i + 2] += (dz / d) * lift;
+          }
+        }
+
         const geom = new THREE.BufferGeometry();
-        geom.setAttribute("position", new THREE.BufferAttribute(g.positions, 3));
+        geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
         geom.setIndex(new THREE.BufferAttribute(g.indices, 1));
         /* Not shipped, so derived. int16 normals were 2MB a region and gzip
            could do nothing with them; recomputing costs a beat on load. */
