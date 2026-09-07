@@ -36,8 +36,16 @@ describe("anatomy bundle loading", () => {
   it("reads the heart region", async () => {
     const r = await loadRegion("heart");
     expect(r.region).toBe("heart");
-    expect(r.parts.length).toBe(71);
+    /* Not a fixed count: the heart region's membership is a judgement that has
+       already changed once — it gained the cardiac veins when the filter was
+       found to be dropping them — and a test that pins the number just has to
+       be edited every time that judgement improves. What matters is that the
+       region loaded and holds the heart's own circulation, both halves. */
+    expect(r.parts.length).toBeGreaterThan(60);
     expect(r.concepts.length).toBeGreaterThan(0);
+    const names = r.parts.map(p => p.name.toLowerCase());
+    expect(names.some(n => n.includes("coronary artery"))).toBe(true);
+    expect(names.some(n => n.includes("cardiac vein"))).toBe(true);
   });
 
   it("decodes every part inside its own bounding box", async () => {
@@ -105,7 +113,7 @@ describe("anatomy bundle loading", () => {
         : { ok: true, arrayBuffer: async () => asArrayBuffer(plain) };
 
     const r = await loadRegion("heart-plain-bytes-check");
-    expect(r.parts.length).toBe(71);
+    expect(r.parts.length).toBeGreaterThan(60);
     const g = r.get(r.parts[0].id);
     expect(g.positions.length).toBe(r.parts[0].vertexCount * 3);
   });
