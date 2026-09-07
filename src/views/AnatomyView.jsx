@@ -22,6 +22,15 @@ import { preToneMap } from "../lib/toneMap";
 
 const REGION_LABEL = { heart: "Heart", thorax: "Chest", abdomen: "Abdomen" };
 
+/* Ambient occlusion is off unless asked for with ?ao=1.
+   It shipped on and the screen came back blank, which is the wrong way round
+   for an effect that cannot be checked without a browser: everything else in
+   the lighting pass is a material or a curve and cannot fail to a white
+   rectangle, where a depth-based post pass very much can. On by request until
+   it has been seen working. */
+const wantsAO = () =>
+  typeof location !== "undefined" && new URLSearchParams(location.search).get("ao") === "1";
+
 /* The atlas's own system colours, which are anatomical convention — arteries
    red, veins blue, bone off-white — rather than a palette choice to make here. */
 const SYSTEM_COLOUR = {
@@ -63,16 +72,19 @@ export default function AnatomyView({ region: initial = "heart" }) {
     const ac = new AbortController();
 
     (async () => {
-      const [
-        THREE, { OrbitControls }, { RoomEnvironment },
-        { EffectComposer }, { SSAOPass }, { OutputPass }, data,
-      ] = await Promise.all([
+      const ao = wantsAO();
+      const [THREE, { OrbitControls }, { RoomEnvironment }, post, data] = await Promise.all([
         import("three"),
         import("three/examples/jsm/controls/OrbitControls.js"),
         import("three/examples/jsm/environments/RoomEnvironment.js"),
-        import("three/examples/jsm/postprocessing/EffectComposer.js"),
-        import("three/examples/jsm/postprocessing/SSAOPass.js"),
-        import("three/examples/jsm/postprocessing/OutputPass.js"),
+        /* Three chunks that are only fetched when the effect is asked for. */
+        ao
+          ? Promise.all([
+              import("three/examples/jsm/postprocessing/EffectComposer.js"),
+              import("three/examples/jsm/postprocessing/SSAOPass.js"),
+              import("three/examples/jsm/postprocessing/OutputPass.js"),
+            ]).then(([a, b, c]) => ({ ...a, ...b, ...c }))
+          : null,
         loadRegion(region, { signal: ac.signal }),
       ]);
       if (dead) return;
@@ -104,7 +116,11 @@ export default function AnatomyView({ region: initial = "heart" }) {
         ? new THREE.Color().setRGB(ground[0], ground[1], ground[2], THREE.LinearSRGBColorSpace)
         : new THREE.Color(sheet);
 
-      const camera = new THREE.PerspectiveCamera(38, host.clientWidth / host.clientHeight, 0.001, 100);
+      /* near and far are set below, once the model's size is known. Fixed at
+         0.001 and 100 they spanned a range 100,000 times deeper than a heart
+         0.19m across, which leaves a depth buffer with no usable precision —
+         invisible while nothing reads depth, ruinous for anything that does. */
+      const camera = new THREE.PerspectiveCamera(38, host.clientWidth / host.clientHeight, 0.01, 10);
 
       /* An environment, not just lights. Two directional lights give a surface
          one or two highlights and flat shadow everywhere else; an irradiance
@@ -166,6 +182,12 @@ export default function AnatomyView({ region: initial = "heart" }) {
       group.position.sub(centre);
       const span = box.getSize(new THREE.Vector3()).length();
 
+      /* A range of about 2,000:1 rather than 100,000:1, and one that follows
+         the model: a heart and a whole chest differ by an order of magnitude. */
+      camera.near = span / 100;
+      camera.far = span * 20;
+      camera.updateProjectionMatrix();
+
       camera.position.set(0, span * 0.12, span * 0.95);
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
@@ -184,16 +206,19 @@ export default function AnatomyView({ region: initial = "heart" }) {
          which assume a scene measured in the tens of units. This one is in
          metres and a heart is 0.1 of them across, so the stock kernelRadius of
          8 would sample the entire model for every pixel and return a flat grey. */
-      const composer = new EffectComposer(renderer);
-      const ssao = new SSAOPass(scene, camera, host.clientWidth, host.clientHeight);
-      ssao.kernelRadius = span * 0.045;
-      ssao.minDistance = span * 0.0004;
-      ssao.maxDistance = span * 0.05;
-      composer.addPass(ssao);
-      /* Last, and it is what applies the tone mapping: once a composer owns the
-         output, the renderer's own tone mapping is bypassed. Without this pass
-         the ACES curve set above would silently do nothing. */
-      composer.addPass(new OutputPass());
+      let composer = null;
+      if (ao && post) {
+        composer = new post.EffectComposer(renderer);
+        const ssao = new post.SSAOPass(scene, camera, host.clientWidth, host.clientHeight);
+        ssao.kernelRadius = span * 0.045;
+        ssao.minDistance = span * 0.0004;
+        ssao.maxDistance = span * 0.05;
+        composer.addPass(ssao);
+        /* Last, and it is what applies the tone mapping: once a composer owns
+           the output the renderer's own tone mapping is bypassed, so without
+           this pass the ACES curve set above would silently do nothing. */
+        composer.addPass(new post.OutputPass());
+      }
 
       const ray = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
@@ -247,7 +272,9 @@ export default function AnatomyView({ region: initial = "heart" }) {
         requestAnimationFrame(() => {
           queued = false;
           const moving = controls.update();
-          composer.render();
+          /* Straight to the screen when there is no composer — the renderer
+             applies its own tone mapping in that path. */
+          if (composer) composer.render(); else renderer.render(scene, camera);
           if (moving) draw();
         });
       }
@@ -257,7 +284,7 @@ export default function AnatomyView({ region: initial = "heart" }) {
         const w = host.clientWidth, h = host.clientHeight;
         if (!w || !h) return;
         renderer.setSize(w, h);
-        composer.setSize(w, h);
+        composer?.setSize(w, h);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         draw();
@@ -286,7 +313,7 @@ export default function AnatomyView({ region: initial = "heart" }) {
           renderer.domElement.removeEventListener("pointerdown", onDown);
           renderer.domElement.removeEventListener("pointerup", onUp);
           for (const m of group.children) { m.geometry.dispose(); m.material.dispose(); }
-          composer.dispose();
+          composer?.dispose();
           envRT.texture.dispose();
           pmrem.dispose();
           renderer.dispose();
