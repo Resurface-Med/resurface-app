@@ -35,7 +35,43 @@ const chunk = i => {
   return chunks.get(i);
 };
 
+/* Signed volume by the divergence theorem. For a closed mesh it is positive
+   when the faces wind counter-clockwise seen from outside, and negative when
+   they are inside out. The high-resolution source is in a left-handed space
+   and one axis is negated on import, which reverses winding — get the
+   compensation wrong and every mesh renders as its own inner surface, lit from
+   within, with no error anywhere. This is the check for that. */
+function signedVolume(pos, idx) {
+  let v = 0;
+  for (let i = 0; i < idx.length; i += 3) {
+    const a = idx[i] * 3, b = idx[i + 1] * 3, c = idx[i + 2] * 3;
+    v += (
+      pos[a] * (pos[b + 1] * pos[c + 2] - pos[b + 2] * pos[c + 1]) -
+      pos[a + 1] * (pos[b] * pos[c + 2] - pos[b + 2] * pos[c]) +
+      pos[a + 2] * (pos[b] * pos[c + 1] - pos[b + 1] * pos[c])
+    ) / 6;
+  }
+  return v;
+}
+
+function decode(bin, part) {
+  const posBytes = part.vertexCount * 6;
+  const q = new Uint16Array(bin.buffer, bin.byteOffset + part.offset, part.vertexCount * 3);
+  const idx = new Uint16Array(
+    bin.buffer, bin.byteOffset + part.offset + posBytes, part.indexCount,
+  );
+  const [min, max] = part.bounds;
+  const pos = new Float32Array(part.vertexCount * 3);
+  for (let i = 0; i < part.vertexCount; i++) {
+    for (let c = 0; c < 3; c++) {
+      pos[i * 3 + c] = min[c] + (q[i * 3 + c] / 65535) * (max[c] - min[c]);
+    }
+  }
+  return { pos, idx };
+}
+
 let worst = 0, worstName = "", checked = 0, tris = 0, extras = 0;
+let inverted = [];
 for (const part of bundle.parts) {
   /* Parts carried in from elsewhere have no BodyParts3D original to compare
      against, so the vertex-by-vertex check does not apply. They still have to
@@ -53,7 +89,26 @@ for (const part of bundle.parts) {
   }
   const src = byId.get(part.id);
   if (!src) throw new Error(`${part.name}: not in source atlas`);
-  if (src.vertexCount !== part.vertexCount) throw new Error(`${part.name}: vertex count drifted`);
+
+  /* Upgraded from the official archive: different geometry, so there is no
+     vertex-by-vertex diff to make. What must hold is that it is the same
+     structure in the same place, and the right way out. */
+  if (src.vertexCount !== part.vertexCount) {
+    for (let c = 0; c < 3; c++) {
+      const drift = Math.max(
+        Math.abs(part.bounds[0][c] - src.bounds[0][c]),
+        Math.abs(part.bounds[1][c] - src.bounds[1][c]),
+      );
+      if (drift > 0.02) {
+        throw new Error(`${part.name}: sits ${(drift * 100).toFixed(1)}cm from where the atlas puts it`);
+      }
+    }
+    const { pos, idx } = decode(bin, part);
+    for (const v of idx) if (v >= part.vertexCount) throw new Error(`${part.name}: index out of range`);
+    if (signedVolume(pos, idx) < 0) inverted.push(part.name);
+    checked++; tris += part.indexCount / 3;
+    continue;
+  }
 
   const buf = chunk(src.chunk);
   const orig = new Float32Array(
@@ -87,5 +142,9 @@ console.log(`parts checked   ${checked}${extras ? `  (+${extras} imported, geome
 console.log(`triangles       ${tris.toLocaleString()}`);
 console.log(`worst error     ${(worst * 1000).toFixed(4)} mm  (${worstName})`);
 console.log(`bundle          ${(bin.length / 1e6).toFixed(2)}MB raw`);
+if (inverted.length) {
+  console.error(`\nFAIL: ${inverted.length} meshes wound inside out, e.g. ${inverted.slice(0, 3).join(", ")}`);
+  process.exit(1);
+}
 if (worst > 0.001) { console.error("\nFAIL: worst error over 1mm"); process.exit(1); }
 console.log("\nOK");
