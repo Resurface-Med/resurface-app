@@ -22,6 +22,22 @@ published atlas and re-encodes them:
 
 No vertex was moved and no mesh was reshaped. The geometry is the source's.
 
+## Structures from Z-Anatomy
+
+The lungs and the pericardial nodes are not from BodyParts3D. They are absent
+from all 2,234 of its meshes and from the official `partof` archive as well —
+the lung concepts are listed there, the element meshes are not shipped. They
+come instead from **Z-Anatomy**, which has them:
+
+> Z-Anatomy, licensed under CC Attribution-Share Alike 4.0 International
+
+- Source: <https://github.com/Z-Anatomy/The-blend>
+- Licence: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+
+Z-Anatomy is itself built on BodyParts3D, which is why its meshes drop in
+without registration: both are in the same coordinate space, and the lobes land
+at y 1.17-1.43 against a heart at 1.25-1.34.
+
 ## What this means for redistribution
 
 ShareAlike travels with the models. The `.bin.gz` and `.json` files in this

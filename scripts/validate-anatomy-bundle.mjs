@@ -35,8 +35,22 @@ const chunk = i => {
   return chunks.get(i);
 };
 
-let worst = 0, worstName = "", checked = 0, tris = 0;
+let worst = 0, worstName = "", checked = 0, tris = 0, extras = 0;
 for (const part of bundle.parts) {
+  /* Parts carried in from elsewhere have no BodyParts3D original to compare
+     against, so the vertex-by-vertex check does not apply. They still have to
+     hold up on their own, which is what the geometry checks below do. */
+  if (part.id.startsWith("Z_")) {
+    const posBytes = part.vertexCount * 6;
+    const idx = new Uint16Array(
+      bin.buffer.slice(bin.byteOffset + part.offset + posBytes,
+                       bin.byteOffset + part.offset + posBytes + part.indexCount * 2),
+    );
+    for (const v of idx) if (v >= part.vertexCount) throw new Error(`${part.name}: index out of range`);
+    if (part.indexCount % 3) throw new Error(`${part.name}: not whole triangles`);
+    extras++; tris += part.indexCount / 3;
+    continue;
+  }
   const src = byId.get(part.id);
   if (!src) throw new Error(`${part.name}: not in source atlas`);
   if (src.vertexCount !== part.vertexCount) throw new Error(`${part.name}: vertex count drifted`);
@@ -69,7 +83,7 @@ for (const part of bundle.parts) {
   tris += part.indexCount / 3;
 }
 
-console.log(`parts checked   ${checked}`);
+console.log(`parts checked   ${checked}${extras ? `  (+${extras} imported, geometry-only)` : ""}`);
 console.log(`triangles       ${tris.toLocaleString()}`);
 console.log(`worst error     ${(worst * 1000).toFixed(4)} mm  (${worstName})`);
 console.log(`bundle          ${(bin.length / 1e6).toFixed(2)}MB raw`);

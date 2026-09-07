@@ -84,18 +84,106 @@ export const REGIONS = {
     ((p.system === "arterial" || p.system === "venous") && between(p, 0.98, 1.5)),
 
   /* Heart on its own, for a question that wants nothing else in frame. */
+  /* The heart's own circulation, both ways. It used to be the cardiac system
+     plus anything named "coronary", which quietly dropped the venous half: the
+     great, middle and small cardiac veins are in the venous system and are not
+     called coronary, so the heart appeared with arteries and no veins. Nineteen
+     cardiac veins were in the atlas the whole time. */
   heart: p =>
-    NOT_ACTUALLY_CARDIAC.test(lower(p)) ? false : p.system === "cardiac" || /coronary/.test(lower(p)),
+    NOT_ACTUALLY_CARDIAC.test(lower(p))
+      ? false
+      : p.system === "cardiac" ||
+        /coronary|cardiac vein|interventricular vein|oblique vein of left atrium/.test(lower(p)),
 
   abdomen: p =>
     p.system === "digestive" ||
     /portal|mesenteric|celiac|splenic|hepatic|gastric|peritoneum|omentum|kidney|ureter|suprarenal|spleen|pancreas/.test(lower(p)),
 };
 
+/* Which regions the extras belong in. The heart is deliberately not one of
+   them: a heart region with lungs around it is a picture of a chest. */
+const EXTRA_REGIONS = { thorax: true };
+
 const pick = REGIONS[REGION];
 if (!pick) {
   console.error(`unknown region "${REGION}" — have: ${Object.keys(REGIONS).join(", ")}`);
   process.exit(1);
+}
+
+/* Structures the atlas does not contain at all.
+ *
+ * The lungs are not filtered out of BodyParts3D by anything here — they are
+ * absent from all 2,234 meshes, and from the official partof archive too: the
+ * concepts are listed, the element meshes are not shipped. A chest with no
+ * lungs in it is not a chest, so they come from Z-Anatomy, which has them and
+ * is CC BY-SA like the rest.
+ *
+ * They drop straight in because both trace back to BodyParts3D and share its
+ * coordinate space — the lobes land at y 1.17-1.43 against a heart at
+ * 1.25-1.34, which is where lungs go. No registration, no rescaling.
+ *
+ * Pleura is deliberately not here. Z-Anatomy has it at 112,288 triangles, it
+ * would add 0.8MB, and it is a sheet that wraps everything else — switched on
+ * it hides the entire chest, and switched off it costs its bytes for nothing.
+ */
+const EXTRAS = {
+  Superior_lobe_of_right_lung: { name: "Superior lobe of right lung", system: "respiratory" },
+  Middle_lobe_of_right_lung:   { name: "Middle lobe of right lung",   system: "respiratory" },
+  Inferior_lobe_of_right_lung: { name: "Inferior lobe of right lung", system: "respiratory" },
+  Superior_lobe_of_left_lung:  { name: "Superior lobe of left lung",  system: "respiratory" },
+  Inferior_lobe_of_left_lung:  { name: "Inferior lobe of left lung",  system: "respiratory" },
+  Prepericardial_nodes:        { name: "Prepericardial nodes",        system: "lymphatic" },
+  Lateral_pericardial_nodes:   { name: "Lateral pericardial nodes",   system: "lymphatic" },
+};
+
+/* Reads a triangulated Wavefront OBJ holding several named objects.
+   OBJ vertex indices are global across the file, not per object, so each
+   object's faces are remapped onto its own compacted vertex list here. */
+function readObj(path) {
+  const verts = [];
+  const out = [];
+  let cur = null;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    if (line.startsWith("v ")) {
+      const [x, y, z] = line.slice(2).trim().split(/\s+/).map(Number);
+      verts.push(x, y, z);
+    } else if (line.startsWith("o ")) {
+      cur = { key: line.slice(2).trim(), faces: [] };
+      out.push(cur);
+    } else if (line.startsWith("f ") && cur) {
+      /* "f a/b/c d/e/f g/h/i" — only the position index matters here, and a
+         negative index counts back from the end of what has been read. */
+      const idx = line.slice(2).trim().split(/\s+/).map(tok => {
+        const n = parseInt(tok.split("/")[0], 10);
+        return n < 0 ? verts.length / 3 + n : n - 1;
+      });
+      for (let i = 1; i + 1 < idx.length; i++) cur.faces.push(idx[0], idx[i], idx[i + 1]);
+    }
+  }
+
+  return out.map(o => {
+    const remap = new Map();
+    const positions = [];
+    const indices = new Uint32Array(o.faces.length);
+    o.faces.forEach((v, i) => {
+      let n = remap.get(v);
+      if (n === undefined) {
+        n = remap.size;
+        remap.set(v, n);
+        positions.push(verts[v * 3], verts[v * 3 + 1], verts[v * 3 + 2]);
+      }
+      indices[i] = n;
+    });
+    const pos = new Float32Array(positions);
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (let i = 0; i < pos.length; i += 3) {
+      for (let c = 0; c < 3; c++) {
+        if (pos[i + c] < lo[c]) lo[c] = pos[i + c];
+        if (pos[i + c] > hi[c]) hi[c] = pos[i + c];
+      }
+    }
+    return { key: o.key, positions: pos, indices, bounds: [lo, hi] };
+  });
 }
 
 const atlas = JSON.parse(readFileSync(join(SRC, "atlas.json"), "utf8"));
@@ -117,6 +205,15 @@ const blocks = [];
 const manifest = [];
 let offset = 0;
 let widest = 0;
+let extraCount = 0;
+
+/* Concepts group meshes under the name a person would use — "heart" is one
+   concept over several meshes — so the ones this region touches come along.
+   Declared before the parts loop because the extras add to it. */
+const keptIds = new Set(parts.map(p => p.id));
+const concepts = atlas.concepts
+  .map(c => ({ ...c, elements: c.elements.filter(e => keptIds.has(e)) }))
+  .filter(c => c.elements.length);
 
 for (const p of parts) {
   const buf = chunk(p.chunk);
@@ -171,15 +268,55 @@ for (const p of parts) {
   offset += posBytes + narrow.byteLength + pad;
 }
 
+/* Appended after the atlas parts, so the offsets already written stay valid
+   and a bundle built without --extras is byte-identical up to this point. */
+if (args.extras && EXTRA_REGIONS[REGION]) {
+  for (const o of readObj(resolve(args.extras))) {
+    const meta = EXTRAS[o.key];
+    if (!meta) continue;
+
+    const n = o.positions.length / 3;
+    const [min, max] = o.bounds;
+    const span = [max[0] - min[0], max[1] - min[1], max[2] - min[2]];
+    const quant = new Uint16Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      for (let c = 0; c < 3; c++) {
+        const t = span[c] > 0 ? (o.positions[i * 3 + c] - min[c]) / span[c] : 0;
+        quant[i * 3 + c] = Math.round(Math.min(1, Math.max(0, t)) * 65535);
+      }
+    }
+
+    let hi = 0;
+    for (const v of o.indices) if (v > hi) hi = v;
+    if (hi > 65535) throw new Error(`${meta.name}: index ${hi} does not fit in uint16`);
+    const narrow = Uint16Array.from(o.indices);
+
+    const positions = Buffer.from(quant.buffer);
+    const pad = (4 - ((positions.length + narrow.byteLength) % 4)) % 4;
+
+    manifest.push({
+      id: `Z_${o.key}`,
+      name: meta.name,
+      conceptId: `Z:${o.key}`,
+      system: meta.system,
+      offset,
+      vertexCount: n,
+      indexCount: o.indices.length,
+      bounds: o.bounds,
+    });
+    concepts.push({ id: `Z:${o.key}`, name: meta.name.toLowerCase(), elements: [`Z_${o.key}`] });
+
+    blocks.push(positions, Buffer.from(narrow.buffer), Buffer.alloc(pad));
+    offset += positions.length + narrow.byteLength + pad;
+    extraCount++;
+  }
+}
+
 const bin = Buffer.concat(blocks);
 const gz = gzipSync(bin, { level: 9 });
 
 /* Concepts group meshes under the name a person would use — "heart" is one
    concept over several meshes — so the ones this region touches come along. */
-const keptIds = new Set(parts.map(p => p.id));
-const concepts = atlas.concepts
-  .map(c => ({ ...c, elements: c.elements.filter(e => keptIds.has(e)) }))
-  .filter(c => c.elements.length);
 
 if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true });
 writeFileSync(join(OUT, `${REGION}.bin.gz`), gz);
@@ -200,7 +337,7 @@ writeFileSync(
       layout: "per part at offset: positions uint16x3 (quantised to bounds), indices uint16",
       bytes: bin.length,
       gzipBytes: gz.length,
-      triangles: parts.reduce((s, p) => s + p.indexCount / 3, 0),
+      triangles: manifest.reduce((s, p) => s + p.indexCount / 3, 0),
       parts: manifest,
       concepts,
     },
@@ -212,8 +349,8 @@ writeFileSync(
 
 const mb = n => (n / 1e6).toFixed(2) + "MB";
 console.log(`region      ${REGION}`);
-console.log(`meshes      ${parts.length}`);
-console.log(`triangles   ${(parts.reduce((s, p) => s + p.indexCount / 3, 0)).toLocaleString()}`);
+console.log(`meshes      ${parts.length + extraCount}${extraCount ? ` (${extraCount} from Z-Anatomy)` : ""}`);
+console.log(`triangles   ${manifest.reduce((s, p) => s + p.indexCount / 3, 0).toLocaleString()}`);
 console.log(`concepts    ${concepts.length}`);
 console.log(`widest idx  ${widest} (uint16 ceiling 65535)`);
 console.log(`raw         ${mb(bin.length)}`);
