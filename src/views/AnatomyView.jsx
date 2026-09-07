@@ -237,6 +237,15 @@ export default function AnatomyView({ region: initial = "heart" }) {
             clearcoatRoughness: 0.52,
             envMapIntensity: 0.9,
             flatShading: false,
+            /* Double-sided because the meshes are not watertight. A coronary
+               with 766 triangles carries 278 boundary edges — about a quarter
+               of them — so the tube is riddled with holes rather than being a
+               closed surface. Culling back faces means looking straight
+               through every one of those holes to the white behind, which is
+               what made the vessels read as dashed and broken: not gaps
+               between them, holes within them. Drawing the inside face too
+               closes them visually for the cost of the culling. */
+            side: THREE.DoubleSide,
           }),
         );
         mesh.userData.part = part;
