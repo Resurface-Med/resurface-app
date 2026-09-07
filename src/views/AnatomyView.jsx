@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { loadRegion, centreOf, extentOf } from "../lib/anatomy";
+import { preToneMap } from "../lib/toneMap";
 
 /**
  * The 3D anatomy explorer.
@@ -62,26 +63,62 @@ export default function AnatomyView({ region: initial = "heart" }) {
     const ac = new AbortController();
 
     (async () => {
-      const [THREE, { OrbitControls }, data] = await Promise.all([
+      const [
+        THREE, { OrbitControls }, { RoomEnvironment },
+        { EffectComposer }, { SSAOPass }, { OutputPass }, data,
+      ] = await Promise.all([
         import("three"),
         import("three/examples/jsm/controls/OrbitControls.js"),
+        import("three/examples/jsm/environments/RoomEnvironment.js"),
+        import("three/examples/jsm/postprocessing/EffectComposer.js"),
+        import("three/examples/jsm/postprocessing/SSAOPass.js"),
+        import("three/examples/jsm/postprocessing/OutputPass.js"),
         loadRegion(region, { signal: ac.signal }),
       ]);
       if (dead) return;
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
       renderer.setSize(host.clientWidth, host.clientHeight);
+      /* Filmic, not linear. Untone-mapped output clips the highlights on a lit
+         curved surface to flat white, which is most of why this read as
+         plastic — the shine had no shoulder to roll off into. */
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.15;
       host.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
+      /* Opaque, matching the sheet it sits on, rather than a transparent
+         canvas: postprocessing composites into its own buffers and has no page
+         behind it to blend with, so the ground has to be in the scene. Read
+         from the token, so dark mode comes along.
+
+         Pre-corrected, because the background is tone mapped along with
+         everything else and ACES turns white into about 0.8 — clear to the
+         sheet's own colour and you get a grey rectangle sitting in a white
+         sheet. preToneMap hands back the colour that comes out as this one. */
+      const sheet = getComputedStyle(document.documentElement)
+        .getPropertyValue("--c-card-solid").trim() || "#ffffff";
+      const ground = preToneMap(sheet, renderer.toneMappingExposure);
+      scene.background = ground
+        ? new THREE.Color().setRGB(ground[0], ground[1], ground[2], THREE.LinearSRGBColorSpace)
+        : new THREE.Color(sheet);
+
       const camera = new THREE.PerspectiveCamera(38, host.clientWidth / host.clientHeight, 0.001, 100);
 
-      /* Two lights and no shadows. A key from the camera's side keeps whatever
-         is being looked at lit as it turns, and a dim fill stops the far side
-         going to pure black, which reads as a hole rather than a surface. */
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x2a3550, 1.15));
-      const key = new THREE.DirectionalLight(0xffffff, 1.5);
+      /* An environment, not just lights. Two directional lights give a surface
+         one or two highlights and flat shadow everywhere else; an irradiance
+         map lights it from every direction at once, which is what makes a
+         curved organic form read as curved. RoomEnvironment is generated at
+         runtime, so this costs no asset. */
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+      scene.environment = envRT.texture;
+
+      /* The environment now does the ambient work, so the key is here only to
+         give a consistent sense of direction as the model turns. Much dimmer
+         than it was, or it flattens what the environment is providing. */
+      const key = new THREE.DirectionalLight(0xffffff, 0.55);
       key.position.set(1, 1.4, 2);
       scene.add(key);
 
@@ -100,11 +137,19 @@ export default function AnatomyView({ region: initial = "heart" }) {
            could do nothing with them; recomputing costs a beat on load. */
         geom.computeVertexNormals();
 
+        /* Physical rather than standard, for the clearcoat. Tissue is wet: a
+           thin, rough specular layer over a diffuse body is what separates it
+           from dry plastic, and it costs one more term rather than a texture. */
         const mesh = new THREE.Mesh(
           geom,
-          new THREE.MeshStandardMaterial({
+          new THREE.MeshPhysicalMaterial({
             color: new THREE.Color(SYSTEM_COLOUR[part.system] ?? "#b9b9b9"),
-            roughness: 0.72, metalness: 0.02, flatShading: false,
+            roughness: 0.58,
+            metalness: 0,
+            clearcoat: 0.16,
+            clearcoatRoughness: 0.52,
+            envMapIntensity: 0.9,
+            flatShading: false,
           }),
         );
         mesh.userData.part = part;
@@ -128,6 +173,27 @@ export default function AnatomyView({ region: initial = "heart" }) {
       controls.rotateSpeed = 0.85;
       controls.minDistance = span * 0.25;
       controls.maxDistance = span * 2.4;
+
+      /* Ambient occlusion, which for this content is not a garnish. Anatomy is
+         a pile of overlapping forms — a vessel lying in a groove, a valve
+         inside a chamber — and what tells you one is behind another is the
+         darkening where they meet. Without it every structure floats at the
+         same depth however good the material is.
+
+         The radii are derived from the model rather than left at the defaults,
+         which assume a scene measured in the tens of units. This one is in
+         metres and a heart is 0.1 of them across, so the stock kernelRadius of
+         8 would sample the entire model for every pixel and return a flat grey. */
+      const composer = new EffectComposer(renderer);
+      const ssao = new SSAOPass(scene, camera, host.clientWidth, host.clientHeight);
+      ssao.kernelRadius = span * 0.045;
+      ssao.minDistance = span * 0.0004;
+      ssao.maxDistance = span * 0.05;
+      composer.addPass(ssao);
+      /* Last, and it is what applies the tone mapping: once a composer owns the
+         output, the renderer's own tone mapping is bypassed. Without this pass
+         the ACES curve set above would silently do nothing. */
+      composer.addPass(new OutputPass());
 
       const ray = new THREE.Raycaster();
       const pointer = new THREE.Vector2();
@@ -181,7 +247,7 @@ export default function AnatomyView({ region: initial = "heart" }) {
         requestAnimationFrame(() => {
           queued = false;
           const moving = controls.update();
-          renderer.render(scene, camera);
+          composer.render();
           if (moving) draw();
         });
       }
@@ -191,6 +257,7 @@ export default function AnatomyView({ region: initial = "heart" }) {
         const w = host.clientWidth, h = host.clientHeight;
         if (!w || !h) return;
         renderer.setSize(w, h);
+        composer.setSize(w, h);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         draw();
@@ -219,6 +286,9 @@ export default function AnatomyView({ region: initial = "heart" }) {
           renderer.domElement.removeEventListener("pointerdown", onDown);
           renderer.domElement.removeEventListener("pointerup", onUp);
           for (const m of group.children) { m.geometry.dispose(); m.material.dispose(); }
+          composer.dispose();
+          envRT.texture.dispose();
+          pmrem.dispose();
           renderer.dispose();
           host.removeChild(renderer.domElement);
         },
