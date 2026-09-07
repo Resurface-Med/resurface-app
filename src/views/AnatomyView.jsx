@@ -3,6 +3,7 @@ import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { loadRegion, centreOf, extentOf } from "../lib/anatomy";
 import { preToneMap } from "../lib/toneMap";
+import { structureColour } from "../lib/anatomyColour";
 
 /**
  * The 3D anatomy explorer.
@@ -144,6 +145,19 @@ export default function AnatomyView({ region: initial = "heart" }) {
       const meshes = new Map();
       const present = new Set();
 
+      /* Each concept's place among the concepts of its own system, so the
+         colour spread is per family: the digestive concepts divide the
+         digestive hue range between them rather than competing with the
+         arteries for it. Sorted, so the assignment is stable across loads
+         rather than depending on the order parts happen to arrive in. */
+      const rank = new Map();
+      for (const sys of new Set(data.parts.map(p => p.system))) {
+        const names = [...new Set(
+          data.parts.filter(p => p.system === sys).map(p => data.conceptOf.get(p.id) ?? p.name),
+        )].sort();
+        names.forEach((n, i) => rank.set(sys + "\u0000" + n, i));
+      }
+
       for (const part of data.parts) {
         const g = data.get(part.id);
         const geom = new THREE.BufferGeometry();
@@ -159,7 +173,12 @@ export default function AnatomyView({ region: initial = "heart" }) {
         const mesh = new THREE.Mesh(
           geom,
           new THREE.MeshPhysicalMaterial({
-            color: new THREE.Color(SYSTEM_COLOUR[part.system] ?? "#b9b9b9"),
+            color: new THREE.Color(structureColour({
+              base: SYSTEM_COLOUR[part.system] ?? "#b9b9b9",
+              system: part.system,
+              concept: data.conceptOf.get(part.id) ?? part.name,
+              index: rank.get(part.system + "\u0000" + (data.conceptOf.get(part.id) ?? part.name)) ?? 0,
+            })),
             roughness: 0.58,
             metalness: 0,
             clearcoat: 0.16,

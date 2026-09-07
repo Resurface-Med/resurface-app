@@ -74,6 +74,16 @@ export function loadRegion(region, { signal } = {}) {
     ]);
 
     const byId = new Map(manifest.parts.map(part => [part.id, part]));
+
+    /* Concept per mesh, narrowest first. A mesh sits under several at once,
+       from "leaflet of mitral valve" up to "body cavity content"; the broad
+       ones are true of half the bundle and say nothing about the part in hand,
+       so the smallest wins. Sorting descending and letting later writes
+       overwrite leaves the narrowest in place. */
+    const conceptOf = new Map();
+    for (const c of [...manifest.concepts].sort((a, b) => b.elements.length - a.elements.length)) {
+      for (const e of c.elements) conceptOf.set(e, c.name);
+    }
     const decoded = new Map();
 
     function get(id) {
@@ -107,7 +117,7 @@ export function loadRegion(region, { signal } = {}) {
       return out;
     }
 
-    return { region, parts: manifest.parts, concepts: manifest.concepts, byId, get };
+    return { region, parts: manifest.parts, concepts: manifest.concepts, byId, conceptOf, get };
   })();
 
   cache.set(region, p);
