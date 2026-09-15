@@ -2483,8 +2483,8 @@ select {
   --step: 22ms;
   display: flex;
   align-items: baseline;
-  gap: 18px;
-  padding: 17px 6px;
+  gap: 16px;
+  padding: 15px 6px;
   box-shadow: inset 0 1px 0 var(--c-border);
 }
 .lb-row:first-child {
@@ -2499,8 +2499,8 @@ select {
   box-shadow: none;
 }
 .lb-rank {
-  flex: 0 0 44px;
-  font-size: 16px;
+  flex: 0 0 40px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--c-muted);
   letter-spacing: -0.3px;
@@ -2512,10 +2512,10 @@ select {
 .lb-name {
   flex: 1;
   min-width: 0;
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--c-text);
-  letter-spacing: -0.4px;
+  letter-spacing: -0.35px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2535,14 +2535,14 @@ select {
   flex-shrink: 0;
 }
 .lb-count {
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--c-text);
-  letter-spacing: -0.6px;
+  letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
 }
 .lb-streak {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--c-muted);
   min-width: 2.4em;
@@ -2552,8 +2552,8 @@ select {
 @media (max-width: 560px) {
   .lb-row { gap: 12px; padding: 14px 4px; }
   .lb-rank { flex-basis: 30px; font-size: 14px; }
-  .lb-name { font-size: 17px; }
-  .lb-count { font-size: 19px; }
+  .lb-name { font-size: 16px; }
+  .lb-count { font-size: 18px; }
 }
 
 /* ─── Session summary ────────────────────────────────────────────── */
