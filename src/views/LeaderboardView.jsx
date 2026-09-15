@@ -10,10 +10,9 @@ import { fetchLeaderboardWeek } from "../lib/remote";
  * the metric: it rewards skipping hard topics. Volume this week is honest
  * work, with streak as a quiet secondary.
  *
- * Set like a results column: one tight list, a rule between rows, the
- * count the largest thing on each line and a bar under the name that says
- * how far behind the leader it is. The top three are heavier, not
- * decorated; your row is in accent, not on a tint.
+ * The top three are set with their rank oversized — the podium is scale,
+ * not medals or a box — and everyone after them in a compact list under a
+ * rule. Your row is in accent, not on a tint.
  */
 
 const band = {
@@ -41,7 +40,6 @@ export default function LeaderboardView({ userId }) {
   }, []);
 
   const me = rows?.find(r => r.user_id === userId);
-  const top = rows?.[0]?.week_count || 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -77,31 +75,43 @@ export default function LeaderboardView({ userId }) {
           )}
 
           {rows && rows.length > 0 && (
-            <ol className="lb-list">
-              {rows.map((r, i) => {
-                const mine = r.user_id === userId;
-                const share = top > 0 ? Math.max(r.week_count / top, 0) : 0;
-                return (
-                  <li
-                    key={r.user_id}
-                    className={`lb-row${mine ? " is-me" : ""}${r.rank <= 3 ? " is-top" : ""}`}
-                    data-in="rise"
-                    style={{ "--i": 1 + Math.min(i, 12), "--share": share }}
-                  >
-                    <span className="lb-rank">{r.rank}</span>
-                    <span className="lb-body">
-                      <span className="lb-name">
+            <>
+              <ol className="lb-top">
+                {rows.slice(0, 3).map((r, i) => {
+                  const mine = r.user_id === userId;
+                  return (
+                    <li key={r.user_id} className={`lb-top-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 1 + i }}>
+                      <span className="lb-top-rank">{r.rank}</span>
+                      <span className="lb-top-name">
                         {r.display_name}
                         {mine ? <span className="lb-me-tag">you</span> : null}
                       </span>
-                      <span className="lb-bar" aria-hidden="true" />
-                    </span>
-                    <span className="lb-count">{r.week_count}</span>
-                    <span className="lb-streak">{r.streak > 0 ? `${r.streak}d` : ""}</span>
-                  </li>
-                );
-              })}
-            </ol>
+                      <span className="lb-top-count">{r.week_count}</span>
+                      <span className="lb-streak">{r.streak > 0 ? `${r.streak}d` : ""}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              {rows.length > 3 && (
+                <ol className="lb-list">
+                  {rows.slice(3).map((r, i) => {
+                    const mine = r.user_id === userId;
+                    return (
+                      <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 4 + Math.min(i, 12) }}>
+                        <span className="lb-rank">{r.rank}</span>
+                        <span className="lb-name">
+                          {r.display_name}
+                          {mine ? <span className="lb-me-tag">you</span> : null}
+                        </span>
+                        <span className="lb-count">{r.week_count}</span>
+                        <span className="lb-streak">{r.streak > 0 ? `${r.streak}d` : ""}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -2472,39 +2472,74 @@ select {
   color: var(--c-on-field);
   font-weight: 600;
 }
-.lb-list {
+/* The top three. The rank is the page: a numeral set at display size in
+   the margin, light, with the name beside it at reading size. */
+.lb-top {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-/* One line per person: rank, name over its bar, count, streak. Rows are
-   separated by a rule, not a box, and the row that is you is in accent
-   rather than on a tint. */
+.lb-top-row {
+  --step: 40ms;
+  display: grid;
+  grid-template-columns: 1.6em minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  column-gap: clamp(14px, 2.4vw, 22px);
+  padding: clamp(6px, 1vh, 10px) 0;
+}
+.lb-top-rank {
+  font-size: clamp(56px, 7.2vw, 76px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lb-top-name {
+  min-width: 0;
+  font-size: clamp(17px, 1.9vw, 20px);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-top-count {
+  font-size: clamp(20px, 2.2vw, 24px);
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lb-top-row.is-me .lb-top-rank,
+.lb-top-row.is-me .lb-top-name,
+.lb-top-row.is-me .lb-top-count { color: var(--c-accent); }
+
+/* Everyone else, under one rule, at reading size. */
+.lb-list {
+  list-style: none;
+  margin: clamp(18px, 2.6vh, 26px) 0 0;
+  padding: clamp(8px, 1.4vh, 12px) 0 0;
+  border-top: 1px solid var(--c-border);
+}
 .lb-row {
   --step: 22ms;
   display: grid;
-  grid-template-columns: 2ch minmax(0, 1fr) auto auto;
+  grid-template-columns: 1.6em minmax(0, 1fr) auto auto;
   align-items: baseline;
-  column-gap: 14px;
-  padding: 11px 0 12px;
-  border-top: 1px solid var(--c-border);
+  column-gap: clamp(14px, 2.4vw, 22px);
+  padding: 9px 0;
 }
-.lb-row:first-child { border-top: none; }
 .lb-rank {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--c-muted);
   letter-spacing: -0.2px;
   font-variant-numeric: tabular-nums;
   text-align: right;
-}
-.lb-row.is-top .lb-rank { color: var(--c-text); }
-.lb-row.is-me .lb-rank { color: var(--c-accent); }
-.lb-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
 }
 .lb-name {
   min-width: 0;
@@ -2516,34 +2551,24 @@ select {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.lb-row.is-me .lb-name { color: var(--c-accent); }
+.lb-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.4px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.lb-row.is-me .lb-rank,
+.lb-row.is-me .lb-name,
+.lb-row.is-me .lb-count { color: var(--c-accent); }
 .lb-me-tag {
   margin-left: 8px;
   font-size: 12px;
   font-weight: 500;
+  letter-spacing: 0;
   color: var(--c-muted);
 }
-/* How far behind the leader, as a length. The leader's runs the width. */
-.lb-bar {
-  display: block;
-  height: 3px;
-  width: calc(var(--share, 0) * 100%);
-  min-width: 3px;
-  border-radius: 2px;
-  background: var(--c-accent);
-  opacity: 0.22;
-  transform-origin: left center;
-}
-.lb-row.is-me .lb-bar { opacity: 1; }
-.lb-count {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--c-text);
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-.lb-row.is-me .lb-count { color: var(--c-accent); }
 .lb-streak {
   font-size: 12.5px;
   font-weight: 500;
