@@ -496,6 +496,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
      the card — one for a file, one for text — made every visit look like a
      choice to be made, when nearly everyone has a file. */
   const [pasting, setPasting] = useState(false);
+  /* A file held over the drop surface. Drives the drawing, nothing else. */
+  const [over, setOver] = useState(false);
   /* Whether Topic is being chosen or written. Chosen by default: the lists are
      two to twelve long, so picking is nearly always the right control and
      typing is the exception. */
@@ -916,13 +918,32 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               ) : (
                 <button
                   type="button"
-                  className="gen-source"
+                  className={`gen-source${over ? " is-over" : ""}`}
                   onClick={() => fileRef.current?.click()}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={e => { e.preventDefault(); acceptFile(e.dataTransfer.files[0]); }}
+                  onDragOver={e => { e.preventDefault(); setOver(true); }}
+                  onDragLeave={() => setOver(false)}
+                  onDrop={e => { e.preventDefault(); setOver(false); acceptFile(e.dataTransfer.files[0]); }}
                 >
-                  <span className="gen-source-lead">Drop a lecture here, or browse</span>
-                  <span className="gen-source-meta">PowerPoint, PDF or image</span>
+                  <span className="gen-source-text">
+                    <span className="gen-source-lead">Drop a lecture here, or browse</span>
+                    <span className="gen-source-meta">PowerPoint, PDF or image</span>
+                  </span>
+                  {/* A page of lecture lines, put down on the surface. Hover
+                      or hold a file over it and the lines become a stem and
+                      four options — the generating window's drawing, at
+                      rest. It is what the button does, drawn. */}
+                  <svg className="gen-sheet" viewBox="0 0 120 150" aria-hidden="true">
+                    <rect className="gen-sheet-page" x="0.75" y="0.75" width="118.5" height="148.5" rx="10" />
+                    <circle className="gen-sheet-dot d1" cx="24" cy="63" r="3" />
+                    <circle className="gen-sheet-dot d2" cx="24" cy="83" r="3" />
+                    <circle className="gen-sheet-dot d3 is-answer" cx="24" cy="103" r="3" />
+                    <circle className="gen-sheet-dot d4" cx="24" cy="123" r="3" />
+                    <rect className="gen-sheet-ln l1" x="18" y="24" width="84" height="7" rx="3.5" />
+                    <rect className="gen-sheet-ln l2" x="18" y="44" width="72" height="7" rx="3.5" />
+                    <rect className="gen-sheet-ln l3" x="18" y="64" width="84" height="7" rx="3.5" />
+                    <rect className="gen-sheet-ln l4" x="18" y="84" width="60" height="7" rx="3.5" />
+                    <rect className="gen-sheet-ln l5" x="18" y="104" width="76" height="7" rx="3.5" />
+                  </svg>
                 </button>
               )}
               <input
