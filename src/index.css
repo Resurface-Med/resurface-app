@@ -3093,22 +3093,18 @@ select {
   gap: 12px;
   margin-top: clamp(18px, 2.4vh, 24px);
 }
-/* Why the last button is held back, said once, beside it. The words are
-   links to the page each thing is on. */
+/* Why the last button is held back: one line above the button row, on
+   the button's side. The words are links to the page each thing is on. */
 .gen-missing {
-  margin: 0 0 0 auto;
+  margin: clamp(18px, 2.4vh, 24px) 0 -6px;
   font-size: 14px;
   font-weight: 500;
   color: var(--c-sub);
   text-align: right;
-  min-width: 0;
-  text-wrap: balance;
 }
 .gen-missing .gen-link { font-size: inherit; }
-.gen-missing + .gen-go { margin-left: 0; }
 @media (max-width: 560px) {
-  .gen-card-nav { flex-wrap: wrap; }
-  .gen-missing { order: -1; width: 100%; text-align: left; margin: 0 0 6px; }
+  .gen-missing { text-align: left; }
 }
 .gen-card-nav .gen-back { font-size: 14.5px; color: var(--c-sub); }
 .gen-card-nav .gen-back:hover { color: var(--c-text); }

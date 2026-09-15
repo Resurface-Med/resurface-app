@@ -1013,6 +1013,27 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           )}
         </div>
 
+        {/* Why the last button is held back, said once on its own line
+            above it — never beside it, where it fought the button for the
+            row and wrapped into a ragged right-aligned pair of lines. */}
+        {step === last && mode === "ai" && missing.length > 0 && (
+          <p className="gen-missing">
+            Add{" "}
+            {missing.map((m, i) => (
+              <span key={m.k}>
+                {i > 0 ? " and " : ""}
+                <button type="button" className="gen-link" onClick={() => turnTo(m.step)}>{m.label}</button>
+              </span>
+            ))}
+            {" "}first.
+          </p>
+        )}
+        {step === last && mode === "manual" && !hasPlace && written.length > 0 && (
+          <p className="gen-missing">
+            Pick <button type="button" className="gen-link" onClick={() => turnTo(1)}>a topic</button> first.
+          </p>
+        )}
+
         {/* Back undoes, forward commits — so one is text and one is filled. */}
         <div className="gen-card-nav">
           {step > first && (
@@ -1031,47 +1052,26 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             </button>
           )}
           {step === last && mode === "ai" && (
-            <>
-              {missing.length > 0 && (
-                <p className="gen-missing">
-                  Add{" "}
-                  {missing.map((m, i) => (
-                    <span key={m.k}>
-                      {i > 0 ? " and " : ""}
-                      <button type="button" className="gen-link" onClick={() => turnTo(m.step)}>{m.label}</button>
-                    </span>
-                  ))}
-                  {" "}first.
-                </p>
-              )}
-              <button
-                type="button"
-                className="btn-press gen-go"
-                style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
-                disabled={!canGenerate}
-                onClick={generate}
-              >
-                Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
-              </button>
-            </>
+            <button
+              type="button"
+              className="btn-press gen-go"
+              style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
+              disabled={!canGenerate}
+              onClick={generate}
+            >
+              Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
+            </button>
           )}
           {step === last && mode === "manual" && (
-            <>
-              {!hasPlace && written.length > 0 && (
-                <p className="gen-missing">
-                  Pick <button type="button" className="gen-link" onClick={() => turnTo(1)}>a topic</button> first.
-                </p>
-              )}
-              <button
-                type="button"
-                className="btn-press gen-go"
-                style={{ ...primaryBtn, opacity: written.length && hasPlace ? 1 : 0.45 }}
-                disabled={!written.length || !hasPlace}
-                onClick={addWritten}
-              >
-                Add {written.length} to bank <span aria-hidden="true">→</span>
-              </button>
-            </>
+            <button
+              type="button"
+              className="btn-press gen-go"
+              style={{ ...primaryBtn, opacity: written.length && hasPlace ? 1 : 0.45 }}
+              disabled={!written.length || !hasPlace}
+              onClick={addWritten}
+            >
+              Add {written.length} to bank <span aria-hidden="true">→</span>
+            </button>
           )}
         </div>
       </div>
