@@ -3116,53 +3116,55 @@ select {
    the file's name once there is one, in the accent the way a chosen option
    is, and a text box if you asked to paste. */
 .gen-source {
-  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 2px;
   width: 100%;
-  min-height: 132px;
-  padding: 22px 22px;
-  text-align: left;
+  padding: clamp(18px, 2.6vh, 24px) 20px clamp(20px, 3vh, 26px);
+  text-align: center;
   font-family: inherit;
   cursor: pointer;
-  border: none;
+  border: 1.5px dashed var(--c-accent-brd);
   border-radius: 16px;
   background: var(--c-surface3);
-  overflow: hidden;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 .gen-source:hover,
 .gen-source:focus-visible,
 .gen-source.is-over {
   background: var(--c-accent-dim);
+  border-color: var(--c-accent);
+  border-style: solid;
   outline: none;
 }
 .gen-source-text {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
   min-width: 0;
-  flex: 1;
+}
+.gen-source-lead {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.25px;
+}
+.gen-source-meta {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-sub);
 }
 
-/* The sheet. Bottom-right, a little turned, cropped by the surface's edge
-   the way a page put down on a desk is cropped by the desk's — so it reads
-   as an object on the surface rather than an icon beside the words. */
+/* The drawing: a page of lecture lines with the arrow rising out of it.
+   The page runs off the bottom of its own frame — it is going in, not
+   sitting there. */
 .gen-sheet {
-  position: absolute;
-  right: 18px;
-  bottom: -30px;
-  width: 104px;
-  height: auto;
-  overflow: visible;
-  transform: rotate(-6deg);
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.gen-source:hover .gen-sheet,
-.gen-source:focus-visible .gen-sheet,
-.gen-source.is-over .gen-sheet {
-  transform: rotate(-3deg) translateY(-6px);
+  width: 176px;
+  height: 131px;
+  margin-bottom: 6px;
+  overflow: hidden;
 }
 .gen-sheet-page {
   fill: var(--c-card-solid);
@@ -3171,7 +3173,22 @@ select {
 }
 [data-theme="dark"] .gen-sheet-page { fill: var(--c-surface2); }
 
-/* Lecture lines at rest; a stem and four options when a file is near.
+/* The landing's arrow: a stroked hand-drawn curve with an open head. */
+.gen-sheet-stroke {
+  fill: none;
+  stroke: var(--c-accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gen-sheet-arrow {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.gen-source:hover .gen-sheet-arrow,
+.gen-source:focus-visible .gen-sheet-arrow,
+.gen-source.is-over .gen-sheet-arrow { transform: translateY(-5px); }
+
+/* Lecture lines at rest; a stem and three options when a file is near.
    Same move as the generating window, held rather than looped. */
 .gen-sheet-ln {
   fill: var(--c-accent);
@@ -3182,19 +3199,16 @@ select {
 }
 .gen-source:hover .gen-sheet-ln.l1,
 .gen-source:focus-visible .gen-sheet-ln.l1,
-.gen-source.is-over .gen-sheet-ln.l1 { transform: scale(1, 1.7); opacity: 0.85; }
+.gen-source.is-over .gen-sheet-ln.l1 { transform: scale(1, 1.6); opacity: 0.85; }
 .gen-source:hover .gen-sheet-ln.l2,
 .gen-source:focus-visible .gen-sheet-ln.l2,
-.gen-source.is-over .gen-sheet-ln.l2 { transform: translate(14px, 0) scaleX(0.7); opacity: 0.4; }
+.gen-source.is-over .gen-sheet-ln.l2 { transform: translate(11px, 0) scaleX(0.72); opacity: 0.4; }
 .gen-source:hover .gen-sheet-ln.l3,
 .gen-source:focus-visible .gen-sheet-ln.l3,
-.gen-source.is-over .gen-sheet-ln.l3 { transform: translate(14px, 0) scaleX(0.66); opacity: 0.4; }
+.gen-source.is-over .gen-sheet-ln.l3 { transform: translate(11px, 0) scaleX(0.66); opacity: 0.4; }
 .gen-source:hover .gen-sheet-ln.l4,
 .gen-source:focus-visible .gen-sheet-ln.l4,
-.gen-source.is-over .gen-sheet-ln.l4 { transform: translate(14px, 0) scaleX(0.95); opacity: 0.7; }
-.gen-source:hover .gen-sheet-ln.l5,
-.gen-source:focus-visible .gen-sheet-ln.l5,
-.gen-source.is-over .gen-sheet-ln.l5 { transform: translate(14px, 0) scaleX(0.6); opacity: 0.4; }
+.gen-source.is-over .gen-sheet-ln.l4 { transform: translate(11px, 0) scaleX(1.1); opacity: 0.7; }
 
 .gen-sheet-dot {
   fill: var(--c-muted-dim);
@@ -3207,18 +3221,7 @@ select {
 .gen-source.is-over .gen-sheet-dot { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .gen-sheet, .gen-sheet-ln, .gen-sheet-dot { transition: none; }
-}
-.gen-source-lead {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--c-text);
-  letter-spacing: -0.25px;
-}
-.gen-source-meta {
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--c-sub);
+  .gen-sheet-arrow, .gen-sheet-ln, .gen-sheet-dot { transition: none; }
 }
 .gen-source.is-file {
   flex-direction: row;
@@ -3555,11 +3558,9 @@ select {
     border-radius: 20px;
   }
   .gen-source {
-    padding: 18px 16px;
-    min-height: 118px;
+    padding: 16px 16px 20px;
   }
-  .gen-source-text { padding-right: 72px; }
-  .gen-sheet { width: 88px; right: 12px; bottom: -34px; }
+  .gen-sheet { width: 150px; height: 112px; }
   .gen-sticky-inner {
     flex-direction: column;
   }
