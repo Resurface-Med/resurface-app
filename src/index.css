@@ -3001,9 +3001,10 @@ select {
    this replaces were the lightest ink in the app and the thing that made
    the page read as a template. */
 .gen-card {
+  --gen-card-pad: clamp(20px, 2.6vw, 28px);
   background: var(--c-card-solid);
   border-radius: 24px;
-  padding: clamp(20px, 2.6vw, 28px);
+  padding: var(--gen-card-pad);
   box-shadow: var(--c-card-shadow-lift);
   display: flex;
   flex-direction: column;
@@ -3041,15 +3042,19 @@ select {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 0;
-  margin: -2px 0 clamp(16px, 2.4vh, 20px);
+  gap: 4px 0;
+  margin: -4px calc(-1 * var(--gen-card-pad)) clamp(18px, 2.6vh, 24px);
+  padding: 0 var(--gen-card-pad) clamp(14px, 2vh, 18px);
+  border-bottom: 1px solid var(--c-border);
 }
 .gen-path-item {
   display: inline-flex;
   align-items: center;
 }
 .gen-path-sep {
-  margin: 0 7px;
+  width: 14px;
+  height: 14px;
+  margin: 0 9px;
   color: var(--c-muted);
   flex-shrink: 0;
 }
@@ -3060,9 +3065,9 @@ select {
   border: none;
   border-radius: 6px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
-  letter-spacing: -0.1px;
+  letter-spacing: -0.25px;
   line-height: 1.2;
   color: var(--c-muted);
   cursor: default;
@@ -3454,7 +3459,8 @@ select {
     gap: 4px;
   }
   .gen-card {
-    padding: 18px 16px 16px;
+    --gen-card-pad: 16px;
+    padding: 18px var(--gen-card-pad) 16px;
     border-radius: 20px;
   }
   .gen-source {
