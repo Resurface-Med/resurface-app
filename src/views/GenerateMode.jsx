@@ -913,7 +913,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
           {step === 1 && (
             <>
-              <h2 className="gen-card-title">Where it belongs</h2>
+              <h2 className="gen-card-title">Where does it belong?</h2>
               {placement}
             </>
           )}
