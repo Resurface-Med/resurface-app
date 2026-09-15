@@ -36,9 +36,9 @@ const MIN_USEFUL_CHARS = 220;
 
 const DIFFICULTIES = [
   { k: "mixed",  label: "Mixed",  hint: "The shape of the real paper" },
-  { k: "easy",   label: "Easy",   hint: "One-line direct questions" },
-  { k: "medium", label: "Medium", hint: "A fact or some data, then a question" },
-  { k: "hard",   label: "Hard",   hint: "Scenario-led, two steps of reasoning" },
+  { k: "easy",   label: "Easy",   hint: "The answer is on the slide" },
+  { k: "medium", label: "Medium", hint: "Apply one fact from it" },
+  { k: "hard",   label: "Hard",   hint: "Join two, against the near misses" },
 ];
 
 const COUNT_PRESETS = [5, 10, 15, 20];
