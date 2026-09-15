@@ -3024,42 +3024,18 @@ select {
 }
 .anim-fade-in { animation: fadeIn 0.22s ease both; }
 
-/* Answered steps, one line each above the current one. Each is the way
-   back to that step, so the whole line is the control and "Change" only
-   says so. Separated from what follows by a rule, not a box. */
-.gen-done {
+/* The three pages, as pills. A step that cannot be opened yet is still
+   legible — it says what is coming — it just does not press. */
+.gen-pages {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  width: 100%;
-  padding: 0 0 14px;
-  margin: 0 0 16px;
-  border: none;
-  border-bottom: 1px solid var(--c-border);
-  background: none;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: clamp(18px, 2.6vh, 24px);
 }
-.gen-done-value {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  color: var(--c-text);
+.gen-page:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
-.gen-done-value.is-file { color: var(--c-accent); }
-.gen-done-change {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-muted);
-}
-.gen-done:hover .gen-done-change { color: var(--c-accent); }
 
 .gen-card-nav {
   display: flex;

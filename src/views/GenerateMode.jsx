@@ -14,11 +14,11 @@ import { supabase } from "../lib/supabase";
  * Same composition as Progress / Leaderboard: blue field for the thesis,
  * wave into a sheet for the work. The form is one card, the way a question
  * in Practice is one card, and it asks one thing at a time: the lecture,
- * then where it belongs, then how many. What you have already answered
- * collapses to a line at the top of the card — tap it to change it — and
- * those lines are the only progress indicator. It was a tab strip with a
- * question for a heading on each step and micro-caps labels over
- * everything; then, briefly, everything on one card, which was a form.
+ * then where it belongs, then how many — with the three steps as pills at
+ * the top of the card, so a finished one is a page you can turn back to.
+ * It was a tab strip with a question for a heading on each step and
+ * micro-caps labels over everything; then everything on one card, which
+ * was a form; then the answered steps collapsed to lines, which hid them.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
@@ -347,6 +347,12 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   }));
 }
 
+const PAGES = [
+  { k: "source", label: "Lecture" },
+  { k: "place", label: "Topic" },
+  { k: "detail", label: "Questions" },
+];
+
 /** An empty question, for writing one rather than correcting one. */
 const BLANK_QUESTION = { q: "", opts: ["", "", "", "", ""], ans: 0, exp: "", optExp: [] };
 
@@ -672,9 +678,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     if (!stepReady[step]) return;
     setStep(step + 1);
   }
-  /* A summary line is a way back, not a record — so it is a button. */
-  const placeLine = [deck, category.trim() ? shortCat(category.trim(), deck) : null, year, block.trim()]
-    .filter(Boolean).join(" · ");
 
   async function generate() {
     setError("");
@@ -840,22 +843,31 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       )}
 
       <div className="gen-card anim-scale-in">
-        {/* Answered steps, one line each. The card accumulates the way a
-            question keeps its stem while the options change under it. */}
-        {mode === "ai" && step > 0 && (
-          <button type="button" className="gen-done" onClick={() => setStep(0)}>
-            <span className="gen-done-value is-file">
-              {file ? sourceLabel(file.name) : `Pasted notes · ${pastedText.trim().split(/\s+/).length} words`}
-            </span>
-            <span className="gen-done-change">Change</span>
-          </button>
-        )}
-        {step > 1 && (
-          <button type="button" className="gen-done" onClick={() => setStep(1)}>
-            <span className="gen-done-value">{placeLine}</span>
-            <span className="gen-done-change">Change</span>
-          </button>
-        )}
+        {/* The steps, as pages you can turn back to. Same pills as the
+            count row: filled is where you are, plain is somewhere you can
+            go, faded is not yet. */}
+        <nav className="gen-pages" aria-label="Steps">
+          {PAGES.map((pg, i) => {
+            if (i < first) return null;
+            const current = i === step;
+            /* Reachable once everything before it is answered — so you can
+               jump forward again after going back, but never skip work. */
+            const open = stepReady.slice(first, i).every(Boolean);
+            return (
+              <button
+                key={pg.k}
+                type="button"
+                className={`btn-press gen-page${current ? " is-current" : ""}`}
+                style={current ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                disabled={!open}
+                aria-current={current ? "step" : undefined}
+                onClick={() => setStep(i)}
+              >
+                {pg.label}
+              </button>
+            );
+          })}
+        </nav>
 
         <div key={`${mode}-${step}`} className="gen-step anim-fade-in">
           {step === 0 && (
