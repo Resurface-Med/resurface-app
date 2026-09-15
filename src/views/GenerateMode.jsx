@@ -12,8 +12,12 @@ import { supabase } from "../lib/supabase";
  * Generate — turn lecture material into questions.
  *
  * Same composition as Progress / Leaderboard: blue field for the thesis,
- * wave into a white sheet for the work. One job per phase. No nested cards
- * for display; chips and flat rows carry the interaction.
+ * wave into a sheet for the work. The form is one card, the way a question
+ * in Practice is one card: the lecture goes in at the top, where it belongs
+ * underneath, how many, and one button. It was a three-step wizard with a
+ * tab strip, a question for a heading on each step and micro-caps labels
+ * over everything — three screens for a form that fits on one, and the
+ * labels were the lightest ink in the app.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
@@ -41,15 +45,6 @@ const band = {
   margin: "0 auto",
   padding: "0 clamp(20px, 3vw, 40px)",
   width: "100%",
-};
-
-const whisper = {
-  fontSize: 10,
-  fontWeight: 500,
-  letterSpacing: "0.03em",
-  textTransform: "uppercase",
-  color: "var(--c-muted-dim)",
-  lineHeight: 1,
 };
 
 const field = {
@@ -351,32 +346,8 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
   }));
 }
 
-/**
- * The form, split into three.
- *
- * It was one page asking six things at once — source, subject, topic, year,
- * block and count — with a button at the end that would not say which of
- * them was still missing.
- *
- * Two questions carry it: what you have, and what it is about. The last step
- * holds the ones that already have the right answer filled in, so it is a
- * place to change your mind rather than a place to make a decision. Each step
- * gates on its own requirement, which means Continue is what tells you
- * something is missing, at the point where you would fix it.
- */
 /** An empty question, for writing one rather than correcting one. */
 const BLANK_QUESTION = { q: "", opts: ["", "", "", "", ""], ans: 0, exp: "", optExp: [] };
-
-const STEPS = [
-  { k: "source", label: "Lecture/notes", heading: "Drop in your lectures or notes" },
-  { k: "place", label: "Topic", heading: "Where does it belong?" },
-  { k: "detail", label: "Questions", heading: "How many?" },
-];
-
-/* The last step is a different question when you are writing them yourself. */
-const MANUAL_LAST = { k: "detail", label: "Questions", heading: "Write your questions" };
-
-
 
 // ── Quiet generating state ──────────────────────────────────────────────────
 
@@ -473,15 +444,17 @@ function GeneratingWindow({ count, onCancel }) {
   );
 }
 
-function Shell({ title, sub, children, footer, maxWidth = 720 }) {
+/* The sheet is white for lists of things (review, done) and the practice
+   surface when it holds a card, so the card has something to sit on. */
+function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-card-solid)" }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>{title}</h1>
         {sub ? <p className="gen-field-sub">{sub}</p> : null}
       </div>
-      <Wave from="transparent" to="var(--c-card-solid)" />
-      <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
+      <Wave from="transparent" to={sheet} />
+      <div style={{ background: sheet, flex: 1 }}>
         <div style={{
           ...band,
           maxWidth,
@@ -509,15 +482,18 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
-  const [step, setStep] = useState(0);
+  /* Pasting is the second way in and hidden until asked for. Two boxes on
+     the card — one for a file, one for text — made every visit look like a
+     choice to be made, when nearly everyone has a file. */
+  const [pasting, setPasting] = useState(false);
   /* Whether Topic is being chosen or written. Chosen by default: the lists are
      two to twelve long, so picking is nearly always the right control and
      typing is the exception. */
   const [newTopic, setNewTopic] = useState(false);
   const [newBlock, setNewBlock] = useState(false);
-  /* "ai" writes them from a lecture, "manual" is you writing them. The steps
-     are the same either way until the last one, which is where the two
-     diverge: a count means nothing for a question you are typing out
+  /* "ai" writes them from a lecture, "manual" is you writing them. The card
+     is the same either way except for its top and its bottom: manual has no
+     source, and a count means nothing for a question you are typing out
      yourself. */
   const [mode, setMode] = useState("ai");
   const [written, setWritten] = useState([]);
@@ -539,6 +515,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     if (!f) return;
     setFile(f);
     setPastedText("");
+    setPasting(false);
     const { deck: d, cat } = guessPlacement(f.name);
     if (d) setDeck(d);
     if (cat) { setCategory(cat); setNewTopic(false); }
@@ -570,23 +547,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const existingCats = deckNode?.cats ?? (blockNode ? [] : DECK_MAP[deck] || []);
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
   const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
-  /* One requirement per step. The last has none — everything on it is already
-     answered — so it is gated by canGenerate, which is the first two. */
-  const stepReady = [Boolean(file || pastedText.trim()), Boolean(category.trim())];
-  /* A step is reachable once every earlier requirement is met. That lets you
-     jump forward again after going back — without letting anyone skip work. */
-  function canReach(i) {
-    for (let j = 0; j < i; j++) {
-      if (!stepReady[j]) return false;
-    }
-    return true;
-  }
-  function goToStep(i) {
-    if (!canReach(i) || i === step) return;
-    if (i === 0) setMode("ai");
-    setStep(i);
-  }
-
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
     const keptList = generated.filter((_, i) => kept.has(i));
@@ -696,325 +656,327 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   // ── Setup ─────────────────────────────────────────────────────────────
   // The generating window sits over this rather than replacing it, so backing
   // out returns you to a form still holding everything you filled in.
+  const hasSource = Boolean(file || pastedText.trim());
+
+  async function generate() {
+    setError("");
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setPhase("generating");
+    try {
+      const qs = await generateQuestions({
+        file,
+        pastedText,
+        deck,
+        category: category.trim(),
+        year,
+        block: block.trim() || "Principles",
+        count: countNum,
+        signal: ctrl.signal,
+      });
+      setGenerated(qs);
+      setKept(new Set(qs.map((_, i) => i)));
+      setPhase("review");
+    } catch (e) {
+      // Cancelling is a decision, not a fault. Saying "The user aborted a
+      // request" back to someone who pressed Cancel is the app telling
+      // them off for doing what it offered.
+      if (e.name === "AbortError") { setPhase("setup"); return; }
+      setError(e.message || "Something went wrong.");
+      setPhase("setup");
+    } finally {
+      abortRef.current = null;
+    }
+  }
+
+  async function addWritten() {
+    const saved = await withIds(written);
+    const merged = [...savedQs, ...saved];
+    setSavedQs(merged);
+    onGeneratedChange?.(merged);
+    setWritten([]);
+    setPhase("done");
+  }
+
+  /* Year, Block, Subject, Topic — widest first. Each narrows the one after
+     it, and Topic, the only one that has to be filled, comes last. */
+  const placement = (
+    <div className="gen-grid">
+      <label className="gen-field">
+        <span className="gen-field-label">Year</span>
+        <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
+          {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"].map(y => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+      </label>
+      {/* Blocks come from the bank rather than from a fixed list. A block is
+          Principles, then Respiratory, then Cardiovascular, with subjects
+          taught inside each. Starting a new one is a real case, since every
+          block after the first begins empty. */}
+      <label className="gen-field">
+        <span className="gen-field-label">Block</span>
+        {newBlock || BLOCKS.length === 0 ? (
+          <input
+            type="text"
+            value={block}
+            onChange={e => setBlock(e.target.value)}
+            placeholder="e.g. Respiratory"
+            style={field}
+            autoFocus={newBlock}
+          />
+        ) : (
+          <select
+            value={block}
+            onChange={e => {
+              if (e.target.value === "__new__") { setNewBlock(true); setBlock(""); }
+              else setBlock(e.target.value);
+            }}
+            style={{ ...field, cursor: "pointer" }}
+          >
+            {BLOCKS.map(b => <option key={b} value={b}>{b}</option>)}
+            <option value="__new__">＋ New block…</option>
+          </select>
+        )}
+        {newBlock && BLOCKS.length > 0 && (
+          <button
+            type="button"
+            className="gen-link"
+            onClick={() => { setNewBlock(false); setBlock(BLOCKS[0]); }}
+          >
+            Pick an existing block instead
+          </button>
+        )}
+      </label>
+      <label className="gen-field">
+        <span className="gen-field-label">Subject</span>
+        <select
+          value={deck}
+          onChange={e => { setDeck(e.target.value); setCategory(""); setNewTopic(false); }}
+          style={{ ...field, cursor: "pointer" }}
+        >
+          {decks.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+      </label>
+      {/* A picker, not a text field. A subject has between two and twelve
+          topics, so the whole set fits on screen — asking someone to recall
+          and retype an exact string from a list that short is how you end up
+          with "Glycolysis" and "Glycolysis & Bioenergetics" as two topics.
+          Writing one stays available, because the bank does not cover
+          everything. */}
+      <label className="gen-field">
+        <span className="gen-field-label">Topic</span>
+        {newTopic || existingCats.length === 0 ? (
+          <input
+            type="text"
+            value={category}
+            onChange={e => setCategory(e.target.value)}
+            placeholder="e.g. Glycolysis"
+            style={field}
+            autoFocus={newTopic}
+            required
+          />
+        ) : (
+          <select
+            value={category}
+            onChange={e => {
+              if (e.target.value === "__new__") {
+                setNewTopic(true);
+                setCategory(file ? suggestTopicName(file.name) : "");
+              } else {
+                setCategory(e.target.value);
+              }
+            }}
+            style={{ ...field, cursor: "pointer" }}
+            required
+          >
+            <option value="">Choose a topic…</option>
+            {existingCats.map(c => (
+              <option key={c} value={c}>{shortCat(c, deck)}</option>
+            ))}
+            <option value="__new__">＋ New topic…</option>
+          </select>
+        )}
+        {newTopic && existingCats.length > 0 && (
+          <button
+            type="button"
+            className="gen-link"
+            onClick={() => { setNewTopic(false); setCategory(""); }}
+          >
+            Pick an existing topic instead
+          </button>
+        )}
+      </label>
+    </div>
+  );
+
   return (
     <Shell
       title="Generate"
       sub="Drop slides or notes — Resurface writes the questions."
-      maxWidth={680}
+      maxWidth={640}
+      sheet="var(--c-surface2)"
     >
       {phase === "generating" && (
         <GeneratingWindow count={countNum} onCancel={cancelGenerate} />
       )}
 
-      <nav className="gen-steps" aria-label="Progress">
-        {STEPS.map((st, i) => {
-          const reachable = canReach(i);
-          const current = i === step;
-          return (
-            <button
-              key={st.k}
-              type="button"
-              className={`gen-step${current ? " is-current" : ""}${reachable && !current ? " is-open" : ""}`}
-              onClick={() => goToStep(i)}
-              disabled={!reachable}
-              aria-current={current ? "step" : undefined}
-            >
-              {st.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      <h2 key={`${step}-${mode}`} className="gen-step-heading" data-in="rise">
-        {step === 2 && mode === "manual" ? MANUAL_LAST.heading : STEPS[step].heading}
-      </h2>
-
-      {/* What you uploaded, carried forward. Two steps later you are being
-          asked to name a topic for something you can no longer see, and if the
-          subject and topic were guessed from the filename then this is the
-          evidence for that guess — a pre-filled answer next to the thing it
-          was inferred from is checkable, the same answer on its own is just a
-          decision made for you. */}
-      {step > 0 && (file || pastedText.trim()) && (
-        <p className="gen-source-note">
-          <span className="gen-source-label">From</span>
-          <span className="gen-source-name" title={file ? file.name : undefined}>
-            {file ? sourceLabel(file.name) : `pasted text · ${pastedText.trim().split(/\s+/).length} words`}
-          </span>
-        </p>
-      )}
-
-      {/* Source */}
-      {step === 0 && (<>
-      <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
-        <span style={whisper}>Source</span>
-        <button
-          type="button"
-          className={`gen-drop${file ? " has-file" : ""}`}
-          onClick={() => fileRef.current?.click()}
-          onDragOver={e => e.preventDefault()}
-          onDrop={e => {
-            e.preventDefault();
-            acceptFile(e.dataTransfer.files[0]);
-          }}
-        >
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
-            style={{ display: "none" }}
-            onChange={e => acceptFile(e.target.files[0])}
-          />
-          {file ? (
-            <span className="gen-drop-file">
-              <span className="gen-drop-name">{file.name}</span>
-              <span
-                role="button"
-                tabIndex={0}
-                className="gen-drop-clear"
-                onClick={e => { e.stopPropagation(); setFile(null); }}
-                onKeyDown={e => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setFile(null);
-                  }
-                }}
-              >
-                Remove
-              </span>
-            </span>
-          ) : (
-            <span className="gen-drop-empty">
-              <span className="gen-drop-lead">Drop a file or browse</span>
-              <span className="gen-drop-meta">PowerPoint, PDF, or image · max 3MB</span>
-            </span>
-          )}
-        </button>
-
-        {!file && (
-          <textarea
-            className="gen-paste"
-            value={pastedText}
-            onChange={e => setPastedText(e.target.value)}
-            placeholder="Or paste lecture notes here…"
-            rows={3}
-          />
-        )}
-        {/* The third way in. Text rather than a third box, because it is not a
-            third kind of source — it is the case where there is no source at
-            all and you are the one writing. */}
-        <button
-          type="button"
-          className="gen-scratch"
-          onClick={() => { setMode("manual"); setStep(1); }}
-        >
-          Or write your own questions from scratch
-        </button>
-      </section>
-      </>)}
-
-      {/* Placement */}
-      {step === 1 && (<>
-      {/* No group label here. Subject, Topic, Year and Block each carry their
-          own, so a heading over them was a second level of hierarchy naming
-          what four labels already named — and on a phone it cost a whole row
-          to do it. */}
-      {/* Year, Block, Subject, Topic — widest first. Each row narrows the one
-          under it, and Topic, the only required field of the four, is the last
-          thing you fill and the one nearest Continue. */}
-      <section className="gen-block" data-in="rise" style={{ "--i": 2 }}>
-        <div className="gen-grid">
-          <label className="gen-field">
-            <span className="gen-field-label">Year</span>
-            <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
-              {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"].map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </label>
-          {/* Blocks come from the bank rather than from a fixed list. The old
-              suggestions had Pathology and Anatomy in them, which are subjects
-              — a block is Principles, then Respiratory, then Cardiovascular,
-              with those subjects taught inside each. Starting a new one is a
-              real case, since every block after the first begins empty. */}
-          <label className="gen-field">
-            <span className="gen-field-label">Block</span>
-            {newBlock || BLOCKS.length === 0 ? (
-              <input
-                type="text"
-                value={block}
-                onChange={e => setBlock(e.target.value)}
-                placeholder="e.g. Respiratory"
-                style={field}
-                autoFocus={newBlock}
-              />
-            ) : (
-              <select
-                value={block}
-                onChange={e => {
-                  if (e.target.value === "__new__") { setNewBlock(true); setBlock(""); }
-                  else setBlock(e.target.value);
-                }}
-                style={{ ...field, cursor: "pointer" }}
-              >
-                {BLOCKS.map(b => <option key={b} value={b}>{b}</option>)}
-                <option value="__new__">＋ New block…</option>
-              </select>
-            )}
-            {newBlock && BLOCKS.length > 0 && (
-              <button
-                type="button"
-                className="gen-topic-back"
-                onClick={() => { setNewBlock(false); setBlock(BLOCKS[0]); }}
-              >
-                Pick an existing block instead
-              </button>
-            )}
-          </label>
-          <label className="gen-field">
-            <span className="gen-field-label">Subject</span>
-            <select
-              value={deck}
-              onChange={e => { setDeck(e.target.value); setCategory(""); setNewTopic(false); }}
-              style={{ ...field, cursor: "pointer" }}
-            >
-              {decks.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
-          {/* A picker, not a text field. A subject has between two and twelve
-              topics, so the whole set fits on screen — asking someone to
-              recall and retype an exact string from a list that short is how
-              you end up with "Glycolysis" and "Glycolysis & Bioenergetics" as
-              two different topics, and a near-miss name fragments Progress
-              permanently.
-
-              Writing one stays available, because the bank does not cover
-              everything: Anatomy has two topics, so a respiratory lecture has
-              nowhere to go and needs a new one. */}
-          <label className="gen-field">
-            <span className="gen-field-label">Topic</span>
-            {newTopic || existingCats.length === 0 ? (
-              <input
-                type="text"
-                value={category}
-                onChange={e => setCategory(e.target.value)}
-                placeholder="e.g. Glycolysis"
-                style={field}
-                autoFocus={newTopic}
-                required
-              />
-            ) : (
-              <select
-                value={category}
-                onChange={e => {
-                  if (e.target.value === "__new__") {
-                    setNewTopic(true);
-                    setCategory(file ? suggestTopicName(file.name) : "");
-                  } else {
-                    setCategory(e.target.value);
-                  }
-                }}
-                style={{ ...field, cursor: "pointer" }}
-                required
-              >
-                <option value="">Choose a topic…</option>
-                {existingCats.map(c => (
-                  <option key={c} value={c}>{shortCat(c, deck)}</option>
-                ))}
-                <option value="__new__">＋ New topic…</option>
-              </select>
-            )}
-            {newTopic && existingCats.length > 0 && (
-              <button
-                type="button"
-                className="gen-topic-back"
-                onClick={() => { setNewTopic(false); setCategory(""); }}
-              >
-                Pick an existing topic instead
-              </button>
-            )}
-          </label>
-        </div>
-
-      </section>
-      </>)}
-
-      {/* Writing them yourself: the same editor used for correcting a
-          question, opened empty, with what you have written so far listed
-          under it. Reusing that form rather than building a second one means
-          per-option explanations come along for free. */}
-      {step === 2 && mode === "manual" && (
-        <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
-          {written.length > 0 && (
-            <ol className="gen-written">
-              {written.map((w, i) => (
-                <li key={i} className="gen-written-item">
-                  <span className="gen-written-n">{i + 1}</span>
-                  <span className="gen-written-q">{w.q}</span>
-                  <button
-                    type="button"
-                    className="gen-written-del"
-                    onClick={() => setWritten(list => list.filter((_, j) => j !== i))}
-                    aria-label={`Remove question ${i + 1}`}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ol>
-          )}
-
-          <button type="button" className="gen-write-btn btn-press" onClick={() => setWriting(true)}>
-            <span aria-hidden="true">＋</span>
-            {written.length === 0 ? "Write a question" : "Write another"}
-          </button>
-        </section>
-      )}
-
-      {/* Both of these already have an answer, so this step is somewhere to
-          change one rather than somewhere to supply one. */}
-      {step === 2 && mode === "ai" && (<>
-      <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
-        <div className="gen-chip-row">
-          <div className="gen-chip-group">
-            <span style={whisper}>How many</span>
-            <div className="gen-count-row">
-              <div className="gen-chips" role="radiogroup" aria-label="Question count">
-                {COUNT_PRESETS.map(n => (
-                  <button
-                    key={n}
-                    type="button"
-                    className="btn-press"
-                    onClick={() => setCountRaw(String(n))}
-                    style={countNum === n ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                  >
-                    {n}
-                  </button>
-                ))}
+      <div className="gen-card anim-scale-in">
+        {mode === "ai" && (
+          <>
+            {/* The lecture, at the top of the card the way the stem is at the
+                top of a question. One surface, and the file name takes it over
+                once there is one. */}
+            {file ? (
+              <div className="gen-source is-file">
+                <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
+                <button type="button" className="gen-link" onClick={() => setFile(null)}>Remove</button>
               </div>
-              {/* Outside the radiogroup on purpose — a textbox is not one of
-                  the radios, and putting it inside would say it was.
+            ) : pasting ? (
+              <div className="gen-source is-text">
+                <textarea
+                  className="gen-paste"
+                  value={pastedText}
+                  onChange={e => setPastedText(e.target.value)}
+                  placeholder="Paste lecture notes here…"
+                  rows={5}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className="gen-link"
+                  onClick={() => { setPasting(false); setPastedText(""); }}
+                >
+                  Drop a file instead
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="gen-source"
+                onClick={() => fileRef.current?.click()}
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); acceptFile(e.dataTransfer.files[0]); }}
+              >
+                <span className="gen-source-lead">Drop a lecture here, or browse</span>
+                <span className="gen-source-meta">PowerPoint, PDF or image</span>
+              </button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
+              style={{ display: "none" }}
+              onChange={e => acceptFile(e.target.files[0])}
+            />
+            {!file && !pasting && (
+              <button type="button" className="gen-link gen-source-alt" onClick={() => setPasting(true)}>
+                Paste notes instead
+              </button>
+            )}
 
-                  Empty while a preset is chosen. Bound straight to countRaw it
-                  showed the selected number too, so the row read as five
-                  options with 10 offered twice; blank with a placeholder makes
-                  it plainly the box for a number that is not on the list. */}
-              <input
-                type="text"
-                inputMode="numeric"
-                aria-label="Or type a number of questions"
-                className="gen-count-input"
-                placeholder="Other"
-                value={COUNT_PRESETS.includes(countNum) ? "" : countRaw}
-                onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
-                onBlur={e => { if (!e.target.value.trim()) setCountRaw(String(countNum || 10)); }}
-              />
+            <hr className="gen-rule" />
+            {placement}
+            <hr className="gen-rule" />
+
+            <div className="gen-count">
+              <span className="gen-field-label">How many</span>
+              <div className="gen-count-row">
+                <div className="gen-chips" role="radiogroup" aria-label="Question count">
+                  {COUNT_PRESETS.map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      className="btn-press"
+                      onClick={() => setCountRaw(String(n))}
+                      style={countNum === n ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                {/* Outside the radiogroup on purpose — a textbox is not one of
+                    the radios. Empty while a preset is chosen, so the row does
+                    not offer 10 twice. */}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  aria-label="Or type a number of questions"
+                  className="gen-count-input"
+                  placeholder="Other"
+                  value={COUNT_PRESETS.includes(countNum) ? "" : countRaw}
+                  onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
+                  onBlur={e => { if (!e.target.value.trim()) setCountRaw(String(countNum || 10)); }}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-      </>)}
+
+            {error && <p className="gen-error">{error}</p>}
+
+            <button
+              type="button"
+              className="btn-press gen-go"
+              style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
+              disabled={!canGenerate}
+              onClick={generate}
+            >
+              Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
+            </button>
+          </>
+        )}
+
+        {mode === "manual" && (
+          <>
+            {placement}
+            <hr className="gen-rule" />
+
+            {/* The same editor used for correcting a question, opened empty,
+                with what you have written so far listed above the button. */}
+            {written.length > 0 && (
+              <ol className="gen-written">
+                {written.map((w, i) => (
+                  <li key={i} className="gen-written-item">
+                    <span className="gen-written-n">{i + 1}</span>
+                    <span className="gen-written-q">{w.q}</span>
+                    <button
+                      type="button"
+                      className="gen-written-del"
+                      onClick={() => setWritten(list => list.filter((_, j) => j !== i))}
+                      aria-label={`Remove question ${i + 1}`}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <button type="button" className="gen-write-btn btn-press" onClick={() => setWriting(true)}>
+              <span aria-hidden="true">＋</span>
+              {written.length === 0 ? "Write a question" : "Write another"}
+            </button>
+
+            <button
+              type="button"
+              className="btn-press gen-go"
+              style={{ ...primaryBtn, opacity: written.length && category.trim() ? 1 : 0.45 }}
+              disabled={!written.length || !category.trim()}
+              onClick={addWritten}
+            >
+              Add {written.length} to bank <span aria-hidden="true">→</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* The other way in, as a sentence under the card rather than a third
+          box on it: it is not another kind of source, it is having none. */}
+      <p className="gen-aside">
+        {mode === "ai" ? (
+          <>Or <button type="button" className="gen-link" onClick={() => setMode("manual")}>write your own questions</button> from scratch.</>
+        ) : (
+          <>Or <button type="button" className="gen-link" onClick={() => setMode("ai")}>generate them from a lecture</button> instead.</>
+        )}
+      </p>
 
       {writing && (
         <EditQuestionModal
@@ -1026,92 +988,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           }}
         />
       )}
-
-      {error && <p className="gen-error">{error}</p>}
-
-      <div className="gen-nav">
-        {step > 0 && (
-          <button
-            type="button"
-            className="gen-nav-back btn-press"
-            onClick={() => { if (step === 1) setMode("ai"); setStep(step - 1); }}
-          >
-            <span aria-hidden="true">←</span> Back
-          </button>
-        )}
-
-        {step < 2 && (
-          <button
-            type="button"
-            className="btn-press gen-nav-go"
-            style={{ ...primaryBtn, opacity: stepReady[step] ? 1 : 0.45 }}
-            disabled={!stepReady[step]}
-            onClick={() => setStep(step + 1)}
-          >
-            Continue <span aria-hidden="true">→</span>
-          </button>
-        )}
-
-        {step === 2 && mode === "manual" && (
-          <button
-            type="button"
-            className="btn-press gen-nav-go"
-            style={{ ...primaryBtn, opacity: written.length ? 1 : 0.45 }}
-            disabled={!written.length}
-            onClick={async () => {
-              const saved = await withIds(written);
-              const merged = [...savedQs, ...saved];
-              setSavedQs(merged);
-              onGeneratedChange?.(merged);
-              setWritten([]);
-              setPhase("done");
-            }}
-          >
-            Add {written.length} to bank →
-          </button>
-        )}
-
-        {step === 2 && mode === "ai" && (
-      <button
-        type="button"
-        className="btn-press gen-nav-go"
-        style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
-        disabled={!canGenerate}
-        onClick={async () => {
-          setError("");
-          const ctrl = new AbortController();
-          abortRef.current = ctrl;
-          setPhase("generating");
-          try {
-            const qs = await generateQuestions({
-              file,
-              pastedText,
-              deck,
-              category: category.trim(),
-              year,
-              block: block.trim() || "Principles",
-              count: countNum,
-              signal: ctrl.signal,
-            });
-            setGenerated(qs);
-            setKept(new Set(qs.map((_, i) => i)));
-            setPhase("review");
-          } catch (e) {
-            // Cancelling is a decision, not a fault. Saying "The user aborted a
-            // request" back to someone who pressed Cancel is the app telling
-            // them off for doing what it offered.
-            if (e.name === "AbortError") { setPhase("setup"); return; }
-            setError(e.message || "Something went wrong.");
-            setPhase("setup");
-          } finally {
-            abortRef.current = null;
-          }
-        }}
-      >
-        Generate {countNum} question{countNum !== 1 ? "s" : ""} →
-      </button>
-        )}
-      </div>
     </Shell>
   );
 }

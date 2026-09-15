@@ -2706,102 +2706,6 @@ select {
 /* ─── Generate ───────────────────────────────────────────────────── */
 /* Labels on a shared rule, the live one lit. Reachable steps are clickable
    either way; locked ones stay quiet until their requirements are met. */
-.gen-steps {
-  display: flex;
-  margin-bottom: clamp(18px, 2.6vh, 24px);
-}
-.gen-step {
-  flex: 1;
-  min-width: 0;
-  padding: 0 12px 10px 0;
-  background: none;
-  border: none;
-  border-bottom: 2px solid var(--c-border);
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
-  color: var(--c-muted-dim);
-  text-align: left;
-  cursor: default;
-  transition: color 0.18s ease, border-color 0.18s ease;
-}
-.gen-step.is-open {
-  color: var(--c-sub);
-  border-bottom-color: var(--c-accent-brd);
-  cursor: pointer;
-}
-.gen-step.is-open:hover { color: var(--c-text); }
-.gen-step.is-current {
-  color: var(--c-accent);
-  border-bottom-color: var(--c-accent);
-}
-.gen-step:disabled {
-  cursor: not-allowed;
-}
-
-/* Sits under the step heading, quiet enough to be reference rather than
-   content. Truncates because lecture filenames are long and the point is
-   recognition, not reading. */
-.gen-source-note {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin: -8px 0 clamp(16px, 2.4vh, 22px);
-  min-width: 0;
-  font-size: 13.5px;
-}
-.gen-source-label {
-  flex-shrink: 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--c-muted-dim);
-}
-.gen-source-name {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-  color: var(--c-sub);
-}
-
-/* The way back out of writing a topic. */
-.gen-topic-back {
-  align-self: flex-start;
-  margin-top: 7px;
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--c-muted);
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.gen-topic-back:hover { color: var(--c-accent); }
-
-/* The way into writing your own. Text, not a third drop target — it is not
-   another kind of source, it is the case where there is no source. */
-.gen-scratch {
-  align-self: flex-start;
-  margin-top: 14px;
-  padding: 0;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
-  color: var(--c-accent);
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.gen-scratch:hover { color: var(--c-accent-lt); }
-
 .gen-written {
   list-style: none;
   margin: 0 0 16px;
@@ -2848,9 +2752,9 @@ select {
   align-items: center;
   gap: 8px;
   padding: 13px 22px;
-  border: 1.5px dashed var(--c-border);
-  border-radius: var(--r-ctrl);
-  background: none;
+  border: none;
+  border-radius: 16px;
+  background: var(--c-surface3);
   font-family: inherit;
   font-size: 14.5px;
   font-weight: 600;
@@ -2860,45 +2764,7 @@ select {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .gen-write-btn:hover {
-  border-color: var(--c-accent-brd);
-  background: var(--c-overlay);
-}
-
-.gen-step-heading {
-  margin: 0 0 clamp(16px, 2.4vh, 22px);
-  font-size: clamp(19px, 2vw, 23px);
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  line-height: 1.25;
-  color: var(--c-text);
-}
-
-/* Back undoes, forward commits — so one is text and one is filled. */
-.gen-nav {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: clamp(20px, 2.8vh, 28px);
-}
-.gen-nav-back {
-  padding: 12px 4px;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
-  color: var(--c-sub);
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.gen-nav-back:hover { color: var(--c-text); }
-.gen-nav-go {
-  margin-left: auto;
-  min-width: 190px;
-}
-@media (max-width: 560px) {
-  .gen-nav-go { min-width: 0; flex: 1; }
+  background: var(--c-accent-dim);
 }
 
 .gen-field-sub {
@@ -3115,94 +2981,6 @@ select {
   100% { transform: translateX(320%); }
 }
 
-.gen-block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: clamp(22px, 3.2vh, 28px);
-}
-.gen-drop {
-  display: block;
-  width: 100%;
-  padding: 22px 18px;
-  text-align: left;
-  font-family: inherit;
-  cursor: pointer;
-  border-radius: var(--r-ctrl);
-  border: 1.5px dashed var(--c-border);
-  background: var(--c-surface3);
-  transition: border-color 0.15s, background 0.15s;
-}
-.gen-drop:hover,
-.gen-drop:focus-visible {
-  border-color: var(--c-accent-brd);
-  outline: none;
-}
-.gen-drop.has-file {
-  border-style: solid;
-  border-color: var(--c-accent-brd);
-  background: var(--c-accent-dim);
-  padding: 14px 16px;
-}
-.gen-drop-empty {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.gen-drop-lead {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--c-text);
-  letter-spacing: -0.2px;
-}
-.gen-drop-meta {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-muted);
-}
-.gen-drop-file {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.gen-drop-name {
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--c-accent);
-  letter-spacing: -0.2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.gen-drop-clear {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--c-muted);
-  cursor: pointer;
-}
-.gen-drop-clear:hover {
-  color: var(--c-danger);
-}
-.gen-paste {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 12px 14px;
-  font-size: 14.5px;
-  font-family: inherit;
-  line-height: 1.5;
-  color: var(--c-text);
-  background: var(--c-surface3);
-  border: 1.5px solid transparent;
-  border-radius: var(--r-ctrl);
-  resize: vertical;
-  outline: none;
-}
-.gen-paste:focus {
-  border-color: var(--c-accent-brd);
-}
-
 .gen-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3214,28 +2992,166 @@ select {
   gap: 6px;
   min-width: 0;
 }
-.gen-field-label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--c-muted);
-  letter-spacing: -0.1px;
-}
-.gen-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px 28px;
-}
-.gen-chip-group {
+/* ── The form card ──────────────────────────────────────────────────────
+   One card, the practice question's surface (.qcard), on the practice sheet.
+   Sections inside it are separated by a single rule and nothing else — no
+   sub-cards, no headings — so the hierarchy is the drop target at the top,
+   then fields, then the button, exactly as a question is stem, options,
+   answer. Labels are 14px sentence case in --c-sub: the micro-caps labels
+   this replaces were the lightest ink in the app and the thing that made
+   the page read as a template. */
+.gen-card {
+  background: var(--c-card-solid);
+  border-radius: 24px;
+  padding: clamp(20px, 2.6vw, 28px);
+  box-shadow: var(--c-card-shadow-lift);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+}
+.gen-rule {
+  border: none;
+  border-top: 1px solid var(--c-border);
+  margin: clamp(18px, 2.4vh, 24px) 0;
+}
+
+/* The lecture goes in here. A solid surface, not a dashed one: dashed says
+   "temporary", and this is the most important thing on the card. Becomes
+   the file's name once there is one, in the accent the way a chosen option
+   is, and a text box if you asked to paste. */
+.gen-source {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: clamp(24px, 3.4vh, 34px) 20px;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 16px;
+  background: var(--c-surface3);
+  transition: background 0.15s;
+}
+.gen-source:hover,
+.gen-source:focus-visible {
+  background: var(--c-accent-dim);
+  outline: none;
+}
+.gen-source-lead {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-text);
+  letter-spacing: -0.25px;
+}
+.gen-source-meta {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-sub);
+}
+.gen-source.is-file {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: default;
+  background: var(--c-accent-dim);
+}
+.gen-source.is-file:hover { background: var(--c-accent-dim); }
+.gen-source-name {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-accent);
+  letter-spacing: -0.2px;
+}
+.gen-source.is-text {
+  padding: 0;
+  background: none;
+  cursor: default;
+  gap: 8px;
+  align-items: flex-start;
+}
+.gen-source-alt {
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
+/* One style of text action on the card: accent, no chrome. */
+.gen-link {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--c-accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.gen-link:hover { color: var(--c-accent-lt); }
+.gen-field .gen-link {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.gen-paste {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  line-height: 1.5;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: 1.5px solid transparent;
+  border-radius: 16px;
+  resize: vertical;
+  outline: none;
+}
+.gen-paste:focus {
+  border-color: var(--c-accent-brd);
+}
+
+.gen-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-sub);
+  letter-spacing: -0.1px;
+}
+.gen-count {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .gen-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
+.gen-go {
+  width: 100%;
+  margin-top: clamp(18px, 2.4vh, 24px);
+  justify-content: center;
+}
+.gen-card .gen-error {
+  margin: 16px 0 0;
+}
+
+/* The other way in, said once under the card. */
+.gen-aside {
+  margin: 16px 4px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-sub);
+}
+.gen-aside .gen-link { font-size: inherit; }
+
 /* Presets and the typed value on one line. They set the same number, so they
    belong in the same row — as two rows it was a whole extra band of vertical
    space to offer a second way to do one thing. */
@@ -3452,17 +3368,15 @@ select {
   .gen-grid {
     gap: 10px;
   }
-  .gen-block {
-    margin-bottom: 16px;
-  }
   .gen-field {
     gap: 4px;
   }
-  .gen-drop {
-    padding: 15px 14px;
+  .gen-card {
+    padding: 18px 16px 16px;
+    border-radius: 20px;
   }
-  .gen-chip-row {
-    gap: 14px 20px;
+  .gen-source {
+    padding: 22px 16px;
   }
   .gen-sticky-inner {
     flex-direction: column;
