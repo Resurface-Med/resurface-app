@@ -2477,12 +2477,14 @@ select {
   margin: 0;
   padding: 0;
 }
+/* Scaled up from reading size: this page is nine names and a number each,
+   and at 15px it sat like a footnote under the band. */
 .lb-row {
   --step: 22ms;
   display: flex;
   align-items: baseline;
-  gap: 14px;
-  padding: 13px 4px;
+  gap: 18px;
+  padding: 17px 6px;
   box-shadow: inset 0 1px 0 var(--c-border);
 }
 .lb-row:first-child {
@@ -2490,18 +2492,19 @@ select {
 }
 .lb-row.is-me {
   background: var(--c-accent-dim);
-  margin: 0 -10px;
-  padding-left: 14px;
-  padding-right: 14px;
+  margin: 0 -14px;
+  padding-left: 20px;
+  padding-right: 20px;
   border-radius: var(--r-ctrl);
   box-shadow: none;
 }
 .lb-rank {
-  flex: 0 0 36px;
-  font-size: 13px;
+  flex: 0 0 44px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--c-muted);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.3px;
+  font-variant-numeric: tabular-nums;
 }
 .lb-row.is-me .lb-rank {
   color: var(--c-accent);
@@ -2509,17 +2512,17 @@ select {
 .lb-name {
   flex: 1;
   min-width: 0;
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--c-text);
-  letter-spacing: -0.25px;
+  letter-spacing: -0.4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .lb-me-tag {
-  margin-left: 8px;
-  font-size: 11px;
+  margin-left: 10px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2528,22 +2531,29 @@ select {
 .lb-stats {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: 14px;
   flex-shrink: 0;
 }
 .lb-count {
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--c-text);
-  letter-spacing: -0.4px;
+  letter-spacing: -0.6px;
   font-variant-numeric: tabular-nums;
 }
 .lb-streak {
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--c-muted);
-  min-width: 2.2em;
+  min-width: 2.4em;
   text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 560px) {
+  .lb-row { gap: 12px; padding: 14px 4px; }
+  .lb-rank { flex-basis: 30px; font-size: 14px; }
+  .lb-name { font-size: 17px; }
+  .lb-count { font-size: 19px; }
 }
 
 /* ─── Session summary ────────────────────────────────────────────── */
