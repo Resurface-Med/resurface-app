@@ -3116,27 +3116,55 @@ select {
    the file's name once there is one, in the accent the way a chosen option
    is, and a text box if you asked to paste. */
 .gen-source {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
   width: 100%;
-  padding: clamp(18px, 2.6vh, 24px) 20px clamp(20px, 3vh, 26px);
+  padding: clamp(20px, 2.8vh, 26px) 20px clamp(20px, 3vh, 26px);
   text-align: center;
   font-family: inherit;
   cursor: pointer;
-  border: 1.5px dashed var(--c-accent-brd);
+  border: none;
   border-radius: 16px;
   background: var(--c-surface3);
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s;
 }
 .gen-source:hover,
 .gen-source:focus-visible,
 .gen-source.is-over {
   background: var(--c-accent-dim);
-  border-color: var(--c-accent);
-  border-style: solid;
   outline: none;
+}
+/* The dashed edge, spaced wider than CSS's dashed border allows. Solid
+   when a file is near. */
+.gen-source-edge {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.gen-source-edge rect {
+  x: 0.75px;
+  y: 0.75px;
+  width: calc(100% - 1.5px);
+  height: calc(100% - 1.5px);
+  rx: 16px;
+  fill: none;
+  stroke: var(--c-accent-brd);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 9;
+  stroke-linecap: round;
+  transition: stroke 0.15s, stroke-dasharray 0.15s;
+}
+.gen-source:hover .gen-source-edge rect,
+.gen-source:focus-visible .gen-source-edge rect,
+.gen-source.is-over .gen-source-edge rect {
+  stroke: var(--c-accent);
+  stroke-dasharray: 1 0;
 }
 .gen-source-text {
   display: flex;
@@ -3157,13 +3185,12 @@ select {
   color: var(--c-sub);
 }
 
-/* The drawing: a page of lecture lines with the arrow rising out of it.
-   The page runs off the bottom of its own frame — it is going in, not
-   sitting there. */
+/* The page, small. */
 .gen-sheet {
-  width: 150px;
-  height: 120px;
-  margin-bottom: 8px;
+  position: relative;
+  width: 64px;
+  height: 78px;
+  margin-bottom: 12px;
   overflow: visible;
 }
 .gen-sheet-page {
@@ -3172,21 +3199,6 @@ select {
   stroke-width: 1.5;
 }
 [data-theme="dark"] .gen-sheet-page { fill: var(--c-surface2); }
-
-/* The landing's arrow: a stroked hand-drawn curve with an open head. */
-.gen-sheet-stroke {
-  fill: none;
-  stroke: var(--c-accent);
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.gen-sheet-arrow {
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.gen-source:hover .gen-sheet-arrow,
-.gen-source:focus-visible .gen-sheet-arrow,
-.gen-source.is-over .gen-sheet-arrow { transform: translateY(-5px); }
 
 /* Lecture lines at rest; a stem and three options when a file is near.
    Same move as the generating window, held rather than looped. */
@@ -3221,7 +3233,7 @@ select {
 .gen-source.is-over .gen-sheet-dot { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .gen-sheet-arrow, .gen-sheet-ln, .gen-sheet-dot { transition: none; }
+  .gen-sheet-ln, .gen-sheet-dot { transition: none; }
 }
 .gen-source.is-file {
   flex-direction: row;
@@ -3560,7 +3572,7 @@ select {
   .gen-source {
     padding: 16px 16px 20px;
   }
-  .gen-sheet { width: 130px; height: 104px; }
+  .gen-sheet { width: 56px; height: 68px; }
   .gen-sticky-inner {
     flex-direction: column;
   }

@@ -924,26 +924,23 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                   onDragLeave={() => setOver(false)}
                   onDrop={e => { e.preventDefault(); setOver(false); acceptFile(e.dataTransfer.files[0]); }}
                 >
-                  {/* The upload box everyone knows — dashed edge, an arrow
-                      going up, the words underneath — drawn in the app's
-                      hand: the arrow is the landing's hand-drawn one, rising
-                      out of a page of lecture lines. Hover, or hold a file
-                      over it, and the lines become a stem and four options. */}
-                  <svg className="gen-sheet" viewBox="0 0 150 120" aria-hidden="true">
-                    <rect className="gen-sheet-page" x="46.75" y="42.75" width="56.5" height="72.5" rx="8" />
-                    <circle className="gen-sheet-dot d1" cx="56" cy="71" r="2.4" />
-                    <circle className="gen-sheet-dot d2" cx="56" cy="85" r="2.4" />
-                    <circle className="gen-sheet-dot d3 is-answer" cx="56" cy="99" r="2.4" />
-                    <rect className="gen-sheet-ln l1" x="56" y="54" width="38" height="5.5" rx="2.75" />
-                    <rect className="gen-sheet-ln l2" x="56" y="68" width="30" height="5.5" rx="2.75" />
-                    <rect className="gen-sheet-ln l3" x="56" y="82" width="38" height="5.5" rx="2.75" />
-                    <rect className="gen-sheet-ln l4" x="56" y="96" width="26" height="5.5" rx="2.75" />
-                    {/* Straight up, out of the page. A clean stroke — at
-                        this size a wobble reads as a mistake. */}
-                    <g className="gen-sheet-arrow">
-                      <path className="gen-sheet-stroke" d="M75,44 L75,12" />
-                      <path className="gen-sheet-stroke" d="M65.5,21.5 L75,12 L84.5,21.5" />
-                    </g>
+                  {/* The dashed edge is drawn rather than a CSS border, so
+                      the dashes can be spaced. Sits under everything. */}
+                  <svg className="gen-source-edge" aria-hidden="true">
+                    <rect />
+                  </svg>
+                  {/* A page of lecture lines. Hover, or hold a file over it,
+                      and the lines become a stem and options — the
+                      generating window's drawing, held still. */}
+                  <svg className="gen-sheet" viewBox="0 0 64 78" aria-hidden="true">
+                    <rect className="gen-sheet-page" x="0.75" y="0.75" width="62.5" height="76.5" rx="8" />
+                    <circle className="gen-sheet-dot d1" cx="12" cy="31" r="2.4" />
+                    <circle className="gen-sheet-dot d2" cx="12" cy="45" r="2.4" />
+                    <circle className="gen-sheet-dot d3 is-answer" cx="12" cy="59" r="2.4" />
+                    <rect className="gen-sheet-ln l1" x="12" y="14" width="40" height="5.5" rx="2.75" />
+                    <rect className="gen-sheet-ln l2" x="12" y="28" width="32" height="5.5" rx="2.75" />
+                    <rect className="gen-sheet-ln l3" x="12" y="42" width="40" height="5.5" rx="2.75" />
+                    <rect className="gen-sheet-ln l4" x="12" y="56" width="27" height="5.5" rx="2.75" />
                   </svg>
                   <span className="gen-source-text">
                     <span className="gen-source-lead">Drop a lecture here, or browse</span>
