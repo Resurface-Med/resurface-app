@@ -9,10 +9,6 @@ import { fetchLeaderboardWeek } from "../lib/remote";
  * Default-on for anyone with a display name. Accuracy is deliberately not
  * the metric: it rewards skipping hard topics. Volume this week is honest
  * work, with streak as a quiet secondary.
- *
- * The top three are set with their rank oversized — the podium is scale,
- * not medals or a box — and everyone after them in a compact list under a
- * rule. Your row is in accent, not on a tint.
  */
 
 const band = {
@@ -59,7 +55,7 @@ export default function LeaderboardView({ userId }) {
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div style={{ ...band, maxWidth: 640, paddingTop: "clamp(14px, 2.2vh, 22px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
           {error && (
             <p style={{ color: C.danger, fontSize: 14 }}>{error}</p>
           )}
@@ -75,43 +71,24 @@ export default function LeaderboardView({ userId }) {
           )}
 
           {rows && rows.length > 0 && (
-            <>
-              <ol className="lb-top">
-                {rows.slice(0, 3).map((r, i) => {
-                  const mine = r.user_id === userId;
-                  return (
-                    <li key={r.user_id} className={`lb-top-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 1 + i }}>
-                      <span className="lb-top-rank">{r.rank}</span>
-                      <span className="lb-top-name">
-                        {r.display_name}
-                        {mine ? <span className="lb-me-tag">you</span> : null}
-                      </span>
-                      <span className="lb-top-count">{r.week_count}</span>
+            <ol className="lb-list">
+              {rows.map((r, i) => {
+                const mine = r.user_id === userId;
+                return (
+                  <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 2 + Math.min(i, 12) }}>
+                    <span className="lb-rank">#{r.rank}</span>
+                    <span className="lb-name">
+                      {r.display_name}
+                      {mine ? <span className="lb-me-tag">you</span> : null}
+                    </span>
+                    <span className="lb-stats">
+                      <span className="lb-count">{r.week_count}</span>
                       <span className="lb-streak">{r.streak > 0 ? `${r.streak}d` : ""}</span>
-                    </li>
-                  );
-                })}
-              </ol>
-
-              {rows.length > 3 && (
-                <ol className="lb-list">
-                  {rows.slice(3).map((r, i) => {
-                    const mine = r.user_id === userId;
-                    return (
-                      <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 4 + Math.min(i, 12) }}>
-                        <span className="lb-rank">{r.rank}</span>
-                        <span className="lb-name">
-                          {r.display_name}
-                          {mine ? <span className="lb-me-tag">you</span> : null}
-                        </span>
-                        <span className="lb-count">{r.week_count}</span>
-                        <span className="lb-streak">{r.streak > 0 ? `${r.streak}d` : ""}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-            </>
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
           )}
         </div>
       </div>

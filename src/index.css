@@ -2472,76 +2472,42 @@ select {
   color: var(--c-on-field);
   font-weight: 600;
 }
-/* The top three. The rank is the page: a numeral set at display size in
-   the margin, light, with the name beside it at reading size. */
-.lb-top {
+.lb-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.lb-top-row {
-  --step: 40ms;
-  display: grid;
-  grid-template-columns: 1.6em minmax(0, 1fr) auto auto;
-  align-items: baseline;
-  column-gap: clamp(14px, 2.4vw, 22px);
-  padding: clamp(6px, 1vh, 10px) 0;
-}
-.lb-top-rank {
-  font-size: clamp(56px, 7.2vw, 76px);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.06em;
-  color: var(--c-text);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-.lb-top-name {
-  min-width: 0;
-  font-size: clamp(17px, 1.9vw, 20px);
-  font-weight: 600;
-  letter-spacing: -0.4px;
-  color: var(--c-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.lb-top-count {
-  font-size: clamp(20px, 2.2vw, 24px);
-  font-weight: 600;
-  letter-spacing: -0.6px;
-  color: var(--c-text);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-.lb-top-row.is-me .lb-top-rank,
-.lb-top-row.is-me .lb-top-name,
-.lb-top-row.is-me .lb-top-count { color: var(--c-accent); }
-
-/* Everyone else, under one rule, at reading size. */
-.lb-list {
-  list-style: none;
-  margin: clamp(18px, 2.6vh, 26px) 0 0;
-  padding: clamp(8px, 1.4vh, 12px) 0 0;
-  border-top: 1px solid var(--c-border);
-}
 .lb-row {
   --step: 22ms;
-  display: grid;
-  grid-template-columns: 1.6em minmax(0, 1fr) auto auto;
+  display: flex;
   align-items: baseline;
-  column-gap: clamp(14px, 2.4vw, 22px);
-  padding: 9px 0;
+  gap: 14px;
+  padding: 13px 4px;
+  box-shadow: inset 0 1px 0 var(--c-border);
+}
+.lb-row:first-child {
+  box-shadow: none;
+}
+.lb-row.is-me {
+  background: var(--c-accent-dim);
+  margin: 0 -10px;
+  padding-left: 14px;
+  padding-right: 14px;
+  border-radius: var(--r-ctrl);
+  box-shadow: none;
 }
 .lb-rank {
-  font-size: 14px;
-  font-weight: 500;
+  flex: 0 0 36px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--c-muted);
   letter-spacing: -0.2px;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+}
+.lb-row.is-me .lb-rank {
+  color: var(--c-accent);
 }
 .lb-name {
+  flex: 1;
   min-width: 0;
   font-size: 15px;
   font-weight: 600;
@@ -2551,31 +2517,33 @@ select {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.lb-me-tag {
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+.lb-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-shrink: 0;
+}
 .lb-count {
   font-size: 16px;
   font-weight: 600;
   color: var(--c-text);
   letter-spacing: -0.4px;
   font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-.lb-row.is-me .lb-rank,
-.lb-row.is-me .lb-name,
-.lb-row.is-me .lb-count { color: var(--c-accent); }
-.lb-me-tag {
-  margin-left: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--c-muted);
 }
 .lb-streak {
   font-size: 12.5px;
   font-weight: 500;
   color: var(--c-muted);
-  min-width: 2.4em;
+  min-width: 2.2em;
   text-align: right;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ─── Session summary ────────────────────────────────────────────── */
