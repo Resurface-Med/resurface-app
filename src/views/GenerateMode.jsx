@@ -35,6 +35,7 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 const MIN_USEFUL_CHARS = 220;
 
 const DIFFICULTIES = [
+  { k: "mixed",  label: "Mixed",  hint: "Recall, mechanism and vignettes, like a paper" },
   { k: "easy",   label: "Easy",   hint: "Single-fact recall" },
   { k: "medium", label: "Medium", hint: "Mechanism & application" },
   { k: "hard",   label: "Hard",   hint: "Clinical vignettes" },
@@ -512,7 +513,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [category, setCategory] = useState("");
   const [year, setYear] = useState("Year 1");
   const [block, setBlock] = useState("Principles");
-  const [difficulty, setDifficulty] = useState("medium");
+  const [difficulty, setDifficulty] = useState("mixed");
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
