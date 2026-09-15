@@ -3101,6 +3101,8 @@ select {
   font-weight: 500;
   color: var(--c-sub);
   text-align: right;
+  min-width: 0;
+  text-wrap: balance;
 }
 .gen-missing .gen-link { font-size: inherit; }
 .gen-missing + .gen-go { margin-left: 0; }
@@ -3235,6 +3237,8 @@ select {
   margin-left: auto;
   min-width: 200px;
   justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 @media (max-width: 560px) {
   .gen-go { min-width: 0; flex: 1; }
