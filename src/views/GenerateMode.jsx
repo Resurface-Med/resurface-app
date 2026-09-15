@@ -34,11 +34,12 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 // so the model can still see them.
 const MIN_USEFUL_CHARS = 220;
 
+/* Two, not four. Easy/Medium/Hard produced longer stems, not harder
+   questions. Harder is a second pass that swaps the loosest distractors for
+   the lecture's nearest neighbours — the one edit that makes an SBA hard. */
 const DIFFICULTIES = [
-  { k: "mixed",  label: "Mixed",  hint: "The shape of the real paper" },
-  { k: "easy",   label: "Easy",   hint: "The answer is on the slide" },
-  { k: "medium", label: "Medium", hint: "Apply one fact from it" },
-  { k: "hard",   label: "Hard",   hint: "Join two, against the near misses" },
+  { k: "standard", label: "Standard", hint: "The shape of the real paper" },
+  { k: "harder",   label: "Harder",   hint: "Same questions, nearer misses" },
 ];
 
 const COUNT_PRESETS = [5, 10, 15, 20];
@@ -330,7 +331,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
       "content-type": "application/json",
       authorization: `Bearer ${session?.access_token ?? ""}`,
     },
-    body: JSON.stringify({ userContent, difficulty, count }),
+    body: JSON.stringify({ userContent, count, harder: difficulty === "harder" }),
     signal,
   });
 
@@ -513,7 +514,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [category, setCategory] = useState("");
   const [year, setYear] = useState("Year 1");
   const [block, setBlock] = useState("Principles");
-  const [difficulty, setDifficulty] = useState("mixed");
+  const [difficulty, setDifficulty] = useState("standard");
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
