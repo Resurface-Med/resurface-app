@@ -14,8 +14,9 @@ import { supabase } from "../lib/supabase";
  * Same composition as Progress / Leaderboard: blue field for the thesis,
  * wave into a sheet for the work. The form is one card, the way a question
  * in Practice is one card, and it asks one thing at a time: the lecture,
- * then where it belongs, then how many — with the three steps as pills at
- * the top of the card, so a finished one is a page you can turn back to.
+ * then where it belongs, then how many — with the path along the top of
+ * the card, Lecture › Topic › Questions, so a finished step is a page you
+ * can turn back to.
  * It was a tab strip with a question for a heading on each step and
  * micro-caps labels over everything; then everything on one card, which
  * was a form; then the answered steps collapsed to lines, which hid them.
@@ -490,6 +491,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
 
   const [phase, setPhase] = useState("setup");
   const [step, setStep] = useState(0);
+  const [dir, setDir] = useState(1);
   /* Pasting is the second way in and hidden until asked for. Two boxes on
      the card — one for a file, one for text — made every visit look like a
      choice to be made, when nearly everyone has a file. */
@@ -670,13 +672,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const first = mode === "manual" ? 1 : 0;
   const last = 2;
   const stepReady = [hasSource, hasPlace, true];
+  /* Forward slides in from the right, back from the left — the same
+     direction the page is being turned. */
+  function turnTo(i) {
+    setDir(i > step ? 1 : -1);
+    setStep(i);
+  }
   function back() {
-    if (step <= first) return;
-    setStep(step - 1);
+    if (step > first) turnTo(step - 1);
   }
   function next() {
-    if (!stepReady[step]) return;
-    setStep(step + 1);
+    if (stepReady[step]) turnTo(step + 1);
   }
 
   async function generate() {
@@ -843,33 +849,38 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       )}
 
       <div className="gen-card anim-scale-in">
-        {/* The steps, as pages you can turn back to. Same pills as the
-            count row: filled is where you are, plain is somewhere you can
-            go, faded is not yet. */}
-        <nav className="gen-pages" aria-label="Steps">
+        {/* The steps, as a path: Lecture › Topic › Questions. Where you
+            are is ink, where you have been is a link, where you are going
+            is there to be read. A step opens once everything before it is
+            answered, so you can go back and forward again without
+            skipping anything. */}
+        <nav className="gen-path" aria-label="Steps">
           {PAGES.map((pg, i) => {
             if (i < first) return null;
             const current = i === step;
-            /* Reachable once everything before it is answered — so you can
-               jump forward again after going back, but never skip work. */
             const open = stepReady.slice(first, i).every(Boolean);
             return (
-              <button
-                key={pg.k}
-                type="button"
-                className={`btn-press gen-page${current ? " is-current" : ""}`}
-                style={current ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                disabled={!open}
-                aria-current={current ? "step" : undefined}
-                onClick={() => setStep(i)}
-              >
-                {pg.label}
-              </button>
+              <span key={pg.k} className="gen-path-item">
+                {i > first && (
+                  <svg className="gen-path-sep" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                <button
+                  type="button"
+                  className={`gen-path-step${current ? " is-current" : open ? " is-open" : ""}`}
+                  disabled={!open || current}
+                  aria-current={current ? "step" : undefined}
+                  onClick={() => turnTo(i)}
+                >
+                  {pg.label}
+                </button>
+              </span>
             );
           })}
         </nav>
 
-        <div key={`${mode}-${step}`} className="gen-step anim-fade-in">
+        <div key={`${mode}-${step}`} className="gen-step" style={{ "--dir": dir }}>
           {step === 0 && (
             <>
               <h2 className="gen-card-title">Your lecture</h2>
@@ -1043,9 +1054,9 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
           box on it: it is not another kind of source, it is having none. */}
       <p className="gen-aside">
         {mode === "ai" ? (
-          <>Or <button type="button" className="gen-link" onClick={() => { setMode("manual"); setStep(1); }}>write your own questions</button> from scratch.</>
+          <>Or <button type="button" className="gen-link" onClick={() => { setMode("manual"); turnTo(1); }}>write your own questions</button> from scratch.</>
         ) : (
-          <>Or <button type="button" className="gen-link" onClick={() => { setMode("ai"); setStep(0); }}>generate them from a lecture</button> instead.</>
+          <>Or <button type="button" className="gen-link" onClick={() => { setMode("ai"); turnTo(0); }}>generate them from a lecture</button> instead.</>
         )}
       </p>
 

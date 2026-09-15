@@ -3021,20 +3021,66 @@ select {
 .gen-step {
   display: flex;
   flex-direction: column;
+  animation: gen-turn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.anim-fade-in { animation: fadeIn 0.22s ease both; }
+/* A page turn: in from the side it was turned from, a little, and settle.
+   --dir is 1 forward and -1 back. */
+@keyframes gen-turn {
+  from { opacity: 0; transform: translateX(calc(var(--dir, 1) * 14px)); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gen-step { animation: none; }
+}
 
-/* The three pages, as pills. A step that cannot be opened yet is still
-   legible — it says what is coming — it just does not press. */
-.gen-pages {
+/* The path along the top of the card. All text: where you are in ink,
+   where you have been in accent (a link — it goes back there), where you
+   are going in a quieter ink that still reads. The chevrons are drawn, not
+   typed, so they sit on the text's centre line at every size. */
+.gen-path {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: clamp(18px, 2.6vh, 24px);
+  align-items: center;
+  gap: 2px 0;
+  margin: -2px 0 clamp(16px, 2.4vh, 20px);
 }
-.gen-page:disabled {
-  opacity: 0.5;
+.gen-path-item {
+  display: inline-flex;
+  align-items: center;
+}
+.gen-path-sep {
+  margin: 0 7px;
+  color: var(--c-muted);
+  flex-shrink: 0;
+}
+.gen-path-step {
+  padding: 4px 2px;
+  margin: -4px 0;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  line-height: 1.2;
+  color: var(--c-muted);
   cursor: default;
+  transition: color 0.15s ease;
+}
+.gen-path-step.is-current {
+  color: var(--c-text);
+  font-weight: 600;
+}
+.gen-path-step.is-open {
+  color: var(--c-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.gen-path-step.is-open:hover { color: var(--c-accent-lt); }
+.gen-path-step:focus-visible {
+  outline: 2px solid var(--c-accent-brd);
+  outline-offset: 1px;
 }
 
 .gen-card-nav {
@@ -3218,7 +3264,7 @@ select {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .gen-count-input::placeholder {
-  color: var(--c-muted-dim);
+  color: var(--c-muted);
   font-weight: 500;
 }
 .gen-count-input:hover { border-color: var(--c-muted-dim); }
