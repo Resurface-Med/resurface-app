@@ -35,10 +35,10 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 const MIN_USEFUL_CHARS = 220;
 
 const DIFFICULTIES = [
-  { k: "mixed",  label: "Mixed",  hint: "Recall, mechanism and vignettes, like a paper" },
-  { k: "easy",   label: "Easy",   hint: "Single-fact recall" },
-  { k: "medium", label: "Medium", hint: "Mechanism & application" },
-  { k: "hard",   label: "Hard",   hint: "Clinical vignettes" },
+  { k: "mixed",  label: "Mixed",  hint: "The shape of the real paper" },
+  { k: "easy",   label: "Easy",   hint: "One-line direct questions" },
+  { k: "medium", label: "Medium", hint: "A fact or some data, then a question" },
+  { k: "hard",   label: "Hard",   hint: "Scenario-led, two steps of reasoning" },
 ];
 
 const COUNT_PRESETS = [5, 10, 15, 20];
