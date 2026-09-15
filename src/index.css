@@ -3034,10 +3034,10 @@ select {
   .gen-step { animation: none; }
 }
 
-/* The path along the top of the card. All text: where you are in ink,
-   where you have been in accent (a link — it goes back there), where you
-   are going in a quieter ink that still reads. The chevrons are drawn, not
-   typed, so they sit on the text's centre line at every size. */
+/* The path along the top of the card. All text, every page open: where
+   you are in ink, everywhere else a link in the quieter ink. The chevrons
+   are drawn, not typed, so they sit on the text's centre line at every
+   size. */
 .gen-path {
   display: flex;
   flex-wrap: wrap;
@@ -3073,16 +3073,15 @@ select {
   cursor: default;
   transition: color 0.15s ease;
 }
+.gen-path-step:not(:disabled) {
+  color: var(--c-sub);
+  cursor: pointer;
+}
+.gen-path-step:not(:disabled):hover { color: var(--c-text); }
 .gen-path-step.is-current {
   color: var(--c-text);
   font-weight: 600;
 }
-.gen-path-step.is-open {
-  color: var(--c-accent);
-  font-weight: 600;
-  cursor: pointer;
-}
-.gen-path-step.is-open:hover { color: var(--c-accent-lt); }
 .gen-path-step:focus-visible {
   outline: 2px solid var(--c-accent-brd);
   outline-offset: 1px;
@@ -3093,6 +3092,21 @@ select {
   align-items: center;
   gap: 12px;
   margin-top: clamp(18px, 2.4vh, 24px);
+}
+/* Why the last button is held back, said once, beside it. The words are
+   links to the page each thing is on. */
+.gen-missing {
+  margin: 0 0 0 auto;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-sub);
+  text-align: right;
+}
+.gen-missing .gen-link { font-size: inherit; }
+.gen-missing + .gen-go { margin-left: 0; }
+@media (max-width: 560px) {
+  .gen-card-nav { flex-wrap: wrap; }
+  .gen-missing { order: -1; width: 100%; text-align: left; margin: 0 0 6px; }
 }
 .gen-card-nav .gen-back { font-size: 14.5px; color: var(--c-sub); }
 .gen-card-nav .gen-back:hover { color: var(--c-text); }

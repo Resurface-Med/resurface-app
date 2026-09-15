@@ -526,10 +526,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     setFile(f);
     setPastedText("");
     setPasting(false);
+    /* The guess fills what is empty and leaves what was chosen. You can
+       reach the topic page before the lecture page now, and a file name
+       must not overwrite a decision made by hand. */
     const { deck: d, cat } = guessPlacement(f.name);
-    if (d) setDeck(d);
-    if (cat) { setCategory(cat); setNewTopic(false); }
-    else if (d) setCategory("");
+    if (!category.trim()) {
+      if (d) setDeck(d);
+      if (cat) { setCategory(cat); setNewTopic(false); }
+    }
   }
 
   const cancelGenerate = useCallback(() => {
@@ -671,7 +675,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   /* Manual has no source, so its first step is placement. */
   const first = mode === "manual" ? 1 : 0;
   const last = 2;
-  const stepReady = [hasSource, hasPlace, true];
+  /* Nothing is gated but the last button. What is missing is said in one
+     sentence beside it, with each word a link to the page it is on. */
+  const missing = [
+    !hasSource && mode === "ai" ? { k: "lecture", label: "a lecture", step: 0 } : null,
+    !hasPlace ? { k: "topic", label: "a topic", step: 1 } : null,
+  ].filter(Boolean);
   /* Forward slides in from the right, back from the left — the same
      direction the page is being turned. */
   function turnTo(i) {
@@ -682,7 +691,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
     if (step > first) turnTo(step - 1);
   }
   function next() {
-    if (stepReady[step]) turnTo(step + 1);
+    turnTo(step + 1);
   }
 
   async function generate() {
@@ -849,16 +858,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       )}
 
       <div className="gen-card anim-scale-in">
-        {/* The steps, as a path: Lecture › Topic › Questions. Where you
-            are is ink, where you have been is a link, where you are going
-            is there to be read. A step opens once everything before it is
-            answered, so you can go back and forward again without
-            skipping anything. */}
+        {/* The steps, as a path: Lecture › Topic › Questions. Every page
+            is open — the path is navigation, not a record of what is done.
+            Only the last button is held back, and it says why. */}
         <nav className="gen-path" aria-label="Steps">
           {PAGES.map((pg, i) => {
             if (i < first) return null;
             const current = i === step;
-            const open = stepReady.slice(first, i).every(Boolean);
             return (
               <span key={pg.k} className="gen-path-item">
                 {i > first && (
@@ -868,8 +874,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                 )}
                 <button
                   type="button"
-                  className={`gen-path-step${current ? " is-current" : open ? " is-open" : ""}`}
-                  disabled={!open || current}
+                  className={`gen-path-step${current ? " is-current" : ""}`}
+                  disabled={current}
                   aria-current={current ? "step" : undefined}
                   onClick={() => turnTo(i)}
                 >
@@ -1018,34 +1024,54 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             <button
               type="button"
               className="btn-press gen-go"
-              style={{ ...primaryBtn, opacity: stepReady[step] ? 1 : 0.45 }}
-              disabled={!stepReady[step]}
+              style={primaryBtn}
               onClick={next}
             >
               Continue <span aria-hidden="true">→</span>
             </button>
           )}
           {step === last && mode === "ai" && (
-            <button
-              type="button"
-              className="btn-press gen-go"
-              style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
-              disabled={!canGenerate}
-              onClick={generate}
-            >
-              Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
-            </button>
+            <>
+              {missing.length > 0 && (
+                <p className="gen-missing">
+                  Add{" "}
+                  {missing.map((m, i) => (
+                    <span key={m.k}>
+                      {i > 0 ? " and " : ""}
+                      <button type="button" className="gen-link" onClick={() => turnTo(m.step)}>{m.label}</button>
+                    </span>
+                  ))}
+                  {" "}first.
+                </p>
+              )}
+              <button
+                type="button"
+                className="btn-press gen-go"
+                style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
+                disabled={!canGenerate}
+                onClick={generate}
+              >
+                Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
+              </button>
+            </>
           )}
           {step === last && mode === "manual" && (
-            <button
-              type="button"
-              className="btn-press gen-go"
-              style={{ ...primaryBtn, opacity: written.length ? 1 : 0.45 }}
-              disabled={!written.length}
-              onClick={addWritten}
-            >
-              Add {written.length} to bank <span aria-hidden="true">→</span>
-            </button>
+            <>
+              {!hasPlace && written.length > 0 && (
+                <p className="gen-missing">
+                  Pick <button type="button" className="gen-link" onClick={() => turnTo(1)}>a topic</button> first.
+                </p>
+              )}
+              <button
+                type="button"
+                className="btn-press gen-go"
+                style={{ ...primaryBtn, opacity: written.length && hasPlace ? 1 : 0.45 }}
+                disabled={!written.length || !hasPlace}
+                onClick={addWritten}
+              >
+                Add {written.length} to bank <span aria-hidden="true">→</span>
+              </button>
+            </>
           )}
         </div>
       </div>
