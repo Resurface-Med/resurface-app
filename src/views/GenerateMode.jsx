@@ -34,13 +34,6 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 // so the model can still see them.
 const MIN_USEFUL_CHARS = 220;
 
-const DIFFICULTIES = [
-  { k: "mixed",  label: "Mixed",  hint: "The shape of the real paper" },
-  { k: "easy",   label: "Easy",   hint: "One-line direct questions" },
-  { k: "medium", label: "Medium", hint: "A fact or some data, then a question" },
-  { k: "hard",   label: "Hard",   hint: "Scenario-led, two steps of reasoning" },
-];
-
 const COUNT_PRESETS = [5, 10, 15, 20];
 
 const band = {
@@ -272,7 +265,7 @@ function fileToBase64(file) {
   });
 }
 
-async function generateQuestions({ file, pastedText, deck, category, year, block, difficulty, count, signal }) {
+async function generateQuestions({ file, pastedText, deck, category, year, block, count, signal }) {
   let userContent = [];
 
   if (file) {
@@ -330,7 +323,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
       "content-type": "application/json",
       authorization: `Bearer ${session?.access_token ?? ""}`,
     },
-    body: JSON.stringify({ userContent, difficulty, count }),
+    body: JSON.stringify({ userContent, count }),
     signal,
   });
 
@@ -361,12 +354,12 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 /**
  * The form, split into three.
  *
- * It was one page asking seven things at once — source, subject, topic, year,
- * block, difficulty and count — with a button at the end that would not say
- * which of them was still missing.
+ * It was one page asking six things at once — source, subject, topic, year,
+ * block and count — with a button at the end that would not say which of
+ * them was still missing.
  *
  * Two questions carry it: what you have, and what it is about. The last step
- * holds the four that already have the right answer filled in, so it is a
+ * holds the ones that already have the right answer filled in, so it is a
  * place to change your mind rather than a place to make a decision. Each step
  * gates on its own requirement, which means Continue is what tells you
  * something is missing, at the point where you would fix it.
@@ -513,7 +506,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [category, setCategory] = useState("");
   const [year, setYear] = useState("Year 1");
   const [block, setBlock] = useState("Principles");
-  const [difficulty, setDifficulty] = useState("mixed");
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -525,8 +517,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [newBlock, setNewBlock] = useState(false);
   /* "ai" writes them from a lecture, "manual" is you writing them. The steps
      are the same either way until the last one, which is where the two
-     diverge: difficulty and count mean nothing for a question you are typing
-     out yourself. */
+     diverge: a count means nothing for a question you are typing out
+     yourself. */
   const [mode, setMode] = useState("ai");
   const [written, setWritten] = useState([]);
   const [writing, setWriting] = useState(false);
@@ -986,23 +978,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       <section className="gen-block" data-in="rise" style={{ "--i": 1 }}>
         <div className="gen-chip-row">
           <div className="gen-chip-group">
-            <span style={whisper}>Difficulty</span>
-            <div className="gen-chips" role="radiogroup" aria-label="Difficulty">
-              {DIFFICULTIES.map(d => (
-                <button
-                  key={d.k}
-                  type="button"
-                  className="btn-press"
-                  onClick={() => setDifficulty(d.k)}
-                  style={difficulty === d.k ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p className="gen-hint">{DIFFICULTIES.find(d => d.k === difficulty)?.hint}</p>
-          </div>
-          <div className="gen-chip-group">
             <span style={whisper}>How many</span>
             <div className="gen-count-row">
               <div className="gen-chips" role="radiogroup" aria-label="Question count">
@@ -1115,7 +1090,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
               category: category.trim(),
               year,
               block: block.trim() || "Principles",
-              difficulty,
               count: countNum,
               signal: ctrl.signal,
             });
