@@ -934,10 +934,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                       rest. It is what the button does, drawn. */}
                   <svg className="gen-sheet" viewBox="0 0 120 150" aria-hidden="true">
                     <rect className="gen-sheet-page" x="0.75" y="0.75" width="118.5" height="148.5" rx="10" />
-                    <circle className="gen-sheet-dot d1" cx="24" cy="63" r="3" />
-                    <circle className="gen-sheet-dot d2" cx="24" cy="83" r="3" />
-                    <circle className="gen-sheet-dot d3 is-answer" cx="24" cy="103" r="3" />
-                    <circle className="gen-sheet-dot d4" cx="24" cy="123" r="3" />
+                    {/* One marker per option row, on each line's centre. */}
+                    <circle className="gen-sheet-dot d1" cx="23" cy="47.5" r="3" />
+                    <circle className="gen-sheet-dot d2" cx="23" cy="67.5" r="3" />
+                    <circle className="gen-sheet-dot d3 is-answer" cx="23" cy="87.5" r="3" />
+                    <circle className="gen-sheet-dot d4" cx="23" cy="107.5" r="3" />
                     <rect className="gen-sheet-ln l1" x="18" y="24" width="84" height="7" rx="3.5" />
                     <rect className="gen-sheet-ln l2" x="18" y="44" width="72" height="7" rx="3.5" />
                     <rect className="gen-sheet-ln l3" x="18" y="64" width="84" height="7" rx="3.5" />
