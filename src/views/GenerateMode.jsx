@@ -938,10 +938,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                     <rect className="gen-sheet-ln l2" x="56" y="68" width="30" height="5.5" rx="2.75" />
                     <rect className="gen-sheet-ln l3" x="56" y="82" width="38" height="5.5" rx="2.75" />
                     <rect className="gen-sheet-ln l4" x="56" y="96" width="26" height="5.5" rx="2.75" />
-                    {/* Straight up, with a hand's wobble — not a curl. */}
+                    {/* Straight up, out of the page. A clean stroke — at
+                        this size a wobble reads as a mistake. */}
                     <g className="gen-sheet-arrow">
-                      <path className="gen-sheet-stroke" d="M75.5,36 C77,28 73.5,20 75,9" />
-                      <path className="gen-sheet-stroke" d="M66,18 L75,8 L84,18" />
+                      <path className="gen-sheet-stroke" d="M75,44 L75,12" />
+                      <path className="gen-sheet-stroke" d="M65.5,21.5 L75,12 L84.5,21.5" />
                     </g>
                   </svg>
                   <span className="gen-source-text">
