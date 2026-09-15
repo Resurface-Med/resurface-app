@@ -891,7 +891,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
         <div key={`${mode}-${step}`} className="gen-step" style={{ "--dir": dir }}>
           {step === 0 && (
             <>
-              <h2 className="gen-card-title">Your lecture</h2>
+              <h2 className="gen-card-title">Upload your lecture/notes</h2>
               {file ? (
                 <div className="gen-source is-file">
                   <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
