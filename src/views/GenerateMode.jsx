@@ -929,18 +929,19 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                       hand: the arrow is the landing's hand-drawn one, rising
                       out of a page of lecture lines. Hover, or hold a file
                       over it, and the lines become a stem and four options. */}
-                  <svg className="gen-sheet" viewBox="0 0 150 112" aria-hidden="true">
-                    <rect className="gen-sheet-page" x="45.75" y="36.75" width="72.5" height="96" rx="9" />
-                    <circle className="gen-sheet-dot d1" cx="57" cy="70" r="2.6" />
-                    <circle className="gen-sheet-dot d2" cx="57" cy="85" r="2.6" />
-                    <circle className="gen-sheet-dot d3 is-answer" cx="57" cy="100" r="2.6" />
-                    <rect className="gen-sheet-ln l1" x="56" y="52" width="52" height="6" rx="3" />
-                    <rect className="gen-sheet-ln l2" x="56" y="67" width="44" height="6" rx="3" />
-                    <rect className="gen-sheet-ln l3" x="56" y="82" width="52" height="6" rx="3" />
-                    <rect className="gen-sheet-ln l4" x="56" y="97" width="38" height="6" rx="3" />
+                  <svg className="gen-sheet" viewBox="0 0 150 120" aria-hidden="true">
+                    <rect className="gen-sheet-page" x="46.75" y="42.75" width="56.5" height="72.5" rx="8" />
+                    <circle className="gen-sheet-dot d1" cx="56" cy="71" r="2.4" />
+                    <circle className="gen-sheet-dot d2" cx="56" cy="85" r="2.4" />
+                    <circle className="gen-sheet-dot d3 is-answer" cx="56" cy="99" r="2.4" />
+                    <rect className="gen-sheet-ln l1" x="56" y="54" width="38" height="5.5" rx="2.75" />
+                    <rect className="gen-sheet-ln l2" x="56" y="68" width="30" height="5.5" rx="2.75" />
+                    <rect className="gen-sheet-ln l3" x="56" y="82" width="38" height="5.5" rx="2.75" />
+                    <rect className="gen-sheet-ln l4" x="56" y="96" width="26" height="5.5" rx="2.75" />
+                    {/* Straight up, with a hand's wobble — not a curl. */}
                     <g className="gen-sheet-arrow">
-                      <path className="gen-sheet-stroke" d="M82,44 C84,34 78,22 66,10" />
-                      <path className="gen-sheet-stroke" d="M64,22 L66,10 L78,12" />
+                      <path className="gen-sheet-stroke" d="M75.5,36 C77,28 73.5,20 75,9" />
+                      <path className="gen-sheet-stroke" d="M66,18 L75,8 L84,18" />
                     </g>
                   </svg>
                   <span className="gen-source-text">

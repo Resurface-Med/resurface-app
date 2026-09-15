@@ -3161,10 +3161,10 @@ select {
    The page runs off the bottom of its own frame — it is going in, not
    sitting there. */
 .gen-sheet {
-  width: 176px;
-  height: 131px;
-  margin-bottom: 6px;
-  overflow: hidden;
+  width: 150px;
+  height: 120px;
+  margin-bottom: 8px;
+  overflow: visible;
 }
 .gen-sheet-page {
   fill: var(--c-card-solid);
@@ -3202,13 +3202,13 @@ select {
 .gen-source.is-over .gen-sheet-ln.l1 { transform: scale(1, 1.6); opacity: 0.85; }
 .gen-source:hover .gen-sheet-ln.l2,
 .gen-source:focus-visible .gen-sheet-ln.l2,
-.gen-source.is-over .gen-sheet-ln.l2 { transform: translate(11px, 0) scaleX(0.72); opacity: 0.4; }
+.gen-source.is-over .gen-sheet-ln.l2 { transform: translate(9px, 0) scaleX(0.8); opacity: 0.4; }
 .gen-source:hover .gen-sheet-ln.l3,
 .gen-source:focus-visible .gen-sheet-ln.l3,
-.gen-source.is-over .gen-sheet-ln.l3 { transform: translate(11px, 0) scaleX(0.66); opacity: 0.4; }
+.gen-source.is-over .gen-sheet-ln.l3 { transform: translate(9px, 0) scaleX(0.7); opacity: 0.4; }
 .gen-source:hover .gen-sheet-ln.l4,
 .gen-source:focus-visible .gen-sheet-ln.l4,
-.gen-source.is-over .gen-sheet-ln.l4 { transform: translate(11px, 0) scaleX(1.1); opacity: 0.7; }
+.gen-source.is-over .gen-sheet-ln.l4 { transform: translate(9px, 0) scaleX(1.15); opacity: 0.7; }
 
 .gen-sheet-dot {
   fill: var(--c-muted-dim);
@@ -3560,7 +3560,7 @@ select {
   .gen-source {
     padding: 16px 16px 20px;
   }
-  .gen-sheet { width: 150px; height: 112px; }
+  .gen-sheet { width: 130px; height: 104px; }
   .gen-sticky-inner {
     flex-direction: column;
   }
