@@ -3008,11 +3008,67 @@ select {
   display: flex;
   flex-direction: column;
 }
-.gen-rule {
-  border: none;
-  border-top: 1px solid var(--c-border);
-  margin: clamp(18px, 2.4vh, 24px) 0;
+/* One step at a time inside the card. The title is a stem: plain nouns,
+   not a question to the reader. */
+.gen-card-title {
+  margin: 0 0 clamp(14px, 2vh, 18px);
+  font-size: clamp(18px, 2vw, 21px);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.25;
+  color: var(--c-text);
 }
+.gen-step {
+  display: flex;
+  flex-direction: column;
+}
+.anim-fade-in { animation: fadeIn 0.22s ease both; }
+
+/* Answered steps, one line each above the current one. Each is the way
+   back to that step, so the whole line is the control and "Change" only
+   says so. Separated from what follows by a rule, not a box. */
+.gen-done {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 0 0 14px;
+  margin: 0 0 16px;
+  border: none;
+  border-bottom: 1px solid var(--c-border);
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gen-done-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--c-text);
+}
+.gen-done-value.is-file { color: var(--c-accent); }
+.gen-done-change {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-muted);
+}
+.gen-done:hover .gen-done-change { color: var(--c-accent); }
+
+.gen-card-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: clamp(18px, 2.4vh, 24px);
+}
+.gen-card-nav .gen-back { font-size: 14.5px; color: var(--c-sub); }
+.gen-card-nav .gen-back:hover { color: var(--c-text); }
 
 /* The lecture goes in here. A solid surface, not a dashed one: dashed says
    "temporary", and this is the most important thing on the card. Becomes
@@ -3135,13 +3191,17 @@ select {
   gap: 8px;
 }
 .gen-go {
-  width: 100%;
-  margin-top: clamp(18px, 2.4vh, 24px);
+  margin-left: auto;
+  min-width: 200px;
   justify-content: center;
+}
+@media (max-width: 560px) {
+  .gen-go { min-width: 0; flex: 1; }
 }
 .gen-card .gen-error {
   margin: 16px 0 0;
 }
+.gen-step .gen-count-row { margin-top: 2px; }
 
 /* The other way in, said once under the card. */
 .gen-aside {

@@ -13,11 +13,12 @@ import { supabase } from "../lib/supabase";
  *
  * Same composition as Progress / Leaderboard: blue field for the thesis,
  * wave into a sheet for the work. The form is one card, the way a question
- * in Practice is one card: the lecture goes in at the top, where it belongs
- * underneath, how many, and one button. It was a three-step wizard with a
- * tab strip, a question for a heading on each step and micro-caps labels
- * over everything — three screens for a form that fits on one, and the
- * labels were the lightest ink in the app.
+ * in Practice is one card, and it asks one thing at a time: the lecture,
+ * then where it belongs, then how many. What you have already answered
+ * collapses to a line at the top of the card — tap it to change it — and
+ * those lines are the only progress indicator. It was a tab strip with a
+ * question for a heading on each step and micro-caps labels over
+ * everything; then, briefly, everything on one card, which was a form.
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
@@ -482,6 +483,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
+  const [step, setStep] = useState(0);
   /* Pasting is the second way in and hidden until asked for. Two boxes on
      the card — one for a file, one for text — made every visit look like a
      choice to be made, when nearly everyone has a file. */
@@ -657,6 +659,22 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
   // The generating window sits over this rather than replacing it, so backing
   // out returns you to a form still holding everything you filled in.
   const hasSource = Boolean(file || pastedText.trim());
+  const hasPlace = Boolean(category.trim());
+  /* Manual has no source, so its first step is placement. */
+  const first = mode === "manual" ? 1 : 0;
+  const last = 2;
+  const stepReady = [hasSource, hasPlace, true];
+  function back() {
+    if (step <= first) return;
+    setStep(step - 1);
+  }
+  function next() {
+    if (!stepReady[step]) return;
+    setStep(step + 1);
+  }
+  /* A summary line is a way back, not a record — so it is a button. */
+  const placeLine = [deck, category.trim() ? shortCat(category.trim(), deck) : null, year, block.trim()]
+    .filter(Boolean).join(" · ");
 
   async function generate() {
     setError("");
@@ -822,65 +840,87 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
       )}
 
       <div className="gen-card anim-scale-in">
-        {mode === "ai" && (
-          <>
-            {/* The lecture, at the top of the card the way the stem is at the
-                top of a question. One surface, and the file name takes it over
-                once there is one. */}
-            {file ? (
-              <div className="gen-source is-file">
-                <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
-                <button type="button" className="gen-link" onClick={() => setFile(null)}>Remove</button>
-              </div>
-            ) : pasting ? (
-              <div className="gen-source is-text">
-                <textarea
-                  className="gen-paste"
-                  value={pastedText}
-                  onChange={e => setPastedText(e.target.value)}
-                  placeholder="Paste lecture notes here…"
-                  rows={5}
-                  autoFocus
-                />
+        {/* Answered steps, one line each. The card accumulates the way a
+            question keeps its stem while the options change under it. */}
+        {mode === "ai" && step > 0 && (
+          <button type="button" className="gen-done" onClick={() => setStep(0)}>
+            <span className="gen-done-value is-file">
+              {file ? sourceLabel(file.name) : `Pasted notes · ${pastedText.trim().split(/\s+/).length} words`}
+            </span>
+            <span className="gen-done-change">Change</span>
+          </button>
+        )}
+        {step > 1 && (
+          <button type="button" className="gen-done" onClick={() => setStep(1)}>
+            <span className="gen-done-value">{placeLine}</span>
+            <span className="gen-done-change">Change</span>
+          </button>
+        )}
+
+        <div key={`${mode}-${step}`} className="gen-step anim-fade-in">
+          {step === 0 && (
+            <>
+              <h2 className="gen-card-title">Your lecture</h2>
+              {file ? (
+                <div className="gen-source is-file">
+                  <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
+                  <button type="button" className="gen-link" onClick={() => setFile(null)}>Remove</button>
+                </div>
+              ) : pasting ? (
+                <div className="gen-source is-text">
+                  <textarea
+                    className="gen-paste"
+                    value={pastedText}
+                    onChange={e => setPastedText(e.target.value)}
+                    placeholder="Paste lecture notes here…"
+                    rows={6}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    className="gen-link"
+                    onClick={() => { setPasting(false); setPastedText(""); }}
+                  >
+                    Drop a file instead
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  className="gen-link"
-                  onClick={() => { setPasting(false); setPastedText(""); }}
+                  className="gen-source"
+                  onClick={() => fileRef.current?.click()}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); acceptFile(e.dataTransfer.files[0]); }}
                 >
-                  Drop a file instead
+                  <span className="gen-source-lead">Drop a lecture here, or browse</span>
+                  <span className="gen-source-meta">PowerPoint, PDF or image</span>
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="gen-source"
-                onClick={() => fileRef.current?.click()}
-                onDragOver={e => e.preventDefault()}
-                onDrop={e => { e.preventDefault(); acceptFile(e.dataTransfer.files[0]); }}
-              >
-                <span className="gen-source-lead">Drop a lecture here, or browse</span>
-                <span className="gen-source-meta">PowerPoint, PDF or image</span>
-              </button>
-            )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
-              style={{ display: "none" }}
-              onChange={e => acceptFile(e.target.files[0])}
-            />
-            {!file && !pasting && (
-              <button type="button" className="gen-link gen-source-alt" onClick={() => setPasting(true)}>
-                Paste notes instead
-              </button>
-            )}
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
+                style={{ display: "none" }}
+                onChange={e => acceptFile(e.target.files[0])}
+              />
+              {!file && !pasting && (
+                <button type="button" className="gen-link gen-source-alt" onClick={() => setPasting(true)}>
+                  Paste notes instead
+                </button>
+              )}
+            </>
+          )}
 
-            <hr className="gen-rule" />
-            {placement}
-            <hr className="gen-rule" />
+          {step === 1 && (
+            <>
+              <h2 className="gen-card-title">Where it belongs</h2>
+              {placement}
+            </>
+          )}
 
-            <div className="gen-count">
-              <span className="gen-field-label">How many</span>
+          {step === 2 && mode === "ai" && (
+            <>
+              <h2 className="gen-card-title">How many questions</h2>
               <div className="gen-count-row">
                 <div className="gen-chips" role="radiogroup" aria-label="Question count">
                   {COUNT_PRESETS.map(n => (
@@ -909,10 +949,60 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                   onBlur={e => { if (!e.target.value.trim()) setCountRaw(String(countNum || 10)); }}
                 />
               </div>
-            </div>
+              {error && <p className="gen-error">{error}</p>}
+            </>
+          )}
 
-            {error && <p className="gen-error">{error}</p>}
+          {step === 2 && mode === "manual" && (
+            <>
+              <h2 className="gen-card-title">Your questions</h2>
+              {/* The same editor used for correcting a question, opened
+                  empty, with what you have written so far listed above. */}
+              {written.length > 0 && (
+                <ol className="gen-written">
+                  {written.map((w, i) => (
+                    <li key={i} className="gen-written-item">
+                      <span className="gen-written-n">{i + 1}</span>
+                      <span className="gen-written-q">{w.q}</span>
+                      <button
+                        type="button"
+                        className="gen-written-del"
+                        onClick={() => setWritten(list => list.filter((_, j) => j !== i))}
+                        aria-label={`Remove question ${i + 1}`}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <button type="button" className="gen-write-btn btn-press" onClick={() => setWriting(true)}>
+                <span aria-hidden="true">＋</span>
+                {written.length === 0 ? "Write a question" : "Write another"}
+              </button>
+            </>
+          )}
+        </div>
 
+        {/* Back undoes, forward commits — so one is text and one is filled. */}
+        <div className="gen-card-nav">
+          {step > first && (
+            <button type="button" className="gen-link gen-back" onClick={back}>
+              <span aria-hidden="true">←</span> Back
+            </button>
+          )}
+          {step < last && (
+            <button
+              type="button"
+              className="btn-press gen-go"
+              style={{ ...primaryBtn, opacity: stepReady[step] ? 1 : 0.45 }}
+              disabled={!stepReady[step]}
+              onClick={next}
+            >
+              Continue <span aria-hidden="true">→</span>
+            </button>
+          )}
+          {step === last && mode === "ai" && (
             <button
               type="button"
               className="btn-press gen-go"
@@ -922,59 +1012,28 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
             >
               Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
             </button>
-          </>
-        )}
-
-        {mode === "manual" && (
-          <>
-            {placement}
-            <hr className="gen-rule" />
-
-            {/* The same editor used for correcting a question, opened empty,
-                with what you have written so far listed above the button. */}
-            {written.length > 0 && (
-              <ol className="gen-written">
-                {written.map((w, i) => (
-                  <li key={i} className="gen-written-item">
-                    <span className="gen-written-n">{i + 1}</span>
-                    <span className="gen-written-q">{w.q}</span>
-                    <button
-                      type="button"
-                      className="gen-written-del"
-                      onClick={() => setWritten(list => list.filter((_, j) => j !== i))}
-                      aria-label={`Remove question ${i + 1}`}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ol>
-            )}
-            <button type="button" className="gen-write-btn btn-press" onClick={() => setWriting(true)}>
-              <span aria-hidden="true">＋</span>
-              {written.length === 0 ? "Write a question" : "Write another"}
-            </button>
-
+          )}
+          {step === last && mode === "manual" && (
             <button
               type="button"
               className="btn-press gen-go"
-              style={{ ...primaryBtn, opacity: written.length && category.trim() ? 1 : 0.45 }}
-              disabled={!written.length || !category.trim()}
+              style={{ ...primaryBtn, opacity: written.length ? 1 : 0.45 }}
+              disabled={!written.length}
               onClick={addWritten}
             >
               Add {written.length} to bank <span aria-hidden="true">→</span>
             </button>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
       {/* The other way in, as a sentence under the card rather than a third
           box on it: it is not another kind of source, it is having none. */}
       <p className="gen-aside">
         {mode === "ai" ? (
-          <>Or <button type="button" className="gen-link" onClick={() => setMode("manual")}>write your own questions</button> from scratch.</>
+          <>Or <button type="button" className="gen-link" onClick={() => { setMode("manual"); setStep(1); }}>write your own questions</button> from scratch.</>
         ) : (
-          <>Or <button type="button" className="gen-link" onClick={() => setMode("ai")}>generate them from a lecture</button> instead.</>
+          <>Or <button type="button" className="gen-link" onClick={() => { setMode("ai"); setStep(0); }}>generate them from a lecture</button> instead.</>
         )}
       </p>
 
