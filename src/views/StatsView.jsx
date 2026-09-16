@@ -86,36 +86,37 @@ function summarise(pStats) {
 }
 
 /* Coverage as a length, with accuracy inside it: of the part you have
-   seen, the correct share is solid and the rest faded. The percentage
-   sits on the bar's own line, at its end — it belongs to the bar, not to
-   the name above it. Shown only past enough attempts to mean anything. */
+   seen, the correct share is solid and the rest faded. No label — the two
+   tones are the reading. */
 function Bar({ seen, total, attempts, pct, min }) {
   const cover = total ? Math.max(0, Math.min(1, seen / total)) : 0;
   const rated = attempts >= min && pct !== null;
   const right = rated ? cover * (pct / 100) : 0;
   return (
-    <span className="prog-bar-line">
-      <span
-        className="prog-bar"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(cover * 100)}
-        aria-label={rated ? `${Math.round(cover * 100)}% seen, ${pct}% correct` : `${Math.round(cover * 100)}% seen`}
-      >
-        <span className="prog-bar-seen" style={{ transform: `scaleX(${cover})` }} />
-        <span className="prog-bar-right" style={{ transform: `scaleX(${right})` }} />
-      </span>
-      {/* Always present, so every bar ends on the same edge. */}
-      <span className="prog-bar-pct">{rated ? `${pct}% correct` : ""}</span>
+    <span
+      className="prog-bar"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(cover * 100)}
+      aria-label={rated ? `${Math.round(cover * 100)}% seen, ${pct}% correct` : `${Math.round(cover * 100)}% seen`}
+    >
+      <span className="prog-bar-seen" style={{ transform: `scaleX(${cover})` }} />
+      <span className="prog-bar-right" style={{ transform: `scaleX(${right})` }} />
     </span>
   );
 }
 
-/* One number per line: how much of it you have seen. Accuracy lives on
-   the bar. */
-function Figure({ seen, total }) {
-  return <span className="prog-fig-seen">{seen} of {total}</span>;
+/* The figure: how much is seen, and — on the open subject only, once
+   there is enough behind it — how much of that was correct. */
+function Figure({ seen, total, attempts, pct, min, withPct = false }) {
+  const rated = withPct && attempts >= min && pct !== null;
+  return (
+    <span className="prog-fig-seen">
+      {seen} of {total}
+      {rated && <span className="prog-fig-pct"> · {pct}% correct</span>}
+    </span>
+  );
 }
 
 function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
@@ -136,7 +137,7 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
       <button type="button" className="prog-subject-row" onClick={onToggle} aria-expanded={open}>
         <span className="prog-subject-line">
           <span className="prog-subject-name">{deck}</span>
-          <Figure {...d} />
+          <Figure {...d} min={SUBJECT_MIN_ATTEMPTS} withPct={open} />
         </span>
         {open && <Bar {...d} min={SUBJECT_MIN_ATTEMPTS} />}
       </button>

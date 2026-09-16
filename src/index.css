@@ -2285,19 +2285,12 @@ select {
   color: var(--c-sub);
 }
 .prog-topic.is-untouched .prog-fig-seen { color: var(--c-muted); }
-/* The bar and its percentage on one line. Track in the panel colour; the
-   seen portion faded accent; the correct share of it solid on top. */
-.prog-bar-line {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
+/* Track in the panel colour; the seen portion faded accent; the correct
+   share of it solid on top. Full width, every row. */
 .prog-bar {
   position: relative;
   display: block;
-  flex: 1;
-  min-width: 0;
+  width: 100%;
   height: 4px;
   border-radius: 2px;
   background: var(--c-surface3);
@@ -2314,21 +2307,11 @@ select {
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .prog-bar-seen { opacity: 0.3; }
-.prog-bar-pct {
-  flex-shrink: 0;
-  min-width: 6.4em;
-  text-align: right;
-  font-size: 12.5px;
+.prog-fig-pct {
   font-weight: 500;
   color: var(--c-sub);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.1px;
-  line-height: 1;
 }
 .prog-topic .prog-bar { height: 3px; }
-/* The topic figure sits inside the arrow's reserved width; the label's
-   right edge lines up with it. */
-.prog-topic .prog-bar-pct { color: var(--c-muted); padding-right: 31px; }
 .prog-topic-go {
   width: 1.2em;
   text-align: right;
@@ -2384,7 +2367,6 @@ select {
   .prog-card { padding: 18px 16px 14px; border-radius: 20px; }
   .prog-subject-row { padding: 13px 0; }
   .prog-topic-row { padding-left: 12px; gap: 6px; }
-  .prog-bar-line { gap: 10px; }
   .prog-practice-all { margin-left: 12px; }
 }
 
