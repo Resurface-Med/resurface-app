@@ -106,7 +106,8 @@ function Bar({ seen, total, attempts, pct, min }) {
         <span className="prog-bar-seen" style={{ transform: `scaleX(${cover})` }} />
         <span className="prog-bar-right" style={{ transform: `scaleX(${right})` }} />
       </span>
-      {rated && <span className="prog-bar-pct">{pct}% correct</span>}
+      {/* Always present, so every bar ends on the same edge. */}
+      <span className="prog-bar-pct">{rated ? `${pct}% correct` : ""}</span>
     </span>
   );
 }

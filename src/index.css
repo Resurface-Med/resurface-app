@@ -2326,7 +2326,9 @@ select {
   line-height: 1;
 }
 .prog-topic .prog-bar { height: 3px; }
-.prog-topic .prog-bar-pct { color: var(--c-muted); }
+/* The topic figure sits inside the arrow's reserved width; the label's
+   right edge lines up with it. */
+.prog-topic .prog-bar-pct { color: var(--c-muted); padding-right: 31px; }
 .prog-topic-go {
   width: 1.2em;
   text-align: right;
