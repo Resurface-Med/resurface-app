@@ -2241,23 +2241,13 @@ select {
 .prog-subject.is-untouched .prog-fig-seen { color: var(--c-muted); font-weight: 500; }
 .prog-subject.is-untouched .prog-subject-row:hover .prog-subject-name { color: var(--c-accent); }
 
-.prog-fig {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
 .prog-fig-seen {
+  flex-shrink: 0;
   font-size: 15px;
   font-weight: 500;
   color: var(--c-text);
   letter-spacing: -0.2px;
-}
-.prog-fig-pct {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--c-sub);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Topics, open under their subject, weakest first. Each row is the way
@@ -2295,31 +2285,48 @@ select {
   color: var(--c-sub);
 }
 .prog-topic.is-untouched .prog-fig-seen { color: var(--c-muted); }
-.prog-topic .prog-fig-pct {
-  font-size: 13.5px;
-  color: var(--c-muted);
-}
-/* Coverage bar: a thin track, the seen portion in accent. The open
-   subject's is a shade firmer than its topics'. */
-.prog-bar {
-  display: block;
+/* The bar and its percentage on one line. Track in the panel colour; the
+   seen portion faded accent; the correct share of it solid on top. */
+.prog-bar-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
+}
+.prog-bar {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
   height: 4px;
   border-radius: 2px;
   background: var(--c-surface3);
   overflow: hidden;
 }
-.prog-bar-fill {
+.prog-bar-seen,
+.prog-bar-right {
+  position: absolute;
+  inset: 0;
   display: block;
-  height: 100%;
   border-radius: 2px;
   background: var(--c-accent);
   transform-origin: left center;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
+.prog-bar-seen { opacity: 0.3; }
+.prog-bar-pct {
+  flex-shrink: 0;
+  min-width: 6.4em;
+  text-align: right;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--c-sub);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.1px;
+  line-height: 1;
+}
 .prog-topic .prog-bar { height: 3px; }
-.prog-topic .prog-bar-fill { opacity: 0.6; }
-.prog-topic.is-untouched .prog-bar-fill { opacity: 0; }
+.prog-topic .prog-bar-pct { color: var(--c-muted); }
 .prog-topic-go {
   width: 1.2em;
   text-align: right;
@@ -2374,9 +2381,8 @@ select {
 @media (max-width: 560px) {
   .prog-card { padding: 18px 16px 14px; border-radius: 20px; }
   .prog-subject-row { padding: 13px 0; }
-  .prog-fig { gap: 10px; }
-  .prog-topic-row { padding-left: 12px; gap: 10px; }
-  .prog-topic .prog-fig-pct { display: none; }
+  .prog-topic-row { padding-left: 12px; gap: 6px; }
+  .prog-bar-line { gap: 10px; }
   .prog-practice-all { margin-left: 12px; }
 }
 
