@@ -2140,286 +2140,144 @@ select {
 }
 
 /* ─── Progress ──────────────────────────────────────────────────── */
-.prog-block + .prog-block { margin-top: 28px; }
-.prog-block-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 0 2px 12px;
-  margin: 0;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--c-border);
-  border-radius: 0;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.prog-block-head:hover .prog-block-name,
-.prog-block-head.is-open .prog-block-name {
-  color: var(--c-accent);
-}
-.prog-block-name {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.25px;
-  color: var(--c-text);
-}
-.prog-block-meta {
-  margin-left: auto;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 .prog-lead {
-  margin: 8px 0 0;
-  max-width: 34em;
-  font-size: 15px;
+  margin: 10px 0 0;
+  font-size: 15.5px;
   font-weight: 500;
-  letter-spacing: -0.2px;
-  line-height: 1.45;
   color: var(--c-on-field-soft);
-}
-
-.prog-field-stats {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: clamp(22px, 3.2vh, 30px);
-}
-.prog-field-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-right: clamp(28px, 4.5vw, 56px);
-}
-.prog-field-stat + .prog-field-stat {
-  padding-left: clamp(28px, 4.5vw, 56px);
-  border-left: 1px solid rgba(255, 255, 255, 0.22);
-}
-.prog-field-value {
-  font-size: clamp(36px, 4.2vw, 48px);
-  font-weight: 700;
-  letter-spacing: -1.8px;
-  color: var(--c-on-field);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-.prog-field-unit {
-  font-size: 0.42em;
-  font-weight: 600;
   letter-spacing: -0.2px;
-  color: var(--c-on-field-faint);
-  margin-left: 2px;
+  line-height: 1.5;
+  max-width: 40em;
 }
-.prog-field-label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--c-on-field-faint);
-}
-
-.prog-field-cover {
+.prog-sheet {
+  padding-top: clamp(18px, 2.8vh, 28px);
+  padding-bottom: clamp(36px, 5vh, 56px);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: clamp(18px, 2.6vh, 24px);
-  max-width: 420px;
-}
-.prog-field-cover .prog-bar {
-  height: 6px;
-  background: rgba(255, 255, 255, 0.18);
-}
-.prog-field-cover .prog-bar-fill {
-  background: #fff;
-}
-.prog-field-cover-note {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--c-on-field-faint);
+  gap: clamp(16px, 2.4vh, 22px);
 }
 
-.prog-sheet {
-  max-width: 720px;
-  padding-top: clamp(24px, 3.4vh, 36px);
-  padding-bottom: clamp(40px, 6vh, 64px);
+/* One card per block, the practice card's surface. */
+.prog-card {
+  --gen-card-pad: clamp(20px, 2.6vw, 28px);
+  background: var(--c-card-solid);
+  border-radius: 24px;
+  padding: var(--gen-card-pad);
+  box-shadow: var(--c-card-shadow-lift);
 }
-.prog-sheet-title {
-  margin: 0 0 22px;
-}
-
-.prog-bar {
-  display: block;
-  height: 6px;
-  border-radius: var(--r-pill);
-  background: var(--c-surface3);
-  overflow: hidden;
-  min-width: 0;
-}
-.prog-bar-fill {
-  display: block;
-  height: 100%;
-  width: 100%;
-  border-radius: inherit;
-  background: var(--c-accent);
-  transform-origin: left center;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+.prog-card-title {
+  margin: 0 0 clamp(6px, 1vh, 10px);
+  font-size: clamp(20px, 2.2vw, 24px);
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+  color: var(--c-text);
 }
 
 .prog-subjects {
-  display: flex;
-  flex-direction: column;
-  margin-top: 4px;
-}
-
-.prog-subject {
-  border-bottom: 1px solid var(--c-border);
-}
-.prog-subject:last-child {
-  border-bottom: none;
-}
-
-.prog-subject-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(72px, 1.4fr) auto auto;
-  align-items: center;
-  gap: 12px 14px;
-  width: 100%;
-  padding: 14px 4px;
-  margin: 0;
-  background: none;
-  border: none;
-  border-radius: 0;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-.prog-subject-head:hover,
-.prog-subject.is-open .prog-subject-head {
-  background: var(--c-surface2);
-}
-.prog-subject-name {
-  font-size: 15.5px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  color: var(--c-text);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.prog-subject-nums {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.prog-pct {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--c-sub);
-  min-width: 2.6em;
-  text-align: right;
-}
-.prog-pct.is-weak { color: var(--c-danger); }
-.prog-pct.is-ok { color: var(--c-success); }
-.prog-pct.is-empty { color: var(--c-muted-dim); font-weight: 500; }
-.prog-seen {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--c-muted);
-  min-width: 3.4em;
-  text-align: right;
-}
-
-.prog-chevron {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  color: var(--c-muted);
-  transition: transform 0.15s ease, color 0.12s;
-}
-.prog-chevron.is-open {
-  transform: rotate(90deg);
-  color: var(--c-accent);
-}
-
-.prog-topics {
   list-style: none;
-  margin: 0 0 10px;
-  padding: 0 0 4px 12px;
-  border-left: 2px solid var(--c-accent-brd);
-  margin-left: 6px;
+  margin: 0;
+  padding: 0;
 }
-.prog-topic {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 4px 10px 10px;
-}
-.prog-topic + .prog-topic {
+.prog-subject + .prog-subject {
   border-top: 1px solid var(--c-border);
 }
-.prog-topic-main {
-  flex: 1;
-  min-width: 0;
+/* A row is the subject and its figure. The whole row opens the topics. */
+.prog-subject-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.prog-topic-name {
-  font-size: 14.5px;
-  font-weight: 500;
-  letter-spacing: -0.15px;
-  color: var(--c-text);
+.prog-subject-name {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--c-text);
+  transition: color 0.15s ease;
 }
-.prog-topic-meta {
-  display: inline-flex;
+.prog-subject-row:hover .prog-subject-name,
+.prog-subject.is-open .prog-subject-name { color: var(--c-accent); }
+
+/* "29 of 155" in ink, the accuracy after it in the quieter ink. A number
+   is a number; it is not coloured for being low. */
+.prog-fig {
+  display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 14px;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
+.prog-fig-seen {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-text);
+  letter-spacing: -0.2px;
+}
+.prog-fig-pct {
+  min-width: 3em;
+  text-align: right;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-sub);
+}
 
+/* Topics open inside the card, under their subject, weakest first. */
+.prog-topics {
+  list-style: none;
+  margin: -4px 0 6px;
+  padding: 0 0 8px;
+}
+.prog-topic {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 8px 0 8px 18px;
+}
+.prog-topic-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--c-sub);
+  letter-spacing: -0.15px;
+}
+.prog-topic .prog-fig-seen {
+  font-size: 14px;
+  color: var(--c-sub);
+}
+.prog-topic .prog-fig-pct {
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
 .prog-practice {
   flex-shrink: 0;
-  min-height: 36px;
-  padding: 8px 14px;
-  border-radius: var(--r-pill);
-  border: 1.5px solid var(--c-accent-brd);
-  background: var(--c-accent-dim);
-  color: var(--c-accent);
+  padding: 0;
+  background: none;
+  border: none;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
   letter-spacing: -0.1px;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  color: var(--c-accent);
+  cursor: pointer;
 }
-.prog-practice:hover {
-  background: var(--c-accent);
-  border-color: var(--c-accent);
-  color: #fff;
-}
+.prog-practice:hover { color: var(--c-accent-lt); }
 
 .prog-reset {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 18px;
-  margin-top: 36px;
-  padding-top: 20px;
-  border-top: 1px solid var(--c-border);
+  margin-top: 12px;
+  padding: 0 4px;
 }
 .prog-reset-btn {
   background: none;
@@ -2437,27 +2295,13 @@ select {
   color: var(--c-danger);
 }
 
-@media (max-width: 900px) {
-  .prog-subject-head {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "name nums chev"
-      "bar  bar  bar";
-    gap: 8px 12px;
-    padding: 14px 2px;
-  }
-  .prog-subject-name { grid-area: name; }
-  .prog-subject-head .prog-bar { grid-area: bar; }
-  .prog-subject-nums { grid-area: nums; }
-  .prog-subject-head .prog-chevron { grid-area: chev; }
-  .prog-topics { margin-left: 2px; padding-left: 10px; }
-  .prog-topic {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .prog-practice {
-    min-height: 44px;
-  }
+@media (max-width: 560px) {
+  .prog-card { padding: 18px 16px 14px; border-radius: 20px; }
+  .prog-subject-row { padding: 12px 0; }
+  .prog-fig { gap: 10px; }
+  .prog-fig-pct { min-width: 2.6em; }
+  .prog-topic { padding-left: 12px; gap: 12px; }
+  .prog-topic .prog-fig-pct { display: none; }
 }
 
 /* ─── Leaderboard ────────────────────────────────────────────────── */
@@ -3557,13 +3401,6 @@ select {
 }
 
 @media (max-width: 640px) {
-  .prog-field-stat {
-    padding-right: 20px;
-  }
-  .prog-field-stat + .prog-field-stat {
-    padding-left: 20px;
-  }
-
   /* .gen-grid deliberately keeps its two columns here. Collapsing it turned
      four fields into four full-width rows, which was the single biggest
      stretch of the form on a phone — and Subject, Topic, Year and Block all
