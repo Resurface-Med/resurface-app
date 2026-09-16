@@ -85,6 +85,17 @@ function summarise(pStats) {
   return { lead: `You’ve seen ${seen} of ${total}.`, rest: rest.join(" ") };
 }
 
+/* Coverage as a length: how much of the topic has been opened. Sits under
+   the name so the column of bars reads down the list at a glance. */
+function Bar({ seen, total }) {
+  const v = total ? Math.max(0, Math.min(1, seen / total)) : 0;
+  return (
+    <span className="prog-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v * 100)}>
+      <span className="prog-bar-fill" style={{ transform: `scaleX(${v})` }} />
+    </span>
+  );
+}
+
 /* One number per line at rest. Accuracy is a second number, and two per
    line is one too many to scan — so it appears only on the open subject,
    and only once there is enough behind it to mean something. */
@@ -114,8 +125,11 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
   return (
     <li className={`prog-subject${open ? " is-open" : ""}${d.seen === 0 ? " is-untouched" : ""}`}>
       <button type="button" className="prog-subject-row" onClick={onToggle} aria-expanded={open}>
-        <span className="prog-subject-name">{deck}</span>
-        <Figure {...d} min={SUBJECT_MIN_ATTEMPTS} showPct={open} />
+        <span className="prog-subject-line">
+          <span className="prog-subject-name">{deck}</span>
+          <Figure {...d} min={SUBJECT_MIN_ATTEMPTS} showPct={open} />
+        </span>
+        {open && <Bar seen={d.seen} total={d.total} />}
       </button>
 
       {open && (
@@ -128,9 +142,12 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
               return (
                 <li key={cat} className={`prog-topic${t.seen === 0 ? " is-untouched" : ""}`}>
                   <button type="button" className="prog-topic-row" onClick={() => onPractice(deck, cat)}>
-                    <span className="prog-topic-name">{shortCat(cat, deck)}</span>
-                    <Figure {...t} min={TOPIC_MIN_ATTEMPTS} showPct />
-                    <span className="prog-topic-go" aria-hidden="true">→</span>
+                    <span className="prog-topic-line">
+                      <span className="prog-topic-name">{shortCat(cat, deck)}</span>
+                      <Figure {...t} min={TOPIC_MIN_ATTEMPTS} showPct />
+                      <span className="prog-topic-go" aria-hidden="true">→</span>
+                    </span>
+                    <Bar seen={t.seen} total={t.total} />
                   </button>
                 </li>
               );

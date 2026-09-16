@@ -2209,9 +2209,8 @@ select {
    card reads as what you have done. */
 .prog-subject-row {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 10px;
   width: 100%;
   padding: 16px 0;
   background: none;
@@ -2219,6 +2218,14 @@ select {
   font-family: inherit;
   text-align: left;
   cursor: pointer;
+}
+.prog-subject-line,
+.prog-topic-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
 }
 .prog-subject-name {
   min-width: 0;
@@ -2262,10 +2269,10 @@ select {
 }
 .prog-topic-row {
   display: flex;
-  align-items: baseline;
-  gap: 14px;
+  flex-direction: column;
+  gap: 6px;
   width: 100%;
-  padding: 7px 0 7px 18px;
+  padding: 8px 0 9px 18px;
   background: none;
   border: none;
   font-family: inherit;
@@ -2292,6 +2299,27 @@ select {
   font-size: 13.5px;
   color: var(--c-muted);
 }
+/* Coverage bar: a thin track, the seen portion in accent. The open
+   subject's is a shade firmer than its topics'. */
+.prog-bar {
+  display: block;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--c-surface3);
+  overflow: hidden;
+}
+.prog-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--c-accent);
+  transform-origin: left center;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.prog-topic .prog-bar { height: 3px; }
+.prog-topic .prog-bar-fill { opacity: 0.6; }
+.prog-topic.is-untouched .prog-bar-fill { opacity: 0; }
 .prog-topic-go {
   width: 1.2em;
   text-align: right;
