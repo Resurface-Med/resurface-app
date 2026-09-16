@@ -66,31 +66,34 @@ function listNames(names) {
 function summarise(pStats) {
   const seen = Object.keys(pStats).length;
   const total = QUESTIONS.length;
-  if (seen === 0) return "Nothing attempted yet. Answer a few questions and this fills in.";
+  if (seen === 0) return { lead: "Nothing attempted yet.", rest: "Answer a few questions and this fills in." };
 
   const decks = [...new Set(QUESTIONS.map(q => q.deck))];
   const stats = decks.map(deck => ({ deck, ...deckStats(deck, pStats) }));
   const rated = stats.filter(s => s.attempts >= SUBJECT_MIN_ATTEMPTS).sort((a, b) => b.pct - a.pct);
   const untouched = stats.filter(s => s.seen === 0).map(s => s.deck);
 
-  const parts = [`You’ve seen ${seen} of ${total}.`];
+  const rest = [];
   if (rated.length >= 2 && rated[0].pct - rated[rated.length - 1].pct >= 15) {
-    parts.push(`${rated[0].deck} is going best; ${rated[rated.length - 1].deck} least.`);
+    rest.push(`${rated[0].deck} is going best; ${rated[rated.length - 1].deck} least.`);
   } else if (rated.length >= 1) {
-    parts.push(`${rated[0].deck} is going best.`);
+    rest.push(`${rated[0].deck} is going best.`);
   }
   if (untouched.length > 0 && untouched.length < decks.length) {
-    parts.push(`${listNames(untouched)} ${untouched.length === 1 ? "is" : "are"} untouched.`);
+    rest.push(`${listNames(untouched)} ${untouched.length === 1 ? "is" : "are"} untouched.`);
   }
-  return parts.join(" ");
+  return { lead: `You’ve seen ${seen} of ${total}.`, rest: rest.join(" ") };
 }
 
-function Figure({ seen, total, attempts, pct, min }) {
+/* One number per line at rest. Accuracy is a second number, and two per
+   line is one too many to scan — so it appears only on the open subject,
+   and only once there is enough behind it to mean something. */
+function Figure({ seen, total, attempts, pct, min, showPct = false }) {
+  const rated = showPct && attempts >= min && pct !== null;
   return (
     <span className="prog-fig">
+      {rated && <span className="prog-fig-pct">{pct}% right</span>}
       <span className="prog-fig-seen">{seen} of {total}</span>
-      {/* Always present so the "of" column lines up down the card. */}
-      <span className="prog-fig-pct">{attempts >= min && pct !== null ? `${pct}%` : ""}</span>
     </span>
   );
 }
@@ -109,27 +112,34 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
   }, [cats, pStats]);
 
   return (
-    <li className={`prog-subject${open ? " is-open" : ""}`}>
+    <li className={`prog-subject${open ? " is-open" : ""}${d.seen === 0 ? " is-untouched" : ""}`}>
       <button type="button" className="prog-subject-row" onClick={onToggle} aria-expanded={open}>
         <span className="prog-subject-name">{deck}</span>
-        <Figure {...d} min={SUBJECT_MIN_ATTEMPTS} />
+        <Figure {...d} min={SUBJECT_MIN_ATTEMPTS} showPct={open} />
       </button>
 
       {open && (
-        <ul className="prog-topics">
-          {sorted.map(cat => {
-            const t = topicStats(cat, pStats);
-            return (
-              <li key={cat} className="prog-topic">
-                <span className="prog-topic-name">{shortCat(cat, deck)}</span>
-                <Figure {...t} min={TOPIC_MIN_ATTEMPTS} />
-                <button type="button" className="prog-practice" onClick={() => onPractice(deck, cat)}>
-                  Practice
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          {/* Each topic row is the way into practising it — one verb for
+              the whole list rather than one per line. */}
+          <ul className="prog-topics">
+            {sorted.map(cat => {
+              const t = topicStats(cat, pStats);
+              return (
+                <li key={cat} className={`prog-topic${t.seen === 0 ? " is-untouched" : ""}`}>
+                  <button type="button" className="prog-topic-row" onClick={() => onPractice(deck, cat)}>
+                    <span className="prog-topic-name">{shortCat(cat, deck)}</span>
+                    <Figure {...t} min={TOPIC_MIN_ATTEMPTS} showPct />
+                    <span className="prog-topic-go" aria-hidden="true">→</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <button type="button" className="prog-practice-all" onClick={() => onPractice(deck, null)}>
+            Practice all of {deck} <span aria-hidden="true">→</span>
+          </button>
+        </>
       )}
     </li>
   );
@@ -142,7 +152,7 @@ export default function StatsView({
 
   function practice(deck, cat) {
     setStudyScope?.("all");
-    setLaunchFilter({ deck, cat });
+    setLaunchFilter(cat ? { deck, cat } : { deck });
     setView(V.STUDY);
   }
 
@@ -160,16 +170,25 @@ export default function StatsView({
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
-        <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>{summary}</p>
+        <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
+          <span className="prog-lead-first">{summary.lead}</span>
+          {summary.rest ? <> {summary.rest}</> : null}
+        </p>
       </div>
 
       <Wave from="transparent" to="var(--c-surface2)" />
 
       <div style={{ background: "var(--c-surface2)", flex: 1 }}>
         <div className="prog-sheet" style={{ ...band, maxWidth: 760 }}>
-          {CURRICULUM.map((b, i) => (
+          {CURRICULUM.map((b, i) => {
+            const blockQs = QUESTIONS.filter(q => q.block === b.block);
+            const bt = tally(blockQs, pStats);
+            return (
             <section key={b.block} className="prog-card anim-scale-in" style={{ "--i": i }}>
-              <h2 className="prog-card-title">{b.block}</h2>
+              <div className="prog-card-head">
+                <h2 className="prog-card-title">{b.block}</h2>
+                <span className="prog-card-fig">{bt.seen} of {bt.total}</span>
+              </div>
               <ul className="prog-subjects">
                 {b.decks.map(d => {
                   const key = `${b.block}/${d.deck}`;
@@ -187,7 +206,8 @@ export default function StatsView({
                 })}
               </ul>
             </section>
-          ))}
+            );
+          })}
 
           <div className="prog-reset">
             <button

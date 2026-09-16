@@ -2140,14 +2140,20 @@ select {
 }
 
 /* ─── Progress ──────────────────────────────────────────────────── */
+/* The band's sentence is the hero: the first sentence in full white, the
+   rest in the softer white. */
 .prog-lead {
-  margin: 10px 0 0;
-  font-size: 15.5px;
+  margin: 12px 0 0;
+  font-size: clamp(16px, 1.7vw, 18px);
   font-weight: 500;
   color: var(--c-on-field-soft);
-  letter-spacing: -0.2px;
+  letter-spacing: -0.25px;
   line-height: 1.5;
-  max-width: 40em;
+  max-width: 36em;
+}
+.prog-lead-first {
+  color: var(--c-on-field);
+  font-weight: 600;
 }
 .prog-sheet {
   padding-top: clamp(18px, 2.8vh, 28px);
@@ -2157,7 +2163,8 @@ select {
   gap: clamp(16px, 2.4vh, 22px);
 }
 
-/* One card per block, the practice card's surface. */
+/* One card per block, the practice card's surface. Its title carries the
+   block's own figure on the right. */
 .prog-card {
   --gen-card-pad: clamp(20px, 2.6vw, 28px);
   background: var(--c-card-solid);
@@ -2165,13 +2172,28 @@ select {
   padding: var(--gen-card-pad);
   box-shadow: var(--c-card-shadow-lift);
 }
+.prog-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: clamp(6px, 1vh, 10px);
+}
 .prog-card-title {
-  margin: 0 0 clamp(6px, 1vh, 10px);
+  margin: 0;
   font-size: clamp(20px, 2.2vw, 24px);
   font-weight: 600;
   letter-spacing: -0.6px;
   line-height: 1.2;
   color: var(--c-text);
+}
+.prog-card-fig {
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--c-sub);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
 }
 
 .prog-subjects {
@@ -2182,14 +2204,16 @@ select {
 .prog-subject + .prog-subject {
   border-top: 1px solid var(--c-border);
 }
-/* A row is the subject and its figure. The whole row opens the topics. */
+/* Two registers: subjects at reading size in ink; topics tighter, in the
+   quieter ink. A subject nobody has opened is set quieter still, so the
+   card reads as what you have done. */
 .prog-subject-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
   width: 100%;
-  padding: 14px 0;
+  padding: 16px 0;
   background: none;
   border: none;
   font-family: inherit;
@@ -2206,9 +2230,10 @@ select {
 }
 .prog-subject-row:hover .prog-subject-name,
 .prog-subject.is-open .prog-subject-name { color: var(--c-accent); }
+.prog-subject.is-untouched .prog-subject-name,
+.prog-subject.is-untouched .prog-fig-seen { color: var(--c-muted); font-weight: 500; }
+.prog-subject.is-untouched .prog-subject-row:hover .prog-subject-name { color: var(--c-accent); }
 
-/* "29 of 155" in ink, the accuracy after it in the quieter ink. A number
-   is a number; it is not coloured for being low. */
 .prog-fig {
   display: flex;
   align-items: baseline;
@@ -2223,24 +2248,29 @@ select {
   letter-spacing: -0.2px;
 }
 .prog-fig-pct {
-  min-width: 3em;
-  text-align: right;
   font-size: 14px;
   font-weight: 500;
   color: var(--c-sub);
 }
 
-/* Topics open inside the card, under their subject, weakest first. */
+/* Topics, open under their subject, weakest first. Each row is the way
+   into practising it; the arrow arrives on hover and stays on touch. */
 .prog-topics {
   list-style: none;
-  margin: -4px 0 6px;
-  padding: 0 0 8px;
+  margin: -6px 0 0;
+  padding: 0;
 }
-.prog-topic {
+.prog-topic-row {
   display: flex;
   align-items: baseline;
-  gap: 16px;
-  padding: 8px 0 8px 18px;
+  gap: 14px;
+  width: 100%;
+  padding: 7px 0 7px 18px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 .prog-topic-name {
   flex: 1;
@@ -2249,28 +2279,46 @@ select {
   font-weight: 500;
   color: var(--c-sub);
   letter-spacing: -0.15px;
+  transition: color 0.15s ease;
 }
+.prog-topic-row:hover .prog-topic-name { color: var(--c-accent); }
+.prog-topic.is-untouched .prog-topic-name { color: var(--c-muted); }
 .prog-topic .prog-fig-seen {
   font-size: 14px;
   color: var(--c-sub);
 }
+.prog-topic.is-untouched .prog-fig-seen { color: var(--c-muted); }
 .prog-topic .prog-fig-pct {
   font-size: 13.5px;
   color: var(--c-muted);
 }
-.prog-practice {
-  flex-shrink: 0;
+.prog-topic-go {
+  width: 1.2em;
+  text-align: right;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--c-accent);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.prog-topic-row:hover .prog-topic-go,
+.prog-topic-row:focus-visible .prog-topic-go { opacity: 1; }
+@media (hover: none) {
+  .prog-topic-go { opacity: 1; }
+}
+.prog-practice-all {
+  margin: 8px 0 14px 18px;
   padding: 0;
   background: none;
   border: none;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
-  letter-spacing: -0.1px;
+  letter-spacing: -0.15px;
   color: var(--c-accent);
   cursor: pointer;
 }
-.prog-practice:hover { color: var(--c-accent-lt); }
+.prog-practice-all:hover { color: var(--c-accent-lt); }
 
 .prog-reset {
   display: flex;
@@ -2297,11 +2345,11 @@ select {
 
 @media (max-width: 560px) {
   .prog-card { padding: 18px 16px 14px; border-radius: 20px; }
-  .prog-subject-row { padding: 12px 0; }
+  .prog-subject-row { padding: 13px 0; }
   .prog-fig { gap: 10px; }
-  .prog-fig-pct { min-width: 2.6em; }
-  .prog-topic { padding-left: 12px; gap: 12px; }
+  .prog-topic-row { padding-left: 12px; gap: 10px; }
   .prog-topic .prog-fig-pct { display: none; }
+  .prog-practice-all { margin-left: 12px; }
 }
 
 /* ─── Leaderboard ────────────────────────────────────────────────── */
