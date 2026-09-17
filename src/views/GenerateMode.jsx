@@ -262,13 +262,96 @@ function fileToBase64(file) {
   });
 }
 
+/**
+ * The cards out of an Anki deck.
+ *
+ * An .apkg is a zip holding a SQLite database: `collection.anki2` in older
+ * exports, `collection.anki21b` — the same database, zstd-compressed — in
+ * anything from Anki 23.10 on. Both are read in the browser: the zip with
+ * JSZip, the compression with fzstd, the database with sql.js. All lazy, so
+ * nobody who never drops a deck pays for the wasm.
+ *
+ * Only the notes' fields are wanted. HTML, sound tags and cloze markup are
+ * stripped, and each note becomes one line, front then back. The review log
+ * is in there too; it is not the point.
+ */
+let sqlJsPromise = null;
+function loadSqlJs() {
+  if (!sqlJsPromise) {
+    sqlJsPromise = (async () => {
+      const [{ default: initSqlJs }, wasm] = await Promise.all([
+        import("sql.js"),
+        import("sql.js/dist/sql-wasm.wasm?url"),
+      ]);
+      return initSqlJs({ locateFile: () => wasm.default });
+    })();
+  }
+  return sqlJsPromise;
+}
+
+const APKG_MAX_NOTES = 400;
+
+function cleanField(html) {
+  return html
+    .replace(/\[sound:[^\]]*\]/g, " ")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<img[^>]*>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\{\{c\d+::([^}:]*)(?:::[^}]*)?\}\}/g, "$1")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function extractApkg(file) {
+  const zip = await JSZip.loadAsync(file);
+  let bytes;
+  if (zip.files["collection.anki21b"]) {
+    const { decompress } = await import("fzstd");
+    bytes = decompress(await zip.files["collection.anki21b"].async("uint8array"));
+  } else {
+    const name = ["collection.anki21", "collection.anki2"].find(n => zip.files[n]);
+    if (!name) throw new Error("That doesn’t look like an Anki deck — there’s no collection inside it.");
+    bytes = await zip.files[name].async("uint8array");
+  }
+
+  const SQL = await loadSqlJs();
+  const db = new SQL.Database(bytes);
+  let rows;
+  try {
+    rows = db.exec("SELECT flds FROM notes ORDER BY id")[0]?.values ?? [];
+  } finally {
+    db.close();
+  }
+
+  const lines = [];
+  for (const [flds] of rows) {
+    const fields = String(flds).split("\x1f").map(cleanField).filter(Boolean);
+    if (!fields.length) continue;
+    const [front, ...back] = fields;
+    lines.push(back.length ? `• ${front} — ${back.join(" · ")}` : `• ${front}`);
+    if (lines.length >= APKG_MAX_NOTES) break;
+  }
+  if (!lines.length) throw new Error("That deck has no cards with text in them.");
+
+  const note = rows.length > APKG_MAX_NOTES
+    ? `\n(The first ${APKG_MAX_NOTES} of ${rows.length} cards.)`
+    : "";
+  return `Flashcards from an Anki deck, front — back. Write questions that test the same facts; the other cards' answers are the natural distractors.${note}\n\n${lines.join("\n")}`;
+}
+
 async function generateQuestions({ file, pastedText, deck, category, year, block, count, signal }) {
   let userContent = [];
 
   if (file) {
     const ext = file.name.split(".").pop().toLowerCase();
 
-    const isDoc = ext === "pptx" || ext === "ppt" || ext === "pdf";
+    const isDoc = ext === "pptx" || ext === "ppt" || ext === "pdf" || ext === "apkg";
 
     if (isDoc && file.size > MAX_READ_BYTES) {
       throw new Error(`That file is ${(file.size / 1024 / 1024).toFixed(0)}MB, which is more than the browser can open. Split it and try again.`);
@@ -279,6 +362,9 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
     if (ext === "pptx" || ext === "ppt") {
       const text = await extractPptx(file);
+      userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
+    } else if (ext === "apkg") {
+      const text = await extractApkg(file);
       userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
     } else if (ext === "pdf") {
       const text = await extractPdf(file);
@@ -944,14 +1030,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange })
                   </svg>
                   <span className="gen-source-text">
                     <span className="gen-source-lead">Drop a lecture here, or browse</span>
-                    <span className="gen-source-meta">PowerPoint, PDF or image</span>
+                    <span className="gen-source-meta">PowerPoint, PDF, image or Anki deck</span>
                   </span>
                 </button>
               )}
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pptx,.ppt,.pdf,.jpg,.jpeg,.png,.webp"
+                accept=".pptx,.ppt,.pdf,.apkg,.jpg,.jpeg,.png,.webp"
                 style={{ display: "none" }}
                 onChange={e => acceptFile(e.target.files[0])}
               />
