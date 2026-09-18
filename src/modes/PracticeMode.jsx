@@ -677,7 +677,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
                   <h2 style={{ ...sectionH, margin: 0 }}>{activeGroup && choosing ? `Choose for ${activeGroup.name}` : "What are you revising?"}</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 16, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {!choosing && <>{scoped} available</>}
+                    {!choosing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
                     {activeGroup && !choosing && (
                       <GroupControls group={activeGroup} actions={groupActions} onGenerate={onGenerateFor}
                         onChoose={() => setChoosing(true)} onRename={() => setRenamingGroup(true)} />
