@@ -110,6 +110,12 @@ function apply(op) {
       return supabase.from("practice_stats").delete().eq("user_id", op.userId);
     case "sr-clear":
       return supabase.from("sr_cards").delete().eq("user_id", op.userId);
+    case "group-update":
+      return supabase.from("topic_groups").update({ ...op.patch, updated_at: new Date().toISOString() }).eq("id", op.groupId);
+    case "group-delete":
+      return supabase.from("topic_groups").delete().eq("id", op.groupId);
+    case "group-unsave":
+      return supabase.from("topic_group_saves").delete().eq("user_id", op.userId).eq("group_id", op.groupId);
     default:
       return Promise.resolve({ error: new Error(`unknown op ${op.kind}`) });
   }
@@ -152,6 +158,7 @@ export async function loadAll(userId) {
       supabase.from("generated_questions").select("id, payload").eq("user_id", userId),
       supabase.from("question_edits").select("question_id, payload").eq("user_id", userId),
     ]);
+  const groups = await loadGroups();
 
   const pStats = {};
   for (const r of practice.data ?? []) pStats[r.question_id] = { correct: r.correct, total: r.total };
@@ -195,7 +202,25 @@ export async function loadAll(userId) {
     // keyed on question_id — flags are cohort-wide, these are not.
     generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true })),
     questionEdits,
+    groups,
   };
+}
+
+/** Your topic groups and the ones shared with you. */
+export async function loadGroups() {
+  const { data, error } = await supabase.rpc("my_topic_groups");
+  if (error) return [];
+  const { data: { user } } = await supabase.auth.getUser();
+  return (data ?? []).map(r => ({
+    id: r.id,
+    name: r.name,
+    ownerId: r.owner_id,
+    ownerName: r.owner_name || "",
+    mine: r.owner_id === user?.id,
+    sortOrder: r.sort_order,
+    topics: Array.isArray(r.topics) ? r.topics : [],
+    shareCode: r.share_code,
+  }));
 }
 
 /** Weekly cohort board — security-definer RPC, default-on profiles with names. */
@@ -252,4 +277,22 @@ export const remote = {
   clearGenerated: (userId) => send({ kind: "generated-clear", userId }),
   clearPractice:  (userId) => send({ kind: "practice-clear", userId }),
   clearSR:        (userId) => send({ kind: "sr-clear", userId }),
+
+  // Topic groups — the tabs across the top of Study. Creating waits for the
+  // id; everything after is fire-and-forget like the rest.
+  createGroup: async (userId, name, topics = [], sortOrder = 0) => {
+    const { data, error } = await supabase.from("topic_groups")
+      .insert({ owner_id: userId, name, topics, sort_order: sortOrder })
+      .select("id, share_code, created_at").single();
+    if (error) throw error;
+    return data;
+  },
+  updateGroup: (groupId, patch)   => send({ kind: "group-update", groupId, patch }),
+  deleteGroup: (groupId)          => send({ kind: "group-delete", groupId }),
+  unsaveGroup: (userId, groupId)  => send({ kind: "group-unsave", userId, groupId }),
+  saveGroupByCode: async (code) => {
+    const { data, error } = await supabase.rpc("save_topic_group_by_code", { code });
+    if (error) throw error;
+    return data;
+  },
 };

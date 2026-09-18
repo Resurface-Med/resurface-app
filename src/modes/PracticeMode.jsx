@@ -7,6 +7,8 @@ import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import TopicPicker from "../ui/TopicPicker";
+import { GroupTabs, GroupBody, NewGroupForm } from "../ui/TopicGroups";
+import { groupFilter } from "../lib/groups";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -243,7 +245,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all" }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", groups = [], groupActions = null, openGroupId = null, onOpenGroupConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
   const [bank, setBank] = useState("both");
 
@@ -264,6 +266,28 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   );
   const [countOpt, setCountOpt] = useState(20);
   const [topicQuery, setTopicQuery] = useState("");
+
+  /* The tab across the top: null is "All", otherwise a group's id. A group
+     stands for a filter, so choosing one sets the filter and the rest of
+     the setup — count, scope, Start — carries on not knowing. */
+  const [activeGroupId, setActiveGroupId] = useState(openGroupId);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+  const [addingTopics, setAddingTopics] = useState(false);
+  const activeGroup = groups.find(g => g.id === activeGroupId) ?? null;
+  useEffect(() => { if (openGroupId) onOpenGroupConsumed?.(); }, []);
+  useEffect(() => {
+    if (activeGroupId && !activeGroup) { setActiveGroupId(null); return; }
+    setFilter(f => ({ ...f, ...(activeGroup ? groupFilter(activeGroup) : { deck: ["All"], cat: ["All"] }) }));
+    setAddingTopics(false);
+    setTopicQuery("");
+  }, [activeGroupId, activeGroup?.topics]);
+  function selectGroup(id) { setCreatingGroup(false); setActiveGroupId(id); }
+  async function createGroupNamed(name) {
+    const g = await groupActions.createGroup(name);
+    setCreatingGroup(false);
+    setActiveGroupId(g.id);
+    setAddingTopics(true);
+  }
   const isPhone = useIsPhone();
   // Phones split the setup in two. A phone screen cannot hold a scrolling list
   // and a full set of controls at once without the controls eating half of it,
@@ -422,7 +446,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        names would not fit the button this ends up on, and a list that gets
        truncated tells you less than the number does. */
     const selCats = filter.cat.includes("All") ? [] : filter.cat;
-    const topicLabel = selCats.length === 1
+    const topicLabel = activeGroup ? activeGroup.name
+      : selCats.length === 1
       ? shortLabel(selCats[0], filter.deck[0])
       : selCats.length > 1
         ? `${selCats.length} topics`
@@ -475,28 +500,40 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  <input
-                    type="search"
-                    value={topicQuery}
-                    onChange={e => setTopicQuery(e.target.value)}
-                    placeholder="Search topics"
-                    aria-label="Search topics"
-                    className="setup-search"
-                  />
-                  {/* A tap used to advance to the next screen, on the
-                      reasoning that choosing was the whole job here and a
-                      confirm button would be a step nobody understood. That
-                      held while exactly one topic could be chosen. It cannot
-                      hold now: the first tap left the screen, so a second
-                      topic was unreachable and the checkboxes were decoration.
-                      Selecting and moving on are two things again. */}
-                  <TopicPicker
-                    value={filter}
-                    onChange={next => setFilter(f => ({ ...f, ...next }))}
-                    pStats={pStats}
-                    eligibleIds={eligibleIds}
-                    query={topicQuery}
-                  />
+                  <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
+                  {creatingGroup ? (
+                    <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
+                  ) : activeGroup ? (
+                    <>
+                      {addingTopics && (
+                        <input type="search" value={topicQuery} onChange={e => setTopicQuery(e.target.value)}
+                          placeholder="Search topics" aria-label="Search topics" className="setup-search" />
+                      )}
+                      <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
+                        query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} />
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="search"
+                        value={topicQuery}
+                        onChange={e => setTopicQuery(e.target.value)}
+                        placeholder="Search topics"
+                        aria-label="Search topics"
+                        className="setup-search"
+                      />
+                      {/* Selecting and moving on are two things: the first tap
+                          used to leave the screen, which made a second topic
+                          unreachable. */}
+                      <TopicPicker
+                        value={filter}
+                        onChange={next => setFilter(f => ({ ...f, ...next }))}
+                        pStats={pStats}
+                        eligibleIds={eligibleIds}
+                        query={topicQuery}
+                      />
+                    </>
+                  )}
 
                   {/* Sticky, because the topic list is longer than a phone and
                       the way out should not be at the bottom of a scroll. */}
@@ -613,37 +650,50 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <div className="setup-col" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
 
+            <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
-                <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
-                <span style={{ fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                  {scoped} available
-                </span>
-              </div>
-              <input
-                type="search"
-                value={topicQuery}
-                onChange={e => setTopicQuery(e.target.value)}
-                placeholder="Search subjects or topics"
-                aria-label="Search subjects or topics"
-                style={{
-                  width: "100%", boxSizing: "border-box",
-                  padding: "11px 16px", fontSize: 14.5, fontFamily: "inherit",
-                  color: C.text, background: "var(--c-surface3)",
-                  border: "1.5px solid transparent", borderRadius: "var(--r-ctrl)",
-                  outline: "none",
-                }}
-              />
+              {/* A group names itself below; the heading is for the whole bank. */}
+              {!activeGroup && !creatingGroup && (
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
+                  <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
+                  <span style={{ fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                    {scoped} available
+                  </span>
+                </div>
+              )}
+              {(!activeGroup || addingTopics) && !creatingGroup && (
+                <input
+                  type="search"
+                  value={topicQuery}
+                  onChange={e => setTopicQuery(e.target.value)}
+                  placeholder="Search subjects or topics"
+                  aria-label="Search subjects or topics"
+                  style={{
+                    width: "100%", boxSizing: "border-box",
+                    padding: "11px 16px", fontSize: 14.5, fontFamily: "inherit",
+                    color: C.text, background: "var(--c-surface3)",
+                    border: "1.5px solid transparent", borderRadius: "var(--r-ctrl)",
+                    outline: "none",
+                  }}
+                />
+              )}
             </div>
 
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
-              <TopicPicker
-                value={filter}
-                onChange={next => setFilter(f => ({ ...f, ...next }))}
-                pStats={pStats}
-                eligibleIds={eligibleIds}
-                query={topicQuery}
-              />
+              {creatingGroup ? (
+                <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
+              ) : activeGroup ? (
+                <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
+                  query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} />
+              ) : (
+                <TopicPicker
+                  value={filter}
+                  onChange={next => setFilter(f => ({ ...f, ...next }))}
+                  pStats={pStats}
+                  eligibleIds={eligibleIds}
+                  query={topicQuery}
+                />
+              )}
             </div>
 
             <div className="setup-dock" data-in="rise" style={{ "--i": 3 }}>

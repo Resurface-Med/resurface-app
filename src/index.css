@@ -2370,6 +2370,175 @@ select {
   .prog-practice-all { margin-left: 12px; }
 }
 
+/* ─── Topic groups (the tabs across the top of Study) ───────────── */
+.tg-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.tg-tabs::-webkit-scrollbar { display: none; }
+.tg-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.15px;
+  color: var(--c-sub);
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+}
+.tg-tab:hover { color: var(--c-text); }
+.tg-tab.is-active {
+  background: var(--c-accent);
+  border-color: var(--c-accent);
+  color: #fff;
+  font-weight: 600;
+}
+.tg-tab.is-shared { border-style: dashed; }
+.tg-tab-from { display: none; }
+.tg-tab-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border-color: transparent;
+  color: var(--c-accent);
+  font-weight: 600;
+}
+.tg-tab-new:hover { color: var(--c-accent-lt); background: var(--c-accent-dim); }
+
+.tg-new {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0 12px;
+}
+.tg-new input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: 1.5px solid transparent;
+  border-radius: var(--r-ctrl);
+  outline: none;
+}
+.tg-new input:focus { border-color: var(--c-accent-brd); }
+.tg-new .gen-link:disabled { opacity: 0.4; cursor: default; }
+.tg-cancel { color: var(--c-muted); }
+
+.tg-body { display: flex; flex-direction: column; min-height: 0; }
+.tg-head { margin: 2px 0 8px; }
+.tg-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  color: var(--c-text);
+  cursor: text;
+}
+.tg-name-input {
+  width: 100%;
+  margin: -3px 0 0 -8px;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: none;
+  border-radius: 8px;
+  outline: none;
+}
+.tg-meta {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-sub);
+}
+.tg-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+.tg-actions .gen-link { font-size: 14px; }
+.tg-actions .gen-link.is-on { color: var(--c-text); }
+.tg-delete { color: var(--c-muted); }
+.tg-delete:hover { color: var(--c-danger); }
+
+.tg-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tg-rows-empty {
+  padding: 22px 16px;
+  text-align: center;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--c-muted);
+  border: 1.5px dashed var(--c-accent-brd);
+  border-radius: 14px;
+}
+.tg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 6px 10px 2px;
+  border-top: 1px solid var(--c-border);
+}
+.tg-row:first-child, .tg-rows-empty + .tg-row { border-top: none; }
+.tg-row.is-empty .tg-row-name, .tg-row.is-empty .tg-row-count { color: var(--c-muted); }
+.tg-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tg-row-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tg-row-deck { font-size: 12.5px; color: var(--c-muted); }
+.tg-row-count {
+  flex-shrink: 0;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-sub);
+  font-variant-numeric: tabular-nums;
+}
+.tg-row-x {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--c-muted-dim);
+  cursor: pointer;
+}
+.tg-row-x:hover { color: var(--c-danger); background: var(--c-surface3); }
+.tg-adding { margin-top: 4px; }
+
 /* ─── Leaderboard ────────────────────────────────────────────────── */
 .lb-you {
   margin: 14px 0 0;

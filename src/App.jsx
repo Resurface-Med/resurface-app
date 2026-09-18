@@ -27,7 +27,8 @@ import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
-import { loadAll, remote, flushQueue } from "./lib/remote";
+import { loadAll, loadGroups, remote, flushQueue } from "./lib/remote";
+import { groupCodeFromLocation } from "./lib/groups";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -75,6 +76,11 @@ export default function App() {
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [generated, setGenerated] = useState([]);
+  /* Topic groups: the tabs across the top of Study — yours, and the ones
+     people have sent you. */
+  const [groups, setGroups] = useState([]);
+  /* A group to land on in Study, after a link. */
+  const [openGroupId, setOpenGroupId] = useState(null);
 
   /* The bank is one pool: the decks plus whatever you have written yourself.
      Every screen that shows or serves a question reads QUESTIONS, so this is
@@ -124,10 +130,60 @@ export default function App() {
       // Before the questions, so the pool is only rebuilt with both in hand.
       setQuestionEdits(d.questionEdits);
       applyGenerated(d.generated);
+      setGroups(d.groups ?? []);
       setDataLoading(false);
+
+      // Arrived by a share link: save the group to this account and open
+      // Study on it. The address goes back to the root so a reload does not
+      // do it twice.
+      const code = groupCodeFromLocation();
+      if (code) {
+        window.history.replaceState(null, "", "/");
+        try {
+          const id = await remote.saveGroupByCode(code);
+          if (cancelled) return;
+          if (id) {
+            setGroups(await loadGroups());
+            setOpenGroupId(id);
+            setView(V.STUDY);
+          }
+        } catch {}
+      }
     })();
     return () => { cancelled = true; };
   }, [user?.id, recovering]);
+
+  // ── Topic groups ──────────────────────────────────────────────────────
+  // Optimistic: the tab updates now, the row writes behind it.
+  async function createGroup(name, topics = []) {
+    const mine = groups.filter(g => g.mine);
+    const row = await remote.createGroup(user.id, name, topics, mine.length);
+    const g = { id: row.id, name, ownerId: user.id, ownerName: displayName, mine: true, sortOrder: mine.length, topics, shareCode: row.share_code };
+    setGroups(prev => [...prev, g]);
+    return g;
+  }
+  function renameGroup(id, name) {
+    setGroups(prev => prev.map(g => g.id === id ? { ...g, name } : g));
+    remote.updateGroup(id, { name });
+  }
+  function setGroupTopics(id, topics) {
+    setGroups(prev => prev.map(g => g.id === id ? { ...g, topics } : g));
+    remote.updateGroup(id, { topics });
+  }
+  function deleteGroup(id) {
+    const g = groups.find(x => x.id === id);
+    setGroups(prev => prev.filter(x => x.id !== id));
+    if (!g) return;
+    if (g.mine) remote.deleteGroup(id); else remote.unsaveGroup(user.id, id);
+  }
+  function reorderGroups(ids) {
+    setGroups(prev => {
+      const mine = ids.map((id, i) => ({ ...prev.find(g => g.id === id), sortOrder: i }));
+      ids.forEach((id, i) => remote.updateGroup(id, { sort_order: i }));
+      return [...mine, ...prev.filter(g => !g.mine)];
+    });
+  }
+  const groupActions = { createGroup, renameGroup, setGroupTopics, deleteGroup, reorderGroups };
 
   useEffect(() => {
     if (!user) return;
@@ -337,6 +393,8 @@ export default function App() {
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
+            groups={groups} groupActions={groupActions}
+            openGroupId={openGroupId} onOpenGroupConsumed={() => setOpenGroupId(null)}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
