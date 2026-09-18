@@ -104,6 +104,10 @@ function apply(op) {
     case "generated-remove":
       return supabase.from("generated_questions").delete()
         .eq("user_id", op.userId).eq("id", op.id);
+    // Renaming a deck is rewriting the topic on each of its questions.
+    case "generated-update":
+      return supabase.from("generated_questions").update({ payload: op.payload })
+        .eq("user_id", op.userId).eq("id", op.id);
     case "generated-clear":
       return supabase.from("generated_questions").delete().eq("user_id", op.userId);
     case "practice-clear":
@@ -155,7 +159,7 @@ export async function loadAll(userId) {
       supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("timed_bests").select("scope, score").eq("user_id", userId),
-      supabase.from("generated_questions").select("id, payload").eq("user_id", userId),
+      supabase.from("generated_questions").select("id, payload, created_at").eq("user_id", userId),
       supabase.from("question_edits").select("question_id, payload").eq("user_id", userId),
     ]);
   const groups = await loadGroups();
@@ -200,7 +204,7 @@ export async function loadAll(userId) {
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything
     // keyed on question_id — flags are cohort-wide, these are not.
-    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true })),
+    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true, createdAt: r.created_at })),
     questionEdits,
     groups,
   };
@@ -274,6 +278,10 @@ export const remote = {
   },
   removeGenerated: (userId, id) =>
     send({ kind: "generated-remove", userId, id: id - GEN_ID_BASE }),
+  updateGenerated: (userId, q) => {
+    const { id, gen, createdAt, ...payload } = q;
+    return send({ kind: "generated-update", userId, id: id - GEN_ID_BASE, payload });
+  },
   clearGenerated: (userId) => send({ kind: "generated-clear", userId }),
   clearPractice:  (userId) => send({ kind: "practice-clear", userId }),
   clearSR:        (userId) => send({ kind: "sr-clear", userId }),

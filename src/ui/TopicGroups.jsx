@@ -76,6 +76,14 @@ function TopicRow({ topic, count, editable, onRemove }) {
  */
 export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, setAdding }) {
   const [renaming, setRenaming] = useState(false);
+  /* In the picker, "Mine" narrows the tree to the questions you made —
+     your own decks, without the whole curriculum around them. */
+  const [mineOnly, setMineOnly] = useState(false);
+  const pickerIds = useMemo(() => {
+    if (!mineOnly) return eligibleIds;
+    const mine = new Set(QUESTIONS.filter(q => q.gen).map(q => q.id));
+    return eligibleIds.filter(id => mine.has(id));
+  }, [mineOnly, eligibleIds]);
   const [draft, setDraft] = useState("");
   const [copied, setCopied] = useState(false);
   useEffect(() => { setRenaming(false); setCopied(false); }, [group.id]);
@@ -150,7 +158,11 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
 
       {adding ? (
         <div className="tg-adding">
-          <TopicPicker value={pickerValue} onChange={onPick} pStats={pStats} eligibleIds={eligibleIds} query={query} />
+          <div className="tg-source" role="radiogroup" aria-label="Pick from">
+            <button type="button" role="radio" aria-checked={!mineOnly} className={`tg-source-opt${!mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(false)}>Everything</button>
+            <button type="button" role="radio" aria-checked={mineOnly} className={`tg-source-opt${mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(true)}>My decks</button>
+          </div>
+          <TopicPicker value={pickerValue} onChange={onPick} pStats={pStats} eligibleIds={pickerIds} query={query} />
         </div>
       ) : (
         <ol className={`tg-rows${group.topics.length === 0 ? " is-empty" : ""}`}>

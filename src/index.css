@@ -2538,6 +2538,99 @@ select {
 }
 .tg-row-x:hover { color: var(--c-danger); background: var(--c-surface3); }
 .tg-adding { margin-top: 4px; }
+.tg-source { display: flex; gap: 14px; margin: 0 0 8px 2px; }
+.tg-source-opt {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+.tg-source-opt.is-on { color: var(--c-text); }
+
+/* ─── Your decks (under the Generate card) ────────────────────────── */
+.decks { margin-top: clamp(20px, 3vh, 28px); }
+.decks-list { list-style: none; margin: 0; padding: 0; }
+.decks-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+}
+.decks-row + .decks-row { border-top: 1px solid var(--c-border); }
+.decks-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.decks-name {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--c-text);
+  text-align: left;
+  cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.decks-name:hover { color: var(--c-accent); }
+.decks-name-input {
+  width: 100%;
+  margin-left: -6px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-text);
+  background: var(--c-surface3);
+  border: none;
+  border-radius: 8px;
+  outline: none;
+}
+.decks-meta { font-size: 13px; font-weight: 500; color: var(--c-sub); }
+.decks-actions { display: flex; align-items: baseline; gap: 14px; flex-shrink: 0; }
+.decks-actions .gen-link { font-size: 13.5px; }
+.decks-delete { color: var(--c-muted); }
+.decks-delete:hover { color: var(--c-danger); }
+.decks-addto { position: relative; }
+.decks-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--c-card-solid);
+  border-radius: 14px;
+  box-shadow: var(--c-card-shadow-lift);
+  display: flex;
+  flex-direction: column;
+}
+.decks-menu-item {
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.decks-menu-item:hover { background: var(--c-surface3); }
+.decks-menu-item.is-in { color: var(--c-muted); cursor: default; }
+@media (max-width: 560px) {
+  .decks-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  .decks-actions { gap: 16px; }
+  .decks-menu { right: auto; left: 0; }
+}
 
 /* ─── Leaderboard ────────────────────────────────────────────────── */
 .lb-you {

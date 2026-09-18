@@ -431,7 +431,9 @@ export default function App() {
             />
           )}
 
-          {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated} />}
+          {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
+            groups={groups} groupActions={groupActions}
+            onPractise={(deck, cat) => { setLaunchFilter({ deck, cat }); setStudyScope("all"); go(V.STUDY); }} />}
 
 
           </Suspense>
