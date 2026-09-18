@@ -2452,6 +2452,55 @@ select {
 }
 .tg-editbar-meta { color: var(--c-muted); }
 .tg-editbar .gen-link { font-size: 13.5px; }
+
+/* A tab's two controls, and the menus under them. */
+.tg-controls { display: inline-flex; align-items: baseline; gap: 14px; }
+.tg-menu { position: relative; }
+.tg-menu-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--c-sub);
+  cursor: pointer;
+}
+.tg-menu-btn:hover { color: var(--c-text); }
+.tg-menu-btn.is-strong { color: var(--c-accent); }
+.tg-menu-btn.is-strong:hover { color: var(--c-accent-lt); }
+.tg-menu-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 30;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--c-card-solid);
+  border-radius: 14px;
+  box-shadow: var(--c-card-shadow-lift);
+  display: flex;
+  flex-direction: column;
+}
+.tg-menu-pop.is-right { right: 0; }
+.tg-menu-pop.is-left { left: 0; }
+.tg-menu-item {
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tg-menu-item:hover { background: var(--c-surface3); }
+.tg-menu-item.is-danger { color: var(--c-muted); }
+.tg-menu-item.is-danger:hover { color: var(--c-danger); }
+.tg-rows-empty strong { color: var(--c-text); font-weight: 600; }
 .tg-head { margin: 2px 0 12px; }
 .tg-name {
   margin: 0;

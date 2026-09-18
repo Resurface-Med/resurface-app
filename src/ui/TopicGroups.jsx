@@ -1,27 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QUESTIONS } from "../data";
-import { topicKey, groupShareUrl } from "../lib/groups";
+import { groupShareUrl } from "../lib/groups";
 import TopicPicker from "./TopicPicker";
 
 /**
- * The tabs across the top of Study.
+ * The tabs across the top of Study, and the two controls a tab has.
  *
  * "All" is the curriculum as it comes. Every other tab is a group of
- * topics you put together — Week 3, Cardio, the things that keep going
- * wrong — and pressing Start on a tab practises exactly those. "Add
- * topics" opens the curriculum picker with the group's topics ticked;
- * ticking puts a topic in, unticking takes it out. Groups people send you
- * appear as tabs too, read-only, with their name on.
+ * topics you put together, shown as its own tree, and it has exactly what
+ * a deck has: Add, and a menu. Add offers a lecture (Generate) or the
+ * bank (a picker where ticking adds and unticking removes). The menu is
+ * Rename, Share, Delete. Groups people send you appear as tabs too,
+ * read-only, with Share only.
  */
-
-function shortCat(cat, deck) {
-  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
-}
-
-function countFor(topic, eligibleIds) {
-  const el = new Set(eligibleIds);
-  return QUESTIONS.filter(q => q.deck === topic.deck && q.cat === topic.cat && el.has(q.id)).length;
-}
 
 // ── Tabs ─────────────────────────────────────────────────────────────────
 
@@ -49,63 +40,82 @@ export function GroupTabs({ groups, activeId, onSelect, onNew }) {
   );
 }
 
-// ── A group's topics ─────────────────────────────────────────────────────
+// ── A small menu anchored to a text control ──────────────────────────────
 
-function TopicRow({ topic, count, editable, onRemove }) {
+function Menu({ label, items, align = "right", strong = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const onKey = e => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [open]);
   return (
-    <li className={`tg-row${count === 0 ? " is-empty" : ""}`}>
-      <span className="tg-row-body">
-        <span className="tg-row-name">{shortCat(topic.cat, topic.deck)}</span>
-        <span className="tg-row-deck">{topic.deck}</span>
-      </span>
-      <span className="tg-row-count">{count}</span>
-      {editable && (
-        <button type="button" className="tg-row-x" aria-label="Remove from group" onClick={() => onRemove(topic)}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </button>
+    <span className="tg-menu" ref={ref}>
+      <button type="button" className={`tg-menu-btn${strong ? " is-strong" : ""}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+        {label}
+      </button>
+      {open && (
+        <span className={`tg-menu-pop anim-scale-in is-${align}`} role="menu">
+          {items.map(it => (
+            <button key={it.label} type="button" role="menuitem" className={`tg-menu-item${it.danger ? " is-danger" : ""}`}
+              onClick={() => { setOpen(false); it.onSelect(); }}>
+              {it.label}
+            </button>
+          ))}
+        </span>
       )}
-    </li>
+    </span>
   );
 }
 
 /**
- * The body under the tabs when a group is selected. Owns the picker's
- * "adding" mode: ticking a topic there puts it in the group.
+ * The two controls beside a tab's heading: Add, and the menu. Rename is
+ * done inline through onRename (the caller shows the field).
  */
-export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, setAdding, onGenerate = null, showName = true }) {
-  const [renaming, setRenaming] = useState(false);
-  /* In the picker, "Mine" narrows the tree to the questions you made —
-     your own decks, without the whole curriculum around them. */
+export function GroupControls({ group, actions, onGenerate, onChoose, onRename }) {
+  const [copied, setCopied] = useState(false);
+  async function share() {
+    try { await navigator.clipboard.writeText(groupShareUrl(group)); setCopied(true); setTimeout(() => setCopied(false), 1800); }
+    catch { window.prompt("Copy this link", groupShareUrl(group)); }
+  }
+  const addItems = [
+    ...(onGenerate ? [{ label: "Generate from a lecture", onSelect: () => onGenerate(group) }] : []),
+    { label: "Choose from the bank", onSelect: onChoose },
+  ];
+  const menuItems = group.mine
+    ? [
+        { label: "Rename", onSelect: onRename },
+        { label: copied ? "Link copied" : "Share", onSelect: share },
+        { label: "Delete", danger: true, onSelect: () => { if (window.confirm(`Delete “${group.name}”?`)) actions.deleteGroup(group.id); } },
+      ]
+    : [
+        { label: copied ? "Link copied" : "Share", onSelect: share },
+        { label: "Remove", danger: true, onSelect: () => { if (window.confirm(`Remove “${group.name}”?`)) actions.deleteGroup(group.id); } },
+      ];
+  return (
+    <span className="tg-controls">
+      {group.mine && <Menu label={<><span aria-hidden="true">＋</span> Add</>} items={addItems} strong />}
+      <Menu label="⋯" items={menuItems} />
+    </span>
+  );
+}
+
+/**
+ * Choosing from the bank: the curriculum picker with the group's topics
+ * ticked. Ticking adds, unticking removes. Done closes it.
+ */
+export function GroupChooser({ group, actions, eligibleIds, pStats, query, onDone }) {
   const [mineOnly, setMineOnly] = useState(false);
   const pickerIds = useMemo(() => {
     if (!mineOnly) return eligibleIds;
     const mine = new Set(QUESTIONS.filter(q => q.gen).map(q => q.id));
     return eligibleIds.filter(id => mine.has(id));
   }, [mineOnly, eligibleIds]);
-  const [draft, setDraft] = useState("");
-  const [copied, setCopied] = useState(false);
-  useEffect(() => { setRenaming(false); setCopied(false); }, [group.id]);
 
-  const counts = useMemo(() => group.topics.map(t => countFor(t, eligibleIds)), [group.topics, eligibleIds]);
-  const total = counts.reduce((a, b) => a + b, 0);
-
-  function commitRename() {
-    const n = draft.trim();
-    if (n && n !== group.name) actions.renameGroup(group.id, n);
-    setRenaming(false);
-  }
-  async function share() {
-    try { await navigator.clipboard.writeText(groupShareUrl(group)); setCopied(true); setTimeout(() => setCopied(false), 1800); }
-    catch { window.prompt("Copy this link", groupShareUrl(group)); }
-  }
-  function remove(topic) {
-    actions.setGroupTopics(group.id, group.topics.filter(t => topicKey(t) !== topicKey(topic)));
-  }
-
-  /* The picker in adding mode: its value is the group's topics; a change
-     is the new list. */
   const pickerValue = { deck: ["All"], cat: group.topics.length ? group.topics.map(t => t.cat) : ["All"] };
   function onPick(next) {
     const cats = next.cat?.includes("All") ? [] : (next.cat ?? []);
@@ -117,82 +127,23 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
     });
     actions.setGroupTopics(group.id, topics);
   }
-
   return (
-    <div className="tg-body">
-      <div className="tg-head">
-        {!showName ? null : renaming ? (
-          <input
-            autoFocus
-            className="tg-name-input"
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onBlur={commitRename}
-            onKeyDown={e => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenaming(false); }}
-            maxLength={60}
-            aria-label="Group name"
-          />
-        ) : (
-          <h2 className="tg-name" onClick={() => { if (group.mine) { setDraft(group.name); setRenaming(true); } }} title={group.mine ? "Rename" : undefined}>
-            {group.name}
-          </h2>
-        )}
-        <p className="tg-meta">
-          {group.topics.length} topic{group.topics.length === 1 ? "" : "s"} · {total} question{total === 1 ? "" : "s"}
-          {!group.mine && group.ownerName ? <> · from {group.ownerName}</> : null}
-          <span className="tg-quiet">
-            {" · "}<button type="button" className="tg-quiet-link" onClick={share}>{copied ? "Link copied" : "Share"}</button>
-            {" · "}<button type="button" className="tg-quiet-link" onClick={() => {
-              if (window.confirm(group.mine ? `Delete “${group.name}”?` : `Remove “${group.name}”?`)) actions.deleteGroup(group.id);
-            }}>{group.mine ? "Delete" : "Remove"}</button>
-          </span>
-        </p>
+    <div className="tg-adding">
+      <div className="tg-source" role="radiogroup" aria-label="Pick from">
+        <button type="button" role="radio" aria-checked={!mineOnly} className={`tg-source-opt${!mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(false)}>Everything</button>
+        <button type="button" role="radio" aria-checked={mineOnly} className={`tg-source-opt${mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(true)}>My decks</button>
+        <button type="button" className="gen-link tg-source-done" onClick={onDone}>Done</button>
       </div>
-
-      {adding ? (
-        <div className="tg-adding">
-          <div className="tg-source" role="radiogroup" aria-label="Pick from">
-            <button type="button" role="radio" aria-checked={!mineOnly} className={`tg-source-opt${!mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(false)}>Everything</button>
-            <button type="button" role="radio" aria-checked={mineOnly} className={`tg-source-opt${mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(true)}>My decks</button>
-            <button type="button" className="gen-link tg-source-done" onClick={() => setAdding(false)}>Done</button>
-          </div>
-          <TopicPicker value={pickerValue} onChange={onPick} pStats={pStats} eligibleIds={pickerIds} query={query} />
-        </div>
-      ) : group.topics.length === 0 ? (
-        <div className="tg-rows-empty">
-          {group.mine ? (
-            <>
-              Nothing here yet.{" "}
-              {onGenerate && <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions from a lecture</button>}
-              {onGenerate ? ", or " : ""}
-              <button type="button" className="gen-link" onClick={() => setAdding(true)}>add topics from the bank</button>.
-            </>
-          ) : "Nothing in this group."}
-        </div>
-      ) : (
-        <>
-          <ol className="tg-rows">
-            {group.topics.map((t, i) => (
-              <TopicRow key={topicKey(t)} topic={t} count={counts[i]} editable={group.mine} onRemove={remove} />
-            ))}
-          </ol>
-          {group.mine && (
-            <p className="tg-foot">
-              {onGenerate && <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions</button>}
-              <button type="button" className="gen-link tg-foot-bank" onClick={() => setAdding(true)}>Add from the bank</button>
-            </p>
-          )}
-        </>
-      )}
+      <TopicPicker value={pickerValue} onChange={onPick} pStats={pStats} eligibleIds={pickerIds} query={query} />
     </div>
   );
 }
 
 /** The inline "name a new group" field. */
-export function NewGroupForm({ onCreate, onCancel }) {
-  const [name, setName] = useState("");
+export function NewGroupForm({ onCreate, onCancel, initial = "", placeholder = "Name it — “Week 3”, “Cardio”, “Keeps going wrong”" }) {
+  const [name, setName] = useState(initial);
   const ref = useRef(null);
-  useEffect(() => { ref.current?.focus(); }, []);
+  useEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);
   function submit(e) {
     e.preventDefault();
     const n = name.trim();
@@ -200,8 +151,8 @@ export function NewGroupForm({ onCreate, onCancel }) {
   }
   return (
     <form className="tg-new" onSubmit={submit}>
-      <input ref={ref} value={name} onChange={e => setName(e.target.value)} placeholder="Name it — “Week 3”, “Cardio”, “Keeps going wrong”" maxLength={60} aria-label="Group name" />
-      <button type="submit" className="gen-link" disabled={!name.trim()}>Create</button>
+      <input ref={ref} value={name} onChange={e => setName(e.target.value)} placeholder={placeholder} maxLength={60} aria-label="Group name" />
+      <button type="submit" className="gen-link" disabled={!name.trim()}>{initial ? "Save" : "Create"}</button>
       <button type="button" className="gen-link tg-cancel" onClick={onCancel}>Cancel</button>
     </form>
   );

@@ -13,10 +13,8 @@ export function topicKey(t) {
   return `${t.deck}\u001f${t.cat}`;
 }
 
-/** The Study filter a group stands for. */
+/** The Study filter a group stands for. An empty group matches nothing. */
 export function groupFilter(group) {
   const cats = group.topics.map(t => t.cat);
-  return cats.length
-    ? { deck: ["All"], cat: cats }
-    : { deck: ["All"], cat: ["All"] };
+  return { deck: ["All"], cat: cats.length ? cats : ["\u0000nothing"] };
 }

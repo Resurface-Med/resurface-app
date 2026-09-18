@@ -7,7 +7,7 @@ import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import TopicPicker from "../ui/TopicPicker";
-import { GroupTabs, GroupBody, NewGroupForm } from "../ui/TopicGroups";
+import { GroupTabs, GroupControls, GroupChooser, NewGroupForm } from "../ui/TopicGroups";
 import { groupFilter, topicKey } from "../lib/groups";
 import SessionSummary from "../ui/SessionSummary";
 
@@ -272,10 +272,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      the setup — count, scope, Start — carries on not knowing. */
   const [activeGroupId, setActiveGroupId] = useState(openGroupId);
   const [creatingGroup, setCreatingGroup] = useState(false);
-  const [addingTopics, setAddingTopics] = useState(false);
-  /* A tab's own tree, or its management view. Edit is the one word that
-     switches between them. */
-  const [editingGroup, setEditingGroup] = useState(false);
+  /* A tab has two controls: Add (a lecture, or the bank) and a menu.
+     Choosing from the bank replaces the tree with the picker; renaming
+     replaces the heading with a field. */
+  const [choosing, setChoosing] = useState(false);
+  const [renamingGroup, setRenamingGroup] = useState(false);
   const activeGroup = groups.find(g => g.id === activeGroupId) ?? null;
   const groupKeys = useMemo(() => activeGroup ? new Set(activeGroup.topics.map(topicKey)) : null, [activeGroup]);
   /* Inside a tab, "All" means all of the tab. */
@@ -286,13 +287,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useEffect(() => {
     if (activeGroupId && !activeGroup) { setActiveGroupId(null); return; }
     setFilter(f => ({ ...f, deck: ["All"], cat: ["All"] }));
-    setAddingTopics(false);
-    setEditingGroup(false);
+    setChoosing(false);
+    setRenamingGroup(false);
     setTopicQuery("");
   }, [activeGroupId]);
-  /* A freshly made tab has nothing in it: open it on Edit so the first
-     thing you see is how to fill it. */
-  useEffect(() => { if (activeGroup && activeGroup.topics.length === 0 && activeGroup.mine) setEditingGroup(true); }, [activeGroupId]);
   function selectGroup(id) { setCreatingGroup(false); setActiveGroupId(id); }
   async function createGroupNamed(name) {
     const g = await groupActions.createGroup(name);
@@ -514,25 +512,20 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
                   {creatingGroup ? (
                     <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
-                  ) : activeGroup && editingGroup ? (
-                    <>
-                      <p className="tg-editbar">
-                        <button type="button" className="gen-link" onClick={() => { setEditingGroup(false); setAddingTopics(false); }}>Done</button>
-                      </p>
-                      {addingTopics && (
-                        <input type="search" value={topicQuery} onChange={e => setTopicQuery(e.target.value)}
-                          placeholder="Search topics" aria-label="Search topics" className="setup-search" />
-                      )}
-                      <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                        query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} onGenerate={onGenerateFor} />
-                    </>
+                  ) : activeGroup && renamingGroup ? (
+                    <NewGroupForm initial={activeGroup.name} placeholder="Name" onCancel={() => setRenamingGroup(false)}
+                      onCreate={n => { groupActions.renameGroup(activeGroup.id, n); setRenamingGroup(false); }} />
                   ) : (
                     <>
                       {activeGroup && (
-                        <p className="tg-editbar">
-                          <span className="tg-editbar-meta">{activeGroup.topics.length} topic{activeGroup.topics.length === 1 ? "" : "s"}{!activeGroup.mine && activeGroup.ownerName ? ` · from ${activeGroup.ownerName}` : ""}</span>
-                          <button type="button" className="gen-link" onClick={() => setEditingGroup(true)}>{activeGroup.mine ? "Edit" : "Details"}</button>
-                        </p>
+                        <div className="tg-editbar">
+                          <span className="tg-editbar-meta">
+                            {activeGroup.topics.length} topic{activeGroup.topics.length === 1 ? "" : "s"}
+                            {!activeGroup.mine && activeGroup.ownerName ? ` · from ${activeGroup.ownerName}` : ""}
+                          </span>
+                          <GroupControls group={activeGroup} actions={groupActions} onGenerate={onGenerateFor}
+                            onChoose={() => setChoosing(true)} onRename={() => setRenamingGroup(true)} />
+                        </div>
                       )}
                       <input
                         type="search"
@@ -542,16 +535,25 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         aria-label="Search topics"
                         className="setup-search"
                       />
-                      <TopicPicker
-                        key={activeGroupId ?? "all"}
-                        value={filter}
-                        onChange={next => setFilter(f => ({ ...f, ...next }))}
-                        pStats={pStats}
-                        eligibleIds={eligibleIds}
-                        query={topicQuery}
-                        only={groupKeys}
-                        allLabel={activeGroup ? `All of ${activeGroup.name}` : "All blocks"}
-                      />
+                      {activeGroup && choosing ? (
+                        <GroupChooser group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
+                          query={topicQuery} onDone={() => setChoosing(false)} />
+                      ) : activeGroup && activeGroup.topics.length === 0 ? (
+                        <div className="tg-rows-empty">
+                          Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture or topics from the bank.
+                        </div>
+                      ) : (
+                        <TopicPicker
+                          key={activeGroupId ?? "all"}
+                          value={filter}
+                          onChange={next => setFilter(f => ({ ...f, ...next }))}
+                          pStats={pStats}
+                          eligibleIds={eligibleIds}
+                          query={topicQuery}
+                          only={groupKeys}
+                          allLabel={activeGroup ? `All of ${activeGroup.name}` : "All blocks"}
+                        />
+                      )}
                     </>
                   )}
                   {/* Sticky, because the topic list is longer than a phone and
@@ -671,20 +673,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
             <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              {!creatingGroup && (
+              {!creatingGroup && !renamingGroup && (
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
-                  <h2 style={{ ...sectionH, margin: 0 }}>{activeGroup && editingGroup ? activeGroup.name : "What are you revising?"}</h2>
-                  <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {!(activeGroup && editingGroup) && <>{scoped} available</>}
-                    {activeGroup && (
-                      editingGroup
-                        ? <button type="button" className="gen-link" onClick={() => { setEditingGroup(false); setAddingTopics(false); }}>Done</button>
-                        : <button type="button" className="gen-link" onClick={() => setEditingGroup(true)}>{activeGroup.mine ? "Edit" : "Details"}</button>
+                  <h2 style={{ ...sectionH, margin: 0 }}>{activeGroup && choosing ? `Choose for ${activeGroup.name}` : "What are you revising?"}</h2>
+                  <span style={{ display: "flex", alignItems: "baseline", gap: 16, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                    {!choosing && <>{scoped} available</>}
+                    {activeGroup && !choosing && (
+                      <GroupControls group={activeGroup} actions={groupActions} onGenerate={onGenerateFor}
+                        onChoose={() => setChoosing(true)} onRename={() => setRenamingGroup(true)} />
                     )}
                   </span>
                 </div>
               )}
-              {!creatingGroup && (!(activeGroup && editingGroup) || addingTopics) && (
+              {activeGroup && renamingGroup && (
+                <NewGroupForm initial={activeGroup.name} placeholder="Name" onCancel={() => setRenamingGroup(false)}
+                  onCreate={n => { groupActions.renameGroup(activeGroup.id, n); setRenamingGroup(false); }} />
+              )}
+              {!creatingGroup && !renamingGroup && (
                 <input
                   type="search"
                   value={topicQuery}
@@ -705,9 +710,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingGroup ? (
                 <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
-              ) : activeGroup && editingGroup ? (
-                <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                  query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} onGenerate={onGenerateFor} showName={false} />
+              ) : activeGroup && choosing ? (
+                <GroupChooser group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
+                  query={topicQuery} onDone={() => setChoosing(false)} />
+              ) : activeGroup && activeGroup.topics.length === 0 ? (
+                <div className="tg-rows-empty">
+                  Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture or topics from the bank.
+                </div>
               ) : (
                 <TopicPicker
                   key={activeGroupId ?? "all"}
