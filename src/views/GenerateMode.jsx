@@ -670,7 +670,7 @@ function YourDecks({ questions, userId, onChange, groups, groupActions, onPracti
   );
 }
 
-export default function GenerateMode({ savedGenerated = [], onGeneratedChange, groups = [], groupActions = null, onPractise = null }) {
+export default function GenerateMode({ savedGenerated = [], onGeneratedChange, groups = [], groupActions = null, onPractise = null, targetGroup = null, onTargetGroupChange = null, onOpenGroup = null }) {
   const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
@@ -774,6 +774,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
                   const merged = [...savedQs, ...saved];
                   setSavedQs(merged);
                   onGeneratedChange?.(merged);
+                  fileIntoGroup(saved);
                   setPhase("done");
                 }}
               >
@@ -840,9 +841,15 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
         sub="Reload once so Practice and the rest of the app pick them up."
       >
         <div className="gen-done-actions">
-          <button type="button" className="btn-press" style={primaryBtn} onClick={() => window.location.reload()}>
-            Reload app
-          </button>
+          {targetGroup && onOpenGroup ? (
+            <button type="button" className="btn-press" style={primaryBtn} onClick={() => { const id = targetGroup.id; onTargetGroupChange?.(null); onOpenGroup(id); }}>
+              Open {targetGroup.name} <span aria-hidden="true">→</span>
+            </button>
+          ) : (
+            <button type="button" className="btn-press" style={primaryBtn} onClick={() => window.location.reload()}>
+              Reload app
+            </button>
+          )}
           <button
             type="button"
             className="btn-press gen-text-btn"
@@ -923,8 +930,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
     const merged = [...savedQs, ...saved];
     setSavedQs(merged);
     onGeneratedChange?.(merged);
+    fileIntoGroup(saved);
     setWritten([]);
     setPhase("done");
+  }
+
+  /* Came here from a group's tab: the new deck goes into that group. */
+  function fileIntoGroup(saved) {
+    if (!targetGroup || !groupActions || !saved.length) return;
+    const { deck: d, cat: c } = saved[0];
+    if (targetGroup.topics.some(t => t.deck === d && t.cat === c)) return;
+    groupActions.setGroupTopics(targetGroup.id, [...targetGroup.topics, { deck: d, cat: c }]);
   }
 
   /* Year, Block, Subject, Topic — widest first. Each narrows the one after
@@ -1078,6 +1094,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
             );
           })}
         </nav>
+
+        {targetGroup && (
+          <p className="gen-target">
+            Adding to <strong>{targetGroup.name}</strong>
+            {onTargetGroupChange && <> · <button type="button" className="gen-link" onClick={() => onTargetGroupChange(null)}>not this time</button></>}
+          </p>
+        )}
 
         <div key={`${mode}-${step}`} className="gen-step" style={{ "--dir": dir }}>
           {step === 0 && (

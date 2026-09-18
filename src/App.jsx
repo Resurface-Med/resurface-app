@@ -81,6 +81,9 @@ export default function App() {
   const [groups, setGroups] = useState([]);
   /* A group to land on in Study, after a link. */
   const [openGroupId, setOpenGroupId] = useState(null);
+  /* A group that Generate should file its next deck into — set when you
+     press "Generate questions" on a group's tab. */
+  const [generateForId, setGenerateForId] = useState(null);
 
   /* The bank is one pool: the decks plus whatever you have written yourself.
      Every screen that shows or serves a question reads QUESTIONS, so this is
@@ -395,6 +398,7 @@ export default function App() {
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
             groups={groups} groupActions={groupActions}
             openGroupId={openGroupId} onOpenGroupConsumed={() => setOpenGroupId(null)}
+            onGenerateFor={g => { setGenerateForId(g.id); go(V.GENERATE); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
@@ -433,6 +437,9 @@ export default function App() {
 
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
             groups={groups} groupActions={groupActions}
+            targetGroup={groups.find(g => g.id === generateForId) ?? null}
+            onTargetGroupChange={id => setGenerateForId(id)}
+            onOpenGroup={id => { setOpenGroupId(id); go(V.STUDY); }}
             onPractise={(deck, cat) => { setLaunchFilter({ deck, cat }); setStudyScope("all"); go(V.STUDY); }} />}
 
 

@@ -74,7 +74,7 @@ function TopicRow({ topic, count, editable, onRemove }) {
  * The body under the tabs when a group is selected. Owns the picker's
  * "adding" mode: ticking a topic there puts it in the group.
  */
-export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, setAdding }) {
+export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, setAdding, onGenerate = null }) {
   const [renaming, setRenaming] = useState(false);
   /* In the picker, "Mine" narrows the tree to the questions you made —
      your own decks, without the whole curriculum around them. */
@@ -142,9 +142,12 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
           {!group.mine && group.ownerName ? <> · from {group.ownerName}</> : null}
         </p>
         <div className="tg-actions">
+          {group.mine && onGenerate && !adding && (
+            <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions</button>
+          )}
           {group.mine && (
             <button type="button" className={`gen-link${adding ? " is-on" : ""}`} onClick={() => setAdding(a => !a)}>
-              {adding ? "Done" : "Add topics"}
+              {adding ? "Done" : "Add from the bank"}
             </button>
           )}
           <button type="button" className="gen-link" onClick={share}>{copied ? "Link copied" : "Share"}</button>
@@ -168,7 +171,14 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
         <ol className={`tg-rows${group.topics.length === 0 ? " is-empty" : ""}`}>
           {group.topics.length === 0 && (
             <li className="tg-rows-empty">
-              {group.mine ? "Nothing in this group yet. Press “Add topics”." : "Nothing in this group."}
+              {group.mine ? (
+                <>
+                  Nothing here yet.{" "}
+                  {onGenerate && <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions from a lecture</button>}
+                  {onGenerate ? ", or " : ""}
+                  <button type="button" className="gen-link" onClick={() => setAdding(true)}>add topics from the bank</button>.
+                </>
+              ) : "Nothing in this group."}
             </li>
           )}
           {group.topics.map((t, i) => (

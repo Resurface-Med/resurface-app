@@ -245,7 +245,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", groups = [], groupActions = null, openGroupId = null, onOpenGroupConsumed = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", groups = [], groupActions = null, openGroupId = null, onOpenGroupConsumed = null, onGenerateFor = null }) {
   const [scope, setScope] = useState(initialScope);
   const [bank, setBank] = useState("both");
 
@@ -510,7 +510,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           placeholder="Search topics" aria-label="Search topics" className="setup-search" />
                       )}
                       <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                        query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} />
+                        query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} onGenerate={onGenerateFor} />
                     </>
                   ) : (
                     <>
@@ -684,7 +684,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
               ) : activeGroup ? (
                 <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                  query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} />
+                  query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} onGenerate={onGenerateFor} />
               ) : (
                 <TopicPicker
                   value={filter}
