@@ -382,7 +382,7 @@ export const chipFieldActive = {
 export const NAV = [
   { k: V.DASH,        label: "Home" },
   { k: V.STUDY,       label: "Study" },
+  { k: V.GENERATE,    label: "Generate" },
   { k: V.PROGRESS,    label: "Progress" },
   { k: V.LEADERBOARD, label: "Leaderboard" },
-  { k: V.GENERATE,    label: "Generate" },
 ];
