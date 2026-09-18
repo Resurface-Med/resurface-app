@@ -31,10 +31,11 @@ import { QUESTIONS, BLOCKS } from "../data";
  * — three levels of disclosure to reach a topic is two taps too many, and a
  * heading gives the same grouping for free.
  */
-function buildTree(pStats, eligible) {
+function buildTree(pStats, eligible, only = null) {
   const blocks = new Map();
 
   for (const q of QUESTIONS) {
+    if (only && !only.has(`${q.deck}\u001f${q.cat}`)) continue;
     const bName = q.block || "Other";
     let b = blocks.get(bName);
     if (!b) { b = { block: bName, total: 0, avail: 0, decks: new Map() }; blocks.set(bName, b); }
@@ -133,7 +134,12 @@ function Check({ state }) {
   );
 }
 
-export default function TopicPicker({ value, onChange, pStats, eligibleIds, query = "" }) {
+/**
+ * `only`: a Set of "deck\u001fcat" keys — the picker shows just those
+ * topics, as a tab's own tree. `allLabel` names the top row ("All blocks",
+ * or the tab's name).
+ */
+export default function TopicPicker({ value, onChange, pStats, eligibleIds, query = "", only = null, allLabel = "All blocks" }) {
   /* Chosen topics as a set, or null meaning "everything". null rather than a
      set of all 41 so that adding a deck to the bank does not silently leave
      an old selection behind. */
@@ -143,13 +149,17 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
   }, [value.cat]);
 
   const eligible = useMemo(() => new Set(eligibleIds), [eligibleIds]);
-  const full = useMemo(() => buildTree(pStats, eligible), [pStats, eligible]);
-  const totalAvail = eligible.size;
+  const full = useMemo(() => buildTree(pStats, eligible, only), [pStats, eligible, only]);
+  const totalAvail = useMemo(
+    () => only ? full.reduce((n, b) => n + b.avail, 0) : eligible.size,
+    [only, full, eligible],
+  );
 
   /* Open the subject holding the first chosen topic, so arriving from
      Progress with one topic already picked shows it rather than hiding it
      inside a collapsed row. */
   const [open, setOpen] = useState(() => {
+    if (only) return new Set(full.flatMap(b => b.decks.map(d => d.deck)));
     const first = (value.cat ?? []).find(c => c && c !== "All");
     if (!first) return new Set();
     const owner = full
@@ -185,6 +195,7 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
      subjects a block across four blocks is thirty-six rows before a single
      topic is shown, which is the reason these are rows and not headings. */
   const [openBlocks, setOpenBlocks] = useState(() => {
+    if (only) return new Set(full.map(b => b.block));
     const first = (value.cat ?? []).find(c => c && c !== "All");
     const owner = first && full.find(b => b.decks.some(d => d.cats.some(c => c.cat === first)));
     return new Set([owner?.block ?? full[0]?.block].filter(Boolean));
@@ -271,7 +282,7 @@ export default function TopicPicker({ value, onChange, pStats, eligibleIds, quer
           className={`topic-row topic-row-roomy${isAll ? " is-active" : ""}`}
         >
           <Check state={isAll} />
-          <span className="topic-name" style={{ fontWeight: 600 }}>All blocks</span>
+          <span className="topic-name" style={{ fontWeight: 600 }}>{allLabel}</span>
           <span className="topic-meta">
             <span className="topic-avail">{totalAvail}</span>
           </span>

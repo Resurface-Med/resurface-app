@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
@@ -8,7 +8,7 @@ import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import TopicPicker from "../ui/TopicPicker";
 import { GroupTabs, GroupBody, NewGroupForm } from "../ui/TopicGroups";
-import { groupFilter } from "../lib/groups";
+import { groupFilter, topicKey } from "../lib/groups";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -273,20 +273,31 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [activeGroupId, setActiveGroupId] = useState(openGroupId);
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [addingTopics, setAddingTopics] = useState(false);
+  /* A tab's own tree, or its management view. Edit is the one word that
+     switches between them. */
+  const [editingGroup, setEditingGroup] = useState(false);
   const activeGroup = groups.find(g => g.id === activeGroupId) ?? null;
+  const groupKeys = useMemo(() => activeGroup ? new Set(activeGroup.topics.map(topicKey)) : null, [activeGroup]);
+  /* Inside a tab, "All" means all of the tab. */
+  function effective(f) {
+    return activeGroup && (f.cat?.includes("All") || !f.cat?.length) ? { ...f, ...groupFilter(activeGroup) } : f;
+  }
   useEffect(() => { if (openGroupId) onOpenGroupConsumed?.(); }, []);
   useEffect(() => {
     if (activeGroupId && !activeGroup) { setActiveGroupId(null); return; }
-    setFilter(f => ({ ...f, ...(activeGroup ? groupFilter(activeGroup) : { deck: ["All"], cat: ["All"] }) }));
+    setFilter(f => ({ ...f, deck: ["All"], cat: ["All"] }));
     setAddingTopics(false);
+    setEditingGroup(false);
     setTopicQuery("");
-  }, [activeGroupId, activeGroup?.topics]);
+  }, [activeGroupId]);
+  /* A freshly made tab has nothing in it: open it on Edit so the first
+     thing you see is how to fill it. */
+  useEffect(() => { if (activeGroup && activeGroup.topics.length === 0 && activeGroup.mine) setEditingGroup(true); }, [activeGroupId]);
   function selectGroup(id) { setCreatingGroup(false); setActiveGroupId(id); }
   async function createGroupNamed(name) {
     const g = await groupActions.createGroup(name);
     setCreatingGroup(false);
     setActiveGroupId(g.id);
-    setAddingTopics(true);
   }
   const isPhone = useIsPhone();
   // Phones split the setup in two. A phone screen cannot hold a scrolling list
@@ -326,11 +337,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   /** Exactly what a Start press would queue, so the button can say so. */
   function scopedCount(f) {
-    return applyScope(applyBank(filteredQuestions(f, pStats), bank)).length;
+    return applyScope(applyBank(filteredQuestions(effective(f), pStats), bank)).length;
   }
 
   function start(filterOverride) {
-    const f = filterOverride ?? filter;
+    const f = effective(filterOverride ?? filter);
     const base = applyScope(applyBank(filteredQuestions(f, pStats), bank));
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
@@ -503,8 +514,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
                   {creatingGroup ? (
                     <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
-                  ) : activeGroup ? (
+                  ) : activeGroup && editingGroup ? (
                     <>
+                      <p className="tg-editbar">
+                        <button type="button" className="gen-link" onClick={() => { setEditingGroup(false); setAddingTopics(false); }}>Done</button>
+                      </p>
                       {addingTopics && (
                         <input type="search" value={topicQuery} onChange={e => setTopicQuery(e.target.value)}
                           placeholder="Search topics" aria-label="Search topics" className="setup-search" />
@@ -514,6 +528,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     </>
                   ) : (
                     <>
+                      {activeGroup && (
+                        <p className="tg-editbar">
+                          <span className="tg-editbar-meta">{activeGroup.topics.length} topic{activeGroup.topics.length === 1 ? "" : "s"}{!activeGroup.mine && activeGroup.ownerName ? ` · from ${activeGroup.ownerName}` : ""}</span>
+                          <button type="button" className="gen-link" onClick={() => setEditingGroup(true)}>{activeGroup.mine ? "Edit" : "Details"}</button>
+                        </p>
+                      )}
                       <input
                         type="search"
                         value={topicQuery}
@@ -522,19 +542,18 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         aria-label="Search topics"
                         className="setup-search"
                       />
-                      {/* Selecting and moving on are two things: the first tap
-                          used to leave the screen, which made a second topic
-                          unreachable. */}
                       <TopicPicker
+                        key={activeGroupId ?? "all"}
                         value={filter}
                         onChange={next => setFilter(f => ({ ...f, ...next }))}
                         pStats={pStats}
                         eligibleIds={eligibleIds}
                         query={topicQuery}
+                        only={groupKeys}
+                        allLabel={activeGroup ? `All of ${activeGroup.name}` : "All blocks"}
                       />
                     </>
                   )}
-
                   {/* Sticky, because the topic list is longer than a phone and
                       the way out should not be at the bottom of a scroll. */}
                   <div className="setup-next-dock">
@@ -652,16 +671,20 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
             <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              {/* A group names itself below; the heading is for the whole bank. */}
-              {!activeGroup && !creatingGroup && (
+              {!creatingGroup && (
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
-                  <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
-                  <span style={{ fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {scoped} available
+                  <h2 style={{ ...sectionH, margin: 0 }}>{activeGroup && editingGroup ? activeGroup.name : "What are you revising?"}</h2>
+                  <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                    {!(activeGroup && editingGroup) && <>{scoped} available</>}
+                    {activeGroup && (
+                      editingGroup
+                        ? <button type="button" className="gen-link" onClick={() => { setEditingGroup(false); setAddingTopics(false); }}>Done</button>
+                        : <button type="button" className="gen-link" onClick={() => setEditingGroup(true)}>{activeGroup.mine ? "Edit" : "Details"}</button>
+                    )}
                   </span>
                 </div>
               )}
-              {(!activeGroup || addingTopics) && !creatingGroup && (
+              {!creatingGroup && (!(activeGroup && editingGroup) || addingTopics) && (
                 <input
                   type="search"
                   value={topicQuery}
@@ -682,16 +705,19 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingGroup ? (
                 <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
-              ) : activeGroup ? (
+              ) : activeGroup && editingGroup ? (
                 <GroupBody group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                  query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} onGenerate={onGenerateFor} />
+                  query={topicQuery} adding={addingTopics} setAdding={setAddingTopics} onGenerate={onGenerateFor} showName={false} />
               ) : (
                 <TopicPicker
+                  key={activeGroupId ?? "all"}
                   value={filter}
                   onChange={next => setFilter(f => ({ ...f, ...next }))}
                   pStats={pStats}
                   eligibleIds={eligibleIds}
                   query={topicQuery}
+                  only={groupKeys}
+                  allLabel={activeGroup ? `All of ${activeGroup.name}` : "All blocks"}
                 />
               )}
             </div>

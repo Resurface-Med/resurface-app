@@ -74,7 +74,7 @@ function TopicRow({ topic, count, editable, onRemove }) {
  * The body under the tabs when a group is selected. Owns the picker's
  * "adding" mode: ticking a topic there puts it in the group.
  */
-export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, setAdding, onGenerate = null }) {
+export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, setAdding, onGenerate = null, showName = true }) {
   const [renaming, setRenaming] = useState(false);
   /* In the picker, "Mine" narrows the tree to the questions you made —
      your own decks, without the whole curriculum around them. */
@@ -121,7 +121,7 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
   return (
     <div className="tg-body">
       <div className="tg-head">
-        {renaming ? (
+        {!showName ? null : renaming ? (
           <input
             autoFocus
             className="tg-name-input"
@@ -140,23 +140,13 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
         <p className="tg-meta">
           {group.topics.length} topic{group.topics.length === 1 ? "" : "s"} · {total} question{total === 1 ? "" : "s"}
           {!group.mine && group.ownerName ? <> · from {group.ownerName}</> : null}
+          <span className="tg-quiet">
+            {" · "}<button type="button" className="tg-quiet-link" onClick={share}>{copied ? "Link copied" : "Share"}</button>
+            {" · "}<button type="button" className="tg-quiet-link" onClick={() => {
+              if (window.confirm(group.mine ? `Delete “${group.name}”?` : `Remove “${group.name}”?`)) actions.deleteGroup(group.id);
+            }}>{group.mine ? "Delete" : "Remove"}</button>
+          </span>
         </p>
-        <div className="tg-actions">
-          {group.mine && onGenerate && !adding && (
-            <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions</button>
-          )}
-          {group.mine && (
-            <button type="button" className={`gen-link${adding ? " is-on" : ""}`} onClick={() => setAdding(a => !a)}>
-              {adding ? "Done" : "Add from the bank"}
-            </button>
-          )}
-          <button type="button" className="gen-link" onClick={share}>{copied ? "Link copied" : "Share"}</button>
-          <button type="button" className="gen-link tg-delete" onClick={() => {
-            if (window.confirm(group.mine ? `Delete “${group.name}”?` : `Remove “${group.name}”?`)) actions.deleteGroup(group.id);
-          }}>
-            {group.mine ? "Delete" : "Remove"}
-          </button>
-        </div>
       </div>
 
       {adding ? (
@@ -164,27 +154,35 @@ export function GroupBody({ group, actions, eligibleIds, pStats, query, adding, 
           <div className="tg-source" role="radiogroup" aria-label="Pick from">
             <button type="button" role="radio" aria-checked={!mineOnly} className={`tg-source-opt${!mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(false)}>Everything</button>
             <button type="button" role="radio" aria-checked={mineOnly} className={`tg-source-opt${mineOnly ? " is-on" : ""}`} onClick={() => setMineOnly(true)}>My decks</button>
+            <button type="button" className="gen-link tg-source-done" onClick={() => setAdding(false)}>Done</button>
           </div>
           <TopicPicker value={pickerValue} onChange={onPick} pStats={pStats} eligibleIds={pickerIds} query={query} />
         </div>
+      ) : group.topics.length === 0 ? (
+        <div className="tg-rows-empty">
+          {group.mine ? (
+            <>
+              Nothing here yet.{" "}
+              {onGenerate && <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions from a lecture</button>}
+              {onGenerate ? ", or " : ""}
+              <button type="button" className="gen-link" onClick={() => setAdding(true)}>add topics from the bank</button>.
+            </>
+          ) : "Nothing in this group."}
+        </div>
       ) : (
-        <ol className={`tg-rows${group.topics.length === 0 ? " is-empty" : ""}`}>
-          {group.topics.length === 0 && (
-            <li className="tg-rows-empty">
-              {group.mine ? (
-                <>
-                  Nothing here yet.{" "}
-                  {onGenerate && <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions from a lecture</button>}
-                  {onGenerate ? ", or " : ""}
-                  <button type="button" className="gen-link" onClick={() => setAdding(true)}>add topics from the bank</button>.
-                </>
-              ) : "Nothing in this group."}
-            </li>
+        <>
+          <ol className="tg-rows">
+            {group.topics.map((t, i) => (
+              <TopicRow key={topicKey(t)} topic={t} count={counts[i]} editable={group.mine} onRemove={remove} />
+            ))}
+          </ol>
+          {group.mine && (
+            <p className="tg-foot">
+              {onGenerate && <button type="button" className="gen-link" onClick={() => onGenerate(group)}>Generate questions</button>}
+              <button type="button" className="gen-link tg-foot-bank" onClick={() => setAdding(true)}>Add from the bank</button>
+            </p>
           )}
-          {group.topics.map((t, i) => (
-            <TopicRow key={topicKey(t)} topic={t} count={counts[i]} editable={group.mine} onRemove={remove} />
-          ))}
-        </ol>
+        </>
       )}
     </div>
   );

@@ -565,111 +565,6 @@ function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-/**
- * Your decks: the questions you have made, as one row per deck. A deck is a
- * topic you named on the card — every upload into the same name joins it.
- * Rename rewrites the topic on each question; Delete removes them all; Add
- * to group puts the topic in one of your Study tabs.
- */
-function YourDecks({ questions, userId, onChange, groups, groupActions, onPractise }) {
-  const [renaming, setRenaming] = useState(null);
-  const [draft, setDraft] = useState("");
-  const [addingTo, setAddingTo] = useState(null);
-
-  const decks = useMemo(() => {
-    const map = new Map();
-    for (const q of questions) {
-      const key = `${q.deck}\u001f${q.cat}`;
-      if (!map.has(key)) map.set(key, { key, deck: q.deck, cat: q.cat, qs: [], latest: 0 });
-      const d = map.get(key);
-      d.qs.push(q);
-      const t = q.createdAt ? Date.parse(q.createdAt) : 0;
-      if (t > d.latest) d.latest = t;
-    }
-    return [...map.values()].sort((a, b) => b.latest - a.latest);
-  }, [questions]);
-
-  if (!decks.length) return null;
-
-  function rename(d) {
-    const n = draft.trim();
-    setRenaming(null);
-    if (!n || n === d.cat) return;
-    const next = questions.map(q => (q.deck === d.deck && q.cat === d.cat) ? { ...q, cat: n } : q);
-    onChange(next);
-    for (const q of next) if (q.deck === d.deck && q.cat === n) remote.updateGenerated(userId, q);
-  }
-  function remove(d) {
-    if (!window.confirm(`Delete “${shortCat(d.cat, d.deck)}” and its ${d.qs.length} question${d.qs.length === 1 ? "" : "s"}?`)) return;
-    onChange(questions.filter(q => !(q.deck === d.deck && q.cat === d.cat)));
-    for (const q of d.qs) remote.removeGenerated(userId, q.id);
-  }
-  function addTo(d, g) {
-    setAddingTo(null);
-    if (g.topics.some(t => t.cat === d.cat && t.deck === d.deck)) return;
-    groupActions.setGroupTopics(g.id, [...g.topics, { deck: d.deck, cat: d.cat }]);
-  }
-  const mine = groups.filter(g => g.mine);
-  const when = t => t ? new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
-
-  return (
-    <section className="prog-card decks anim-scale-in">
-      <div className="prog-card-head">
-        <h2 className="prog-card-title">Your decks</h2>
-        <span className="prog-card-fig">{questions.length} question{questions.length === 1 ? "" : "s"}</span>
-      </div>
-      <ul className="decks-list">
-        {decks.map(d => (
-          <li key={d.key} className="decks-row">
-            <div className="decks-main">
-              {renaming === d.key ? (
-                <input
-                  autoFocus
-                  className="decks-name-input"
-                  value={draft}
-                  onChange={e => setDraft(e.target.value)}
-                  onBlur={() => rename(d)}
-                  onKeyDown={e => { if (e.key === "Enter") rename(d); if (e.key === "Escape") setRenaming(null); }}
-                  maxLength={80}
-                  aria-label="Deck name"
-                />
-              ) : (
-                <button type="button" className="decks-name" onClick={() => { setDraft(shortCat(d.cat, d.deck)); setRenaming(d.key); }} title="Rename">
-                  {shortCat(d.cat, d.deck)}
-                </button>
-              )}
-              <span className="decks-meta">{d.deck} · {d.qs.length} question{d.qs.length === 1 ? "" : "s"}{d.latest ? <> · {when(d.latest)}</> : null}</span>
-            </div>
-            <div className="decks-actions">
-              {onPractise && <button type="button" className="gen-link" onClick={() => onPractise(d.deck, d.cat)}>Practise</button>}
-              {groupActions && mine.length > 0 && (
-                <span className="decks-addto">
-                  <button type="button" className="gen-link" onClick={() => setAddingTo(addingTo === d.key ? null : d.key)}>
-                    Add to group
-                  </button>
-                  {addingTo === d.key && (
-                    <span className="decks-menu anim-scale-in" role="menu">
-                      {mine.map(g => {
-                        const has = g.topics.some(t => t.cat === d.cat && t.deck === d.deck);
-                        return (
-                          <button key={g.id} type="button" role="menuitem" className={`decks-menu-item${has ? " is-in" : ""}`} onClick={() => addTo(d, g)} disabled={has}>
-                            {g.name}{has ? " ✓" : ""}
-                          </button>
-                        );
-                      })}
-                    </span>
-                  )}
-                </span>
-              )}
-              <button type="button" className="gen-link decks-delete" onClick={() => remove(d)}>Delete</button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
 export default function GenerateMode({ savedGenerated = [], onGeneratedChange, groups = [], groupActions = null, onPractise = null, targetGroup = null, onTargetGroupChange = null, onOpenGroup = null }) {
   const { user } = useAuth();
   const [file, setFile] = useState(null);
@@ -1322,9 +1217,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
           <>Or <button type="button" className="gen-link" onClick={() => { setMode("ai"); turnTo(0); }}>generate them from a lecture</button> instead.</>
         )}
       </p>
-
-      <YourDecks questions={savedQs} userId={user?.id} groups={groups} groupActions={groupActions} onPractise={onPractise}
-        onChange={next => { setSavedQs(next); onGeneratedChange?.(next); }} />
 
       {writing && (
         <EditQuestionModal
