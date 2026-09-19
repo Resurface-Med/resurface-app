@@ -933,7 +933,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         {targetDeckId && decksById.get(targetDeckId) && (
           <p className="gen-target">
             Adding to <strong>{decksById.get(targetDeckId).name}</strong>
-            {onTargetDeckChange && <> · <button type="button" className="gen-link" onClick={() => { onTargetDeckChange(null); setNewDeckParent(""); }}>not this time</button></>}
           </p>
         )}
 
