@@ -61,7 +61,7 @@ function RowMenu({ node, items }) {
       <button ref={ref} type="button" className="deck-menu-btn" aria-label={`Options for ${node.name}`} aria-haspopup="menu" aria-expanded={open}
         onClick={e => { e.stopPropagation(); setOpen(o => !o); }}>⋯</button>
       <Popover anchorRef={ref} open={open} onClose={close}>
-        <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(node); }} />
+        <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(node, ref.current); }} />
       </Popover>
     </span>
   );

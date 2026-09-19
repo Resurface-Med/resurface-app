@@ -287,8 +287,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
   const [copyingInto, setCopyingInto] = useState(null); // deck id
   const [browsing, setBrowsing] = useState(null);       // deck id whose questions are listed
-  const [movingDeck, setMovingDeck] = useState(null);   // { id, anchor } for the Move to… picker
-  const moveAnchor = useRef(null);
+  const [movingDeck, setMovingDeck] = useState(null);   // { id, anchor }: the Move into… picker, by its row's button
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
   useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
@@ -479,7 +478,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const rowMenu = node => [
       { label: "Questions", onSelect: n => { setBrowsing(n.id); setTopicQuery(""); } },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
-      { label: "Move to…", onSelect: n => setMovingDeck(n.id) },
+      { label: "Move into…", onSelect: (n, el) => setMovingDeck({ id: n.id, anchor: { current: el } }) },
       { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
       { label: "Delete", danger: true, onSelect: async n => {
@@ -756,11 +755,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
             </div>
 
-            <span ref={moveAnchor} style={{ display: "block", height: 0 }} />
             {movingDeck && (
-              <DeckPicker decks={decks} exclude={movingDeck} allowTop anchorRef={moveAnchor} open onClose={() => setMovingDeck(null)}
-                current={decksById.get(movingDeck)?.parentId ?? null}
-                onPick={id => { deckActions.moveDeck(movingDeck, id); setMovingDeck(null); }} />
+              <DeckPicker decks={decks} exclude={movingDeck.id} allowTop anchorRef={movingDeck.anchor} open onClose={() => setMovingDeck(null)}
+                current={decksById.get(movingDeck.id)?.parentId ?? null}
+                onPick={id => { deckActions.moveDeck(movingDeck.id, id); setMovingDeck(null); }} />
             )}
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingDeck ? (

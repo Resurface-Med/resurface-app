@@ -34,7 +34,7 @@ export function DeckPicker({ decks, exclude = null, allowTop = false, onPick, an
   ];
   return (
     <Popover anchorRef={anchorRef} open={open} onClose={onClose}>
-      <div className="pop-title">Move to</div>
+      <div className="pop-title">Move into</div>
       {items.length === 0 && <div className="pop-empty">No other deck yet.</div>}
       <MenuItems items={items} onPick={it => { onClose(); it.onSelect(); }} />
     </Popover>
@@ -50,7 +50,7 @@ function QuestionRow({ q, decks, actions, onEdit }) {
   const where = q.path?.slice(1).map(p => p.name).join(" › ") || q.path?.[0]?.name || "";
   const items = [
     { label: "Edit", onSelect: () => onEdit(q) },
-    { label: "Move to…", onSelect: () => setMoving(true) },
+    { label: "Move into…", onSelect: () => setMoving(true) },
     { label: "Delete", danger: true, onSelect: async () => {
       if (await confirm({ title: "Delete this question?", body: "This can’t be undone.", action: "Delete", danger: true })) actions.deleteQuestion(q.id);
     } },
