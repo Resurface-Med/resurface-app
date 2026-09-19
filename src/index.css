@@ -2503,6 +2503,35 @@ select {
 .tg-rows-empty strong { color: var(--c-text); font-weight: 600; }
 .tg-tab.is-bank { border-style: dashed; }
 
+/* The floating menu itself (rendered at the document level). */
+.pop {
+  min-width: 190px;
+  padding: 6px;
+  background: var(--c-card-solid);
+  border-radius: 14px;
+  box-shadow: var(--c-card-shadow-lift);
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.pop-item {
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pop-item:hover { background: var(--c-surface3); }
+.pop-item:disabled { color: var(--c-muted); cursor: default; background: none; }
+.pop-item.is-danger { color: var(--c-muted); }
+.pop-item.is-danger:hover { color: var(--c-danger); }
+
 /* A deck row's own menu: a dot-dot-dot at the end of the row. */
 .deck-menu { position: relative; flex-shrink: 0; }
 .deck-menu-btn {
@@ -2522,35 +2551,6 @@ select {
 }
 .topic-row:hover .deck-menu-btn, .deck-menu-btn[aria-expanded="true"] { color: var(--c-sub); }
 .deck-menu-btn:hover { background: var(--c-surface3); color: var(--c-text); }
-.deck-menu-pop {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 30;
-  min-width: 190px;
-  padding: 6px;
-  background: var(--c-card-solid);
-  border-radius: 14px;
-  box-shadow: var(--c-card-shadow-lift);
-  display: flex;
-  flex-direction: column;
-}
-.deck-menu-item {
-  padding: 9px 12px;
-  background: none;
-  border: none;
-  border-radius: 9px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--c-text);
-  text-align: left;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.deck-menu-item:hover { background: var(--c-surface3); }
-.deck-menu-item.is-danger { color: var(--c-muted); }
-.deck-menu-item.is-danger:hover { color: var(--c-danger); }
 .tg-source-note { font-size: 13.5px; color: var(--c-sub); }
 .tg-head { margin: 2px 0 12px; }
 .tg-name {

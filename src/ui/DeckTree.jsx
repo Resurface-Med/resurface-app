@@ -1,5 +1,6 @@
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { C } from "./theme";
+import Popover, { MenuItems } from "./Popover";
 import { leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
 
 /**
@@ -53,28 +54,14 @@ function Check({ state }) {
 function RowMenu({ node, items }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    const onKey = e => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
   return (
-    <span className="deck-menu" ref={ref}>
-      <button type="button" className="deck-menu-btn" aria-label={`Options for ${node.name}`} aria-haspopup="menu" aria-expanded={open}
+    <span className="deck-menu">
+      <button ref={ref} type="button" className="deck-menu-btn" aria-label={`Options for ${node.name}`} aria-haspopup="menu" aria-expanded={open}
         onClick={e => { e.stopPropagation(); setOpen(o => !o); }}>⋯</button>
-      {open && (
-        <span className="deck-menu-pop anim-scale-in" role="menu">
-          {items.map(it => (
-            <button key={it.label} type="button" role="menuitem" className={`deck-menu-item${it.danger ? " is-danger" : ""}`}
-              onClick={e => { e.stopPropagation(); setOpen(false); it.onSelect(node); }}>
-              {it.label}
-            </button>
-          ))}
-        </span>
-      )}
+      <Popover anchorRef={ref} open={open} onClose={close}>
+        <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(node); }} />
+      </Popover>
     </span>
   );
 }

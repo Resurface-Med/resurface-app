@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { BANK_ROOT, deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
+import Popover, { MenuItems } from "./Popover";
 
 /**
  * The tabs across the top of Study, and what a deck of yours can do.
@@ -39,29 +40,15 @@ export function DeckTabs({ roots, activeId, onSelect, onNew }) {
 export function Menu({ label, items, strong = false, align = "right" }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    const onKey = e => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("pointerdown", onDown); document.removeEventListener("keydown", onKey); };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
   return (
-    <span className="tg-menu" ref={ref}>
-      <button type="button" className={`tg-menu-btn${strong ? " is-strong" : ""}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+    <span className="tg-menu">
+      <button ref={ref} type="button" className={`tg-menu-btn${strong ? " is-strong" : ""}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>
         {label}
       </button>
-      {open && (
-        <span className={`tg-menu-pop anim-scale-in is-${align}`} role="menu">
-          {items.map(it => (
-            <button key={it.label} type="button" role="menuitem" className={`tg-menu-item${it.danger ? " is-danger" : ""}`}
-              onClick={() => { setOpen(false); it.onSelect(); }}>
-              {it.label}
-            </button>
-          ))}
-        </span>
-      )}
+      <Popover anchorRef={ref} open={open} onClose={close} align={align}>
+        <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(); }} />
+      </Popover>
     </span>
   );
 }
