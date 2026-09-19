@@ -703,7 +703,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <Wave from="transparent" to="var(--c-card-solid)" />
 
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div className="setup-col" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
+          <div className="setup-col" style={{ ...band, flex: 1, minHeight: 0, paddingTop: "clamp(12px, 2vh, 18px)" }}>
 
             <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
