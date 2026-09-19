@@ -114,12 +114,13 @@ function apply(op) {
       return supabase.from("practice_stats").delete().eq("user_id", op.userId);
     case "sr-clear":
       return supabase.from("sr_cards").delete().eq("user_id", op.userId);
-    case "group-update":
-      return supabase.from("topic_groups").update({ ...op.patch, updated_at: new Date().toISOString() }).eq("id", op.groupId);
-    case "group-delete":
-      return supabase.from("topic_groups").delete().eq("id", op.groupId);
-    case "group-unsave":
-      return supabase.from("topic_group_saves").delete().eq("user_id", op.userId).eq("group_id", op.groupId);
+    case "deck-update":
+      return supabase.from("decks").update({ ...op.patch, updated_at: new Date().toISOString() }).eq("id", op.deckId);
+    case "deck-delete":
+      return supabase.from("decks").delete().eq("id", op.deckId);
+    case "generated-update":
+      return supabase.from("generated_questions").update({ payload: op.payload, deck_id: op.deckId })
+        .eq("user_id", op.userId).eq("id", op.id);
     default:
       return Promise.resolve({ error: new Error(`unknown op ${op.kind}`) });
   }
@@ -159,10 +160,10 @@ export async function loadAll(userId) {
       supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("timed_bests").select("scope, score").eq("user_id", userId),
-      supabase.from("generated_questions").select("id, payload, created_at").eq("user_id", userId),
+      supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId),
       supabase.from("question_edits").select("question_id, payload").eq("user_id", userId),
     ]);
-  const groups = await loadGroups();
+  const decks = await loadUserDecks();
 
   const pStats = {};
   for (const r of practice.data ?? []) pStats[r.question_id] = { correct: r.correct, total: r.total };
@@ -204,26 +205,20 @@ export async function loadAll(userId) {
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything
     // keyed on question_id — flags are cohort-wide, these are not.
-    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true, createdAt: r.created_at })),
+    generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true, deckId: r.deck_id, createdAt: r.created_at })),
     questionEdits,
-    groups,
+    decks,
   };
 }
 
-/** Your topic groups and the ones shared with you. */
-export async function loadGroups() {
-  const { data, error } = await supabase.rpc("my_topic_groups");
+/** Your decks, as rows. The tree is built in the app. */
+export async function loadUserDecks() {
+  const { data, error } = await supabase.from("decks")
+    .select("id, name, parent_id, position, share_code, created_at");
   if (error) return [];
-  const { data: { user } } = await supabase.auth.getUser();
   return (data ?? []).map(r => ({
-    id: r.id,
-    name: r.name,
-    ownerId: r.owner_id,
-    ownerName: r.owner_name || "",
-    mine: r.owner_id === user?.id,
-    sortOrder: r.sort_order,
-    topics: Array.isArray(r.topics) ? r.topics : [],
-    shareCode: r.share_code,
+    id: r.id, name: r.name, parentId: r.parent_id, position: r.position,
+    shareCode: r.share_code, createdAt: r.created_at,
   }));
 }
 
@@ -264,8 +259,8 @@ export const remote = {
    * have after a reload. Returns null if the write failed — it is queued for
    * retry like any other, and the questions join the bank on the next load.
    */
-  addGenerated: async (userId, questions) => {
-    const rows = questions.map(q => ({ user_id: userId, payload: q }));
+  addGenerated: async (userId, questions, deckId) => {
+    const rows = questions.map(q => ({ user_id: userId, payload: q, deck_id: deckId }));
     try {
       const { data, error } = await supabase
         .from("generated_questions").insert(rows).select("id");
@@ -286,21 +281,26 @@ export const remote = {
   clearPractice:  (userId) => send({ kind: "practice-clear", userId }),
   clearSR:        (userId) => send({ kind: "sr-clear", userId }),
 
-  // Topic groups — the tabs across the top of Study. Creating waits for the
-  // id; everything after is fire-and-forget like the rest.
-  createGroup: async (userId, name, topics = [], sortOrder = 0) => {
-    const { data, error } = await supabase.from("topic_groups")
-      .insert({ owner_id: userId, name, topics, sort_order: sortOrder })
+  // Decks. Creating waits for the id; the rest is fire-and-forget.
+  createDeck: async (userId, name, parentId = null, position = 0) => {
+    const { data, error } = await supabase.from("decks")
+      .insert({ owner_id: userId, name, parent_id: parentId, position })
       .select("id, share_code, created_at").single();
     if (error) throw error;
     return data;
   },
-  updateGroup: (groupId, patch)   => send({ kind: "group-update", groupId, patch }),
-  deleteGroup: (groupId)          => send({ kind: "group-delete", groupId }),
-  unsaveGroup: (userId, groupId)  => send({ kind: "group-unsave", userId, groupId }),
-  saveGroupByCode: async (code) => {
-    const { data, error } = await supabase.rpc("save_topic_group_by_code", { code });
+  updateDeck: (deckId, patch) => send({ kind: "deck-update", deckId, patch }),
+  deleteDeck: (deckId)        => send({ kind: "deck-delete", deckId }),
+  /** Move a question to another deck (payload unchanged). */
+  moveGenerated: (userId, q, deckId) => {
+    const { id, gen, deckId: _d, createdAt, path, leaf, rootId, block, deck, cat, year, ...payload } = q;
+    return send({ kind: "generated-update", userId, id: id - GEN_ID_BASE, payload, deckId });
+  },
+  /** Opening a share link copies the deck to you. Returns your new root id, or null. */
+  copyDeckByCode: async (code) => {
+    const { data, error } = await supabase.rpc("copy_deck_by_code", { code });
     if (error) throw error;
     return data;
   },
+
 };

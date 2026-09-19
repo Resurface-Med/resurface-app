@@ -197,16 +197,23 @@ export default function FilterPanel({ value, onChange, pStats = {} }) {
   );
 }
 
+/**
+ * The questions a filter stands for.
+ *
+ * `leaves` is a list of deck ids — the leaf decks ticked in the tree — or
+ * ["All"]. A question matches when its own deck is one of them. The year
+ * applies to the bank only: your decks are yours whatever year you are in.
+ */
 export function filteredQuestions(filter, pStats = {}) {
-  const { year = ["All"], block = ["All"], deck = ["All"], cat = ["All"], unseenOnly = false } = filter;
+  const { year = ["All"], leaves = ["All"], unseenOnly = false } = filter;
+  const all = hasAll(leaves);
+  const set = all ? null : new Set(leaves);
   return QUESTIONS.filter(q => {
     if (unseenOnly && pStats[q.id]) return false;
-    if (!matches(q.year, year)) return false;
-    if (!matches(q.block, block)) return false;
-    if (!matches(q.deck, deck)) return false;
-    if (!matches(q.cat, cat)) return false;
+    if (!q.gen && !matches(q.year, year)) return false;
+    if (!all && !set.has(q.leaf)) return false;
     return true;
   });
 }
 
-export const defaultFilter = { year: ["All"], block: ["All"], deck: ["All"], cat: ["All"], unseenOnly: false };
+export const defaultFilter = { year: ["All"], leaves: ["All"], unseenOnly: false };

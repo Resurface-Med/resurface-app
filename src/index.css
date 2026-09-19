@@ -2501,6 +2501,57 @@ select {
 .tg-menu-item.is-danger { color: var(--c-muted); }
 .tg-menu-item.is-danger:hover { color: var(--c-danger); }
 .tg-rows-empty strong { color: var(--c-text); font-weight: 600; }
+.tg-tab.is-bank { border-style: dashed; }
+
+/* A deck row's own menu: a dot-dot-dot at the end of the row. */
+.deck-menu { position: relative; flex-shrink: 0; }
+.deck-menu-btn {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--c-muted-dim);
+  cursor: pointer;
+}
+.topic-row:hover .deck-menu-btn, .deck-menu-btn[aria-expanded="true"] { color: var(--c-sub); }
+.deck-menu-btn:hover { background: var(--c-surface3); color: var(--c-text); }
+.deck-menu-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 190px;
+  padding: 6px;
+  background: var(--c-card-solid);
+  border-radius: 14px;
+  box-shadow: var(--c-card-shadow-lift);
+  display: flex;
+  flex-direction: column;
+}
+.deck-menu-item {
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.deck-menu-item:hover { background: var(--c-surface3); }
+.deck-menu-item.is-danger { color: var(--c-muted); }
+.deck-menu-item.is-danger:hover { color: var(--c-danger); }
+.tg-source-note { font-size: 13.5px; color: var(--c-sub); }
 .tg-head { margin: 2px 0 12px; }
 .tg-name {
   margin: 0;
@@ -3484,6 +3535,9 @@ select {
   border-color: var(--c-accent-brd);
 }
 
+.gen-deck { display: flex; flex-direction: column; gap: 14px; }
+.gen-deck-path { margin: 0; font-size: 14px; font-weight: 500; color: var(--c-sub); }
+.gen-deck-path strong { color: var(--c-text); font-weight: 600; }
 .gen-field-label {
   font-size: 14px;
   font-weight: 500;

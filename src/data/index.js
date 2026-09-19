@@ -1,4 +1,5 @@
 // The question bank, fetched at runtime rather than compiled into the bundle.
+import { decorateBankQuestion } from "../lib/deckPaths";
 //
 // Importing the decks as modules inlined 386KB of JSON into the main chunk,
 // which every user downloaded and parsed before the app could paint — including
@@ -159,7 +160,7 @@ export function loadDecks() {
     );
 
     for (const deck of decks) {
-      deckQs.push(...deck.questions);
+      deckQs.push(...deck.questions.map(decorateBankQuestion));
       DECK_MAP[deck.deck] = deck.categories;
     }
 

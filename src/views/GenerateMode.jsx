@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import JSZip from "jszip";
 import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
-import { DECK_MAP, BLOCKS, CURRICULUM } from "../data";
+import { DECK_MAP } from "../data";
+import { deckPath, indexDecks } from "../lib/decks";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -345,7 +346,7 @@ async function extractApkg(file) {
   return `Flashcards from an Anki deck, front — back. Write questions that test the same facts; the other cards' answers are the natural distractors.${note}\n\n${lines.join("\n")}`;
 }
 
-async function generateQuestions({ file, pastedText, deck, category, year, block, count, signal }) {
+async function generateQuestions({ file, pastedText, deckLabel, count, signal }) {
   let userContent = [];
 
   if (file) {
@@ -362,21 +363,21 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
     if (ext === "pptx" || ext === "ppt") {
       const text = await extractPptx(file);
-      userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
+      userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (ext === "apkg") {
       const text = await extractApkg(file);
-      userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
+      userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (ext === "pdf") {
       const text = await extractPdf(file);
 
       if (text.length >= MIN_USEFUL_CHARS) {
-        userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${text}` }];
+        userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
       } else if (file.size <= MAX_FILE_BYTES) {
         // Nothing to read, so the pages must be pictures. Send them.
         const b64 = await fileToBase64(file);
         userContent = [
           { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } },
-          { type: "text", text: `Topic: ${deck} / ${category}` },
+          { type: "text", text: `Topic: ${deckLabel}` },
         ];
       } else {
         throw new Error("That PDF has no selectable text — the pages look like images — and it's too large to send as one. Try splitting it, or paste the text in instead.");
@@ -389,11 +390,11 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
         : "image/webp";
       userContent = [
         { type: "image", source: { type: "base64", media_type: mt, data: b64 } },
-        { type: "text", text: `Topic: ${deck} / ${category}` },
+        { type: "text", text: `Topic: ${deckLabel}` },
       ];
     }
   } else if (pastedText.trim()) {
-    userContent = [{ type: "text", text: `Topic: ${deck} / ${category}\n\n${pastedText}` }];
+    userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${pastedText}` }];
   }
 
   if (!userContent.length) throw new Error("No content to generate from.");
@@ -422,10 +423,6 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
   return parsed.map(q => ({
     gen: true,
-    cat: category,
-    year,
-    block,
-    deck,
     q: q.q,
     opts: q.opts,
     ans: q.ans,
@@ -436,7 +433,7 @@ async function generateQuestions({ file, pastedText, deck, category, year, block
 
 const PAGES = [
   { k: "source", label: "Lecture" },
-  { k: "place", label: "Topic" },
+  { k: "place", label: "Deck" },
   { k: "detail", label: "Questions" },
 ];
 
@@ -565,14 +562,16 @@ function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-export default function GenerateMode({ savedGenerated = [], onGeneratedChange, groups = [], groupActions = null, onPractise = null, targetGroup = null, onTargetGroupChange = null, onOpenGroup = null }) {
+export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, onPractise = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null }) {
   const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
-  const [deck, setDeck] = useState(Object.keys(DECK_MAP)[0]);
-  const [category, setCategory] = useState("");
-  const [year, setYear] = useState("Year 1");
-  const [block, setBlock] = useState("Principles");
+  /* Where the questions go: an existing deck, or a new one (named, and
+     placed under a parent or at the top). Came here from a deck's ＋ Add and
+     that deck is the parent by default, with the lecture as a new sub-deck. */
+  const [deckChoice, setDeckChoice] = useState(targetDeckId ? "__new__" : "");
+  const [newDeckName, setNewDeckName] = useState("");
+  const [newDeckParent, setNewDeckParent] = useState(targetDeckId ?? "");
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -587,13 +586,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
   /* Whether Topic is being chosen or written. Chosen by default: the lists are
      two to twelve long, so picking is nearly always the right control and
      typing is the exception. */
-  const [newTopic, setNewTopic] = useState(false);
-  const [newBlock, setNewBlock] = useState(false);
   /* "ai" writes them from a lecture, "manual" is you writing them. The card
      is the same either way except for its top and its bottom: manual has no
      source, and a count means nothing for a question you are typing out
      yourself. */
   const [mode, setMode] = useState("ai");
+  useEffect(() => {
+    if (targetDeckId) { setDeckChoice("__new__"); setNewDeckParent(targetDeckId); }
+  }, [targetDeckId]);
   const [written, setWritten] = useState([]);
   const [writing, setWriting] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
@@ -614,13 +614,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
     setFile(f);
     setPastedText("");
     setPasting(false);
-    /* The guess fills what is empty and leaves what was chosen. You can
-       reach the topic page before the lecture page now, and a file name
+    /* A name for the new deck from the file, if none was typed. A file name
        must not overwrite a decision made by hand. */
-    const { deck: d, cat } = guessPlacement(f.name);
-    if (!category.trim()) {
-      if (d) setDeck(d);
-      if (cat) { setCategory(cat); setNewTopic(false); }
+    if (!newDeckName.trim()) {
+      const guess = suggestTopicName(f.name) || guessPlacement(f.name).cat || "";
+      if (guess) setNewDeckName(guess);
+      if (!targetDeckId && !deckChoice) setDeckChoice("__new__");
     }
   }
 
@@ -635,20 +634,35 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
    * an id is what progress and spaced repetition are keyed on — a question
    * answered before that reload would have nowhere to record the answer.
    */
-  async function withIds(list) {
-    if (!user) return list;
-    const ids = await remote.addGenerated(user.id, list);
-    return ids ? list.map((q, i) => ({ ...q, id: ids[i] })) : list;
+  /* The deck the questions are going into — created now if it is new. */
+  async function resolveDeck() {
+    if (deckChoice && deckChoice !== "__new__") return deckChoice;
+    const d = await deckActions.createDeck(newDeckName.trim(), newDeckParent || null);
+    return d.id;
   }
+  async function withIds(list, deckId) {
+    if (!user) return list;
+    const payloads = list.map(({ q, opts, ans, exp, optExp, img }) => ({ q, opts, ans, exp, optExp, ...(img ? { img } : {}) }));
+    const ids = await remote.addGenerated(user.id, payloads, deckId);
+    return ids ? payloads.map((q, i) => ({ ...q, id: ids[i], gen: true, deckId })) : [];
+  }
+  const [savedDeckId, setSavedDeckId] = useState(null);
 
-  const decks = Object.keys(DECK_MAP);
-  /* Scoped to the block, because the same subject carries different topics in
-     each one — Physiology in Principles is not Physiology in Respiratory. */
-  const blockNode = CURRICULUM.find(b => b.block === block);
-  const deckNode = blockNode?.decks.find(d => d.deck === deck);
-  const existingCats = deckNode?.cats ?? (blockNode ? [] : DECK_MAP[deck] || []);
+  const decksById = indexDecks(decks);
+  /* Decks in reading order, with depth, for the picker. */
+  const deckOptions = (() => {
+    const out = [];
+    const kids = pid => decks.filter(d => (d.parentId ?? null) === pid).sort((a, b) => a.position - b.position);
+    (function walk(pid, depth) { for (const d of kids(pid)) { out.push({ ...d, depth }); walk(d.id, depth + 1); } })(null, 0);
+    return out;
+  })();
+  const chosenDeckName = deckChoice === "__new__" ? newDeckName.trim() : (decksById.get(deckChoice)?.name ?? "");
+  const deckLabel = deckChoice === "__new__"
+    ? [...(newDeckParent ? deckPath(newDeckParent, decksById).map(p => p.name) : []), newDeckName.trim()].join(" › ")
+    : deckPath(deckChoice, decksById).map(p => p.name).join(" › ");
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
-  const canGenerate = (file || pastedText.trim()) && category.trim() && countNum >= 1;
+  const hasPlace = deckChoice === "__new__" ? Boolean(newDeckName.trim()) : Boolean(deckChoice);
+  const canGenerate = (file || pastedText.trim()) && hasPlace && countNum >= 1;
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
     const keptList = generated.filter((_, i) => kept.has(i));
@@ -665,11 +679,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
                 style={{ ...primaryBtn, flex: 1 }}
                 disabled={keptList.length === 0}
                 onClick={async () => {
-                  const saved = await withIds(keptList);
+                  const deckId = await resolveDeck();
+                  const saved = await withIds(keptList, deckId);
                   const merged = [...savedQs, ...saved];
                   setSavedQs(merged);
                   onGeneratedChange?.(merged);
-                  fileIntoGroup(saved);
+                  setSavedDeckId(deckId);
                   setPhase("done");
                 }}
               >
@@ -736,9 +751,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
         sub="Reload once so Practice and the rest of the app pick them up."
       >
         <div className="gen-done-actions">
-          {targetGroup && onOpenGroup ? (
-            <button type="button" className="btn-press" style={primaryBtn} onClick={() => { const id = targetGroup.id; onTargetGroupChange?.(null); onOpenGroup(id); }}>
-              Open {targetGroup.name} <span aria-hidden="true">→</span>
+          {savedDeckId && onOpenDeck ? (
+            <button type="button" className="btn-press" style={primaryBtn} onClick={() => {
+              /* Study opens on the root tab holding this deck. */
+              const root = deckPath(savedDeckId, decksById)[0]?.id ?? savedDeckId;
+              onTargetDeckChange?.(null); onOpenDeck(root);
+            }}>
+              Open {deckPath(savedDeckId, decksById)[0]?.name ?? "deck"} <span aria-hidden="true">→</span>
             </button>
           ) : (
             <button type="button" className="btn-press" style={primaryBtn} onClick={() => window.location.reload()}>
@@ -766,7 +785,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
   // The generating window sits over this rather than replacing it, so backing
   // out returns you to a form still holding everything you filled in.
   const hasSource = Boolean(file || pastedText.trim());
-  const hasPlace = Boolean(category.trim());
   /* Manual has no source, so its first step is placement. */
   const first = mode === "manual" ? 1 : 0;
   const last = 2;
@@ -774,7 +792,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
      sentence beside it, with each word a link to the page it is on. */
   const missing = [
     !hasSource && mode === "ai" ? { k: "lecture", label: "a lecture", step: 0 } : null,
-    !hasPlace ? { k: "topic", label: "a topic", step: 1 } : null,
+    !hasPlace ? { k: "deck", label: "a deck", step: 1 } : null,
   ].filter(Boolean);
   /* Forward slides in from the right, back from the left — the same
      direction the page is being turned. */
@@ -798,10 +816,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
       const qs = await generateQuestions({
         file,
         pastedText,
-        deck,
-        category: category.trim(),
-        year,
-        block: block.trim() || "Principles",
+        deckLabel,
         count: countNum,
         signal: ctrl.signal,
       });
@@ -821,132 +836,57 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
   }
 
   async function addWritten() {
-    const saved = await withIds(written);
+    const deckId = await resolveDeck();
+    const saved = await withIds(written, deckId);
     const merged = [...savedQs, ...saved];
     setSavedQs(merged);
     onGeneratedChange?.(merged);
-    fileIntoGroup(saved);
+    setSavedDeckId(deckId);
     setWritten([]);
     setPhase("done");
   }
 
-  /* Came here from a group's tab: the new deck goes into that group. */
-  function fileIntoGroup(saved) {
-    if (!targetGroup || !groupActions || !saved.length) return;
-    const { deck: d, cat: c } = saved[0];
-    if (targetGroup.topics.some(t => t.deck === d && t.cat === c)) return;
-    groupActions.setGroupTopics(targetGroup.id, [...targetGroup.topics, { deck: d, cat: c }]);
-  }
 
   /* Year, Block, Subject, Topic — widest first. Each narrows the one after
      it, and Topic, the only one that has to be filled, comes last. */
   const placement = (
-    <div className="gen-grid">
+    <div className="gen-deck">
       <label className="gen-field">
-        <span className="gen-field-label">Year</span>
-        <select value={year} onChange={e => setYear(e.target.value)} style={{ ...field, cursor: "pointer" }}>
-          {["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"].map(y => (
-            <option key={y} value={y}>{y}</option>
+        <span className="gen-field-label">Deck</span>
+        <select value={deckChoice} onChange={e => setDeckChoice(e.target.value)} style={{ ...field, cursor: "pointer" }}>
+          <option value="">Choose a deck…</option>
+          {deckOptions.map(d => (
+            <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
           ))}
+          <option value="__new__">＋ New deck…</option>
         </select>
       </label>
-      {/* Blocks come from the bank rather than from a fixed list. A block is
-          Principles, then Respiratory, then Cardiovascular, with subjects
-          taught inside each. Starting a new one is a real case, since every
-          block after the first begins empty. */}
-      <label className="gen-field">
-        <span className="gen-field-label">Block</span>
-        {newBlock || BLOCKS.length === 0 ? (
-          <input
-            type="text"
-            value={block}
-            onChange={e => setBlock(e.target.value)}
-            placeholder="e.g. Respiratory"
-            style={field}
-            autoFocus={newBlock}
-          />
-        ) : (
-          <select
-            value={block}
-            onChange={e => {
-              if (e.target.value === "__new__") { setNewBlock(true); setBlock(""); }
-              else setBlock(e.target.value);
-            }}
-            style={{ ...field, cursor: "pointer" }}
-          >
-            {BLOCKS.map(b => <option key={b} value={b}>{b}</option>)}
-            <option value="__new__">＋ New block…</option>
-          </select>
-        )}
-        {newBlock && BLOCKS.length > 0 && (
-          <button
-            type="button"
-            className="gen-link"
-            onClick={() => { setNewBlock(false); setBlock(BLOCKS[0]); }}
-          >
-            Pick an existing block instead
-          </button>
-        )}
-      </label>
-      <label className="gen-field">
-        <span className="gen-field-label">Subject</span>
-        <select
-          value={deck}
-          onChange={e => { setDeck(e.target.value); setCategory(""); setNewTopic(false); }}
-          style={{ ...field, cursor: "pointer" }}
-        >
-          {decks.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-      </label>
-      {/* A picker, not a text field. A subject has between two and twelve
-          topics, so the whole set fits on screen — asking someone to recall
-          and retype an exact string from a list that short is how you end up
-          with "Glycolysis" and "Glycolysis & Bioenergetics" as two topics.
-          Writing one stays available, because the bank does not cover
-          everything. */}
-      <label className="gen-field">
-        <span className="gen-field-label">Topic</span>
-        {newTopic || existingCats.length === 0 ? (
-          <input
-            type="text"
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-            placeholder="e.g. Glycolysis"
-            style={field}
-            autoFocus={newTopic}
-            required
-          />
-        ) : (
-          <select
-            value={category}
-            onChange={e => {
-              if (e.target.value === "__new__") {
-                setNewTopic(true);
-                setCategory(file ? suggestTopicName(file.name) : "");
-              } else {
-                setCategory(e.target.value);
-              }
-            }}
-            style={{ ...field, cursor: "pointer" }}
-            required
-          >
-            <option value="">Choose a topic…</option>
-            {existingCats.map(c => (
-              <option key={c} value={c}>{shortCat(c, deck)}</option>
-            ))}
-            <option value="__new__">＋ New topic…</option>
-          </select>
-        )}
-        {newTopic && existingCats.length > 0 && (
-          <button
-            type="button"
-            className="gen-link"
-            onClick={() => { setNewTopic(false); setCategory(""); }}
-          >
-            Pick an existing topic instead
-          </button>
-        )}
-      </label>
+      {deckChoice === "__new__" && (
+        <div className="gen-grid">
+          <label className="gen-field">
+            <span className="gen-field-label">Name</span>
+            <input
+              type="text"
+              value={newDeckName}
+              onChange={e => setNewDeckName(e.target.value)}
+              placeholder="e.g. 2.1 Larynx, trachea, chest wall"
+              style={field}
+              autoFocus={!newDeckName}
+              maxLength={80}
+            />
+          </label>
+          <label className="gen-field">
+            <span className="gen-field-label">Inside</span>
+            <select value={newDeckParent} onChange={e => setNewDeckParent(e.target.value)} style={{ ...field, cursor: "pointer" }}>
+              <option value="">Top level</option>
+              {deckOptions.map(d => (
+                <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {(deckChoice && hasPlace) ? <p className="gen-deck-path">Going into <strong>{deckLabel}</strong></p> : null}
     </div>
   );
 
@@ -990,10 +930,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
           })}
         </nav>
 
-        {targetGroup && (
+        {targetDeckId && decksById.get(targetDeckId) && (
           <p className="gen-target">
-            Adding to <strong>{targetGroup.name}</strong>
-            {onTargetGroupChange && <> · <button type="button" className="gen-link" onClick={() => onTargetGroupChange(null)}>not this time</button></>}
+            Adding to <strong>{decksById.get(targetDeckId).name}</strong>
+            {onTargetDeckChange && <> · <button type="button" className="gen-link" onClick={() => { onTargetDeckChange(null); setNewDeckParent(""); }}>not this time</button></>}
           </p>
         )}
 
@@ -1162,7 +1102,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
         )}
         {step === last && mode === "manual" && !hasPlace && written.length > 0 && (
           <p className="gen-missing">
-            Pick <button type="button" className="gen-link" onClick={() => turnTo(1)}>a topic</button> first.
+            Choose <button type="button" className="gen-link" onClick={() => turnTo(1)}>a deck</button> first.
           </p>
         )}
 
@@ -1224,7 +1164,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, g
           onClose={() => setWriting(false)}
           onSave={qn => {
             setWriting(false);
-            setWritten(list => [...list, { ...qn, gen: true, cat: category.trim(), year, block, deck }]);
+            setWritten(list => [...list, { ...qn, gen: true }]);
           }}
         />
       )}

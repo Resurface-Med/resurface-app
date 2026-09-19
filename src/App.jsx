@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Component, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, useRef, Component, lazy, Suspense } from "react";
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -27,8 +27,8 @@ import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
-import { loadAll, loadGroups, remote, flushQueue } from "./lib/remote";
-import { groupCodeFromLocation } from "./lib/groups";
+import { loadAll, remote, flushQueue } from "./lib/remote";
+import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -76,22 +76,28 @@ export default function App() {
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [generated, setGenerated] = useState([]);
-  /* Topic groups: the tabs across the top of Study — yours, and the ones
-     people have sent you. */
-  const [groups, setGroups] = useState([]);
-  /* A group to land on in Study, after a link. */
-  const [openGroupId, setOpenGroupId] = useState(null);
-  /* A group that Generate should file its next deck into — set when you
-     press "Generate questions" on a group's tab. */
-  const [generateForId, setGenerateForId] = useState(null);
+  /* Your decks, as rows; the tree is built where it is shown. */
+  const [decks, setDecks] = useState([]);
+  /* A deck to land on in Study — after a share link, or after Generate. */
+  const [openDeckId, setOpenDeckId] = useState(null);
+  /* The deck Generate should file its next questions into. */
+  const [generateInto, setGenerateInto] = useState(null);
 
-  /* The bank is one pool: the decks plus whatever you have written yourself.
-     Every screen that shows or serves a question reads QUESTIONS, so this is
-     the one place your own questions get into it — anything that changes the
-     set goes through here rather than calling setGenerated directly. */
-  function applyGenerated(rows) {
-    setUserQuestions(rows);
-    setGenerated(rows);
+  /* The bank is one pool: the shipped questions plus your own. Every screen
+     that shows or serves a question reads QUESTIONS, so this is the one
+     place your own questions get into it. Rows are given their deck path
+     here, so decks and questions are always applied together. */
+  const genRowsRef = useRef([]);
+  function applyGenerated(rows, deckRows = decks) {
+    genRowsRef.current = rows;
+    const byId = indexDecks(deckRows);
+    const decorated = rows.map(r => decorateUserQuestion(r, byId));
+    setUserQuestions(decorated);
+    setGenerated(decorated);
+  }
+  function applyDecks(deckRows) {
+    setDecks(deckRows);
+    applyGenerated(genRowsRef.current, deckRows);
   }
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -132,22 +138,25 @@ export default function App() {
       setMarketingOptIn(d.marketingOptIn);
       // Before the questions, so the pool is only rebuilt with both in hand.
       setQuestionEdits(d.questionEdits);
-      applyGenerated(d.generated);
-      setGroups(d.groups ?? []);
+      setDecks(d.decks ?? []);
+      applyGenerated(d.generated, d.decks ?? []);
       setDataLoading(false);
 
-      // Arrived by a share link: save the group to this account and open
+      // Arrived by a share link: copy the deck to this account and open
       // Study on it. The address goes back to the root so a reload does not
-      // do it twice.
-      const code = groupCodeFromLocation();
+      // copy it twice.
+      const code = deckCodeFromLocation();
       if (code) {
         window.history.replaceState(null, "", "/");
         try {
-          const id = await remote.saveGroupByCode(code);
+          const id = await remote.copyDeckByCode(code);
           if (cancelled) return;
           if (id) {
-            setGroups(await loadGroups());
-            setOpenGroupId(id);
+            const fresh = await loadAll(user.id);
+            if (cancelled) return;
+            setDecks(fresh.decks ?? []);
+            applyGenerated(fresh.generated, fresh.decks ?? []);
+            setOpenDeckId(id);
             setView(V.STUDY);
           }
         } catch {}
@@ -156,37 +165,51 @@ export default function App() {
     return () => { cancelled = true; };
   }, [user?.id, recovering]);
 
-  // ── Topic groups ──────────────────────────────────────────────────────
-  // Optimistic: the tab updates now, the row writes behind it.
-  async function createGroup(name, topics = []) {
-    const mine = groups.filter(g => g.mine);
-    const row = await remote.createGroup(user.id, name, topics, mine.length);
-    const g = { id: row.id, name, ownerId: user.id, ownerName: displayName, mine: true, sortOrder: mine.length, topics, shareCode: row.share_code };
-    setGroups(prev => [...prev, g]);
-    return g;
+  // ── Decks ─────────────────────────────────────────────────────────────
+  // Optimistic like everything else. Creating waits for the id.
+  async function createDeck(name, parentId = null) {
+    const siblings = decks.filter(d => (d.parentId ?? null) === parentId);
+    const row = await remote.createDeck(user.id, name, parentId, siblings.length);
+    const d = { id: row.id, name, parentId, position: siblings.length, shareCode: row.share_code, createdAt: row.created_at };
+    applyDecks([...decks, d]);
+    return d;
   }
-  function renameGroup(id, name) {
-    setGroups(prev => prev.map(g => g.id === id ? { ...g, name } : g));
-    remote.updateGroup(id, { name });
+  function renameDeck(id, name) {
+    applyDecks(decks.map(d => d.id === id ? { ...d, name } : d));
+    remote.updateDeck(id, { name });
   }
-  function setGroupTopics(id, topics) {
-    setGroups(prev => prev.map(g => g.id === id ? { ...g, topics } : g));
-    remote.updateGroup(id, { topics });
+  /* Deleting a deck deletes what is under it — its sub-decks and their
+     questions — the way a deck does. The database cascades; the pool is
+     pruned here so nothing lingers until the next load. */
+  function deleteDeck(id) {
+    const gone = new Set();
+    (function collect(x) { gone.add(x); decks.filter(d => d.parentId === x).forEach(d => collect(d.id)); })(id);
+    const keptDecks = decks.filter(d => !gone.has(d.id));
+    const keptRows = genRowsRef.current.filter(r => !gone.has(r.deckId));
+    setDecks(keptDecks);
+    applyGenerated(keptRows, keptDecks);
+    remote.deleteDeck(id);
   }
-  function deleteGroup(id) {
-    const g = groups.find(x => x.id === id);
-    setGroups(prev => prev.filter(x => x.id !== id));
-    if (!g) return;
-    if (g.mine) remote.deleteGroup(id); else remote.unsaveGroup(user.id, id);
+  /* Copy bank topics into a deck: each becomes a sub-deck holding copies of
+     the topic's questions — yours, with fresh ids, like an import. */
+  async function copyBankTopics(targetId, nodes) {
+    let deckRows = decks;
+    let rows = genRowsRef.current;
+    for (const n of nodes) {
+      const qs = questionsInDeck(n.id).filter(q => !q.gen);
+      if (!qs.length) continue;
+      const siblings = deckRows.filter(d => (d.parentId ?? null) === targetId);
+      const sub = await remote.createDeck(user.id, n.name, targetId, siblings.length);
+      const subRow = { id: sub.id, name: n.name, parentId: targetId, position: siblings.length, shareCode: sub.share_code, createdAt: sub.created_at };
+      deckRows = [...deckRows, subRow];
+      const payloads = qs.map(({ q, opts, ans, exp, optExp, img }) => ({ q, opts, ans, exp, optExp, ...(img ? { img } : {}) }));
+      const ids = await remote.addGenerated(user.id, payloads, sub.id);
+      if (ids) rows = [...rows, ...payloads.map((p, i) => ({ ...p, id: ids[i], gen: true, deckId: sub.id }))];
+    }
+    setDecks(deckRows);
+    applyGenerated(rows, deckRows);
   }
-  function reorderGroups(ids) {
-    setGroups(prev => {
-      const mine = ids.map((id, i) => ({ ...prev.find(g => g.id === id), sortOrder: i }));
-      ids.forEach((id, i) => remote.updateGroup(id, { sort_order: i }));
-      return [...mine, ...prev.filter(g => !g.mine)];
-    });
-  }
-  const groupActions = { createGroup, renameGroup, setGroupTopics, deleteGroup, reorderGroups };
+  const deckActions = { createDeck, renameDeck, deleteDeck, copyBankTopics };
 
   useEffect(() => {
     if (!user) return;
@@ -396,9 +419,9 @@ export default function App() {
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
-            groups={groups} groupActions={groupActions}
-            openGroupId={openGroupId} onOpenGroupConsumed={() => setOpenGroupId(null)}
-            onGenerateFor={g => { setGenerateForId(g.id); go(V.GENERATE); }}
+            decks={decks} deckActions={deckActions}
+            openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
+            onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
@@ -436,10 +459,10 @@ export default function App() {
           )}
 
           {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
-            groups={groups} groupActions={groupActions}
-            targetGroup={groups.find(g => g.id === generateForId) ?? null}
-            onTargetGroupChange={id => setGenerateForId(id)}
-            onOpenGroup={id => { setOpenGroupId(id); go(V.STUDY); }}
+            decks={decks} deckActions={deckActions}
+            targetDeckId={generateInto}
+            onTargetDeckChange={id => setGenerateInto(id)}
+            onOpenDeck={id => { setOpenDeckId(id); go(V.STUDY); }}
             onPractise={(deck, cat) => { setLaunchFilter({ deck, cat }); setStudyScope("all"); go(V.STUDY); }} />}
 
 

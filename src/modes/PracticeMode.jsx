@@ -6,9 +6,9 @@ import { isReviewDue } from "../lib/sm2";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
-import TopicPicker from "../ui/TopicPicker";
-import { GroupTabs, GroupControls, GroupChooser, NewGroupForm } from "../ui/TopicGroups";
-import { groupFilter, topicKey } from "../lib/groups";
+import DeckTree from "../ui/DeckTree";
+import { DeckTabs, DeckControls, BankCopier, DeckNameForm } from "../ui/DeckControls";
+import { buildForest, leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -245,7 +245,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", groups = [], groupActions = null, openGroupId = null, onOpenGroupConsumed = null, onGenerateFor = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null }) {
   const [scope, setScope] = useState(initialScope);
   const [bank, setBank] = useState("both");
 
@@ -260,42 +260,45 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     }).length;
     return pool.length;
   }
-  const [filter, setFilter] = useState(launchFilter
-    ? { year: ["Year 1"], block: ["All"], deck: launchFilter.deck ? [launchFilter.deck] : ["All"], cat: launchFilter.cat ? [launchFilter.cat] : ["All"], unseenOnly: false }
-    : { ...defaultFilter, year: ["Year 1"] }
-  );
+  /* Arriving from Progress carries a subject and topic by name; the leaves
+     those name are looked up once. Everything else starts on All. */
+  const [filter, setFilter] = useState(() => {
+    if (launchFilter?.leaves) return { ...defaultFilter, year: ["Year 1"], leaves: launchFilter.leaves };
+    if (launchFilter?.deck && launchFilter.deck !== "All") {
+      const leaves = [...new Set(QUESTIONS
+        .filter(q => q.deck === launchFilter.deck && (!launchFilter.cat || launchFilter.cat === "All" || q.cat === launchFilter.cat))
+        .map(q => q.leaf))];
+      return { ...defaultFilter, year: ["Year 1"], leaves: leaves.length ? leaves : ["All"] };
+    }
+    return { ...defaultFilter, year: ["Year 1"] };
+  });
   const [countOpt, setCountOpt] = useState(20);
   const [topicQuery, setTopicQuery] = useState("");
 
-  /* The tab across the top: null is "All", otherwise a group's id. A group
-     stands for a filter, so choosing one sets the filter and the rest of
-     the setup — count, scope, Start — carries on not knowing. */
-  const [activeGroupId, setActiveGroupId] = useState(openGroupId);
-  const [creatingGroup, setCreatingGroup] = useState(false);
-  /* A tab has two controls: Add (a lecture, or the bank) and a menu.
-     Choosing from the bank replaces the tree with the picker; renaming
-     replaces the heading with a field. */
-  const [choosing, setChoosing] = useState(false);
-  const [renamingGroup, setRenamingGroup] = useState(false);
-  const activeGroup = groups.find(g => g.id === activeGroupId) ?? null;
-  const groupKeys = useMemo(() => activeGroup ? new Set(activeGroup.topics.map(topicKey)) : null, [activeGroup]);
-  /* Inside a tab, "All" means all of the tab. */
-  function effective(f) {
-    return activeGroup && (f.cat?.includes("All") || !f.cat?.length) ? { ...f, ...groupFilter(activeGroup) } : f;
-  }
-  useEffect(() => { if (openGroupId) onOpenGroupConsumed?.(); }, []);
+  /* The tab across the top: null is All, otherwise a root deck's id. A
+     tab scopes the tree; the filter's leaves are read inside that scope,
+     and "All" inside a tab means all of the tab. */
+  const [activeRootId, setActiveRootId] = useState(openDeckId);
+  const [creatingDeck, setCreatingDeck] = useState(false);
+  /* What is replacing the tree, if anything: a name field (new sub-deck or
+     rename, with the deck id it is for), or the bank copier. */
+  const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
+  const [copyingInto, setCopyingInto] = useState(null); // deck id
+  const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
+  const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
+  useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
   useEffect(() => {
-    if (activeGroupId && !activeGroup) { setActiveGroupId(null); return; }
-    setFilter(f => ({ ...f, deck: ["All"], cat: ["All"] }));
-    setChoosing(false);
-    setRenamingGroup(false);
+    setFilter(f => ({ ...f, leaves: ["All"] }));
+    setNaming(null);
+    setCopyingInto(null);
     setTopicQuery("");
-  }, [activeGroupId]);
-  function selectGroup(id) { setCreatingGroup(false); setActiveGroupId(id); }
-  async function createGroupNamed(name) {
-    const g = await groupActions.createGroup(name);
-    setCreatingGroup(false);
-    setActiveGroupId(g.id);
+  }, [activeRootId]);
+  function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
+  async function createDeckNamed(name, parentId = null) {
+    const d = await deckActions.createDeck(name, parentId);
+    setCreatingDeck(false);
+    setNaming(null);
+    if (!parentId) setActiveRootId(d.id);
   }
   const isPhone = useIsPhone();
   // Phones split the setup in two. A phone screen cannot hold a scrolling list
@@ -333,6 +336,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return list;
   }
 
+  /* Inside a tab, "All" means every leaf under the tab's root. */
+  function effective(f) {
+    if (!activeRootId || !(f.leaves?.includes("All") || !f.leaves?.length)) return f;
+    const forest = buildForest({ questions: QUESTIONS, decks, pStats, eligible: new Set(QUESTIONS.map(q => q.id)), rootId: activeRootId });
+    const leaves = forest[0] ? leavesUnder(forest[0]) : [];
+    return { ...f, leaves: leaves.length ? leaves : ["nothing"] };
+  }
+
   /** Exactly what a Start press would queue, so the button can say so. */
   function scopedCount(f) {
     return applyScope(applyBank(filteredQuestions(effective(f), pStats), bank)).length;
@@ -353,11 +364,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setFilter(f => ({
       ...f,
       year: next === "All" ? ["All"] : [next],
-      // Narrower picks were under the old year — drop them so the topic list
-      // is not left pointing at a subject that year does not have.
-      block: ["All"],
-      deck: ["All"],
-      cat: ["All"],
+      // Narrower picks were under the old year — drop them so the tree is
+      // not left pointing at a deck that year does not have.
+      leaves: ["All"],
     }));
   }
 
@@ -449,18 +458,41 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       applyBank(QUESTIONS, bank).filter(x => !filter.unseenOnly || !pStats[x.id]),
     );
     const eligibleIds = inScope.map(x => x.id);
+    const eligibleSet = new Set(eligibleIds);
+    const fullForest = buildForest({ questions: QUESTIONS, decks, pStats, eligible: eligibleSet });
+    const roots = fullForest;
+    const activeRoot = activeRootId ? findNode(fullForest, activeRootId) : null;
+    /* Inside a tab, the tree is what is under the root — the tab itself is
+       the heading, not a row. */
+    const forest = activeRoot ? activeRoot.children : fullForest;
+    const bankForest = fullForest.filter(r => r.id === BANK_ROOT);
     const scoped = scopedCount(filter);
+
+    /* What a row's menu offers. Only your decks have one. */
+    const rowMenu = node => [
+      { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
+      { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
+      ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
+      { label: "Delete", danger: true, onSelect: n => {
+        if (window.confirm(n.total ? `Delete “${n.name}” and its ${n.total} question${n.total === 1 ? "" : "s"}?` : `Delete “${n.name}”?`)) deckActions.deleteDeck(n.id);
+      } },
+    ];
+    async function copyFromBank(leaves) {
+      const target = copyingInto;
+      setCopyingInto(null);
+      if (!target || !leaves?.length) return;
+      await deckActions.copyBankTopics(target, leaves.map(id => findNode(bankForest, id)).filter(Boolean));
+    }
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
     /* One topic names itself; several are counted. Spelling out four topic
        names would not fit the button this ends up on, and a list that gets
        truncated tells you less than the number does. */
-    const selCats = filter.cat.includes("All") ? [] : filter.cat;
-    const topicLabel = activeGroup ? activeGroup.name
-      : selCats.length === 1
-      ? shortLabel(selCats[0], filter.deck[0])
-      : selCats.length > 1
-        ? `${selCats.length} topics`
-        : !filter.deck.includes("All") ? filter.deck[0] : null;
+    const selLeaves = filter.leaves.includes("All") ? [] : filter.leaves;
+    const leafName = id => findNode(forest, id)?.name ?? null;
+    const topicLabel = selLeaves.length === 1 ? leafName(selLeaves[0])
+      : selLeaves.length > 1 ? `${selLeaves.length} decks`
+      : activeRoot ? activeRoot.name
+      : null;
 
     // ── Phones: one decision per screen ───────────────────────────
     if (isPhone) {
@@ -509,49 +541,50 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
-                  {creatingGroup ? (
-                    <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
-                  ) : activeGroup && renamingGroup ? (
-                    <NewGroupForm initial={activeGroup.name} placeholder="Name" onCancel={() => setRenamingGroup(false)}
-                      onCreate={n => { groupActions.renameGroup(activeGroup.id, n); setRenamingGroup(false); }} />
+                  <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
+                  {creatingDeck ? (
+                    <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
+                  ) : naming ? (
+                    <DeckNameForm
+                      initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
+                      placeholder={naming.mode === "rename" ? "Name" : "Name the sub-deck"}
+                      onCancel={() => setNaming(null)}
+                      onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
+                    />
                   ) : (
                     <>
-                      {activeGroup && (
+                      {activeDeck && (
                         <div className="tg-editbar">
-                          <span className="tg-editbar-meta">
-                            {activeGroup.topics.length} topic{activeGroup.topics.length === 1 ? "" : "s"}
-                            {!activeGroup.mine && activeGroup.ownerName ? ` · from ${activeGroup.ownerName}` : ""}
-                          </span>
-                          <GroupControls group={activeGroup} actions={groupActions} onGenerate={onGenerateFor}
-                            onChoose={() => setChoosing(true)} onRename={() => setRenamingGroup(true)} />
+                          <span className="tg-editbar-meta">{activeRoot?.total ?? 0} question{(activeRoot?.total ?? 0) === 1 ? "" : "s"}</span>
+                          <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
+                            onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
+                            onCopyFromBank={id => setCopyingInto(id)} onRename={id => setNaming({ mode: "rename", deckId: id })} />
                         </div>
                       )}
                       <input
                         type="search"
                         value={topicQuery}
                         onChange={e => setTopicQuery(e.target.value)}
-                        placeholder="Search topics"
-                        aria-label="Search topics"
+                        placeholder="Search decks"
+                        aria-label="Search decks"
                         className="setup-search"
                       />
-                      {activeGroup && choosing ? (
-                        <GroupChooser group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                          query={topicQuery} onDone={() => setChoosing(false)} />
-                      ) : activeGroup && activeGroup.topics.length === 0 ? (
+                      {copyingInto ? (
+                        <BankCopier bankForest={bankForest} query={topicQuery} onDone={copyFromBank} onCancel={() => setCopyingInto(null)} />
+                      ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                         <div className="tg-rows-empty">
-                          Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture or topics from the bank.
+                          Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture, a sub-deck, or topics from ARU Year 1.
                         </div>
                       ) : (
-                        <TopicPicker
-                          key={activeGroupId ?? "all"}
+                        <DeckTree
+                          key={activeRootId ?? "all"}
+                          forest={forest}
                           value={filter}
                           onChange={next => setFilter(f => ({ ...f, ...next }))}
-                          pStats={pStats}
-                          eligibleIds={eligibleIds}
                           query={topicQuery}
-                          only={groupKeys}
-                          allLabel={activeGroup ? `All of ${activeGroup.name}` : "All blocks"}
+                          allLabel={activeRoot ? `All of ${activeRoot.name}` : "Everything"}
+                          rowMenu={rowMenu}
+                          allowEmpty
                         />
                       )}
                     </>
@@ -671,31 +704,36 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <div className="setup-col" style={{ ...band, maxWidth: 720, flex: 1, minHeight: 0, display: "flex", flexDirection: "column", paddingTop: "clamp(12px, 2vh, 18px)" }}>
 
-            <GroupTabs groups={groups} activeId={activeGroupId} onSelect={selectGroup} onNew={() => setCreatingGroup(true)} />
+            <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              {!creatingGroup && !renamingGroup && (
+              {!creatingDeck && !naming && (
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
-                  <h2 style={{ ...sectionH, margin: 0 }}>{activeGroup && choosing ? `Choose for ${activeGroup.name}` : "What are you revising?"}</h2>
+                  <h2 style={{ ...sectionH, margin: 0 }}>{copyingInto ? `Copy into ${decksById.get(copyingInto)?.name ?? "deck"}` : "What are you revising?"}</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 16, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {!choosing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
-                    {activeGroup && !choosing && (
-                      <GroupControls group={activeGroup} actions={groupActions} onGenerate={onGenerateFor}
-                        onChoose={() => setChoosing(true)} onRename={() => setRenamingGroup(true)} />
+                    {!copyingInto && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
+                    {activeDeck && !copyingInto && (
+                      <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
+                        onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
+                        onCopyFromBank={id => setCopyingInto(id)} onRename={id => setNaming({ mode: "rename", deckId: id })} />
                     )}
                   </span>
                 </div>
               )}
-              {activeGroup && renamingGroup && (
-                <NewGroupForm initial={activeGroup.name} placeholder="Name" onCancel={() => setRenamingGroup(false)}
-                  onCreate={n => { groupActions.renameGroup(activeGroup.id, n); setRenamingGroup(false); }} />
+              {naming && (
+                <DeckNameForm
+                  initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
+                  placeholder={naming.mode === "rename" ? "Name" : `Name the sub-deck of ${decksById.get(naming.deckId)?.name ?? ""}`}
+                  onCancel={() => setNaming(null)}
+                  onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
+                />
               )}
-              {!creatingGroup && !renamingGroup && (
+              {!creatingDeck && !naming && (
                 <input
                   type="search"
                   value={topicQuery}
                   onChange={e => setTopicQuery(e.target.value)}
-                  placeholder="Search subjects or topics"
-                  aria-label="Search subjects or topics"
+                  placeholder="Search decks"
+                  aria-label="Search decks"
                   style={{
                     width: "100%", boxSizing: "border-box",
                     padding: "11px 16px", fontSize: 14.5, fontFamily: "inherit",
@@ -708,25 +746,24 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             </div>
 
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
-              {creatingGroup ? (
-                <NewGroupForm onCreate={createGroupNamed} onCancel={() => setCreatingGroup(false)} />
-              ) : activeGroup && choosing ? (
-                <GroupChooser group={activeGroup} actions={groupActions} eligibleIds={eligibleIds} pStats={pStats}
-                  query={topicQuery} onDone={() => setChoosing(false)} />
-              ) : activeGroup && activeGroup.topics.length === 0 ? (
+              {creatingDeck ? (
+                <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
+              ) : copyingInto ? (
+                <BankCopier bankForest={bankForest} query={topicQuery} onDone={copyFromBank} onCancel={() => setCopyingInto(null)} />
+              ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                 <div className="tg-rows-empty">
-                  Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture or topics from the bank.
+                  Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture, a sub-deck, or topics from ARU Year 1.
                 </div>
               ) : (
-                <TopicPicker
-                  key={activeGroupId ?? "all"}
+                <DeckTree
+                  key={activeRootId ?? "all"}
+                  forest={forest}
                   value={filter}
                   onChange={next => setFilter(f => ({ ...f, ...next }))}
-                  pStats={pStats}
-                  eligibleIds={eligibleIds}
                   query={topicQuery}
-                  only={groupKeys}
-                  allLabel={activeGroup ? `All of ${activeGroup.name}` : "All blocks"}
+                  allLabel={activeRoot ? `All of ${activeRoot.name}` : "Everything"}
+                  rowMenu={rowMenu}
+                  allowEmpty
                 />
               )}
             </div>
