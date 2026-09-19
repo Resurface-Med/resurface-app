@@ -43,14 +43,11 @@ export function DeckPicker({ decks, exclude = null, allowTop = false, onPick, an
 
 function QuestionRow({ q, decks, actions, onEdit }) {
   const [open, setOpen] = useState(false);
-  const [moving, setMoving] = useState(false);
   const ref = useRef(null);
   const close = useCallback(() => setOpen(false), []);
-  const closeMove = useCallback(() => setMoving(false), []);
   const where = q.path?.slice(1).map(p => p.name).join(" › ") || q.path?.[0]?.name || "";
   const items = [
     { label: "Edit", onSelect: () => onEdit(q) },
-    { label: "Move into…", onSelect: () => setMoving(true) },
     { label: "Delete", danger: true, onSelect: async () => {
       if (await confirm({ title: "Delete this question?", body: "This can’t be undone.", action: "Delete", danger: true })) actions.deleteQuestion(q.id);
     } },
@@ -66,8 +63,6 @@ function QuestionRow({ q, decks, actions, onEdit }) {
       <Popover anchorRef={ref} open={open} onClose={close}>
         <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(); }} />
       </Popover>
-      <DeckPicker decks={decks} anchorRef={ref} open={moving} onClose={closeMove} current={q.deckId}
-        onPick={id => { if (id && id !== q.deckId) actions.moveQuestion(q.id, id); }} />
     </li>
   );
 }
