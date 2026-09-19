@@ -151,26 +151,35 @@ export default function DeckTree({
 
   const isAll = selected === null;
 
-  function Row({ n }) {
+  /* Rows are indented a fixed step per level, and the guide lines are
+     drawn from the parent's tick box: a vertical run down its children and
+     a stub into each child's box. The geometry lives in two custom
+     properties so CSS can draw it without knowing the depth. */
+  const STEP = 26, PAD = 12, HALF = 20;
+
+  function Row({ n, isLast }) {
     const kids = n.children;
     const isOpen = q ? true : open.has(n.id);
     const empty = n.avail === 0 && !(allowEmpty && n.mine);
     const st = state(n);
     const depth = n.depth - base;
-    const roomy = depth <= 1;
+    const nested = depth > 0;
     const cls = [
       "topic-row",
-      roomy ? "topic-row-roomy" : "is-child",
+      depth <= 1 ? "topic-row-roomy" : "is-child",
       depth === 0 ? "is-block" : "",
       st === true ? "is-active" : "",
       empty ? "is-empty" : "",
     ].filter(Boolean).join(" ");
-    const indent = depth >= 2 ? { paddingLeft: 28 + (depth - 2) * 18 } : undefined;
+    const padLeft = PAD + depth * STEP;
     const menu = rowMenu && n.mine ? rowMenu(n) : null;
 
     return (
-      <div className={depth === 0 ? "topic-block" : "topic-group"}>
-        <div className={cls} style={indent}>
+      <div
+        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}`}
+        style={nested ? { "--px": `${PAD + (depth - 1) * STEP + 9}px`, "--half": `${HALF}px` } : undefined}
+      >
+        <div className={cls} style={nested ? { paddingLeft: padLeft, paddingTop: 11, paddingBottom: 11 } : undefined}>
           <button
             type="button"
             role="checkbox"
@@ -193,7 +202,11 @@ export default function DeckTree({
             </button>
           )}
         </div>
-        {isOpen && kids.map(k => <Row key={k.id} n={k} />)}
+        {isOpen && kids.length > 0 && (
+          <div className="tree-kids">
+            {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
+          </div>
+        )}
       </div>
     );
   }
@@ -211,7 +224,7 @@ export default function DeckTree({
       {q && tree.length === 0 && (
         <p style={{ padding: "20px 4px", fontSize: 14.5, color: C.muted }}>No deck matches “{query.trim()}”.</p>
       )}
-      {tree.map(r => <Row key={r.id} n={r} />)}
+      {tree.map((r, i) => <Row key={r.id} n={r} isLast={i === tree.length - 1} />)}
     </div>
   );
 }
