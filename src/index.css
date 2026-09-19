@@ -2529,8 +2529,8 @@ select {
 }
 .pop-item:hover { background: var(--c-surface3); }
 .pop-item:disabled { color: var(--c-muted); cursor: default; background: none; }
-.pop-item.is-danger { color: var(--c-muted); }
-.pop-item.is-danger:hover { color: var(--c-danger); }
+.pop-item.is-danger { color: var(--c-danger); }
+.pop-item.is-danger:hover { background: color-mix(in srgb, var(--c-danger) 10%, transparent); }
 
 /* A deck row's own menu: a dot-dot-dot at the end of the row. */
 .deck-menu { position: relative; flex-shrink: 0; }
