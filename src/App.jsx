@@ -210,7 +210,25 @@ export default function App() {
     setDecks(deckRows);
     applyGenerated(rows, deckRows);
   }
-  const deckActions = { createDeck, renameDeck, deleteDeck, copyBankTopics };
+  /* Re-parent a deck. Refused if the target is the deck itself or under it. */
+  function moveDeck(id, parentId) {
+    let p = parentId;
+    while (p) { if (p === id) return; p = decks.find(d => d.id === p)?.parentId ?? null; }
+    applyDecks(decks.map(d => d.id === id ? { ...d, parentId: parentId ?? null } : d));
+    remote.updateDeck(id, { parent_id: parentId ?? null });
+  }
+  function deleteQuestion(qid) {
+    const rows = genRowsRef.current.filter(r => r.id !== qid);
+    applyGenerated(rows);
+    remote.removeGenerated(user.id, qid);
+  }
+  function moveQuestion(qid, deckId) {
+    const rows = genRowsRef.current.map(r => r.id === qid ? { ...r, deckId } : r);
+    applyGenerated(rows);
+    const q = rows.find(r => r.id === qid);
+    if (q) remote.moveGenerated(user.id, q, deckId);
+  }
+  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, copyBankTopics, deleteQuestion, moveQuestion };
 
   useEffect(() => {
     if (!user) return;

@@ -569,7 +569,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
      that deck is the parent by default, with the lecture as a new sub-deck. */
-  const [deckChoice, setDeckChoice] = useState(targetDeckId ? "__new__" : "");
+  const [deckChoice, setDeckChoice] = useState(targetDeckId || decks.length === 0 ? "__new__" : "");
   const [newDeckName, setNewDeckName] = useState("");
   const [newDeckParent, setNewDeckParent] = useState(targetDeckId ?? "");
   const [countRaw, setCountRaw] = useState("10");

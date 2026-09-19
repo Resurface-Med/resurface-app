@@ -25,14 +25,23 @@ export function indexDecks(decks) {
  *
  * Node: { id, name, children: [], total, seen, avail, mine, depth }.
  */
-export function buildForest({ questions, decks, pStats, eligible, rootId = null }) {
+const natural = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+
+/** Siblings in reading order: "2.9" before "2.10", A before B. */
+export function sortSiblings(nodes) {
+  nodes.sort((a, b) => natural.compare(a.name, b.name));
+  nodes.forEach(n => sortSiblings(n.children));
+  return nodes;
+}
+
+export function buildForest({ questions, decks, pStats, eligible, due = null, rootId = null }) {
   const nodes = new Map();
   const roots = [];
 
   function node(id, name, parentNode, mine) {
     let n = nodes.get(id);
     if (!n) {
-      n = { id, name, children: [], total: 0, seen: 0, avail: 0, mine, depth: parentNode ? parentNode.depth + 1 : 0 };
+      n = { id, name, children: [], total: 0, seen: 0, avail: 0, due: 0, mine, depth: parentNode ? parentNode.depth + 1 : 0 };
       nodes.set(id, n);
       if (parentNode) parentNode.children.push(n); else roots.push(n);
     }
@@ -57,15 +66,18 @@ export function buildForest({ questions, decks, pStats, eligible, rootId = null 
     }
     const isSeen = Boolean(pStats[q.id]);
     const isAvail = eligible.has(q.id);
+    const isDue = due ? due.has(q.id) : false;
     for (const step of q.path) {
       const n = nodes.get(step.id);
       n.total += 1;
       if (isSeen) n.seen += 1;
       if (isAvail) n.avail += 1;
+      if (isDue) n.due += 1;
     }
   }
 
-  // The bank last, so your own decks lead.
+  // Natural order within a parent; your own decks before the bank.
+  sortSiblings(roots);
   roots.sort((a, b) => (a.id === BANK_ROOT) - (b.id === BANK_ROOT));
 
   if (rootId) {

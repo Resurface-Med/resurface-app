@@ -16,14 +16,15 @@ import { leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
  * Selection is a Set of leaf ids, or null for everything shown.
  */
 
-function Coverage({ seen, total, avail, dim }) {
+function Coverage({ seen, total, avail, due = 0, dim, empty = false }) {
   const pct = total > 0 ? Math.min(100, Math.round((seen / total) * 100)) : 0;
   return (
     <span className="topic-meta" style={{ opacity: dim ? 0.45 : 1 }}>
+      {due > 0 && <span className="topic-due" title={`${due} due for review`}>{due} due</span>}
       <span className="topic-bar" role="img" aria-label={`${seen} of ${total} seen`}>
         <span className="topic-bar-fill" style={{ width: `${pct}%` }} />
       </span>
-      <span className="topic-avail">{avail}</span>
+      <span className="topic-avail">{total === 0 && empty ? "empty" : avail}</span>
     </span>
   );
 }
@@ -191,8 +192,8 @@ export default function DeckTree({
             <Check state={st} />
             <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
             {depth === 0
-              ? <span className="topic-meta"><span className="topic-avail">{n.avail}</span></span>
-              : <Coverage seen={n.seen} total={n.total} avail={n.avail} dim={n.avail === 0} />}
+              ? <span className="topic-meta">{n.due > 0 && <span className="topic-due">{n.due} due</span>}<span className="topic-avail">{n.total === 0 && n.mine ? "empty" : n.avail}</span></span>
+              : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
           </button>
           {menu && <RowMenu node={n} items={menu} />}
           {kids.length > 0 && (

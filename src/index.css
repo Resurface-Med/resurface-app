@@ -2523,6 +2523,43 @@ select {
 .tg-rows-empty strong { color: var(--c-text); font-weight: 600; }
 .tg-tab.is-bank { border-style: dashed; }
 
+/* Due for review, on a row: the one number a spaced-repetition app should
+   put in front of you. */
+.topic-due {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-accent);
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+/* The questions in a deck, listed in place. */
+.qb-list { list-style: none; margin: 0; padding: 0; }
+.qb-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 4px 11px 6px;
+  border-top: 1px solid var(--c-border);
+}
+.qb-row:first-child { border-top: none; }
+.qb-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.qb-stem {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--c-text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.qb-meta { font-size: 12.5px; color: var(--c-muted); }
+.qb-row .deck-menu-btn { color: var(--c-muted); }
+.pop-title { padding: 6px 12px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c-muted); }
+.pop-empty { padding: 8px 12px 10px; font-size: 13.5px; color: var(--c-muted); }
+.pop-item { white-space: pre; }
+
 /* ─── Tree guides ────────────────────────────────────────────────────
    A hairline from a parent's tick box down through its children, with a
    stub into each child's box. --px is the parent box's centre, set on the

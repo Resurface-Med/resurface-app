@@ -8,6 +8,7 @@ import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree from "../ui/DeckTree";
 import { DeckTabs, DeckControls, BankCopier, DeckNameForm } from "../ui/DeckControls";
+import DeckBrowser, { DeckPicker } from "../ui/DeckBrowser";
 import { buildForest, leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
 import { confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
@@ -285,6 +286,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      rename, with the deck id it is for), or the bank copier. */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
   const [copyingInto, setCopyingInto] = useState(null); // deck id
+  const [browsing, setBrowsing] = useState(null);       // deck id whose questions are listed
+  const [movingDeck, setMovingDeck] = useState(null);   // { id, anchor } for the Move to… picker
+  const moveAnchor = useRef(null);
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
   useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
@@ -292,6 +296,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setFilter(f => ({ ...f, leaves: ["All"] }));
     setNaming(null);
     setCopyingInto(null);
+    setBrowsing(null);
     setTopicQuery("");
   }, [activeRootId]);
   function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
@@ -460,7 +465,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     );
     const eligibleIds = inScope.map(x => x.id);
     const eligibleSet = new Set(eligibleIds);
-    const fullForest = buildForest({ questions: QUESTIONS, decks, pStats, eligible: eligibleSet });
+    const dueSet = new Set(QUESTIONS.filter(x => isReviewDue(srCards[x.id])).map(x => x.id));
+    const fullForest = buildForest({ questions: QUESTIONS, decks, pStats, eligible: eligibleSet, due: dueSet });
     const roots = fullForest;
     const activeRoot = activeRootId ? findNode(fullForest, activeRootId) : null;
     /* Inside a tab, the tree is what is under the root — the tab itself is
@@ -471,7 +477,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* What a row's menu offers. Only your decks have one. */
     const rowMenu = node => [
+      { label: "Questions", onSelect: n => { setBrowsing(n.id); setTopicQuery(""); } },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
+      { label: "Move to…", onSelect: n => setMovingDeck(n.id) },
       { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
       { label: "Delete", danger: true, onSelect: async n => {
@@ -570,7 +578,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         aria-label="Search decks"
                         className="setup-search"
                       />
-                      {copyingInto ? (
+                      {browsing ? (
+                        <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
+                      ) : copyingInto ? (
                         <BankCopier bankForest={bankForest} query={topicQuery} onDone={copyFromBank} onCancel={() => setCopyingInto(null)} />
                       ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                         <div className="tg-rows-empty">
@@ -709,10 +719,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               {!creatingDeck && !naming && (
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
-                  <h2 style={{ ...sectionH, margin: 0 }}>{copyingInto ? `Copy into ${decksById.get(copyingInto)?.name ?? "deck"}` : "What are you revising?"}</h2>
+                  <h2 style={{ ...sectionH, margin: 0 }}>{copyingInto ? `Copy into ${decksById.get(copyingInto)?.name ?? "deck"}` : browsing ? (decksById.get(browsing)?.name ?? "Questions") : "What are you revising?"}</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 16, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {!copyingInto && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
-                    {activeDeck && !copyingInto && (
+                    {!copyingInto && !browsing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
+                    {activeDeck && !copyingInto && !browsing && (
                       <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
                         onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
                         onCopyFromBank={id => setCopyingInto(id)} onRename={id => setNaming({ mode: "rename", deckId: id })} />
@@ -733,8 +743,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   type="search"
                   value={topicQuery}
                   onChange={e => setTopicQuery(e.target.value)}
-                  placeholder="Search decks"
-                  aria-label="Search decks"
+                  placeholder={browsing ? "Search questions" : "Search decks"}
+                  aria-label={browsing ? "Search questions" : "Search decks"}
                   style={{
                     width: "100%", boxSizing: "border-box",
                     padding: "11px 16px", fontSize: 14.5, fontFamily: "inherit",
@@ -746,9 +756,17 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
             </div>
 
+            <span ref={moveAnchor} style={{ display: "block", height: 0 }} />
+            {movingDeck && (
+              <DeckPicker decks={decks} exclude={movingDeck} allowTop anchorRef={moveAnchor} open onClose={() => setMovingDeck(null)}
+                current={decksById.get(movingDeck)?.parentId ?? null}
+                onPick={id => { deckActions.moveDeck(movingDeck, id); setMovingDeck(null); }} />
+            )}
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingDeck ? (
                 <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
+              ) : browsing ? (
+                <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
               ) : copyingInto ? (
                 <BankCopier bankForest={bankForest} query={topicQuery} onDone={copyFromBank} onCancel={() => setCopyingInto(null)} />
               ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
