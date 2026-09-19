@@ -33,6 +33,7 @@ import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
+import { ConfirmHost } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
@@ -367,6 +368,7 @@ export default function App() {
           }}
         />
       )}
+      <ConfirmHost />
       {pendingView && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",

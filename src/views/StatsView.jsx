@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { V, h1 } from "../ui/theme";
 import { QUESTIONS, CURRICULUM } from "../data";
 import Wave from "../ui/Wave";
+import { confirm } from "../ui/Confirm";
 
 /**
  * Progress — coverage and accuracy by subject, then drill into topics.
@@ -240,14 +241,14 @@ export default function StatsView({
             <button
               type="button"
               className="prog-reset-btn"
-              onClick={() => { if (window.confirm("Reset practice stats for every question?")) onClearP?.(); }}
+              onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
             >
               Reset practice stats
             </button>
             <button
               type="button"
               className="prog-reset-btn"
-              onClick={() => { if (window.confirm("Reset review schedules?")) onClearSR?.(); }}
+              onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
             >
               Reset review schedule
             </button>

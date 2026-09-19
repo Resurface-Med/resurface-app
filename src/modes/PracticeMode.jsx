@@ -9,6 +9,7 @@ import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree from "../ui/DeckTree";
 import { DeckTabs, DeckControls, BankCopier, DeckNameForm } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
+import { confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -473,8 +474,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
-      { label: "Delete", danger: true, onSelect: n => {
-        if (window.confirm(n.total ? `Delete “${n.name}” and its ${n.total} question${n.total === 1 ? "" : "s"}?` : `Delete “${n.name}”?`)) deckActions.deleteDeck(n.id);
+      { label: "Delete", danger: true, onSelect: async n => {
+        if (await confirmDelete(`“${n.name}”`, n.total)) deckActions.deleteDeck(n.id);
       } },
     ];
     async function copyFromBank(leaves) {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
@@ -118,8 +119,8 @@ export default function ProfileView({
     }
   }
 
-  function resetProgress() {
-    if (!window.confirm("Reset all practice stats and review schedules? This cannot be undone.")) {
+  async function resetProgress() {
+    if (!(await confirm({ title: "Reset all progress?", body: "Practice stats and review schedules, gone. This can’t be undone.", action: "Reset", danger: true }))) {
       return;
     }
     setResetBusy(true);

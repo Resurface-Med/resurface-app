@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { BANK_ROOT, deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
 import Popover, { MenuItems } from "./Popover";
+import { confirmDelete } from "./Confirm";
 
 /**
  * The tabs across the top of Study, and what a deck of yours can do.
@@ -69,8 +70,8 @@ export function DeckControls({ node, deck, actions, onGenerateInto, onNewSub, on
   const menuItems = [
     { label: "Rename", onSelect: () => onRename(deck.id) },
     { label: copied ? "Link copied" : "Share", onSelect: share },
-    { label: "Delete", danger: true, onSelect: () => {
-      if (window.confirm(n ? `Delete “${deck.name}” and its ${n} question${n === 1 ? "" : "s"}?` : `Delete “${deck.name}”?`)) actions.deleteDeck(deck.id);
+    { label: "Delete", danger: true, onSelect: async () => {
+      if (await confirmDelete(`“${deck.name}”`, n)) actions.deleteDeck(deck.id);
     } },
   ];
   return (
