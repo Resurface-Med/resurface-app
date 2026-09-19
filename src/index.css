@@ -2148,12 +2148,13 @@ select {
   max-width: 720px;
 }
 @media (min-width: 1100px) {
-  .setup-col .topic-row { padding: 8px 8px 8px 12px; }
-  .setup-col .topic-row-roomy { padding: 10px 12px; margin-bottom: 2px; border-radius: 12px; }
-  .setup-col .topic-row-roomy .topic-name { font-size: 15px; }
-  .setup-col .topic-name { font-size: 14px; }
-  .setup-col .topic-name.is-child { font-size: 14px; }
-  .setup-col .topic-expand { width: 28px; height: 28px; border-radius: 8px; }
+  .setup-col { max-width: 640px; }
+  .setup-col .topic-row { padding: 10px 8px 10px 12px; }
+  .setup-col .topic-row-roomy { padding: 12px 12px; margin-bottom: 3px; border-radius: 12px; }
+  .setup-col .topic-row-roomy .topic-name { font-size: 15.5px; }
+  .setup-col .topic-name { font-size: 14.5px; }
+  .setup-col .topic-name.is-child { font-size: 14.5px; }
+  .setup-col .topic-expand { width: 30px; height: 30px; border-radius: 8px; }
   .setup-col .topic-block + .topic-block { margin-top: 2px; }
   .setup-col .deck-menu-btn { width: 24px; height: 24px; }
 }
