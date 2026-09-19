@@ -155,7 +155,7 @@ export default function DeckTree({
      drawn from the parent's tick box: a vertical run down its children and
      a stub into each child's box. The geometry lives in two custom
      properties so CSS can draw it without knowing the depth. */
-  const STEP = 26, PAD = 12, HALF = 20;
+  const STEP = 26, PAD = 14;
 
   function Row({ n, isLast }) {
     const kids = n.children;
@@ -177,9 +177,9 @@ export default function DeckTree({
     return (
       <div
         className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}`}
-        style={nested ? { "--px": `${PAD + (depth - 1) * STEP + 9}px`, "--half": `${HALF}px` } : undefined}
+        style={nested ? { "--px": `${PAD + (depth - 1) * STEP + 9}px` } : undefined}
       >
-        <div className={cls} style={nested ? { paddingLeft: padLeft, paddingTop: 11, paddingBottom: 11 } : undefined}>
+        <div className={cls} style={{ paddingLeft: padLeft }}>
           <button
             type="button"
             role="checkbox"

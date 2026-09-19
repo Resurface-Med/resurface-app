@@ -2505,39 +2505,49 @@ select {
 
 /* ─── Tree guides ────────────────────────────────────────────────────
    A hairline from a parent's tick box down through its children, with a
-   stub into each child's box. --px is the parent box's centre, --half the
-   child row's midline; both are set on the node by the tree. Ticking the
-   parent turns its guides accent, so what is chosen reads as one shape. */
+   stub into each child's box. --px is the parent box's centre, set on the
+   node by the tree; the vertical position comes from the row's own
+   midline, so rows of any height line up. Ticking the parent turns its
+   guides accent, so what is chosen reads as one shape. */
 .tree-node { position: relative; }
 .tree-node.is-nested { margin: 0; }
-.tree-node.is-nested > .topic-row { position: relative; }
-.tree-node.is-nested::before {
+.tree-node.is-nested > .topic-row { position: relative; box-shadow: none; }
+/* The run past this row to the next sibling. */
+.tree-node.is-nested:not(.is-last)::before {
   content: "";
   position: absolute;
   left: var(--px);
   top: 0;
   bottom: 0;
   width: 1.5px;
-  background: color-mix(in srgb, var(--c-muted) 40%, transparent);
+  background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
   pointer-events: none;
 }
-.tree-node.is-nested.is-last::before { bottom: auto; height: var(--half); }
+/* The run from the top of this row to its midline — every child has it,
+   the last one ends here. */
+.tree-node.is-nested > .topic-row::after {
+  content: "";
+  position: absolute;
+  left: var(--px);
+  top: 0;
+  height: 50%;
+  width: 1.5px;
+  background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
+  pointer-events: none;
+}
+/* The stub into this row's box. */
 .tree-node.is-nested > .topic-row::before {
   content: "";
   position: absolute;
   left: var(--px);
-  top: calc(var(--half) - 0.75px);
+  top: calc(50% - 0.75px);
   width: 17px;
   height: 1.5px;
-  background: color-mix(in srgb, var(--c-muted) 40%, transparent);
+  background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
   pointer-events: none;
 }
-.tree-node.is-on > .tree-kids > .tree-node::before,
-.tree-node.is-on > .tree-kids > .tree-node > .topic-row::before { background: var(--c-accent); }
-/* The stub must not sit under the row's own hairline separator. */
-.tree-node.is-nested > .topic-row { box-shadow: none; }
-.tree-kids > .tree-node > .topic-row.is-child,
-.tree-kids > .tree-node > .topic-row-roomy { margin-bottom: 0; }
+.tree-node.is-on > .tree-kids > .tree-node { --guide: var(--c-accent); }
+.tree-kids > .tree-node > .topic-row { margin-bottom: 0; }
 
 /* The floating menu itself (rendered at the document level). */
 .pop {
