@@ -2516,6 +2516,7 @@ select {
 .tree-node.is-nested:not(.is-last)::before {
   content: "";
   position: absolute;
+  z-index: 1;
   left: var(--px);
   top: 0;
   bottom: 0;
@@ -2528,6 +2529,7 @@ select {
 .tree-node.is-nested > .topic-row::after {
   content: "";
   position: absolute;
+  z-index: 1;
   left: var(--px);
   top: 0;
   height: 50%;
@@ -2539,6 +2541,7 @@ select {
 .tree-node.is-nested > .topic-row::before {
   content: "";
   position: absolute;
+  z-index: 1;
   left: var(--px);
   top: calc(50% - 0.75px);
   width: 17px;
