@@ -279,7 +279,7 @@ export default function QuizShell({
           />
         )}
 
-        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}`}>
+        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}${aiClosing ? " is-ai-closing" : ""}`}>
           <div className="quiz-shell__main">
             <QuestionCard
               key={q.id}

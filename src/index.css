@@ -1560,7 +1560,7 @@ select {
   .ai-slot {
     animation: none !important;
   }
-  .quiz-shell__body { transition: none !important; }
+  .quiz-shell__body.has-ai { animation: none !important; }
 }
 
 /* ─── Login ─────────────────────────────────────────────────────── */
@@ -5265,7 +5265,6 @@ select {
      did so in the single frame the class changed, right at the end of the
      panel's exit: one abrupt hop after a smooth move. It travels now, on
      the same curve and over the same time as the panel beside it. */
-  transition: padding 0.52s cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* margin: auto, not align-items: center on the parent.
  *
@@ -5284,11 +5283,42 @@ select {
   flex-direction: row;
   align-items: stretch;
   gap: 0;
-  padding: clamp(14px, 2vh, 22px) clamp(14px, 2vw, 20px)
-    clamp(12px, 2vh, 18px) clamp(18px, 3vw, 28px);
   width: 100%;
   max-width: none;
   overflow: hidden;
+  /* One motion, not two.
+   *
+   * The dock's layout wants a tighter frame than the reading one, and the
+   * card is centred by auto margins — so that padding is what moves the
+   * card down as the panel arrives, and up as it leaves. As a transition
+   * it fired when the class changed, which on the way out is at unmount,
+   * after the slide had already finished: the card settled and then moved
+   * again. Driven from a keyframe on the same class, with the same curve
+   * and the same 520ms as the slot beside it, the two are one diagonal. */
+  animation: ai-pad-in 0.52s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.quiz-shell__body.has-ai.is-ai-closing {
+  animation: ai-pad-out 0.52s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes ai-pad-in {
+  from {
+    padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 32px)
+      clamp(36px, 7vh, 96px) clamp(16px, 4vw, 32px);
+  }
+  to {
+    padding: clamp(14px, 2vh, 22px) clamp(14px, 2vw, 20px)
+      clamp(12px, 2vh, 18px) clamp(18px, 3vw, 28px);
+  }
+}
+@keyframes ai-pad-out {
+  from {
+    padding: clamp(14px, 2vh, 22px) clamp(14px, 2vw, 20px)
+      clamp(12px, 2vh, 18px) clamp(18px, 3vw, 28px);
+  }
+  to {
+    padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 32px)
+      clamp(36px, 7vh, 96px) clamp(16px, 4vw, 32px);
+  }
 }
 .quiz-shell__body.has-ai .quiz-shell__main {
   flex: 1 1 0;
