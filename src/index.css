@@ -973,9 +973,13 @@ body::after {
   min-height: 0;
   height: 100%;
   background: var(--c-card-solid);
-  border: 1px solid var(--c-border);
+  /* No border, no lift. It sits on the session's own surface beside the
+     question rather than hovering over it, and the hard edge plus the drop
+     shadow were drawing a box around a panel that should just be the right
+     hand side of the page. */
+  border: none;
   border-radius: var(--r-panel);
-  box-shadow: var(--c-card-shadow-lift);
+  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
   overflow: hidden;
   /* Grows out of the question rather than sliding in beside it: the origin is
      the edge nearest the button that opened it, so the panel reads as coming
