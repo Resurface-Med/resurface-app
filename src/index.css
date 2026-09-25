@@ -987,7 +987,7 @@ body::after {
      this app were reverted for animating filter, and a Gaussian pass per
      frame is exactly what a panel this size cannot afford. */
   transform-origin: left center;
-  animation: ai-dock-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: ai-dock-in 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 @keyframes ai-dock-in {
   0%   { opacity: 0; transform: translate3d(-16px, 16px, 0) scale(0.92); }
@@ -997,24 +997,16 @@ body::after {
 /* Out the way it came, quicker — leaving is not an event. The parts inside
    do not stagger out; they go with the panel. */
 .ai-dock.is-closing {
-  animation: ai-dock-out 0.26s cubic-bezier(0.4, 0, 1, 1) both;
+  animation: ai-dock-out 0.34s ease both;
   pointer-events: none;
 }
 .ai-dock.is-closing > * { animation: none !important; }
 @keyframes ai-dock-out {
-  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  to   { opacity: 0; transform: translate3d(-10px, 10px, 0) scale(0.94); }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
-/* And the question takes back the width it gave up, travelling rather than
-   jumping — the mirror of the settle it plays when the dock arrives. */
-.quiz-shell__body.is-ai-returning .quiz-shell__main {
-  animation: ai-main-return 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes ai-main-return {
-  from { transform: translate3d(-22px, 0, 0) scale(0.99); }
-  to   { transform: none; }
-}
+
 
 /* The panel arrives, then fills. Each part rises on the same curve a beat
    after the one above it, so the eye is led down the dock instead of being
@@ -1561,7 +1553,7 @@ select {
   .anim-pop,
   .anim-bounce-in,
   .ai-dock.is-closing,
-  .quiz-shell__body.is-ai-returning .quiz-shell__main {
+  .ai-slot {
     animation: none !important;
   }
 }
@@ -5279,7 +5271,7 @@ select {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: clamp(14px, 2vw, 20px);
+  gap: 0;
   padding: clamp(14px, 2vh, 22px) clamp(14px, 2vw, 20px)
     clamp(12px, 2vh, 18px) clamp(18px, 3vw, 28px);
   width: 100%;
@@ -5301,6 +5293,30 @@ select {
   justify-content: center;
   align-items: flex-start;
 }
+/* The slot carries the width — and the gap, so that goes with it — while
+   the dock inside keeps its own. */
+.ai-slot {
+  flex: 0 0 auto;
+  box-sizing: content-box;
+  width: clamp(320px, 30vw, 400px);
+  padding-left: clamp(14px, 2vw, 20px);
+  display: flex;
+  overflow: hidden;
+  /* Eased both ends. The app's usual curve is nearly finished in its first
+     quarter, which is right for something small popping into place and
+     wrong for a column changing width underneath a paragraph — that reads
+     as a snap with a tail. This one leaves and arrives gently. */
+  animation: ai-slot-in 0.52s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.ai-slot.is-closing { animation: ai-slot-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) both; }
+@keyframes ai-slot-in {
+  from { width: 0; padding-left: 0; }
+  to   { width: clamp(320px, 30vw, 400px); padding-left: clamp(14px, 2vw, 20px); }
+}
+@keyframes ai-slot-out {
+  from { width: clamp(320px, 30vw, 400px); padding-left: clamp(14px, 2vw, 20px); }
+  to   { width: 0; padding-left: 0; }
+}
 .quiz-shell__body.has-ai .ai-dock {
   flex: 0 0 clamp(320px, 30vw, 400px);
   width: clamp(320px, 30vw, 400px);
@@ -5308,17 +5324,10 @@ select {
   min-height: 0;
 }
 
-/* The question does not snap into its new width, it moves into it. It goes
-   from centred to sharing the row, so it travels left — hence the offset
-   coming from the right. Transform only: animating the width itself would
-   re-wrap the stem on every frame. */
-.quiz-shell__body.has-ai .quiz-shell__main {
-  animation: ai-main-settle 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes ai-main-settle {
-  from { transform: translate3d(22px, 0, 0) scale(1.02); }
-  to   { transform: none; }
-}
+/* No catch-up move on the question any more. The slot beside it opens and
+   closes over time, so the column's width is what travels — the card is
+   simply re-centred in it, frame by frame. A transform on top of that read
+   as a second, sharper movement. */
 /* Same again for the AI-open layout, where the card sits inside main rather
    than being it. */
 .quiz-shell__card {
@@ -5700,6 +5709,10 @@ select {
   }
   .quiz-shell__body.has-ai .quiz-shell__main {
     animation: none;
+  }
+  .ai-slot {
+    display: contents;
+    animation: none !important;
   }
   .quiz-shell__body.has-ai .ai-dock {
     position: fixed;

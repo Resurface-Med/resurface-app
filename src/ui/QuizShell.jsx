@@ -82,23 +82,16 @@ export default function QuizShell({
   };
 
   const [aiOpen, setAiOpen] = useState(false);
-  /* Closing is a move, not a disappearance: the dock stays mounted while it
-     leaves, and the question column is given the same distance back that it
-     travelled when the dock arrived — otherwise it simply jumps wide the
-     instant the panel unmounts. */
+  /* Closing is a move, not a disappearance: the dock stays mounted while
+     its slot closes, so the question's column widens with it rather than
+     jumping the instant the panel unmounts. */
   const [aiMounted, setAiMounted] = useState(false);
-  const [aiReturning, setAiReturning] = useState(false);
   useEffect(() => {
-    if (aiOpen) { setAiMounted(true); setAiReturning(false); return; }
+    if (aiOpen) { setAiMounted(true); return; }
     if (!aiMounted) return;
-    const t = setTimeout(() => { setAiMounted(false); setAiReturning(true); }, 260);
+    const t = setTimeout(() => setAiMounted(false), 430);
     return () => clearTimeout(t);
   }, [aiOpen]);
-  useEffect(() => {
-    if (!aiReturning) return;
-    const t = setTimeout(() => setAiReturning(false), 420);
-    return () => clearTimeout(t);
-  }, [aiReturning]);
 
   const [controls, setControls] = useState({
     pending: null,
@@ -286,7 +279,7 @@ export default function QuizShell({
           />
         )}
 
-        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}${aiReturning ? " is-ai-returning" : ""}`}>
+        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}`}>
           <div className="quiz-shell__main">
             <QuestionCard
               key={q.id}
@@ -308,10 +301,18 @@ export default function QuizShell({
             />
           </div>
           {showAi && (
-            /* Keyed by the question: the thread is about this one, and
-               moving on starts a fresh one rather than carrying the last
-               question's conversation into it. */
-            <ExplainChat key={q.id} q={q} picked={sel} answered={answeredThis} closing={aiClosing} onClose={() => setAiOpen(false)} />
+            /* The slot is what moves: it opens from nothing to the dock's
+               width and closes back to nothing, so the question's column
+               follows it continuously instead of snapping to a new width
+               and sliding into place afterwards. The dock inside keeps its
+               own width the whole time and is simply revealed, which is
+               what stops its text reflowing on every frame. */
+            <div className={`ai-slot${aiClosing ? " is-closing" : ""}`}>
+              {/* Keyed by the question: the thread is about this one, and
+                  moving on starts a fresh one rather than carrying the last
+                  question's conversation into it. */}
+              <ExplainChat key={q.id} q={q} picked={sel} answered={answeredThis} closing={aiClosing} onClose={() => setAiOpen(false)} />
+            </div>
           )}
         </div>
       </div>
