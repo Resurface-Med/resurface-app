@@ -28,6 +28,24 @@ const QUICK = [
   },
 ];
 
+/* Opened before the question is answered, the tutor is a companion rather
+   than a post-mortem: it has not been told the answer, and these ask it to
+   teach the ground the question stands on. */
+const QUICK_UNANSWERED = [
+  {
+    label: "Teach me this topic",
+    message: "In 2–3 short sentences, explain the idea this question is about. Do not say which option is correct.",
+  },
+  {
+    label: "What should I know here?",
+    message: "The one fact an examiner expects here, in a sentence. Do not answer the question for me.",
+  },
+  {
+    label: "Give me a memory tip",
+    message: "One sentence only — a memory hook for this topic.",
+  },
+];
+
 function loadUsed(questionId) {
   if (questionId == null) return 0;
   try {
@@ -65,21 +83,22 @@ function authHeaders(token) {
   };
 }
 
-function contextBody(q, picked) {
+function contextBody(q, picked, answered) {
+  /* Before an answer the correct index and the explanation are withheld —
+     the model cannot give away what it was never sent. */
   return {
     questionId: q.id,
     question: q.q,
     options: q.opts,
-    correct: q.ans,
-    picked,
-    explanation: q.exp,
+    picked: answered ? picked : null,
+    ...(answered ? { correct: q.ans, explanation: q.exp } : {}),
   };
 }
 
-function QuickPills({ sending, disabled, onPick }) {
+function QuickPills({ sending, disabled, onPick, prompts = QUICK }) {
   return (
     <div className="ai-dock__pills">
-      {QUICK.map(({ label, message }) => (
+      {prompts.map(({ label, message }) => (
         <button
           key={label}
           type="button"
@@ -94,7 +113,7 @@ function QuickPills({ sending, disabled, onPick }) {
   );
 }
 
-export default function ExplainChat({ q, picked, onClose }) {
+export default function ExplainChat({ q, picked, onClose, answered = true }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -161,7 +180,7 @@ export default function ExplainChat({ q, picked, onClose }) {
         method: "POST",
         headers: authHeaders(session?.access_token),
         body: JSON.stringify({
-          ...contextBody(q, picked),
+          ...contextBody(q, picked, answered),
           message: trimmed,
           history,
         }),
@@ -300,6 +319,7 @@ export default function ExplainChat({ q, picked, onClose }) {
           <QuickPills
             sending={sending}
             disabled={atLimit}
+            prompts={answered ? QUICK : QUICK_UNANSWERED}
             onPick={(label, message) => void sendPrompt(label, message)}
           />
         )}

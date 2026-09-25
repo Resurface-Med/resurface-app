@@ -135,9 +135,10 @@ export default function QuizShell({
   const wrong = answeredThis && sel !== q.ans;
   /* The dock is a window you keep open, not a reaction to being wrong: it
      stays across questions and asks about whichever one is in front of
-     you. Before an answer it is shut — a tutor on hand while the question
-     is unanswered is just the answer. */
-  const showAi = aiOpen && answeredThis;
+     you, answered or not — a companion while you think, and a tutor once
+     you have committed. Unanswered, it is not sent the correct option, so
+     it can teach the ground without handing the answer over. */
+  const showAi = aiOpen;
   const canCheck = !controls.answered && controls.canSubmit;
   const primaryLabel = canCheck
     ? "Check"
@@ -173,21 +174,20 @@ export default function QuizShell({
             {idx + 1}/{queue.length}
           </span>
 
-          {/* Open the tutor and leave it open. Shut until the question is
-              answered. */}
+          {/* Named, not a glyph to decode: it is a companion you open and
+              leave open, so it says what it is. */}
           <button
             type="button"
-            className={`quiz-shell__tool btn-press${aiOpen ? " is-on" : ""}`}
+            className={`quiz-ai-toggle btn-press${aiOpen ? " is-on" : ""}`}
             onClick={() => setAiOpen(o => !o)}
-            disabled={!answeredThis}
-            title={answeredThis ? (aiOpen ? "Close Resurface AI" : "Ask Resurface AI") : "Answer first"}
-            aria-label={aiOpen ? "Close Resurface AI" : "Ask Resurface AI"}
+            title={aiOpen ? "Close Resurface AI" : "Open Resurface AI"}
             aria-pressed={aiOpen}
           >
-            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M8 1.6l1.5 3.6 3.6 1.5-3.6 1.5L8 11.8 6.5 8.2 2.9 6.7l3.6-1.5L8 1.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
               <path d="M12.6 10.6l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
             </svg>
+            <span className="quiz-ai-toggle__label">Resurface AI</span>
           </button>
 
           <button
@@ -309,7 +309,7 @@ export default function QuizShell({
             /* Keyed by the question: the thread is about this one, and
                moving on starts a fresh one rather than carrying the last
                question's conversation into it. */
-            <ExplainChat key={q.id} q={q} picked={sel} onClose={() => setAiOpen(false)} />
+            <ExplainChat key={q.id} q={q} picked={sel} answered={answeredThis} onClose={() => setAiOpen(false)} />
           )}
         </div>
       </div>

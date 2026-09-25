@@ -5000,16 +5000,41 @@ select {
   height: 34px;
   margin-left: 2px;
 }
-/* The tutor's toggle stays lit while its window is open. */
-.quiz-shell__tool.is-on {
+/* The tutor's own control: named and filled, because it is a thing you
+   open and keep open rather than a tool you reach for once. */
+.quiz-ai-toggle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  margin-left: 6px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--c-on-field-soft);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.quiz-ai-toggle:hover {
   color: var(--c-on-field);
   background: rgba(255, 255, 255, 0.2);
 }
-.quiz-shell__tool:disabled {
-  opacity: 0.35;
-  cursor: default;
+.quiz-ai-toggle.is-on {
+  background: var(--c-field-object);
+  border-color: transparent;
+  color: var(--c-field-object-ink);
 }
-.quiz-shell__tool:disabled:hover { background: transparent; }
+@media (max-width: 560px) {
+  .quiz-ai-toggle { padding: 0 10px; }
+  .quiz-ai-toggle__label { display: none; }
+}
 .quiz-shell__progress-wrap {
   flex: 1;
   min-width: 0;
