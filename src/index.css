@@ -5675,33 +5675,18 @@ select {
 
 /* ─── Switching view ──────────────────────────────────────────────
    A view used to paint whole and empty — the white sheet and its wave
-   at full size — and then fill as its contents animated in. The gap
-   between the page arriving and the words arriving is the flash.
+   at full size — and only then fill as its contents animated in. That
+   gap between the page arriving and the words arriving is the flash.
 
-   So the sheet arrives too. An edge sweeps down the view, the wave and
-   the sheet drawn in behind it against the blue field, and the contents
-   rise just after it has passed over them. One motion, top to bottom.
-
-   The sweep is measured in pixels, not in a percentage of the view: a
-   page's height varies from a short Leaderboard to a long Study list,
-   and a percentage would make the edge race down the tall ones. 1600px
-   carries it past the fold of any screen we run on.
-
-   `backwards`, not `both`: the clip is held before the animation starts
-   and gone the moment it ends, so none is left on the element after —
-   a lasting clip-path becomes the containing block for fixed children,
-   which is what every modal inside a view is. */
+   All it takes to close it is for the sheet to arrive with them: a short
+   fade on the whole view, no movement of its own, so the contents' own
+   rise is still the only thing you actually watch. */
 .view-swap {
-  animation: view-reveal 0.7s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: view-in 0.26s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
-@keyframes view-reveal {
-  from { clip-path: inset(0 0 100% 0); }
-  to   { clip-path: inset(0 0 calc(100% - 1600px) 0); }
-}
-
-/* The contents follow the edge rather than race it. */
-.view-swap [data-in] {
-  animation-delay: calc(110ms + var(--i, 0) * var(--step, 26ms));
+@keyframes view-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* Shorter throw on a phone, where the same distance crosses a third of the
