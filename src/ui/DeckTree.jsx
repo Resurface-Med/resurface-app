@@ -29,10 +29,9 @@ function Coverage({ seen, total, avail, due = 0, dim, empty = false }) {
   );
 }
 
-function Chevron({ open }) {
+function Chevron() {
   return (
-    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"
-      style={{ display: "block", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
+    <svg className="topic-chevron" width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
       <path d="M6.5 3.5L12 9l-5.5 5.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -177,7 +176,7 @@ export default function DeckTree({
 
     return (
       <div
-        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}`}
+        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}${isOpen ? " is-open" : ""}`}
         style={nested ? { "--px": `${PAD + (depth - 1) * STEP + 9}px` } : undefined}
       >
         <div className={cls} style={{ paddingLeft: padLeft }}>
@@ -199,13 +198,15 @@ export default function DeckTree({
           {kids.length > 0 && (
             <button type="button" onClick={() => toggleOpen(n.id)} aria-expanded={isOpen}
               aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
-              <Chevron open={isOpen} />
+              <Chevron />
             </button>
           )}
         </div>
-        {isOpen && kids.length > 0 && (
-          <div className="tree-kids">
-            {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
+        {kids.length > 0 && (
+          <div className="tree-kids" inert={isOpen ? undefined : ""}>
+            <div className="tree-kids-clip">
+              {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
+            </div>
           </div>
         )}
       </div>
