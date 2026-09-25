@@ -5330,7 +5330,12 @@ select {
   width: auto;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 0 12px;
+  /* No bottom padding here. The card is centred, so 12px at the foot of
+     this column lifts it by six — and the column only has that padding
+     while the dock is open, so losing it at unmount dropped the card by
+     six at the very end of the exit. The body's own padding already
+     leaves room beneath. */
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: flex-start;
