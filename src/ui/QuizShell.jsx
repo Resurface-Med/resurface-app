@@ -163,7 +163,17 @@ export default function QuizShell({
           </svg>
         </button>
 
-        <div className="quiz-shell__head-right">
+        <div className="quiz-shell__progress-wrap">
+          <div className="quiz-shell__progress" aria-hidden="true">
+            <div
+              className="quiz-shell__progress-fill"
+              style={{ transform: `scaleX(${progress})` }}
+            />
+          </div>
+          <span className="quiz-shell__count">
+            {idx + 1}/{queue.length}
+          </span>
+
           <button
             type="button"
             className="quiz-shell__tool btn-press"
@@ -307,15 +317,10 @@ export default function QuizShell({
               unanswered the primary reads "Check", so forward is the only way
               to skip one — and back had no footer control at all, it meant
               opening the rail. */}
-          {/* One joined control, not three loose ones: back, where you are,
-              forward. The count is the button that opens the list — it is
-              more use than the word "Questions" was, and segments joined
-              into a group read as controls rather than as the chips an
-              outlined pill looks like everywhere else in the app. */}
-          <div className="quiz-shell__nav" role="group" aria-label="Questions">
+          <div className="quiz-shell__nav">
             <button
               type="button"
-              className="quiz-shell__seg is-arrow"
+              className="quiz-shell__arrow btn-press"
               onClick={() => onPrev?.()}
               disabled={!onPrev}
               aria-label="Previous question"
@@ -325,17 +330,16 @@ export default function QuizShell({
 
             <button
               type="button"
-              className={`quiz-shell__seg is-count${railOpen ? " is-on" : ""}`}
+              className={`quiz-shell__foot-btn btn-press${railOpen ? " is-on" : ""}`}
               aria-pressed={railOpen}
-              aria-label={`Question ${idx + 1} of ${queue.length}. Show all questions`}
               onClick={() => (railOpen ? closeRail() : openRail())}
             >
-              {idx + 1} / {queue.length}
+              Questions
             </button>
 
             <button
               type="button"
-              className="quiz-shell__seg is-arrow"
+              className="quiz-shell__arrow btn-press"
               onClick={() => onNext?.()}
               disabled={isLast}
               aria-label="Next question"
@@ -343,13 +347,6 @@ export default function QuizShell({
               <NavChevron />
             </button>
           </div>
-
-          {/* Where you are, in the same bar as the controls that change it,
-              rather than up in the chrome away from them. */}
-          <div className="quiz-shell__foot-progress" aria-hidden="true">
-            <div className="quiz-shell__foot-progress-fill" style={{ transform: `scaleX(${progress})` }} />
-          </div>
-
           {/* The middle of this bar was empty, and the tutor belongs in
               the hand rather than up in the chrome: it is opened between
               reading and answering, which is exactly here. */}

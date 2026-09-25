@@ -5037,15 +5037,12 @@ select {
   .quiz-ai-toggle { padding: 0 12px; }
   .quiz-ai-toggle__label { display: none; }
 }
-/* The header keeps what is about leaving and correcting; where you are
-   moved down to the bar that changes it. */
-.quiz-shell__head-right {
+.quiz-shell__progress-wrap {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  gap: 14px;
 }
 .quiz-shell__progress {
   flex: 1;
@@ -5422,63 +5419,13 @@ select {
   opacity: 0.4;
   cursor: not-allowed;
 }
-/* Back, where you are, forward — one joined control. Segments share a
-   surface and are divided by a hairline, which is what says "these three
-   are the same thing" and what stops the middle reading as a chip. */
+/* The three "which question" controls, kept together and away from the
+   primary. */
 .quiz-shell__nav {
   display: flex;
-  align-items: stretch;
-  flex-shrink: 0;
-  background: var(--c-surface2);
-  border: 1px solid var(--c-border);
-  border-radius: var(--r-pill);
-  overflow: hidden;
-}
-.quiz-shell__seg {
-  display: grid;
-  place-items: center;
-  height: 44px;
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-size: 14.5px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.2px;
-  color: var(--c-sub);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.quiz-shell__seg.is-arrow { width: 42px; color: var(--c-accent); }
-.quiz-shell__seg.is-count {
-  padding: 0 15px;
-  color: var(--c-text);
-  box-shadow: inset 1px 0 0 var(--c-border), inset -1px 0 0 var(--c-border);
-}
-.quiz-shell__seg:hover:not(:disabled) { background: var(--c-accent-dim); color: var(--c-accent); }
-.quiz-shell__seg.is-on { background: var(--c-accent-dim); color: var(--c-accent); }
-.quiz-shell__seg:disabled { opacity: 0.35; cursor: default; }
-
-/* The meter, in the bar with the controls that move it. */
-.quiz-shell__foot-progress {
-  flex: 1;
-  min-width: 24px;
-  height: 6px;
-  margin: 0 clamp(14px, 2vw, 22px);
-  border-radius: 99px;
-  background: var(--c-surface3);
-  overflow: hidden;
-}
-.quiz-shell__foot-progress-fill {
-  height: 100%;
-  border-radius: 99px;
-  background: var(--c-accent);
-  transform-origin: left center;
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@media (max-width: 720px) {
-  .quiz-shell__foot-progress { display: none; }
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 /* Same border, fill and accent as the rail toggle beside it, drawn round
