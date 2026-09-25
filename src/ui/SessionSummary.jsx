@@ -76,6 +76,13 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 5);
 
+  /* A clean run leaves both sections out, and the actions were left
+     floating at the top of an otherwise empty sheet with nothing above
+     them — which is what made the row look misplaced rather than
+     misaligned. With nothing to review the sheet says so, once, and the
+     actions sit under that line as the content of the page. */
+  const nothingToReview = shaky.length === 0 && wrongOnes.length === 0;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div style={{ ...band, paddingTop: "clamp(24px, 4vh, 40px)", paddingBottom: "clamp(22px, 3vh, 32px)" }}>
@@ -96,7 +103,13 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(28px, 4vh, 56px)" }}>
-        <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}>
+        <div className={nothingToReview ? "sum-sheet is-clean" : "sum-sheet"} style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}>
+
+          {nothingToReview && (
+            <p className="sum-clean" data-in="rise" style={{ "--i": 3 }}>
+              Nothing to look at — every one right. They come back when they are due.
+            </p>
+          )}
 
           {shaky.length > 0 && (
             <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>

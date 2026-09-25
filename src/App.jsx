@@ -89,7 +89,14 @@ export default function App() {
      place your own questions get into it. Rows are given their deck path
      here, so decks and questions are always applied together. */
   const genRowsRef = useRef([]);
-  function applyGenerated(rows, deckRows = decks) {
+  /* The deck list as it is now, not as it was when a callback was made.
+     Generate creates a deck and saves questions into it in one go: the
+     save's callback closed over the deck list from before the create, so
+     the new questions were filed against a deck that list had never heard
+     of and arrived as "Unfiled" — until a reload, which is what made it
+     look like the questions had not saved. */
+  const decksRef = useRef([]);
+  function applyGenerated(rows, deckRows = decksRef.current) {
     genRowsRef.current = rows;
     const byId = indexDecks(deckRows);
     const decorated = rows.map(r => decorateUserQuestion(r, byId));
@@ -97,6 +104,7 @@ export default function App() {
     setGenerated(decorated);
   }
   function applyDecks(deckRows) {
+    decksRef.current = deckRows;
     setDecks(deckRows);
     applyGenerated(genRowsRef.current, deckRows);
   }
@@ -139,7 +147,7 @@ export default function App() {
       setMarketingOptIn(d.marketingOptIn);
       // Before the questions, so the pool is only rebuilt with both in hand.
       setQuestionEdits(d.questionEdits);
-      setDecks(d.decks ?? []);
+      applyDecks(d.decks ?? []);
       applyGenerated(d.generated, d.decks ?? []);
       setDataLoading(false);
 
@@ -155,7 +163,7 @@ export default function App() {
           if (id) {
             const fresh = await loadAll(user.id);
             if (cancelled) return;
-            setDecks(fresh.decks ?? []);
+            applyDecks(fresh.decks ?? []);
             applyGenerated(fresh.generated, fresh.decks ?? []);
             setOpenDeckId(id);
             setView(V.STUDY);
@@ -187,6 +195,7 @@ export default function App() {
     (function collect(x) { gone.add(x); decks.filter(d => d.parentId === x).forEach(d => collect(d.id)); })(id);
     const keptDecks = decks.filter(d => !gone.has(d.id));
     const keptRows = genRowsRef.current.filter(r => !gone.has(r.deckId));
+    decksRef.current = keptDecks;
     setDecks(keptDecks);
     applyGenerated(keptRows, keptDecks);
     remote.deleteDeck(id);

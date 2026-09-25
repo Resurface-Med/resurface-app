@@ -361,7 +361,13 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 </svg>
               </span>
             </button>
-            {!q.gen && <FlagQuestion questionId={q.id} />}
+            {/* The bank's questions are reported; your own are corrected —
+                telling yourself a question is wrong helps nobody, changing
+                it does. Either way the control is in the same place, which
+                is where it went missing from when a deck was your own. */}
+            {q.gen
+              ? <button type="button" className="q-fix" onClick={() => setEditing(true)}>Edit question</button>
+              : <FlagQuestion questionId={q.id} />}
           </div>
         </div>
       )}

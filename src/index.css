@@ -2985,6 +2985,33 @@ select {
   align-items: center;
   margin-top: clamp(24px, 3.5vh, 34px);
 }
+/* Nothing to review: one line, then the actions under it, both near the
+   top of the sheet rather than adrift in the middle of it. */
+.sum-sheet.is-clean { padding-bottom: clamp(24px, 4vh, 40px); }
+.sum-clean {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--c-sub);
+  max-width: 42ch;
+}
+.sum-sheet.is-clean .sum-actions { margin-top: clamp(18px, 2.6vh, 26px); }
+
+/* Correcting your own question, from inside a session. Sits where the
+   bank's flag sits. */
+.q-fix {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+.q-fix:hover { color: var(--c-accent); }
 /* Sized by their labels. A label that wraps makes one button taller than the
    others, which is most of what made this row look wrong. */
 .sum-actions > button {
