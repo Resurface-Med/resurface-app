@@ -113,7 +113,7 @@ function QuickPills({ sending, disabled, onPick, prompts = QUICK }) {
   );
 }
 
-export default function ExplainChat({ q, picked, onClose, answered = true }) {
+export default function ExplainChat({ q, picked, onClose, answered = true, closing = false }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -227,7 +227,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true }) {
   }
 
   return (
-    <aside className="ai-dock" aria-label="Resurface AI">
+    <aside className={`ai-dock${closing ? " is-closing" : ""}`} aria-label="Resurface AI">
       <header className="ai-dock__head">
         <h2 className="ai-dock__brand" aria-label="Resurface AI">
           <img

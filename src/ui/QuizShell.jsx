@@ -82,6 +82,23 @@ export default function QuizShell({
   };
 
   const [aiOpen, setAiOpen] = useState(false);
+  /* Closing is a move, not a disappearance: the dock stays mounted while it
+     leaves, and the question column is given the same distance back that it
+     travelled when the dock arrived — otherwise it simply jumps wide the
+     instant the panel unmounts. */
+  const [aiMounted, setAiMounted] = useState(false);
+  const [aiReturning, setAiReturning] = useState(false);
+  useEffect(() => {
+    if (aiOpen) { setAiMounted(true); setAiReturning(false); return; }
+    if (!aiMounted) return;
+    const t = setTimeout(() => { setAiMounted(false); setAiReturning(true); }, 260);
+    return () => clearTimeout(t);
+  }, [aiOpen]);
+  useEffect(() => {
+    if (!aiReturning) return;
+    const t = setTimeout(() => setAiReturning(false), 420);
+    return () => clearTimeout(t);
+  }, [aiReturning]);
 
   const [controls, setControls] = useState({
     pending: null,
@@ -138,7 +155,8 @@ export default function QuizShell({
      you, answered or not — a companion while you think, and a tutor once
      you have committed. Unanswered, it is not sent the correct option, so
      it can teach the ground without handing the answer over. */
-  const showAi = aiOpen;
+  const showAi = aiMounted;
+  const aiClosing = aiMounted && !aiOpen;
   const canCheck = !controls.answered && controls.canSubmit;
   const primaryLabel = canCheck
     ? "Check"
@@ -268,7 +286,7 @@ export default function QuizShell({
           />
         )}
 
-        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}`}>
+        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}${aiReturning ? " is-ai-returning" : ""}`}>
           <div className="quiz-shell__main">
             <QuestionCard
               key={q.id}
@@ -293,7 +311,7 @@ export default function QuizShell({
             /* Keyed by the question: the thread is about this one, and
                moving on starts a fresh one rather than carrying the last
                question's conversation into it. */
-            <ExplainChat key={q.id} q={q} picked={sel} answered={answeredThis} onClose={() => setAiOpen(false)} />
+            <ExplainChat key={q.id} q={q} picked={sel} answered={answeredThis} closing={aiClosing} onClose={() => setAiOpen(false)} />
           )}
         </div>
       </div>

@@ -994,6 +994,27 @@ body::after {
   60%  { opacity: 1; }
   100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 }
+/* Out the way it came, quicker — leaving is not an event. The parts inside
+   do not stagger out; they go with the panel. */
+.ai-dock.is-closing {
+  animation: ai-dock-out 0.26s cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+.ai-dock.is-closing > * { animation: none !important; }
+@keyframes ai-dock-out {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to   { opacity: 0; transform: translate3d(-10px, 10px, 0) scale(0.94); }
+}
+
+/* And the question takes back the width it gave up, travelling rather than
+   jumping — the mirror of the settle it plays when the dock arrives. */
+.quiz-shell__body.is-ai-returning .quiz-shell__main {
+  animation: ai-main-return 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ai-main-return {
+  from { transform: translate3d(-22px, 0, 0) scale(0.99); }
+  to   { transform: none; }
+}
 
 /* The panel arrives, then fills. Each part rises on the same curve a beat
    after the one above it, so the eye is led down the dock instead of being
@@ -1538,7 +1559,9 @@ select {
   .anim-fade-up,
   .anim-scale-in,
   .anim-pop,
-  .anim-bounce-in {
+  .anim-bounce-in,
+  .ai-dock.is-closing,
+  .quiz-shell__body.is-ai-returning .quiz-shell__main {
     animation: none !important;
   }
 }
@@ -5697,6 +5720,14 @@ select {
   @keyframes ai-sheet-in {
     from { opacity: 0.4; transform: translate3d(0, 100%, 0); }
     to   { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+  /* A sheet leaves the way it came: down, off the bottom. */
+  .quiz-shell__body.has-ai .ai-dock.is-closing {
+    animation: ai-sheet-out 0.28s cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  @keyframes ai-sheet-out {
+    from { opacity: 1; transform: translate3d(0, 0, 0); }
+    to   { opacity: 0.4; transform: translate3d(0, 100%, 0); }
   }
   .quiz-shell__body.has-ai .ai-dock__head {
     padding: calc(12px + var(--safe-t)) 16px 10px;
