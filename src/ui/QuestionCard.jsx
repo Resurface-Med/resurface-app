@@ -312,7 +312,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         <div className="q-review anim-fade-up">
           <p className="q-exp">{q.exp}</p>
 
-          {explaining && sel !== q.ans && !onAiOpenChange && (
+          {explaining && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
           )}
 
@@ -321,6 +321,9 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               it, and the thing you reach for when you are stuck ended up the
               quietest item on the card. Size gives it the prominence the
               tinted pill used to, without a container to do it. */}
+          {/* The offer is for the case that needs it — a wrong answer with
+              the tutor shut. Right answers are asked about from the header,
+              which is always there. */}
           {sel !== q.ans && !explaining && (
             <div className="q-review-ask">
             <button

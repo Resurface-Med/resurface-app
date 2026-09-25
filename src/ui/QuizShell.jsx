@@ -131,8 +131,13 @@ export default function QuizShell({
 
   const progress = (idx + 1) / queue.length;
   const answered = Object.keys(sels).length;
-  const wrong = sel !== null && sel !== q.ans;
-  const showAi = aiOpen && wrong;
+  const answeredThis = sel !== null;
+  const wrong = answeredThis && sel !== q.ans;
+  /* The dock is a window you keep open, not a reaction to being wrong: it
+     stays across questions and asks about whichever one is in front of
+     you. Before an answer it is shut — a tutor on hand while the question
+     is unanswered is just the answer. */
+  const showAi = aiOpen && answeredThis;
   const canCheck = !controls.answered && controls.canSubmit;
   const primaryLabel = canCheck
     ? "Check"
@@ -167,6 +172,23 @@ export default function QuizShell({
           <span className="quiz-shell__count">
             {idx + 1}/{queue.length}
           </span>
+
+          {/* Open the tutor and leave it open. Shut until the question is
+              answered. */}
+          <button
+            type="button"
+            className={`quiz-shell__tool btn-press${aiOpen ? " is-on" : ""}`}
+            onClick={() => setAiOpen(o => !o)}
+            disabled={!answeredThis}
+            title={answeredThis ? (aiOpen ? "Close Resurface AI" : "Ask Resurface AI") : "Answer first"}
+            aria-label={aiOpen ? "Close Resurface AI" : "Ask Resurface AI"}
+            aria-pressed={aiOpen}
+          >
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 1.6l1.5 3.6 3.6 1.5-3.6 1.5L8 11.8 6.5 8.2 2.9 6.7l3.6-1.5L8 1.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+              <path d="M12.6 10.6l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+            </svg>
+          </button>
 
           <button
             type="button"
@@ -284,7 +306,10 @@ export default function QuizShell({
             />
           </div>
           {showAi && (
-            <ExplainChat q={q} picked={sel} onClose={() => setAiOpen(false)} />
+            /* Keyed by the question: the thread is about this one, and
+               moving on starts a fresh one rather than carrying the last
+               question's conversation into it. */
+            <ExplainChat key={q.id} q={q} picked={sel} onClose={() => setAiOpen(false)} />
           )}
         </div>
       </div>

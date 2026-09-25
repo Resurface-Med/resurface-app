@@ -5000,6 +5000,16 @@ select {
   height: 34px;
   margin-left: 2px;
 }
+/* The tutor's toggle stays lit while its window is open. */
+.quiz-shell__tool.is-on {
+  color: var(--c-on-field);
+  background: rgba(255, 255, 255, 0.2);
+}
+.quiz-shell__tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.quiz-shell__tool:disabled:hover { background: transparent; }
 .quiz-shell__progress-wrap {
   flex: 1;
   min-width: 0;
