@@ -2632,28 +2632,23 @@ select {
   background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
   pointer-events: none;
 }
-.tree-node.is-on > .tree-kids > .tree-kids-clip > .tree-node { --guide: var(--c-accent); }
-.tree-kids-clip > .tree-node > .topic-row { margin-bottom: 0; }
+.tree-node.is-on > .tree-kids > .tree-node { --guide: var(--c-accent); }
+.tree-kids > .tree-node > .topic-row { margin-bottom: 0; }
 
-/* The children stay mounted. Opening is the row growing from nothing,
-   with the same curve as the rest of the app, so it doesn't pop. */
+/* Closed is height 0. While it moves, DeckTree sets a pixel height so the
+   change can actually interpolate — a grid row size does not. */
 .tree-kids {
-  display: grid;
-  grid-template-rows: 0fr;
-}
-.tree-node.is-open > .tree-kids {
-  grid-template-rows: 1fr;
-}
-.tree-kids-clip {
   overflow: hidden;
-  min-height: 0;
+}
+.tree-node:not(.is-open) > .tree-kids {
+  height: 0;
 }
 @media (prefers-reduced-motion: no-preference) {
   .topic-chevron {
     transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .tree-kids {
-    transition: grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from "react";
+import { useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
 import { leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
@@ -47,6 +47,50 @@ function Check({ state }) {
       )}
       {state === "mixed" && <span className="topic-check-dash" />}
     </span>
+  );
+}
+
+/** Grow and shrink the rows under a deck. Height in pixels, because a
+ *  grid-row size jumps instead of moving in the browsers this is opened in. */
+function TreeKids({ open, children }) {
+  const ref = useRef(null);
+  const prev = useRef(open);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const wasOpen = prev.current;
+    prev.current = open;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (wasOpen === open || reduce) {
+      el.style.height = open ? "auto" : "0px";
+      return undefined;
+    }
+    if (open) {
+      el.style.transition = "none";
+      el.style.height = "0px";
+      void el.offsetHeight;
+      el.style.transition = "";
+      el.style.height = `${el.scrollHeight}px`;
+      const onEnd = (e) => {
+        if (e.target !== el || e.propertyName !== "height") return;
+        el.style.height = "auto";
+      };
+      el.addEventListener("transitionend", onEnd);
+      return () => el.removeEventListener("transitionend", onEnd);
+    }
+    el.style.transition = "none";
+    el.style.height = `${el.scrollHeight}px`;
+    void el.offsetHeight;
+    el.style.transition = "";
+    el.style.height = "0px";
+    return undefined;
+  }, [open]);
+
+  return (
+    <div className="tree-kids" ref={ref} inert={open ? undefined : ""}>
+      {children}
+    </div>
   );
 }
 
@@ -203,11 +247,9 @@ export default function DeckTree({
           )}
         </div>
         {kids.length > 0 && (
-          <div className="tree-kids" inert={isOpen ? undefined : ""}>
-            <div className="tree-kids-clip">
-              {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
-            </div>
-          </div>
+          <TreeKids open={isOpen}>
+            {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
+          </TreeKids>
         )}
       </div>
     );
