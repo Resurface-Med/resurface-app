@@ -174,22 +174,6 @@ export default function QuizShell({
             {idx + 1}/{queue.length}
           </span>
 
-          {/* Named, not a glyph to decode: it is a companion you open and
-              leave open, so it says what it is. */}
-          <button
-            type="button"
-            className={`quiz-ai-toggle btn-press${aiOpen ? " is-on" : ""}`}
-            onClick={() => setAiOpen(o => !o)}
-            title={aiOpen ? "Close Resurface AI" : "Open Resurface AI"}
-            aria-pressed={aiOpen}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M8 1.6l1.5 3.6 3.6 1.5-3.6 1.5L8 11.8 6.5 8.2 2.9 6.7l3.6-1.5L8 1.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-              <path d="M12.6 10.6l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-            </svg>
-            <span className="quiz-ai-toggle__label">Resurface AI</span>
-          </button>
-
           <button
             type="button"
             className="quiz-shell__tool btn-press"
@@ -363,13 +347,32 @@ export default function QuizShell({
               <NavChevron />
             </button>
           </div>
-          <button
-            type="button"
-            className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"
-            onClick={handlePrimary}
-          >
-            {primaryLabel}
-          </button>
+          {/* The middle of this bar was empty, and the tutor belongs in
+              the hand rather than up in the chrome: it is opened between
+              reading and answering, which is exactly here. */}
+          <div className="quiz-shell__foot-right">
+            <button
+              type="button"
+              className={`quiz-ai-toggle btn-press${aiOpen ? " is-on" : ""}`}
+              onClick={() => setAiOpen(o => !o)}
+              title={aiOpen ? "Close Resurface AI" : "Open Resurface AI"}
+              aria-pressed={aiOpen}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M8 1.6l1.5 3.6 3.6 1.5-3.6 1.5L8 11.8 6.5 8.2 2.9 6.7l3.6-1.5L8 1.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                <path d="M12.6 10.6l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+              </svg>
+              <span className="quiz-ai-toggle__label">Resurface AI</span>
+            </button>
+
+            <button
+              type="button"
+              className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"
+              onClick={handlePrimary}
+            >
+              {primaryLabel}
+            </button>
+          </div>
         </div>
       </footer>
     </div>

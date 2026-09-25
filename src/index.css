@@ -5000,39 +5000,41 @@ select {
   height: 34px;
   margin-left: 2px;
 }
-/* The tutor's own control: named and filled, because it is a thing you
-   open and keep open rather than a tool you reach for once. */
+/* The tutor's own control, in the footer beside the primary: a thing you
+   open and keep open rather than a tool you reach for once. Tinted while
+   shut so it reads as secondary to Next, accent while open. */
+.quiz-shell__foot-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
 .quiz-ai-toggle {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 34px;
-  margin-left: 6px;
-  padding: 0 14px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  height: 40px;
+  padding: 0 16px;
+  border: none;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--c-on-field-soft);
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: -0.15px;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
-.quiz-ai-toggle:hover {
-  color: var(--c-on-field);
-  background: rgba(255, 255, 255, 0.2);
-}
+.quiz-ai-toggle:hover { background: color-mix(in srgb, var(--c-accent) 18%, transparent); }
 .quiz-ai-toggle.is-on {
-  background: var(--c-field-object);
-  border-color: transparent;
-  color: var(--c-field-object-ink);
+  background: var(--c-accent);
+  color: #fff;
 }
-@media (max-width: 560px) {
-  .quiz-ai-toggle { padding: 0 10px; }
+@media (max-width: 720px) {
+  .quiz-ai-toggle { padding: 0 12px; }
   .quiz-ai-toggle__label { display: none; }
 }
 .quiz-shell__progress-wrap {
