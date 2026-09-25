@@ -375,10 +375,7 @@ export const chipFieldActive = {
   fontWeight: 600,
 };
 
-// No icons. The landing's nav is text and a CTA, and the glyphs this used to
-// carry (⊞ ▷ ↻ ✗ ★ ✦ ◉) were typographic symbols rather than an icon set —
-// rendering differently on every platform and reading as leftovers beside the
-// landing's illustrations. Four labelled items need no legend.
+// Labels and destinations only. The marks beside them are Lucide icons in Nav.
 export const NAV = [
   { k: V.DASH,        label: "Home" },
   { k: V.STUDY,       label: "Study" },

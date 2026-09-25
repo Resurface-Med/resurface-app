@@ -1,10 +1,81 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
 import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
 import QuestionImage from "./QuestionImage";
+
+/* One paint list for every question. The stroke is drawn on the letters
+   themselves, so the words are never split into a separate box. */
+const markerStrokes = typeof CSS !== "undefined" && CSS.highlights
+  ? new Highlight()
+  : null;
+if (markerStrokes) CSS.highlights.set("qhl", markerStrokes);
+
+/* The page is zoomed, and a caret lookup from the click misses the letters.
+   The stroke's own box is in the same coordinates as the click. */
+function strokeUnder(ranges, x, y) {
+  return ranges.find(range => {
+    for (const rect of range.getClientRects()) {
+      if (x >= rect.left && x <= rect.right && y >= rect.top - 3 && y <= rect.bottom + 3) return true;
+    }
+    return false;
+  });
+}
+
+/**
+ * A drag across the words leaves a highlighter stroke. It is the same paint
+ * as the selection under the cursor: the letters stay where they were, and
+ * only the yellow is left behind when the pointer comes up.
+ */
+function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
+  const ref = useRef(null);
+  const owned = useRef([]);
+  const skipClick = useRef(false);
+
+  useEffect(() => () => {
+    if (!markerStrokes) return;
+    for (const range of owned.current) markerStrokes.delete(range);
+    owned.current = [];
+  }, []);
+
+  function paint(e) {
+    if (!markerStrokes) return;
+    const root = ref.current;
+    const sel = window.getSelection();
+    if (!root || !sel || sel.isCollapsed || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (!root.contains(range.startContainer) || !root.contains(range.endContainer)) return;
+    if (!range.toString().trim()) return;
+    e.stopPropagation();
+    const live = range.cloneRange();
+    markerStrokes.add(live);
+    owned.current.push(live);
+    skipClick.current = true;
+    onMarked?.();
+    sel.removeAllRanges();
+  }
+
+  function erase(e) {
+    if (!markerStrokes || !owned.current.length) return;
+    if (skipClick.current) { skipClick.current = false; return; }
+    const hit = strokeUnder(owned.current, e.clientX, e.clientY);
+    if (!hit) return;
+    e.preventDefault();
+    e.stopPropagation();
+    onMarked?.();
+    markerStrokes.delete(hit);
+    owned.current = owned.current.filter(range => range !== hit);
+    CSS.highlights.set("qhl", markerStrokes);
+  }
+
+  return (
+    <Tag ref={ref} className={className} style={style} onPointerUp={paint} onClick={erase}>
+      {text}
+    </Tag>
+  );
+}
 
 /**
  * The question is the only solid object on the field.
@@ -23,6 +94,9 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const [editing, setEditing] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [explainingLocal, setExplainingLocal] = useState(false);
+  /* Set when a drag just became a mark, so that same gesture does not also
+     pick the option the words sit in. */
+  const justMarked = useRef(false);
   const explaining = onAiOpenChange ? aiOpen : explainingLocal;
   const setExplaining = onAiOpenChange ?? setExplainingLocal;
 
@@ -52,8 +126,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     setPending(null);
     setEliminated(new Set());
     setShowAll(false);
-    setExplaining(false);
-  }, [q?.id]);
+    /* The dock's open state lives on the session. Resetting it here closed
+       Resurface AI on every new question. */
+    if (!onAiOpenChange) setExplainingLocal(false);
+  }, [q?.id, onAiOpenChange]);
 
   useEffect(() => {
     if (!onControlsChange) return;
@@ -123,6 +199,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   if (!q) return null;
 
   function handleOptionClick(i) {
+    if (justMarked.current) { justMarked.current = false; return; }
     if (answered || eliminated.has(i)) return;
     setPending(i);
   }
@@ -204,12 +281,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       </div>
       )}
 
-      <p
+      <Highlighter
+        as="p"
+        text={q.q}
         className={`anim-fade-up delay-0${focusMode ? " q-stem--focus" : ""}`}
         style={focusMode ? undefined : { ...qstem, marginBottom: 20 }}
-      >
-        {q.q}
-      </p>
+      />
 
       {/* The image and the options are wrapped together so that a wide enough
           card can set them side by side — the image stays large and the options
@@ -264,7 +341,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             >
               <div className="q-opt-row">
                 <span className="q-opt-letter" aria-hidden="true">{"ABCDE"[i]}</span>
-                <span className="q-opt-text">{opt}</span>
+                <Highlighter
+                  text={opt}
+                  className="q-opt-text"
+                  onMarked={() => { justMarked.current = true; }}
+                />
 
                 {answered && ok && (
                   <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>
@@ -288,9 +369,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               </div>
 
               {wrongNote && (picked || showAll) && (
-                <div className={`q-opt-note${picked ? " is-picked" : ""}`}>
-                  {wrongNote}
-                </div>
+                <Highlighter as="div" text={wrongNote} className={`q-opt-note${picked ? " is-picked" : ""}`} />
               )}
             </button>
           );
@@ -310,7 +389,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           the eye. What is left is the part that teaches. */}
       {answered && (
         <div className="q-review anim-fade-up">
-          <p className="q-exp">{q.exp}</p>
+          <Highlighter as="p" text={q.exp} className="q-exp" />
 
           {explaining && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />

@@ -16,15 +16,26 @@ import { leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
  * Selection is a Set of leaf ids, or null for everything shown.
  */
 
+function Figure({ n, unit, className, title }) {
+  return (
+    <span className={className} title={title}>
+      <span className="topic-count__n">{n}</span>
+      <span className="topic-count__unit">{unit}</span>
+    </span>
+  );
+}
+
 function Coverage({ seen, total, avail, due = 0, dim, empty = false }) {
   const pct = total > 0 ? Math.min(100, Math.round((seen / total) * 100)) : 0;
   return (
     <span className="topic-meta" style={{ opacity: dim ? 0.45 : 1 }}>
-      {due > 0 && <span className="topic-due" title={`${due} due for review`}>{due} due</span>}
+      {due > 0 && <Figure className="topic-due" n={due} unit="to review" title={`${due} due for review`} />}
       <span className="topic-bar" role="img" aria-label={`${seen} of ${total} seen`}>
         <span className="topic-bar-fill" style={{ width: `${pct}%` }} />
       </span>
-      <span className="topic-avail">{total === 0 && empty ? "empty" : avail}</span>
+      {total === 0 && empty
+        ? <span className="topic-avail">empty</span>
+        : <Figure className="topic-avail" n={avail} unit={avail === 1 ? "question" : "questions"} />}
     </span>
   );
 }
@@ -59,7 +70,13 @@ function RowMenu({ node, items }) {
   return (
     <span className="deck-menu">
       <button ref={ref} type="button" className="deck-menu-btn" aria-label={`Options for ${node.name}`} aria-haspopup="menu" aria-expanded={open}
-        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}>⋯</button>
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="3.25" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="8" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="12.75" cy="8" r="1.2" fill="currentColor" />
+        </svg>
+      </button>
       <Popover anchorRef={ref} open={open} onClose={close}>
         <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(node, ref.current); }} />
       </Popover>
@@ -152,10 +169,6 @@ export default function DeckTree({
 
   const isAll = selected === null;
 
-  /* Rows are indented a fixed step per level, and the guide lines are
-     drawn from the parent's tick box: a vertical run down its children and
-     a stub into each child's box. The geometry lives in two custom
-     properties so CSS can draw it without knowing the depth. */
   const STEP = 26, PAD = 14;
 
   function Row({ n, isLast }) {
@@ -177,10 +190,17 @@ export default function DeckTree({
 
     return (
       <div
-        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}`}
-        style={nested ? { "--px": `${PAD + (depth - 1) * STEP + 9}px` } : undefined}
+        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}`}
       >
-        <div className={cls} style={{ paddingLeft: padLeft }}>
+        <div className={cls} style={{ paddingLeft: padLeft, "--depth": depth }}>
+          <span className="topic-twist">
+            {kids.length > 0 && (
+              <button type="button" onClick={() => toggleOpen(n.id)} aria-expanded={isOpen}
+                aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
+                <Chevron open={isOpen} />
+              </button>
+            )}
+          </span>
           <button
             type="button"
             role="checkbox"
@@ -192,16 +212,10 @@ export default function DeckTree({
             <Check state={st} />
             <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
             {depth === 0
-              ? <span className="topic-meta">{n.due > 0 && <span className="topic-due">{n.due} due</span>}<span className="topic-avail">{n.total === 0 && n.mine ? "empty" : n.avail}</span></span>
+              ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
               : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
           </button>
-          {menu && <RowMenu node={n} items={menu} />}
-          {kids.length > 0 && (
-            <button type="button" onClick={() => toggleOpen(n.id)} aria-expanded={isOpen}
-              aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
-              <Chevron open={isOpen} />
-            </button>
-          )}
+          {menu ? <RowMenu node={n} items={menu} /> : <span className="topic-menu-slot" aria-hidden="true" />}
         </div>
         {isOpen && kids.length > 0 && (
           <div className="tree-kids">
@@ -216,10 +230,10 @@ export default function DeckTree({
     <div role="group" aria-label="Decks">
       {!q && showAll && (
         <button type="button" role="checkbox" aria-checked={isAll} onClick={pickAll}
-          className={`topic-row topic-row-roomy${isAll ? " is-active" : ""}`}>
+          className={`topic-all${isAll ? " is-active" : ""}`}>
           <Check state={isAll} />
-          <span className="topic-name" style={{ fontWeight: 600 }}>{allLabel}</span>
-          <span className="topic-meta"><span className="topic-avail">{totalAvail}</span></span>
+          <span className="topic-all__label">{allLabel}</span>
+          <span className="topic-all__count">{totalAvail}</span>
         </button>
       )}
       {q && tree.length === 0 && (

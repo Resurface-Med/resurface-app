@@ -24,7 +24,7 @@ import { supabase } from "../lib/supabase";
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
-  || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
+  || (import.meta.env.DEV ? "" : "https://api.tryresurface.com");
 
 // Only the images-in-a-PDF fallback is still bounded by this. The size limit
 // exists because a file is base64-encoded into a JSON body — which inflates it
@@ -602,6 +602,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const abortRef = useRef(null);
   const [generated, setGenerated] = useState([]);
   const [kept, setKept] = useState(new Set());
+  /* Which review rows have had their answer opened. The list itself stays blind. */
+  const [revealed, setRevealed] = useState(() => new Set());
   const [error, setError] = useState("");
   const fileRef = useRef();
 
@@ -693,7 +695,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
               <button
                 type="button"
                 className="btn-press gen-ghost"
-                onClick={() => { setPhase("setup"); setGenerated([]); }}
+                onClick={() => { setPhase("setup"); setGenerated([]); setRevealed(new Set()); }}
               >
                 Start over
               </button>
@@ -704,37 +706,55 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         <ol className="gen-review-list">
           {generated.map((q, i) => {
             const isKept = kept.has(i);
+            const isOpen = revealed.has(i);
             return (
               <li key={i} className={`gen-review-item${isKept ? "" : " is-out"}`}>
-                <label className="gen-review-row">
-                  <input
-                    type="checkbox"
-                    checked={isKept}
-                    onChange={() => {
-                      setKept(prev => {
-                        const s = new Set(prev);
-                        s.has(i) ? s.delete(i) : s.add(i);
-                        return s;
-                      });
-                    }}
-                  />
+                <div className="gen-review-row">
+                  <label className="gen-review-keep" htmlFor={`gen-keep-${i}`}>
+                    <input
+                      id={`gen-keep-${i}`}
+                      type="checkbox"
+                      checked={isKept}
+                      onChange={() => {
+                        setKept(prev => {
+                          const s = new Set(prev);
+                          s.has(i) ? s.delete(i) : s.add(i);
+                          return s;
+                        });
+                      }}
+                    />
+                  </label>
                   <span className="gen-review-body">
                     <span className="gen-review-num" aria-hidden="true">{i + 1}</span>
-                    <span className="gen-review-q">{q.q}</span>
+                    <label htmlFor={`gen-keep-${i}`} className="gen-review-q">{q.q}</label>
                     <span className="gen-review-opts">
                       {q.opts.map((opt, oi) => (
                         <span
                           key={oi}
-                          className={`gen-review-opt${oi === q.ans ? " is-ans" : ""}`}
+                          className={`gen-review-opt${isOpen && oi === q.ans ? " is-ans" : ""}`}
                         >
                           <span className="gen-review-letter">{"ABCDE"[oi]}</span>
                           {opt}
                         </span>
                       ))}
                     </span>
-                    {q.exp ? <span className="gen-review-exp">{q.exp}</span> : null}
+                    <button
+                      type="button"
+                      className="gen-review-peek"
+                      aria-expanded={isOpen}
+                      onClick={() => {
+                        setRevealed(prev => {
+                          const s = new Set(prev);
+                          s.has(i) ? s.delete(i) : s.add(i);
+                          return s;
+                        });
+                      }}
+                    >
+                      {isOpen ? "Hide the answer" : "Show the answer"}
+                    </button>
+                    {isOpen && q.exp ? <span className="gen-review-exp">{q.exp}</span> : null}
                   </span>
-                </label>
+                </div>
               </li>
             );
           })}
@@ -770,6 +790,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
             onClick={() => {
               setPhase("setup");
               setGenerated([]);
+              setRevealed(new Set());
               setFile(null);
               setPastedText("");
             }}
@@ -822,6 +843,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       });
       setGenerated(qs);
       setKept(new Set(qs.map((_, i) => i)));
+      setRevealed(new Set());
       setPhase("review");
     } catch (e) {
       // Cancelling is a decision, not a fault. Saying "The user aborted a

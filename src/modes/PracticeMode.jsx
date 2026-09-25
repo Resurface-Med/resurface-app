@@ -10,7 +10,7 @@ import DeckTree from "../ui/DeckTree";
 import { DeckTabs, DeckControls, BankCopier, DeckNameForm } from "../ui/DeckControls";
 import DeckBrowser from "../ui/DeckBrowser";
 import { buildForest, leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
-import { confirmDelete } from "../ui/Confirm";
+import { confirm, confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -420,13 +420,39 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     }}));
   }
 
-  function handleNext() {
+  /* Finishing is the moment a blank becomes a wrong answer. Skipping through
+     the list does not score anything until then, so a session of nothing but
+     skips still has a result to review. */
+  async function handleNext() {
     if (!queue) return;
-    if (idx + 1 >= queue.length) {
-      localStorage.removeItem(SESSION_KEY);
-      setQueue(null); return;
+    if (idx + 1 < queue.length) { setIdx(i => i + 1); return; }
+    const open = queue
+      .map((q, i) => ({ q, i }))
+      .filter(({ i }) => sels[i] === undefined);
+    if (open.length > 0) {
+      const skip = await confirm({
+        title: open.length === 1
+          ? "You have an unanswered question."
+          : `You have ${open.length} unanswered questions.`,
+        body: "Skipping them marks each one wrong.",
+        action: "Skip them",
+        cancel: "Go back",
+      });
+      if (!skip) return;
+      const extra = {};
+      for (const { q, i } of open) {
+        onAnswer(q.id, false);
+        extra[i] = {
+          id: q.id, q: q.q, cat: q.cat,
+          correct: false,
+          correctAnswer: q.opts[q.ans],
+        };
+      }
+      setResults(prev => ({ ...prev, ...extra }));
+      setST(t => t + open.length);
     }
-    setIdx(i => i + 1);
+    localStorage.removeItem(SESSION_KEY);
+    setQueue(null);
   }
 
   function handleBack() {
@@ -710,14 +736,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <Wave from="transparent" to="var(--c-card-solid)" />
 
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-          <div className="setup-col" style={{ ...band, flex: 1, minHeight: 0, paddingTop: "clamp(12px, 2vh, 18px)" }}>
+          <div className="setup-col" style={{
+            ...band,
+            width: "min(100%, 820px)",
+            maxWidth: 820,
+            marginLeft: "auto",
+            marginRight: "auto",
+            flex: 1,
+            minHeight: 0,
+            paddingTop: "clamp(12px, 2vh, 18px)",
+          }}>
 
             <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               {!creatingDeck && !naming && (
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
                   <h2 style={{ ...sectionH, margin: 0 }}>{copyingInto ? `Copy into ${decksById.get(copyingInto)?.name ?? "deck"}` : browsing ? (decksById.get(browsing)?.name ?? "Questions") : "What are you revising?"}</h2>
-                  <span style={{ display: "flex", alignItems: "baseline", gap: 16, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                  <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
                     {!copyingInto && !browsing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
                     {activeDeck && !copyingInto && !browsing && (
                       <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}

@@ -76,11 +76,8 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 5);
 
-  /* A clean run leaves both sections out, and the actions were left
-     floating at the top of an otherwise empty sheet with nothing above
-     them — which is what made the row look misplaced rather than
-     misaligned. With nothing to review the sheet says so, once, and the
-     actions sit under that line as the content of the page. */
+  /* A clean run has no topics and no misses, so the sheet is only the
+     actions. They sit in the middle of that open space. */
   const nothingToReview = shaky.length === 0 && wrongOnes.length === 0;
 
   return (
@@ -102,15 +99,18 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
-      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(28px, 4vh, 56px)" }}>
-        <div className={nothingToReview ? "sum-sheet is-clean" : "sum-sheet"} style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}>
-
-          {nothingToReview && (
-            <p className="sum-clean" data-in="rise" style={{ "--i": 3 }}>
-              Nothing to look at — every one right. They come back when they are due.
-            </p>
-          )}
-
+      <div
+        className={nothingToReview ? "sum-sheet-wrap is-clean" : "sum-sheet-wrap"}
+        style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: nothingToReview ? 0 : "clamp(28px, 4vh, 56px)" }}
+      >
+        <div
+          className={nothingToReview ? "sum-sheet is-clean" : "sum-sheet"}
+          style={{
+            ...band,
+            maxWidth: nothingToReview ? band.maxWidth : 720,
+            paddingTop: nothingToReview ? 0 : "clamp(18px, 2.8vh, 32px)",
+          }}
+        >
           {shaky.length > 0 && (
             <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>
               <div className="prog-section-head">

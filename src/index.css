@@ -716,6 +716,16 @@ body::after {
   letter-spacing: -0.15px;
   color: var(--c-text);
 }
+/* The drag and the stroke that stays are the same yellow on the same
+   letters. Nothing is wrapped, so lifting the pointer does not open a gap. */
+.q-card ::selection {
+  background-color: #ffe500;
+  color: #1a1a1a;
+}
+::highlight(qhl) {
+  background-color: #ffe500;
+  color: #1a1a1a;
+}
 .q-opt.is-pending .q-opt-text { color: var(--c-accent); }
 .q-opt.is-elim .q-opt-text {
   color: var(--c-muted-dim);
@@ -1106,7 +1116,6 @@ body::after {
   flex-direction: column;
   gap: 14px;
 }
-
 .ai-dock__msg {
   display: flex;
   flex-direction: column;
@@ -1211,6 +1220,12 @@ body::after {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
+}
+.ai-dock__pills.is-out {
+  animation: ai-pills-out 0.16s ease both;
+}
+@keyframes ai-pills-out {
+  to { opacity: 0; transform: translate3d(0, 6px, 0); }
 }
 .ai-dock__pill {
   width: fit-content;
@@ -1937,10 +1952,45 @@ select {
   opacity: 0.4;
 }
 
+/* Everything is a chip, not a deck row. A full bar competed with the
+   main decks. */
+.topic-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  max-width: 100%;
+  margin: 2px 0 14px;
+  padding: 7px 12px 7px 8px;
+  border: none;
+  border-radius: 12px;
+  background: var(--c-surface2);
+  font-family: inherit;
+  color: var(--c-text);
+  cursor: pointer;
+  text-align: left;
+}
+.topic-all:hover { background: var(--c-surface3); }
+.topic-all.is-active {
+  background: var(--c-accent-dim);
+  box-shadow: inset 0 0 0 1.5px var(--c-accent-brd);
+}
+.topic-all__label {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+}
+.topic-all__count {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-sub);
+}
+
 /* Blocks are rows, not headings. Every block teaches roughly the same nine
    subjects, so four blocks laid out flat is thirty-six subject rows before a
    topic is reached — headings group that but do not shorten it. */
-.topic-block + .topic-block { margin-top: 6px; }
+.topic-block + .topic-block { margin-top: 14px; }
 .topic-row.is-block {
   background: var(--c-surface2);
 }
@@ -1968,7 +2018,7 @@ select {
 
 .topic-row.is-active {
   background: var(--c-accent-dim);
-  box-shadow: inset 0 0 0 1.5px var(--c-accent-brd);
+  box-shadow: inset 0 0 0 1.5px var(--c-accent-brd) !important;
 }
 
 .topic-row.is-child { padding-left: 28px; }
@@ -2009,7 +2059,8 @@ select {
 .topic-meta {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-end;
+  gap: 14px;
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -2041,7 +2092,7 @@ select {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--c-sub);
-  min-width: 2.4em;
+  min-width: 3.2em;
   text-align: right;
 }
 
@@ -2063,6 +2114,15 @@ select {
 .topic-expand.is-open {
   background: var(--c-accent-dim);
   color: var(--c-accent);
+}
+/* Same width as the chevron, including on rows that have none, so the
+   ticks stay in one column. */
+.topic-twist {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
 }
 
 /* Always-visible scrollbar so the list announces itself as scrollable. */
@@ -2165,17 +2225,66 @@ select {
 .setup-col {
   display: flex;
   flex-direction: column;
-  max-width: 720px;
+  max-width: 820px;
+}
+/* Same caption as the phone list: the name on one line, "to review"
+   and "questions" underneath it, sitting with the name rather than
+   across the row. */
+.setup-col .topic-hit {
+  display: grid;
+  grid-template-columns: 18px max-content;
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+.setup-col .topic-check {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+.setup-col .topic-name,
+.setup-col .topic-name.is-block,
+.setup-col .topic-name.is-child {
+  grid-column: 2;
+  grid-row: 1;
+  flex: none;
+}
+.setup-col .topic-meta {
+  grid-column: 2;
+  grid-row: 2;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.setup-col .topic-bar { display: none; }
+.setup-col .topic-due,
+.setup-col .topic-avail {
+  gap: 3px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: left;
+}
+.setup-col .topic-count__n {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 @media (min-width: 1100px) {
-  .setup-col { max-width: 640px; }
+  .setup-col { max-width: 820px; }
   .setup-col .topic-row { padding: 10px 8px 10px 12px; }
   .setup-col .topic-row-roomy { padding: 12px 12px; margin-bottom: 3px; border-radius: 12px; }
   .setup-col .topic-row-roomy .topic-name { font-size: 15.5px; }
   .setup-col .topic-name { font-size: 14.5px; }
   .setup-col .topic-name.is-child { font-size: 14.5px; }
   .setup-col .topic-expand { width: 30px; height: 30px; border-radius: 8px; }
-  .setup-col .topic-block + .topic-block { margin-top: 2px; }
+  .setup-col .topic-twist { flex-basis: 30px; width: 30px; height: 30px; }
+  .setup-col .topic-block + .topic-block { margin-top: 14px; }
+  .setup-col .deck-menu,
+  .setup-col .topic-menu-slot { flex-basis: 24px; width: 24px; height: 24px; }
   .setup-col .deck-menu-btn { width: 24px; height: 24px; }
 }
 
@@ -2545,13 +2654,21 @@ select {
 
 /* Due for review, on a row: the one number a spaced-repetition app should
    put in front of you. */
-.topic-due {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-accent);
+.topic-due,
+.topic-avail {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
   white-space: nowrap;
-  margin-right: 4px;
 }
+.topic-due {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--c-accent);
+  text-align: right;
+}
+.topic-count__unit { font-weight: 500; }
 
 /* The questions in a deck, listed in place. */
 .qb-list { list-style: none; margin: 0; padding: 0; }
@@ -2580,54 +2697,19 @@ select {
 .pop-empty { padding: 8px 12px 10px; font-size: 13.5px; color: var(--c-muted); }
 .pop-item { white-space: pre; }
 
-/* ─── Tree guides ────────────────────────────────────────────────────
-   A hairline from a parent's tick box down through its children, with a
-   stub into each child's box. --px is the parent box's centre, set on the
-   node by the tree; the vertical position comes from the row's own
-   midline, so rows of any height line up. Ticking the parent turns its
-   guides accent, so what is chosen reads as one shape. */
+/* Nested rows keep the indent; the connector lines are not drawn.
+   An open main deck keeps a gap under its subdecks, so the next main
+   deck does not sit against those smaller rows. */
 .tree-node { position: relative; }
 .tree-node.is-nested { margin: 0; }
 .tree-node.is-nested > .topic-row { position: relative; box-shadow: none; }
-/* The run past this row to the next sibling. */
-.tree-node.is-nested:not(.is-last)::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  left: var(--px);
-  top: 0;
-  bottom: 0;
-  width: 1.5px;
-  background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
-  pointer-events: none;
+.tree-kids > .tree-node > .topic-row { margin-bottom: 8px; }
+.tree-kids > .tree-node:last-child > .topic-row { margin-bottom: 0; }
+.topic-block > .tree-kids {
+  margin-top: 8px;
+  margin-bottom: 18px;
 }
-/* The run from the top of this row to its midline — every child has it,
-   the last one ends here. */
-.tree-node.is-nested > .topic-row::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  left: var(--px);
-  top: 0;
-  height: 50%;
-  width: 1.5px;
-  background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
-  pointer-events: none;
-}
-/* The stub into this row's box. */
-.tree-node.is-nested > .topic-row::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  left: var(--px);
-  top: calc(50% - 0.75px);
-  width: 17px;
-  height: 1.5px;
-  background: var(--guide, color-mix(in srgb, var(--c-muted) 40%, transparent));
-  pointer-events: none;
-}
-.tree-node.is-on > .tree-kids > .tree-node { --guide: var(--c-accent); }
-.tree-kids > .tree-node > .topic-row { margin-bottom: 0; }
+.tree-node.is-nested > .tree-kids { margin-top: 8px; }
 
 /* The floating menu itself (rendered at the document level). */
 .pop {
@@ -2658,8 +2740,14 @@ select {
 .pop-item.is-danger { color: var(--c-danger); }
 .pop-item.is-danger:hover { background: color-mix(in srgb, var(--c-danger) 10%, transparent); }
 
-/* A deck row's own menu: a dot-dot-dot at the end of the row. */
-.deck-menu { position: relative; flex-shrink: 0; }
+/* A deck row's own menu: a dot-dot-dot at the end of the row.
+   Rows without one keep the same slot, so the counts stay in one column. */
+.deck-menu, .topic-menu-slot {
+  position: relative;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+}
 .deck-menu-btn {
   width: 28px;
   height: 28px;
@@ -3005,18 +3093,17 @@ select {
   align-items: center;
   margin-top: clamp(24px, 3.5vh, 34px);
 }
-/* Nothing to review: one line, then the actions under it, both near the
-   top of the sheet rather than adrift in the middle of it. */
-.sum-sheet.is-clean { padding-bottom: clamp(24px, 4vh, 40px); }
-.sum-clean {
-  margin: 0;
-  font-size: 15.5px;
-  font-weight: 500;
-  line-height: 1.55;
-  color: var(--c-sub);
-  max-width: 42ch;
+/* A clean run is only the two actions. They sit in the middle of the
+   sheet, which is otherwise empty. */
+.sum-sheet-wrap.is-clean {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.sum-sheet.is-clean .sum-actions { margin-top: clamp(18px, 2.6vh, 26px); }
+.sum-sheet.is-clean .sum-actions {
+  margin-top: 0;
+  justify-content: center;
+}
 
 /* Correcting your own question, from inside a session. Sits where the
    bank's flag sits. */
@@ -3821,6 +3908,9 @@ select {
   display: flex;
   align-items: flex-start;
   gap: 14px;
+}
+.gen-review-keep {
+  display: flex;
   cursor: pointer;
 }
 .gen-review-row input {
@@ -3854,6 +3944,7 @@ select {
 }
 .gen-review-q {
   grid-column: 2;
+  cursor: pointer;
   font-size: 17px;
   font-weight: 600;
   color: var(--c-text);
@@ -3898,6 +3989,18 @@ select {
   font-weight: 500;
   color: var(--c-muted);
   line-height: 1.5;
+}
+.gen-review-peek {
+  grid-column: 2;
+  justify-self: start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-accent);
+  cursor: pointer;
 }
 
 .gen-sticky {
@@ -4007,7 +4110,6 @@ select {
   justify-content: space-between;
   gap: 12px;
   padding: 18px 16px 16px;
-  border-bottom: 1px solid var(--c-border);
   flex-shrink: 0;
 }
 
@@ -4059,7 +4161,7 @@ select {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
   overflow-y: auto;
 }
 
@@ -4092,53 +4194,61 @@ select {
   color: var(--c-text);
 }
 .app-nav__item.is-active {
-  background: var(--c-accent);
-  border-color: var(--c-accent);
-  color: #fff;
+  background: var(--c-accent-dim);
+  border-color: var(--c-accent-brd);
+  color: var(--c-accent);
   font-weight: 600;
-  box-shadow: 0 8px 20px rgba(20, 44, 130, 0.22);
 }
+.app-nav__icon {
+  flex-shrink: 0;
+}
+
 .app-nav__label {
   min-width: 0;
 }
 
-.app-nav__badge {
+.app-nav__review {
   margin-left: auto;
-  background: var(--c-accent);
-  color: #fff;
-  border-radius: var(--r-pill);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  line-height: 1.5;
-}
-.app-nav__item.is-active .app-nav__badge {
-  background: rgba(255, 255, 255, 0.22);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--c-accent);
+  white-space: nowrap;
 }
 
 .app-nav__foot {
   padding: 12px 12px 14px;
-  border-top: 1px solid var(--c-border);
   flex-shrink: 0;
 }
 
+.app-nav__account {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 4px 4px 6px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--c-border);
+  background: var(--c-surface3);
+}
+.app-nav__account.is-active {
+  border-color: var(--c-accent-brd);
+  background: var(--c-accent-dim);
+}
+
 .app-nav__profile {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  width: auto;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: var(--r-card);
-  border: 1px solid transparent;
-  background: var(--c-surface2);
+  padding: 4px 8px 4px 2px;
+  border-radius: var(--r-pill);
+  border: none;
+  background: transparent;
   cursor: pointer;
   font-family: inherit;
   text-align: left;
   color: var(--c-sub);
-}
-.app-nav__profile.is-active {
-  border-color: var(--c-accent-brd);
-  background: var(--c-accent-dim);
 }
 .app-nav__profile-text {
   min-width: 0;
@@ -4170,29 +4280,23 @@ select {
   color: var(--c-text);
 }
 
-.app-nav__foot-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding: 0 4px;
-}
-
-.app-nav__copy {
-  color: var(--c-muted);
-  font-size: 11.5px;
-  font-weight: 500;
-}
-
 .app-nav__signout {
-  background: none;
-  border: none;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  display: grid;
+  place-items: center;
   padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--c-surface);
+  color: var(--c-text);
   cursor: pointer;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--c-sub);
+}
+.app-nav__signout:hover {
+  background: var(--c-accent-dim);
+  color: var(--c-accent);
 }
 
 /* Phone: same parts, off-canvas. */
@@ -4233,7 +4337,7 @@ select {
 
   .app-nav__list {
     padding: 12px 14px 14px;
-    gap: 5px;
+    gap: 10px;
   }
 
   .app-nav__item {
@@ -4242,19 +4346,22 @@ select {
     font-size: 15.5px;
   }
 
-  .app-nav__badge {
-    font-size: 12px;
-    padding: 3px 9px;
+  .app-nav__review {
+    font-size: 12.5px;
   }
 
   .app-nav__foot {
     padding: 14px 14px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
+  .app-nav__account {
+    padding: 5px 5px 5px 8px;
+  }
+
   .app-nav__profile {
-    min-height: 50px;
+    min-height: 44px;
     gap: 11px;
-    padding: 10px 12px;
+    padding: 4px 8px 4px 2px;
   }
 
   .app-nav__avatar {
@@ -4267,17 +4374,9 @@ select {
     font-size: 14.5px;
   }
 
-  .app-nav__foot-meta {
-    margin-top: 12px;
-  }
-
-  .app-nav__copy {
-    font-size: 12px;
-  }
-
   .app-nav__signout {
-    font-size: 13px;
-    padding: 6px 2px;
+    width: 36px;
+    height: 36px;
   }
 
   .app-nav__scrim {
@@ -4436,7 +4535,8 @@ select {
      of them cannot each be 44px tall: the rule was stretching a 22px-wide
      square into a 44px column and turning the map into a picket fence. The
      grid as a whole is the target here, not the individual day. */
-  button.inline-link, .app-nav__badge, .heat-cell {
+  button.inline-link, .heat-cell, button.app-nav__signout,
+  button.topic-expand, button.deck-menu-btn, button.topic-hit {
     min-height: 0;
   }
 }
@@ -4489,6 +4589,111 @@ select {
     padding-bottom: calc(14px + var(--safe-b));
     box-shadow: 0 -8px 20px rgba(15, 27, 61, 0.08);
   }
+  /* The name takes the row. Counts are a caption under it, and each
+     level only indents a little, so a nested topic is still readable. */
+  .topic-row {
+    --twist: 28px;
+    --row-gap: 10px;
+    align-items: flex-start;
+    gap: var(--row-gap);
+    padding-top: 10px;
+    padding-bottom: 8px;
+    padding-right: 8px;
+    padding-left: calc(8px + var(--depth, 0) * 14px) !important;
+    border-radius: 12px;
+  }
+  .topic-row-roomy {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 0;
+    border-radius: 12px;
+  }
+  .topic-twist {
+    flex: 0 0 var(--twist);
+    width: var(--twist);
+    height: var(--twist);
+  }
+  .topic-expand {
+    width: var(--twist);
+    height: var(--twist);
+    min-width: var(--twist);
+    min-height: var(--twist);
+    max-height: var(--twist);
+    align-self: center;
+    border-radius: 6px;
+  }
+  .topic-expand svg { width: 14px; height: 14px; }
+  .topic-hit {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    column-gap: 10px;
+    row-gap: 1px;
+    align-items: center;
+  }
+  .topic-check {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+  }
+  .topic-row-roomy .topic-name,
+  .topic-name,
+  .topic-name.is-block,
+  .topic-name.is-child {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    font-size: 15px;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  .topic-meta {
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 8px;
+    padding-left: 0;
+  }
+  .topic-bar { display: none; }
+  .topic-due,
+  .topic-avail {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 3px;
+    width: auto;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+  .topic-count__n {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .deck-menu,
+  .topic-menu-slot {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    margin-left: 8px;
+    margin-top: 1px;
+  }
+  .tg-tabs { gap: 10px; margin-bottom: 16px; }
+  .setup-search { margin-bottom: 14px; }
+  .topic-all { margin-bottom: 18px; }
+  .setup-next-dock { margin-top: 18px; }
+  .deck-menu-btn { width: 28px; height: 28px; min-height: 28px; max-height: 28px; }
+  .deck-menu-btn svg { width: 14px; height: 14px; }
+  .topic-block + .topic-block { margin-top: 14px; }
+  .tree-kids > .tree-node > .topic-row { margin-bottom: 4px; }
+  .topic-block > .tree-kids { margin-top: 4px; margin-bottom: 10px; }
 }
 
 /* ─── Phone typography and spacing ──────────────────────────────── */
@@ -5020,41 +5225,100 @@ select {
   height: 34px;
   margin-left: 2px;
 }
-/* The tutor's own control, in the footer beside the primary: a thing you
-   open and keep open rather than a tool you reach for once. Tinted while
-   shut so it reads as secondary to Next, accent while open. */
 .quiz-shell__foot-right {
   display: flex;
   align-items: center;
-  gap: 10px;
   min-width: 0;
 }
+/* Wider screens: the dock's name sits just left of Next, ruled off from
+   the empty stretch of bar. Resurface in the ink of the page, AI in the
+   brand blue. */
 .quiz-ai-toggle {
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 16px;
+  gap: 8px;
+  margin-left: auto;
+  margin-right: 4px;
+  padding: 6px 0 6px 8px;
   border: none;
-  border-radius: var(--r-pill);
-  background: var(--c-accent-dim);
-  color: var(--c-accent);
+  background: none;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.15px;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
 }
-.quiz-ai-toggle:hover { background: color-mix(in srgb, var(--c-accent) 18%, transparent); }
-.quiz-ai-toggle.is-on {
-  background: var(--c-accent);
-  color: #fff;
+.quiz-ai-toggle::after {
+  content: "";
+  width: 1px;
+  height: 18px;
+  margin-left: 14px;
+  background: var(--c-border);
+}
+.quiz-ai-toggle__mark {
+  display: block;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+.quiz-ai-toggle__label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.45px;
+}
+.quiz-ai-toggle__name {
+  color: var(--c-text);
+  transition: color 0.15s ease;
+}
+.quiz-ai-toggle__ai {
+  color: var(--c-accent);
+  font-weight: 700;
+}
+.quiz-ai-toggle:hover .quiz-ai-toggle__name,
+.quiz-ai-toggle.is-on .quiz-ai-toggle__name { color: var(--c-accent); }
+/* Phones: the corner button, clear of the bar. The panel's close is enough
+   while it is open, so the button steps aside. */
+@media (max-width: 900px) {
+  .quiz-ai-toggle::after { display: none; }
+  .quiz-ai-toggle {
+    position: absolute;
+    z-index: 6;
+    left: auto;
+    top: auto;
+    margin: 0;
+    right: 12px;
+    bottom: calc(96px + var(--safe-b));
+    transform: none;
+    gap: 8px;
+    padding: 8px 16px 8px 8px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-pill);
+    background: var(--c-card-solid);
+    color: var(--c-accent);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    box-shadow: 0 8px 24px rgba(20, 44, 130, 0.16);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .quiz-ai-toggle__mark { width: 28px; height: 28px; }
+  .quiz-ai-toggle__name,
+  .quiz-ai-toggle__ai { color: inherit; }
+  .quiz-shell.is-ai .quiz-ai-toggle {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+  }
 }
 @media (max-width: 720px) {
-  .quiz-ai-toggle { padding: 0 12px; }
+  .quiz-ai-toggle {
+    bottom: calc(84px + var(--safe-b));
+    padding: 8px;
+    border-radius: 50%;
+  }
   .quiz-ai-toggle__label { display: none; }
 }
 .quiz-shell__progress-wrap {
@@ -5848,7 +6112,8 @@ select {
     font-size: 14.5px;
   }
   .quiz-shell__foot-btn--primary {
-    padding: 11px 20px;
+    min-width: 108px;
+    padding: 11px 28px;
   }
   .quiz-shell .q-card--focus {
     max-width: none;

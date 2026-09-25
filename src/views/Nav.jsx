@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
+import { BookOpen, ChartColumn, House, LogOut, Sparkles, Trophy } from "lucide-react";
 import { NAV, V } from "../ui/theme";
+
+const ICONS = {
+  [V.DASH]: House,
+  [V.STUDY]: BookOpen,
+  [V.GENERATE]: Sparkles,
+  [V.PROGRESS]: ChartColumn,
+  [V.LEADERBOARD]: Trophy,
+};
 
 function initials(displayName, email) {
   const n = String(displayName || "").trim();
@@ -100,7 +109,8 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             }
 
             const active = view === item.k;
-            const badge = item.k === V.STUDY ? dueCount : 0;
+            const Icon = ICONS[item.k];
+            const review = item.k === V.STUDY ? dueCount : 0;
 
             return (
               <button
@@ -110,34 +120,34 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
                 className={`btn-press app-nav__item${active ? " is-active" : ""}`}
                 aria-current={active ? "page" : undefined}
               >
+                {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
                 <span className="app-nav__label">{item.label}</span>
-                {badge > 0 && <span className="app-nav__badge">{badge}</span>}
+                {review > 0 && <span className="app-nav__review">{review} to review</span>}
               </button>
             );
           })}
         </nav>
 
         <div className="app-nav__foot">
-          <button
-            type="button"
-            onClick={() => go(V.PROFILE)}
-            className={`btn-press app-nav__profile${activeProfile ? " is-active" : ""}`}
-            title="Profile"
-            aria-current={activeProfile ? "page" : undefined}
-          >
-            <span className="app-nav__avatar">
-              {initials(displayName, email)}
-            </span>
-            <span className="app-nav__profile-text">
-              <span className="app-nav__profile-name">
-                {displayName?.trim() || "Profile"}
+          <div className={`app-nav__account${activeProfile ? " is-active" : ""}`}>
+            <button
+              type="button"
+              onClick={() => go(V.PROFILE)}
+              className="btn-press app-nav__profile"
+              title="Profile"
+              aria-current={activeProfile ? "page" : undefined}
+            >
+              <span className="app-nav__avatar">
+                {initials(displayName, email)}
               </span>
-            </span>
-          </button>
-          <div className="app-nav__foot-meta">
-            <span className="app-nav__copy">© Resurface 2026</span>
-            <button type="button" onClick={onSignOut} className="btn-press app-nav__signout">
-              Sign out
+              <span className="app-nav__profile-text">
+                <span className="app-nav__profile-name">
+                  {displayName?.trim() || "Profile"}
+                </span>
+              </span>
+            </button>
+            <button type="button" onClick={onSignOut} className="btn-press app-nav__signout" aria-label="Sign out" title="Sign out">
+              <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
             </button>
           </div>
         </div>

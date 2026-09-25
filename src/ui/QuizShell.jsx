@@ -121,10 +121,6 @@ export default function QuizShell({
     return () => window.removeEventListener("keydown", onKey);
   }, [railOpen, onPrev, onNext, isLast]);
 
-  useEffect(() => {
-    setAiOpen(false);
-  }, [q?.id]);
-
   /* The rail has to outlive its own close. Unmounting on the click leaves the
      grid column animating shut around an empty space, which looks like the
      panel was deleted rather than closed — so it stays for the length of the
@@ -308,10 +304,9 @@ export default function QuizShell({
                own width the whole time and is simply revealed, which is
                what stops its text reflowing on every frame. */
             <div className={`ai-slot${aiClosing ? " is-closing" : ""}`}>
-              {/* Keyed by the question: the thread is about this one, and
-                  moving on starts a fresh one rather than carrying the last
-                  question's conversation into it. */}
-              <ExplainChat key={q.id} q={q} picked={sel} answered={answeredThis} closing={aiClosing} onClose={() => setAiOpen(false)} />
+              {/* Stays mounted across questions. The dock itself notices the
+                  move: a new question, a cleared thread, new prompts. */}
+              <ExplainChat q={q} picked={sel} answered={answeredThis} closing={aiClosing} onClose={() => setAiOpen(false)} />
             </div>
           )}
         </div>
@@ -366,24 +361,28 @@ export default function QuizShell({
               <NavChevron />
             </button>
           </div>
-          {/* The middle of this bar was empty, and the tutor belongs in
-              the hand rather than up in the chrome: it is opened between
-              reading and answering, which is exactly here. */}
+          {/* The dock's name, ruled off and set just left of Next. The
+              stretch of bar before it stays empty. */}
+          <button
+            type="button"
+            className={`quiz-ai-toggle${aiOpen ? " is-on" : ""}`}
+            onClick={() => setAiOpen(o => !o)}
+            title={aiOpen ? "Close Resurface AI" : "Open Resurface AI"}
+            aria-pressed={aiOpen}
+          >
+            <img
+              src="/icon-192.png"
+              alt=""
+              width="192"
+              height="192"
+              className="quiz-ai-toggle__mark"
+            />
+            <span className="quiz-ai-toggle__label">
+              <span className="quiz-ai-toggle__name">Resurface</span>
+              <span className="quiz-ai-toggle__ai">AI</span>
+            </span>
+          </button>
           <div className="quiz-shell__foot-right">
-            <button
-              type="button"
-              className={`quiz-ai-toggle btn-press${aiOpen ? " is-on" : ""}`}
-              onClick={() => setAiOpen(o => !o)}
-              title={aiOpen ? "Close Resurface AI" : "Open Resurface AI"}
-              aria-pressed={aiOpen}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M8 1.6l1.5 3.6 3.6 1.5-3.6 1.5L8 11.8 6.5 8.2 2.9 6.7l3.6-1.5L8 1.6z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-                <path d="M12.6 10.6l.6 1.5 1.5.6-1.5.6-.6 1.5-.6-1.5-1.5-.6 1.5-.6.6-1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-              </svg>
-              <span className="quiz-ai-toggle__label">Resurface AI</span>
-            </button>
-
             <button
               type="button"
               className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press"

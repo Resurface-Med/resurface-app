@@ -8,7 +8,7 @@ import { splitMarks } from "../lib/formatExplain";
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE
-  || (import.meta.env.DEV ? "http://localhost:3001" : "https://api.tryresurface.com");
+  || (import.meta.env.DEV ? "" : "https://api.tryresurface.com");
 
 const ASK_LIMIT = 3;
 const ASK_STORE = "rs_ai_asks";
@@ -95,15 +95,27 @@ function contextBody(q, picked, answered) {
   };
 }
 
-function QuickPills({ sending, disabled, onPick, prompts = QUICK }) {
+function QuickPills({ sending, disabled, onPick, prompts = QUICK, promptKey }) {
+  const [view, setView] = useState({ key: promptKey, prompts, leaving: false });
+
+  /* Same labels on the next question still swap, so the row reads as new. */
+  useEffect(() => {
+    if (promptKey === view.key) return;
+    setView(current => ({ ...current, leaving: true }));
+    const t = setTimeout(() => {
+      setView({ key: promptKey, prompts, leaving: false });
+    }, 160);
+    return () => clearTimeout(t);
+  }, [promptKey, prompts, view.key]);
+
   return (
-    <div className="ai-dock__pills">
-      {prompts.map(({ label, message }) => (
+    <div className={`ai-dock__pills${view.leaving ? " is-out" : " is-in"}`} key={view.key}>
+      {view.prompts.map(({ label, message }) => (
         <button
           key={label}
           type="button"
           className="ai-dock__pill btn-press"
-          disabled={sending || disabled}
+          disabled={sending || disabled || view.leaving}
           onClick={() => onPick(label, message)}
         >
           {label}
@@ -121,6 +133,10 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   const [used, setUsed] = useState(() => loadUsed(q.id));
   const threadRef = useRef(null);
   const inputRef = useRef(null);
+  /* The question on screen. A reply that comes back after a move belongs
+     to the question that was asked, not the one now showing. */
+  const liveId = useRef(q.id);
+  liveId.current = q.id;
 
   const remaining = Math.max(0, ASK_LIMIT - used);
   const atLimit = remaining <= 0;
@@ -135,6 +151,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
     setMessages([]);
     setDraft("");
     setError("");
+    setSending(false);
   }, [q.id]);
 
   useEffect(() => {
@@ -161,6 +178,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
     setSending(true);
     setError("");
     setDraft("");
+    const askedFor = q.id;
 
     const userMsg = { id: `u-${Date.now()}`, role: "user", text: label, apiText: trimmed };
     const nextMessages = [...messages, userMsg];
@@ -193,23 +211,30 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
         throw new Error(body?.error || "Couldn't get a reply.");
       }
 
-      if (typeof body.remaining === "number") {
-        markUsed(ASK_LIMIT - body.remaining);
-      } else {
-        markUsed(used + 1);
-      }
+      const stillHere = liveId.current === askedFor;
+      const nextUsed = typeof body.remaining === "number"
+        ? ASK_LIMIT - body.remaining
+        : used + 1;
+      /* Quota is per question on the server. Record it against the question
+         that was asked, even if they have already moved on. */
+      saveUsed(askedFor, Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
+      if (!stillHere) return;
 
+      setUsed(Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
       setMessages(prev => [
         ...prev,
         { id: `a-${Date.now()}`, role: "assistant", text: body.reply, rating: null },
       ]);
     } catch (e) {
+      if (liveId.current !== askedFor) return;
       setError(e.message);
       setMessages(prev => prev.filter(m => m.id !== userMsg.id));
       if (apiText === undefined) setDraft(label);
     } finally {
-      setSending(false);
-      if (!isPhone() && !atLimit) inputRef.current?.focus();
+      if (liveId.current === askedFor) {
+        setSending(false);
+        if (!isPhone() && !atLimit) inputRef.current?.focus();
+      }
     }
   }
 
@@ -320,6 +345,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
             sending={sending}
             disabled={atLimit}
             prompts={answered ? QUICK : QUICK_UNANSWERED}
+            promptKey={`${q.id}:${answered ? "answered" : "open"}`}
             onPick={(label, message) => void sendPrompt(label, message)}
           />
         )}
