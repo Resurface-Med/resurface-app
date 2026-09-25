@@ -2064,12 +2064,6 @@ select {
   background: var(--c-accent-dim);
   color: var(--c-accent);
 }
-.topic-chevron {
-  display: block;
-}
-.topic-expand.is-open .topic-chevron {
-  transform: rotate(90deg);
-}
 
 /* Always-visible scrollbar so the list announces itself as scrollable. */
 .topic-scroll {
@@ -2634,23 +2628,6 @@ select {
 }
 .tree-node.is-on > .tree-kids > .tree-node { --guide: var(--c-accent); }
 .tree-kids > .tree-node > .topic-row { margin-bottom: 0; }
-
-/* Closed is height 0. While it moves, DeckTree sets a pixel height so the
-   change can actually interpolate — a grid row size does not. */
-.tree-kids {
-  overflow: hidden;
-}
-.tree-node:not(.is-open) > .tree-kids {
-  height: 0;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .topic-chevron {
-    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .tree-kids {
-    transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-}
 
 /* The floating menu itself (rendered at the document level). */
 .pop {

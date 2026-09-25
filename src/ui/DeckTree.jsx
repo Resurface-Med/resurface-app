@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
+import { useMemo, useState, useRef, useCallback } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
 import { leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
@@ -29,9 +29,10 @@ function Coverage({ seen, total, avail, due = 0, dim, empty = false }) {
   );
 }
 
-function Chevron() {
+function Chevron({ open }) {
   return (
-    <svg className="topic-chevron" width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"
+      style={{ display: "block", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
       <path d="M6.5 3.5L12 9l-5.5 5.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -47,50 +48,6 @@ function Check({ state }) {
       )}
       {state === "mixed" && <span className="topic-check-dash" />}
     </span>
-  );
-}
-
-/** Grow and shrink the rows under a deck. Height in pixels, because a
- *  grid-row size jumps instead of moving in the browsers this is opened in. */
-function TreeKids({ open, children }) {
-  const ref = useRef(null);
-  const prev = useRef(open);
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const wasOpen = prev.current;
-    prev.current = open;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (wasOpen === open || reduce) {
-      el.style.height = open ? "auto" : "0px";
-      return undefined;
-    }
-    if (open) {
-      el.style.transition = "none";
-      el.style.height = "0px";
-      void el.offsetHeight;
-      el.style.transition = "";
-      el.style.height = `${el.scrollHeight}px`;
-      const onEnd = (e) => {
-        if (e.target !== el || e.propertyName !== "height") return;
-        el.style.height = "auto";
-      };
-      el.addEventListener("transitionend", onEnd);
-      return () => el.removeEventListener("transitionend", onEnd);
-    }
-    el.style.transition = "none";
-    el.style.height = `${el.scrollHeight}px`;
-    void el.offsetHeight;
-    el.style.transition = "";
-    el.style.height = "0px";
-    return undefined;
-  }, [open]);
-
-  return (
-    <div className="tree-kids" ref={ref} inert={open ? undefined : ""}>
-      {children}
-    </div>
   );
 }
 
@@ -220,7 +177,7 @@ export default function DeckTree({
 
     return (
       <div
-        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}${isOpen ? " is-open" : ""}`}
+        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}${st === true ? " is-on" : ""}`}
         style={nested ? { "--px": `${PAD + (depth - 1) * STEP + 9}px` } : undefined}
       >
         <div className={cls} style={{ paddingLeft: padLeft }}>
@@ -242,14 +199,14 @@ export default function DeckTree({
           {kids.length > 0 && (
             <button type="button" onClick={() => toggleOpen(n.id)} aria-expanded={isOpen}
               aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
-              <Chevron />
+              <Chevron open={isOpen} />
             </button>
           )}
         </div>
-        {kids.length > 0 && (
-          <TreeKids open={isOpen}>
+        {isOpen && kids.length > 0 && (
+          <div className="tree-kids">
             {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
-          </TreeKids>
+          </div>
         )}
       </div>
     );
