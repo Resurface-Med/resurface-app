@@ -1001,7 +1001,7 @@ body::after {
 /* Out the way it came, quicker — leaving is not an event. The parts inside
    do not stagger out; they go with the panel. */
 .ai-dock.is-closing {
-  animation: ai-dock-out 0.34s ease both;
+  animation: ai-dock-out 0.4s ease both;
   pointer-events: none;
 }
 .ai-dock.is-closing > * { animation: none !important; }
@@ -5265,7 +5265,7 @@ select {
      did so in the single frame the class changed, right at the end of the
      panel's exit: one abrupt hop after a smooth move. It travels now, on
      the same curve and over the same time as the panel beside it. */
-  transition: padding 0.46s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: padding 0.52s cubic-bezier(0.4, 0, 0.2, 1);
 }
 /* margin: auto, not align-items: center on the parent.
  *
@@ -5320,7 +5320,9 @@ select {
      as a snap with a tail. This one leaves and arrives gently. */
   animation: ai-slot-in 0.52s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
-.ai-slot.is-closing { animation: ai-slot-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) both; }
+/* The same move, run backwards: the same distance, the same curve, the
+   same 520ms. Anything shorter and the way out stops being the way in. */
+.ai-slot.is-closing { animation: ai-slot-out 0.52s cubic-bezier(0.4, 0, 0.2, 1) both; }
 @keyframes ai-slot-in {
   from { width: 0; padding-left: 0; }
   to   { width: clamp(320px, 30vw, 400px); padding-left: clamp(14px, 2vw, 20px); }

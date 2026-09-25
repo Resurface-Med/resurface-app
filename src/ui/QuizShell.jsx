@@ -89,7 +89,7 @@ export default function QuizShell({
   useEffect(() => {
     if (aiOpen) { setAiMounted(true); return; }
     if (!aiMounted) return;
-    const t = setTimeout(() => setAiMounted(false), 430);
+    const t = setTimeout(() => setAiMounted(false), 530);
     return () => clearTimeout(t);
   }, [aiOpen]);
 
