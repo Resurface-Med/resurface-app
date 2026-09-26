@@ -125,10 +125,6 @@ html, body {
     radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
     radial-gradient(ellipse 40% 38% at 88% 12%, rgba(161, 192, 255, 0.4) 0%, transparent 68%),
     radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
-  /* The wave's height, as Wave.jsx draws it, and its curve closed upward
-     so it can be used as a mask. Kept here so the two always agree. */
-  --wave-h: clamp(36px, 4vw, 64px);
-  --wave-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 90' preserveAspectRatio='none'%3E%3Cpath fill='black' d='M0,44 C240,6 480,82 720,44 C960,6 1200,82 1440,44 L1440,0 L0,0 Z'/%3E%3C/svg%3E");
   --c-scrollbar: rgba(255, 255, 255, 0.35);
   --c-scrollbar-hover: rgba(255, 255, 255, 0.55);
   --c-field-soft: rgba(255, 255, 255, 0.78);
@@ -5941,28 +5937,36 @@ select {
 [data-in="pop"]   { animation-name: rs-pop; }
 [data-in="grow"]  { animation-name: rs-grow; transform-origin: left center; animation-duration: 0.6s; }
 
-/* ─── Switching view: the shutters ────────────────────────────────
-   A view is two masses with the wave between them: the band's contents on
-   the blue field above, and the white sheet below. So the page you asked
-   for arrives as those two masses, from the two edges of the screen — the
-   band down from above, the sheet and its wave up from below — and they
-   close on the wave, where they belong.
+/* ─── Switching view ──────────────────────────────────────────────
+   The white sheet and its wave rise a full screen, from below the fold up
+   to where the wave belongs, covering the page you were on as they come.
+   The old page does not move and is never uncovered, so the gap ahead of
+   the wave is always the page you came from — never a bare field, never
+   anything that can read as a flash.
 
-   The page you were on does not move. It sits underneath and is covered,
-   so the gap between the shutters is never empty: it is the page you came
-   from, right up until it is gone. Nothing fades anywhere in this, so
-   there is nothing that can read as a flash, and because nothing has to be
-   uncovered they can travel the full length of the screen.
+   The blue field takes no part in it. It belongs to the body, not to any
+   view, and it is identical on every page, so the right thing for it to
+   do is nothing: it simply stays, and the wave travels up it. Only the
+   band's contents change hands, the old lifting away before the new comes
+   down to replace it.
 
-   Nothing here needs a hook in the markup: the band is already `.page-band`
-   in every view, and everything after it — the wave and the sheet it tops —
-   is `.page-band ~ *`. They travel as one mass because they are one thing:
-   the sheet and its edge. */
+   An earlier version slid a blue mass down with a field of its own, and
+   it was wrong twice over. `background-attachment: fixed` stops being
+   fixed to the window the moment an element is transformed — it anchors
+   to the element instead — so the gradients painted at a different size
+   while it moved and snapped back when it stopped, which is why the blue
+   changed shade mid-slide. And a rectangle of blue met the sheet's curve
+   badly. A field that never moves has neither problem.
+
+   Nothing here needs a hook in the markup: the band is already
+   `.page-band` in every view, and everything after it — the wave and the
+   sheet it tops — is `.page-band ~ *`, travelling as one mass because it
+   is one thing. */
 .view-stack {
   display: grid;
 }
 /* Both views occupy the one cell, so they overlap without either being
-   taken out of the flow. Painting order is then simply document order, and
+   taken out of the flow. Painting order is then document order, and
    App.jsx renders the arriving view last so it is the one in front. */
 .view-stack > .view-swap {
   grid-area: 1 / 1;
@@ -5971,7 +5975,7 @@ select {
 
 /* Each page paints as one layer while the switch runs. Left alone, CSS
    lays down every block background in the stack before it draws any text,
-   so the old page's words would show through the sheet closing over them.
+   so the old page's words would show through the sheet rising over them.
    Only for the length of the switch — a stacking context that outlived it
    would trap a modal's z-index inside the view. */
 .view-swap.is-entering,
@@ -5983,64 +5987,48 @@ select {
   pointer-events: none;
 }
 
-.view-swap.is-entering .page-band {
-  position: relative;
-  will-change: transform;
-  animation: shutter-band 0.52s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
+/* The sheet runs to the foot of the page, so it starts a screen below. */
 .view-swap.is-entering .page-band ~ * {
   will-change: transform;
-  animation: shutter-sheet 0.52s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation: sheet-rise 0.52s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
-/* The band's own height is all it takes to clear the top of the screen,
-   which would make for a very short journey next to the sheet's; the extra
-   holds it off a little longer and lets it travel a distance you can see. */
-@keyframes shutter-band  { from { transform: translate3d(0, calc(-100% - 120px), 0); } }
-@keyframes shutter-sheet { from { transform: translate3d(0, 100dvh, 0); } }
+@keyframes sheet-rise { from { transform: translate3d(0, 100dvh, 0); } }
 
-/* The sheet is opaque and hides what it passes over. The band is not —
-   the blue field belongs to the body, not to any view — so on its way down
-   the old heading would read straight through the new one. It travels with
-   a field of its own: the same colour and the same gradients, anchored to
-   the window as body::before is, running off the top of the screen behind
-   it. Kept to the band's own width, which is where every word in the band
-   lives; wider would be blue on identical blue, and a full-viewport box
-   here risks a horizontal scrollbar.
+/* The band's contents hand over as a roll: the one you are leaving slides
+   up and disappears behind the top of the band, the one you asked for
+   rises into place from behind the bottom of it, both at once. The two
+   halves tile exactly — at any instant the lower part of the old is above
+   the upper part of the new, and together they fill the band — so it is
+   never empty, never doubled, and nothing has to be faded to hide it.
+   Everything on screen is travelling upward, the sheet included.
  *
- * And it is cut off along the wave, not straight across. The sheet leads
- * with the curve, so a field ending in a flat edge meets it badly: two
- * shapes that were never meant to touch. Masked, the blue comes down
- * carrying the same curve the white is carrying up, and they close on it.
- *
- * The mask is the wave's own path, closed upward instead of down, in the
- * same viewBox and stretched the same way, so the two curves are the same
- * curve. The field is extended a wave's height past the band to put it
- * exactly where the real wave sits — at rest that overhang is blue on
- * identical blue, and invisible. */
-.view-swap.is-entering .page-band::before {
-  content: "";
-  position: absolute;
-  top: -100vh;
-  right: 0;
-  bottom: calc(-1 * var(--wave-h));
-  left: 0;
-  z-index: -1;
-  background-color: var(--c-body-bg);
-  background-image: var(--c-body-overlay-bg);
-  background-attachment: fixed;
-  -webkit-mask-image: var(--wave-mask), linear-gradient(#000, #000);
-  -webkit-mask-size: 100% var(--wave-h), 100% calc(100% - var(--wave-h));
-  -webkit-mask-position: bottom, top;
-  -webkit-mask-repeat: no-repeat, no-repeat;
-  mask-image: var(--wave-mask), linear-gradient(#000, #000);
-  mask-size: 100% var(--wave-h), 100% calc(100% - var(--wave-h));
-  mask-position: bottom, top;
-  mask-repeat: no-repeat, no-repeat;
+ * The clip has to travel with the transform to bring this off, because
+ * clip-path is applied in the element's own coordinates and so moves with
+ * it. Sliding up by its own height while clipping its top by the same
+ * amount leaves the visible window exactly where the band already was,
+ * which is what makes it read as content moving behind a fixed edge
+ * rather than as a box sliding around. Both are percentages of the same
+ * height, so they stay in step at any easing. */
+.view-swap.is-leaving .page-band {
+  will-change: transform, clip-path;
+  animation: band-roll-off 0.46s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.view-swap.is-entering .page-band {
+  will-change: transform, clip-path;
+  animation: band-roll-on 0.46s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+@keyframes band-roll-off {
+  from { transform: translate3d(0, 0, 0);     clip-path: inset(0 0 0 0); }
+  to   { transform: translate3d(0, -100%, 0); clip-path: inset(100% 0 0 0); }
+}
+@keyframes band-roll-on {
+  from { transform: translate3d(0, 100%, 0); clip-path: inset(0 0 100% 0); }
+  to   { transform: translate3d(0, 0, 0);    clip-path: inset(0 0 0 0); }
 }
 
-/* The shutters are the motion. The contents inside them keep still and
-   ride, or there are a dozen small entrances happening inside two large
-   ones. A first load has no shutters and keeps its stagger.
+/* The rise is the motion. The contents inside it keep still and ride, or
+   there are a dozen small entrances happening inside one large one. A
+   first load has no rise and keeps its stagger.
  *
  * Parked at the end of their own entrance rather than switched off: a
  * suppressed animation starts from the beginning the moment the mark comes
@@ -6069,7 +6057,11 @@ select {
 @media (prefers-reduced-motion: reduce) {
   [data-in] { animation: none; }
   .view-swap.is-entering .page-band,
+  .view-swap.is-leaving .page-band,
   .view-swap.is-entering .page-band ~ * { animation: none; }
+  /* With the motion gone there is nothing to hold the old page behind for,
+     and leaving it there would show two headings at once. */
+  .view-swap.is-leaving { display: none; }
   .quiz-shell__stage { transition: none; }
   .quiz-rail,
   .quiz-rail__scrim,
