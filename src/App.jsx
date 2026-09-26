@@ -38,7 +38,7 @@ import Dashboard from "./views/Dashboard";
 
 /* How long the outgoing view is held behind the arriving one. Must outlast
    `view-enter` in index.css — drop it early and the hole comes back. */
-const VIEW_SWAP_MS = 520;
+const VIEW_SWAP_MS = 700;
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
 const ProgressView    = lazy(() => import("./views/StatsView"));

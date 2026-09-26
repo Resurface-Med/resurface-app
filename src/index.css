@@ -5961,19 +5961,37 @@ select {
   min-width: 0;
 }
 .view-swap {
-  animation: view-enter 0.46s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation:
+    view-enter 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards,
+    view-focus 0.66s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 @keyframes view-enter {
   from { opacity: 0; transform: translate3d(0, 18px, 0); }
   to   { opacity: 1; transform: none; }
 }
 
-/* The outgoing page: no animation of its own, and not clickable on the way
-   out. It is behind purely by document order. */
+/* The page arrives out of focus and resolves — a longer animation than the
+   one carrying it in, so it is solid well before it is sharp and you watch
+   it come good rather than watch it appear. Blurring an element feathers
+   its edges, but both pages are the same field at the edges and the same
+   sheet at the foot, so there is nothing there to see it against. */
+@keyframes view-focus {
+  from { filter: blur(12px); }
+  to   { filter: blur(0); }
+}
+
+/* The outgoing page: it does not move, but it does let go of focus as the
+   new one finds it. Left sharp it reads as a smudge laid over readable
+   text; softened, the two are simply at different depths. It is covered
+   well before the blur is full, so this is only ever glimpsed. */
 .view-swap.is-leaving {
   overflow: hidden;
   pointer-events: none;
-  animation: none;
+  animation: view-defocus 0.44s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes view-defocus {
+  from { filter: blur(0); }
+  to   { filter: blur(9px); }
 }
 
 /* For one page to cover another, two things have to be true, and neither is
@@ -5998,6 +6016,7 @@ select {
  * trap a modal's z-index inside the view for the rest of time. */
 .view-swap.is-covering {
   isolation: isolate;
+  will-change: opacity, transform, filter;
   background-color: var(--c-body-bg);
   background-image: var(--c-body-overlay-bg);
   background-attachment: fixed;
@@ -6017,6 +6036,10 @@ select {
 /* Shorter throw on a phone, where the same distance crosses a third of the
    width and reads as a much longer journey. */
 @media (max-width: 900px) {
+  @keyframes view-focus {
+    from { filter: blur(8px); }
+    to   { filter: blur(0); }
+  }
   [data-in] {
     animation-duration: 0.42s;
     animation-delay: calc(var(--i, 0) * var(--step, 20ms));
@@ -6031,7 +6054,8 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   [data-in] { animation: none; }
-  .view-swap { animation: none; }
+  .view-swap,
+  .view-swap.is-leaving { animation: none; }
   .quiz-shell__stage { transition: none; }
   .quiz-rail,
   .quiz-rail__scrim,
