@@ -36,6 +36,10 @@ import { Sidebar } from "./views/Nav";
 import { ConfirmHost } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 
+/* How long the outgoing view is held behind the arriving one. Must outlast
+   `view-enter` in index.css — drop it early and the hole comes back. */
+const VIEW_SWAP_MS = 520;
+
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
 const ProgressView    = lazy(() => import("./views/StatsView"));
 const LeaderboardView = lazy(() => import("./views/LeaderboardView"));
@@ -328,6 +332,54 @@ export default function App() {
     setView(next);
   }
 
+  /*
+   * Switching views, without the screen ever being empty.
+   *
+   * A keyed swap unmounts the old view in the same frame the new one
+   * mounts. Whatever the new view then did — fade, sweep, rise — it did
+   * over a blank page, and it was the blank page that read as a flash.
+   * No entrance animation can fix that, because the entrance is not the
+   * problem: the hole in front of it is.
+   *
+   * So the old view stays. It is held, still and fully opaque, behind the
+   * arriving one while that one comes up over it, and dropped only once
+   * the new page covers it — which is not a moment you can see. Nothing
+   * underneath is ever exposed, so there is nothing left to blink.
+   *
+   * `shown` is [leaving, current] through a switch, and [current] at rest.
+   */
+  const [leaving, setLeaving] = useState(null);
+  const [shownFor, setShownFor] = useState(view);
+  const [bySwitch, setBySwitch] = useState(false);
+  if (shownFor !== view) {
+    /* Set during render rather than in an effect: an effect would let one
+       frame of the new view paint alone before the old one was put behind
+       it, which is the hole we are here to close. */
+    setLeaving(shownFor);
+    setShownFor(view);
+    setBySwitch(true);
+  }
+  useEffect(() => {
+    if (leaving === null) return;
+    const t = setTimeout(() => setLeaving(null), VIEW_SWAP_MS);
+    return () => clearTimeout(t);
+  }, [leaving, view]);
+
+  const switching = leaving !== null && leaving !== view;
+  const shown = switching ? [leaving, view] : [view];
+  /* Two separate marks, because they have different lifetimes.
+   *
+   * `is-covering` is only true while a page is actually being replaced: it
+   * is what makes a page opaque and a layer of its own, and neither should
+   * outlive the switch — a permanent stacking context here would trap a
+   * modal's z-index inside the view.
+   *
+   * `is-entering` lasts as long as the page does. It tells the contents to
+   * arrive by fading rather than rising, and taking it off again would
+   * restart every one of those animations from the beginning — a second
+   * motion half a second after the first, which is the thing we have spent
+   * this whole exercise getting rid of. Only a first load goes without it. */
+
   function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
       setPendingView(newView);
@@ -431,20 +483,31 @@ export default function App() {
 
       <div className="app-content">
         <div className="app-main">
-          {/* Keyed on the view so the animation replays per switch, and holding
-              the whole screen so exactly one element moves. */}
-          <div key={view} className="view-swap">
+          {/* Two views only while one is replacing the other: the outgoing
+              one behind, the arriving one over it. Keyed, so React keeps the
+              outgoing instance alive rather than rebuilding it. */}
+          <div className="view-stack">
+          {shown.map(v => {
+          const out = switching && v === leaving;
+          const cls = ["view-swap",
+            out && "is-leaving",
+            switching && "is-covering",
+            !out && bySwitch && "is-entering"].filter(Boolean).join(" ");
+          return (
+          <div key={v} className={cls}
+            aria-hidden={out ? "true" : undefined}
+            inert={out ? "" : undefined}>
           <Suspense fallback={
             <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
           }>
-          {view === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
+          {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             activity={activity}
             srCards={srCards}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
             onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); go(V.STUDY); }} />}
 
-          {view === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
+          {v === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
@@ -453,14 +516,14 @@ export default function App() {
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
-          {view === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
+          {v === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
 
-          {view === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
+          {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
-          {view === V.PROFILE && (
+          {v === V.PROFILE && (
             <ProfileView
               key={user.id}
               userId={user.id}
@@ -487,7 +550,7 @@ export default function App() {
             />
           )}
 
-          {view === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
+          {v === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
             decks={decks} deckActions={deckActions}
             targetDeckId={generateInto}
             onTargetDeckChange={id => setGenerateInto(id)}
@@ -496,6 +559,8 @@ export default function App() {
 
 
           </Suspense>
+          </div>
+          );})}
           </div>
         </div>
       </div>

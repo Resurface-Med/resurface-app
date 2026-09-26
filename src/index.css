@@ -5938,17 +5938,78 @@ select {
 [data-in="grow"]  { animation-name: rs-grow; transform-origin: left center; animation-duration: 0.6s; }
 
 /* ─── Switching view ──────────────────────────────────────────────
-   A view used to paint whole and empty — the white sheet and its wave
-   at full size — and only then fill as its contents animated in. That
-   gap between the page arriving and the words arriving is the flash.
+   The flash was never the entrance. A keyed swap unmounts the old view in
+   the frame the new one mounts, so every entrance played over a blank
+   page, and the blank page is what you saw. App.jsx now holds the old
+   view behind the new one for the length of this animation; here the new
+   one comes up over it.
 
-   All it takes to close it is for the sheet to arrive with them: a short
-   fade on the whole view, no movement of its own, so the contents' own
-   rise is still the only thing you actually watch. */
-.view-swap {
-  animation: view-in 0.26s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+   One thing travels — the page — and the old page underneath does not
+   move at all, because a backdrop that moves is a second thing to watch.
+   The contents inside still arrive in sequence, but during a switch they
+   arrive by fading rather than rising, so the page's own travel is the
+   only movement on screen. Same curve as everything else. */
+.view-stack {
+  display: grid;
 }
-@keyframes view-in {
+/* Both views occupy the one cell, so they overlap without either being
+   taken out of the flow. Painting order is then simply document order —
+   the arriving view is rendered second and so paints in front — which
+   costs no z-index and creates no stacking context to trap a modal in. */
+.view-stack > .view-swap {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+.view-swap {
+  animation: view-enter 0.46s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+@keyframes view-enter {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The outgoing page: no animation of its own, and not clickable on the way
+   out. It is behind purely by document order. */
+.view-swap.is-leaving {
+  overflow: hidden;
+  pointer-events: none;
+  animation: none;
+}
+
+/* For one page to cover another, two things have to be true, and neither is
+   true of a view at rest.
+ *
+ * It has to be opaque. The blue field is the body's background, not the
+ * view's, so a view is transparent everywhere its sheet is not — which is
+ * the whole band. Without a field of its own the arriving page could reach
+ * full opacity with the old heading still legible behind it. So it carries
+ * the field: the same colour, the same three gradients, anchored to the
+ * window the way body::before is, and therefore identical to what it
+ * replaces.
+ *
+ * And it has to paint as a whole. Left alone, CSS paints every block
+ * background in the stack first and every piece of text after, so the old
+ * page's text would land on top of the new page's field no matter which
+ * came first. `isolation` makes each page a single layer, so the later one
+ * covers the earlier one entirely.
+ *
+ * Both only while a switch is running — hence a mark of its own, separate
+ * from `is-entering`: a stacking context that outlived the switch would
+ * trap a modal's z-index inside the view for the rest of time. */
+.view-swap.is-covering {
+  isolation: isolate;
+  background-color: var(--c-body-bg);
+  background-image: var(--c-body-overlay-bg);
+  background-attachment: fixed;
+}
+
+/* Only during a switch. A first load has no page behind it to travel over,
+   so its contents keep the full rise — the one entrance that already felt
+   right. */
+.view-swap.is-entering [data-in] {
+  animation-name: rs-arrive;
+}
+@keyframes rs-arrive {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
