@@ -5937,87 +5937,89 @@ select {
 [data-in="pop"]   { animation-name: rs-pop; }
 [data-in="grow"]  { animation-name: rs-grow; transform-origin: left center; animation-duration: 0.6s; }
 
-/* ─── Switching view: the seam ────────────────────────────────────
-   A view is two masses with the wave between them: the band's contents
-   on the blue field above, and the white sheet below. So the page parts
-   along that line. Leaving, the band lifts away and the sheet drops; the
-   blue field is uncovered for a moment, which is not a hole — it is the
-   app's own field, there the whole time, behind every page. Arriving,
-   the two halves come back to meet at the wave.
+/* ─── Switching view: the shutters ────────────────────────────────
+   A view is two masses with the wave between them: the band's contents on
+   the blue field above, and the white sheet below. So the page you asked
+   for arrives as those two masses, from the two edges of the screen — the
+   band down from above, the sheet and its wave up from below — and they
+   close on the wave, where they belong.
 
-   It parts fast and meets slow. Leaving accelerates out of frame on an
-   ease-in, arriving settles on the app's curve, and the two overlap, so
-   the field is never bare for long. App.jsx keeps the outgoing view
-   mounted for the length of it (VIEW_SWAP_MS).
+   The page you were on does not move. It sits underneath and is covered,
+   so the gap between the shutters is never empty: it is the page you came
+   from, right up until it is gone. Nothing fades anywhere in this, so
+   there is nothing that can read as a flash, and because nothing has to be
+   uncovered they can travel the full length of the screen.
 
    Nothing here needs a hook in the markup: the band is already `.page-band`
    in every view, and everything after it — the wave and the sheet it tops —
-   is `.page-band ~ *`. They travel together, as one mass, because they are
-   one thing: the sheet and its edge. */
+   is `.page-band ~ *`. They travel as one mass because they are one thing:
+   the sheet and its edge. */
 .view-stack {
   display: grid;
 }
 /* Both views occupy the one cell, so they overlap without either being
-   taken out of the flow. Painting order is then simply document order —
-   the arriving view is rendered second and so paints in front. */
+   taken out of the flow. Painting order is then simply document order, and
+   App.jsx renders the arriving view last so it is the one in front. */
 .view-stack > .view-swap {
   grid-area: 1 / 1;
   min-width: 0;
 }
 
+/* Each page paints as one layer while the switch runs. Left alone, CSS
+   lays down every block background in the stack before it draws any text,
+   so the old page's words would show through the sheet closing over them.
+   Only for the length of the switch — a stacking context that outlived it
+   would trap a modal's z-index inside the view. */
+.view-swap.is-entering,
+.view-swap.is-leaving {
+  isolation: isolate;
+}
 .view-swap.is-leaving {
   overflow: hidden;
   pointer-events: none;
 }
 
-/* Each page paints as one layer while it is being replaced. Left alone,
-   CSS lays down every block background in the stack before it draws any
-   text, so the outgoing page's words would land on top of the arriving
-   page's sheet. Only for the length of the switch — a stacking context
-   that outlived it would trap a modal's z-index inside the view. */
-.view-swap.is-entering,
-.view-swap.is-leaving {
-  isolation: isolate;
-  will-change: transform, opacity;
-}
-
-/* Opacity is kept off the travel and run separately, late on the way out
-   and early on the way in. Faded as it moves, a half reads as a ghost
-   dissolving; solid as it moves, it reads as a thing leaving the frame,
-   which is the whole difference between this and another fade. */
-.view-swap.is-leaving .page-band {
-  animation:
-    seam-band-out 0.22s cubic-bezier(0.4, 0, 1, 1) both,
-    seam-dim 0.10s linear 0.13s both;
-}
-.view-swap.is-leaving .page-band ~ * {
-  animation:
-    seam-sheet-out 0.22s cubic-bezier(0.4, 0, 1, 1) both,
-    seam-dim 0.10s linear 0.13s both;
-}
-@keyframes seam-band-out  { to { transform: translate3d(0, -64px, 0); } }
-@keyframes seam-sheet-out { to { transform: translate3d(0, 96px, 0); } }
-@keyframes seam-dim       { to { opacity: 0; } }
-
 .view-swap.is-entering .page-band {
-  animation:
-    seam-band-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.18s backwards,
-    seam-lit 0.14s linear 0.18s backwards;
+  position: relative;
+  will-change: transform;
+  animation: shutter-band 0.52s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
 .view-swap.is-entering .page-band ~ * {
-  animation:
-    seam-sheet-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.18s backwards,
-    seam-lit 0.14s linear 0.18s backwards;
+  will-change: transform;
+  animation: shutter-sheet 0.52s cubic-bezier(0.4, 0, 0.2, 1) backwards;
 }
-@keyframes seam-band-in  { from { transform: translate3d(0, -64px, 0); } }
-@keyframes seam-sheet-in { from { transform: translate3d(0, 96px, 0); } }
-@keyframes seam-lit      { from { opacity: 0; } }
+/* The band's own height is all it takes to clear the top of the screen,
+   which would make for a very short journey next to the sheet's; the extra
+   holds it off a little longer and lets it travel a distance you can see. */
+@keyframes shutter-band  { from { transform: translate3d(0, calc(-100% - 120px), 0); } }
+@keyframes shutter-sheet { from { transform: translate3d(0, 100dvh, 0); } }
 
-/* The halves are the motion. The contents inside them keep still and ride,
-   or there are a dozen small entrances happening inside two large ones. A
-   first load has no halves to move and keeps its stagger.
+/* The sheet is opaque and hides what it passes over. The band is not —
+   the blue field belongs to the body, not to any view — so on its way down
+   the old heading would read straight through the new one. It travels with
+   a field of its own: the same colour and the same gradients, anchored to
+   the window as body::before is, running off the top of the screen behind
+   it. Kept to the band's own width, which is where every word in the band
+   lives; wider would be blue on identical blue, and a full-viewport box
+   here risks a horizontal scrollbar. */
+.view-swap.is-entering .page-band::before {
+  content: "";
+  position: absolute;
+  top: -100vh;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  background-color: var(--c-body-bg);
+  background-image: var(--c-body-overlay-bg);
+  background-attachment: fixed;
+}
+
+/* The shutters are the motion. The contents inside them keep still and
+   ride, or there are a dozen small entrances happening inside two large
+   ones. A first load has no shutters and keeps its stagger.
  *
- * Held at the end of their own entrance rather than switched off: a
+ * Parked at the end of their own entrance rather than switched off: a
  * suppressed animation starts from the beginning the moment the mark comes
  * off, half a second late, which is the second motion this whole exercise
  * has been about. Shifting only the delay leaves the animation alone — it
@@ -6043,8 +6045,8 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   [data-in] { animation: none; }
-  .view-swap .page-band,
-  .view-swap .page-band ~ * { animation: none; }
+  .view-swap.is-entering .page-band,
+  .view-swap.is-entering .page-band ~ * { animation: none; }
   .quiz-shell__stage { transition: none; }
   .quiz-rail,
   .quiz-rail__scrim,

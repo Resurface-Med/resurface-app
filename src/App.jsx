@@ -38,7 +38,7 @@ import Dashboard from "./views/Dashboard";
 
 /* How long the outgoing view is held behind the arriving one. Must outlast
    `view-enter` in index.css — drop it early and the hole comes back. */
-const VIEW_SWAP_MS = 620;
+const VIEW_SWAP_MS = 560;
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
 const ProgressView    = lazy(() => import("./views/StatsView"));
@@ -364,6 +364,10 @@ export default function App() {
   }, [leaving, view]);
 
   const switching = leaving !== null && leaving !== view;
+  /* The outgoing page first and the arriving one second, so the arriving
+     one paints in front: it closes over the page you were on, which sits
+     still underneath until it is covered. Nothing is ever uncovered, so
+     there is nothing that can flash. */
   const shown = switching ? [leaving, view] : [view];
   /* Both marks last exactly as long as the switch does. Nothing they turn
      on may outlive it: a stacking context would trap a modal's z-index
