@@ -5937,109 +5937,98 @@ select {
 [data-in="pop"]   { animation-name: rs-pop; }
 [data-in="grow"]  { animation-name: rs-grow; transform-origin: left center; animation-duration: 0.6s; }
 
-/* ─── Switching view ──────────────────────────────────────────────
-   The flash was never the entrance. A keyed swap unmounts the old view in
-   the frame the new one mounts, so every entrance played over a blank
-   page, and the blank page is what you saw. App.jsx now holds the old
-   view behind the new one for the length of this animation; here the new
-   one comes up over it.
+/* ─── Switching view: the seam ────────────────────────────────────
+   A view is two masses with the wave between them: the band's contents
+   on the blue field above, and the white sheet below. So the page parts
+   along that line. Leaving, the band lifts away and the sheet drops; the
+   blue field is uncovered for a moment, which is not a hole — it is the
+   app's own field, there the whole time, behind every page. Arriving,
+   the two halves come back to meet at the wave.
 
-   One thing travels — the page — and the old page underneath does not
-   move at all, because a backdrop that moves is a second thing to watch.
-   The contents inside still arrive in sequence, but during a switch they
-   arrive by fading rather than rising, so the page's own travel is the
-   only movement on screen. Same curve as everything else. */
+   It parts fast and meets slow. Leaving accelerates out of frame on an
+   ease-in, arriving settles on the app's curve, and the two overlap, so
+   the field is never bare for long. App.jsx keeps the outgoing view
+   mounted for the length of it (VIEW_SWAP_MS).
+
+   Nothing here needs a hook in the markup: the band is already `.page-band`
+   in every view, and everything after it — the wave and the sheet it tops —
+   is `.page-band ~ *`. They travel together, as one mass, because they are
+   one thing: the sheet and its edge. */
 .view-stack {
   display: grid;
 }
 /* Both views occupy the one cell, so they overlap without either being
    taken out of the flow. Painting order is then simply document order —
-   the arriving view is rendered second and so paints in front — which
-   costs no z-index and creates no stacking context to trap a modal in. */
+   the arriving view is rendered second and so paints in front. */
 .view-stack > .view-swap {
   grid-area: 1 / 1;
   min-width: 0;
 }
-.view-swap {
-  animation:
-    view-enter 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards,
-    view-focus 0.66s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
-@keyframes view-enter {
-  from { opacity: 0; transform: translate3d(0, 18px, 0); }
-  to   { opacity: 1; transform: none; }
-}
 
-/* The page arrives out of focus and resolves — a longer animation than the
-   one carrying it in, so it is solid well before it is sharp and you watch
-   it come good rather than watch it appear. Blurring an element feathers
-   its edges, but both pages are the same field at the edges and the same
-   sheet at the foot, so there is nothing there to see it against. */
-@keyframes view-focus {
-  from { filter: blur(12px); }
-  to   { filter: blur(0); }
-}
-
-/* The outgoing page: it does not move, but it does let go of focus as the
-   new one finds it. Left sharp it reads as a smudge laid over readable
-   text; softened, the two are simply at different depths. It is covered
-   well before the blur is full, so this is only ever glimpsed. */
 .view-swap.is-leaving {
   overflow: hidden;
   pointer-events: none;
-  animation: view-defocus 0.44s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-@keyframes view-defocus {
-  from { filter: blur(0); }
-  to   { filter: blur(9px); }
 }
 
-/* For one page to cover another, two things have to be true, and neither is
-   true of a view at rest.
- *
- * It has to be opaque. The blue field is the body's background, not the
- * view's, so a view is transparent everywhere its sheet is not — which is
- * the whole band. Without a field of its own the arriving page could reach
- * full opacity with the old heading still legible behind it. So it carries
- * the field: the same colour, the same three gradients, anchored to the
- * window the way body::before is, and therefore identical to what it
- * replaces.
- *
- * And it has to paint as a whole. Left alone, CSS paints every block
- * background in the stack first and every piece of text after, so the old
- * page's text would land on top of the new page's field no matter which
- * came first. `isolation` makes each page a single layer, so the later one
- * covers the earlier one entirely.
- *
- * Both only while a switch is running — hence a mark of its own, separate
- * from `is-entering`: a stacking context that outlived the switch would
- * trap a modal's z-index inside the view for the rest of time. */
-.view-swap.is-covering {
+/* Each page paints as one layer while it is being replaced. Left alone,
+   CSS lays down every block background in the stack before it draws any
+   text, so the outgoing page's words would land on top of the arriving
+   page's sheet. Only for the length of the switch — a stacking context
+   that outlived it would trap a modal's z-index inside the view. */
+.view-swap.is-entering,
+.view-swap.is-leaving {
   isolation: isolate;
-  will-change: opacity, transform, filter;
-  background-color: var(--c-body-bg);
-  background-image: var(--c-body-overlay-bg);
-  background-attachment: fixed;
+  will-change: transform, opacity;
 }
 
-/* Only during a switch. A first load has no page behind it to travel over,
-   so its contents keep the full rise — the one entrance that already felt
-   right. */
-.view-swap.is-entering [data-in] {
-  animation-name: rs-arrive;
+/* Opacity is kept off the travel and run separately, late on the way out
+   and early on the way in. Faded as it moves, a half reads as a ghost
+   dissolving; solid as it moves, it reads as a thing leaving the frame,
+   which is the whole difference between this and another fade. */
+.view-swap.is-leaving .page-band {
+  animation:
+    seam-band-out 0.22s cubic-bezier(0.4, 0, 1, 1) both,
+    seam-dim 0.10s linear 0.13s both;
 }
-@keyframes rs-arrive {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+.view-swap.is-leaving .page-band ~ * {
+  animation:
+    seam-sheet-out 0.22s cubic-bezier(0.4, 0, 1, 1) both,
+    seam-dim 0.10s linear 0.13s both;
+}
+@keyframes seam-band-out  { to { transform: translate3d(0, -64px, 0); } }
+@keyframes seam-sheet-out { to { transform: translate3d(0, 96px, 0); } }
+@keyframes seam-dim       { to { opacity: 0; } }
+
+.view-swap.is-entering .page-band {
+  animation:
+    seam-band-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.18s backwards,
+    seam-lit 0.14s linear 0.18s backwards;
+}
+.view-swap.is-entering .page-band ~ * {
+  animation:
+    seam-sheet-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.18s backwards,
+    seam-lit 0.14s linear 0.18s backwards;
+}
+@keyframes seam-band-in  { from { transform: translate3d(0, -64px, 0); } }
+@keyframes seam-sheet-in { from { transform: translate3d(0, 96px, 0); } }
+@keyframes seam-lit      { from { opacity: 0; } }
+
+/* The halves are the motion. The contents inside them keep still and ride,
+   or there are a dozen small entrances happening inside two large ones. A
+   first load has no halves to move and keeps its stagger.
+ *
+ * Held at the end of their own entrance rather than switched off: a
+ * suppressed animation starts from the beginning the moment the mark comes
+ * off, half a second late, which is the second motion this whole exercise
+ * has been about. Shifting only the delay leaves the animation alone — it
+ * is simply already over, and stays over when the delay goes back. */
+.view-swap.is-entering [data-in] {
+  animation-delay: -2s;
 }
 
 /* Shorter throw on a phone, where the same distance crosses a third of the
    width and reads as a much longer journey. */
 @media (max-width: 900px) {
-  @keyframes view-focus {
-    from { filter: blur(8px); }
-    to   { filter: blur(0); }
-  }
   [data-in] {
     animation-duration: 0.42s;
     animation-delay: calc(var(--i, 0) * var(--step, 20ms));
@@ -6054,8 +6043,8 @@ select {
 
 @media (prefers-reduced-motion: reduce) {
   [data-in] { animation: none; }
-  .view-swap,
-  .view-swap.is-leaving { animation: none; }
+  .view-swap .page-band,
+  .view-swap .page-band ~ * { animation: none; }
   .quiz-shell__stage { transition: none; }
   .quiz-rail,
   .quiz-rail__scrim,

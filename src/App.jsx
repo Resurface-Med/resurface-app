@@ -38,7 +38,7 @@ import Dashboard from "./views/Dashboard";
 
 /* How long the outgoing view is held behind the arriving one. Must outlast
    `view-enter` in index.css — drop it early and the hole comes back. */
-const VIEW_SWAP_MS = 700;
+const VIEW_SWAP_MS = 620;
 
 const StudyMode       = lazy(() => import("./modes/PracticeMode"));
 const ProgressView    = lazy(() => import("./views/StatsView"));
@@ -350,14 +350,12 @@ export default function App() {
    */
   const [leaving, setLeaving] = useState(null);
   const [shownFor, setShownFor] = useState(view);
-  const [bySwitch, setBySwitch] = useState(false);
   if (shownFor !== view) {
     /* Set during render rather than in an effect: an effect would let one
        frame of the new view paint alone before the old one was put behind
        it, which is the hole we are here to close. */
     setLeaving(shownFor);
     setShownFor(view);
-    setBySwitch(true);
   }
   useEffect(() => {
     if (leaving === null) return;
@@ -367,18 +365,10 @@ export default function App() {
 
   const switching = leaving !== null && leaving !== view;
   const shown = switching ? [leaving, view] : [view];
-  /* Two separate marks, because they have different lifetimes.
-   *
-   * `is-covering` is only true while a page is actually being replaced: it
-   * is what makes a page opaque and a layer of its own, and neither should
-   * outlive the switch — a permanent stacking context here would trap a
-   * modal's z-index inside the view.
-   *
-   * `is-entering` lasts as long as the page does. It tells the contents to
-   * arrive by fading rather than rising, and taking it off again would
-   * restart every one of those animations from the beginning — a second
-   * motion half a second after the first, which is the thing we have spent
-   * this whole exercise getting rid of. Only a first load goes without it. */
+  /* Both marks last exactly as long as the switch does. Nothing they turn
+     on may outlive it: a stacking context would trap a modal's z-index
+     inside the view, and a page held still would stop anything that mounts
+     in it later — an expanded section, a deck's rows — from ever arriving. */
 
   function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
@@ -491,8 +481,7 @@ export default function App() {
           const out = switching && v === leaving;
           const cls = ["view-swap",
             out && "is-leaving",
-            switching && "is-covering",
-            !out && bySwitch && "is-entering"].filter(Boolean).join(" ");
+            switching && !out && "is-entering"].filter(Boolean).join(" ");
           return (
           <div key={v} className={cls}
             aria-hidden={out ? "true" : undefined}
