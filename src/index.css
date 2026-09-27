@@ -6835,3 +6835,146 @@ select {
   color: var(--c-text);
 }
 .chart-inline__head .gen-link { margin-left: auto; }
+
+/* ─── Admin: the dashboard's furniture ────────────────────────────
+   Cards for the figures worth a glance, panels for everything that needs
+   room. The panel is the same object in both cases — a soft surface with
+   a heading and an action — so the sections read as one place rather than
+   five tables that happen to share a tab. */
+.adm-panel {
+  background: var(--c-surface3);
+  border-radius: var(--r-panel);
+  padding: clamp(16px, 1.8vw, 22px);
+}
+.adm-panel + .adm-panel { margin-top: 14px; }
+.adm-panel__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.adm-panel__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.25px;
+  color: var(--c-text);
+}
+
+.adm-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+/* A card is a button: picking one is what the chart below draws. */
+.adm-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 16px 16px 12px;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-card);
+  background: var(--c-surface3);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.adm-card:hover { background: var(--c-surface2); }
+.adm-card.is-on { border-color: var(--c-accent); }
+.adm-card__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--c-muted);
+}
+.adm-card__value {
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+.adm-card__delta { font-size: 12.5px; font-weight: 500; }
+.adm-card__spark { display: block; margin: 10px 0 8px; }
+.adm-card__spark .chart-spark { width: 100%; height: 34px; }
+.adm-card__total { font-size: 12px; color: var(--c-muted); }
+
+.adm-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.adm-grid .adm-panel + .adm-panel { margin-top: 0; }
+
+/* The metric switcher: text, not chrome. Six labels in a row of pills
+   would out-shout the chart they are choosing. */
+.adm-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-left: auto;
+}
+.adm-seg__btn {
+  border: 0;
+  background: none;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+.adm-seg__btn:hover { color: var(--c-text); background: var(--c-surface2); }
+.adm-seg__btn.is-on { color: var(--c-accent); font-weight: 600; }
+
+.adm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.adm-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 14px;
+}
+.adm-list li:last-child { border-bottom: 0; }
+.adm-list__who { min-width: 0; }
+.adm-list__name {
+  display: block;
+  font-weight: 600;
+  color: var(--c-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.adm-list__meta { display: block; font-size: 12.5px; color: var(--c-muted); }
+.adm-list__when { margin-left: auto; font-size: 12.5px; color: var(--c-muted); white-space: nowrap; }
+
+.chart-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1100px) {
+  .adm-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 620px) {
+  .adm-cards { grid-template-columns: minmax(0, 1fr); }
+}

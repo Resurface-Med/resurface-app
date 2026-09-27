@@ -6,7 +6,7 @@ import {
   fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
 } from "../lib/remote";
-import { Spark, ChartPanel } from "../ui/Chart";
+import { Spark, ChartPanel, BigChart } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
 
 /**
@@ -61,10 +61,8 @@ function Empty({ children }) {
 }
 
 /* ── Overview ──────────────────────────────────────────────────────
-   A row per metric across the full width: what happened today, this week,
-   the week before, and in total, with thirty days of shape beside it. The
-   week-on-week change is the number that tells you something; the rest is
-   what you need to know whether to believe it.
+   Cards for the figures worth a glance, one chart big enough to read
+   underneath, and the newest accounts beside it.
 
    Accounts, Generated, Flags and Decks count things that came into being
    in the window. Active counts distinct people, which cannot be summed, so
@@ -78,11 +76,26 @@ const METRICS = {
   flags:     { label: "Flags", unit: "reports" },
   decks:     { label: "Decks", unit: "made" },
 };
+/* The four on the cards. The rest are a click away on the chart below —
+   a card each would be a wall of numbers, which is what this replaced. */
+const HEADLINE = ["accounts", "active", "answers", "generated"];
+
+function Delta({ now, before }) {
+  const d = Number(now) - Number(before);
+  if (d === 0) return <span className="adm-card__delta adm-dim">no change on last week</span>;
+  return (
+    <span className={`adm-card__delta ${d > 0 ? "adm-up" : "adm-down"}`}>
+      {d > 0 ? `+${d}` : d} on last week
+    </span>
+  );
+}
 
 function Overview() {
   const [totals] = useSection(fetchOverview);
   const loadDaily = useCallback(() => fetchOverviewDaily(30), []);
   const [daily] = useSection(loadDaily);
+  const [people] = useSection(fetchPeople);
+  const [metric, setMetric] = useState("answers");
 
   const series = useMemo(() => {
     const by = new Map();
@@ -93,54 +106,91 @@ function Overview() {
     return by;
   }, [daily.rows]);
 
-  /* The days themselves, so an opened chart can say when rather than only
-     how much. Taken from one metric — every metric runs the same range. */
-  const dayList = useMemo(
+  /* The days themselves, so a chart can say when rather than only how
+     much. Taken from one metric — every metric runs the same range. */
+  const days = useMemo(
     () => (daily.rows ?? []).filter(r => r.key === "accounts").map(r => r.day),
     [daily.rows],
+  );
+
+  const newest = useMemo(
+    () => [...(people.rows ?? [])].sort((a, b) => String(b.joined).localeCompare(String(a.joined))).slice(0, 6),
+    [people.rows],
   );
 
   if (totals.error) return <Empty>{totals.error}</Empty>;
   if (!totals.rows) return <Empty>&nbsp;</Empty>;
 
+  const row = k => totals.rows.find(r => r.key === k);
+  const chosen = METRICS[metric];
+
   return (
-    <table className="adm-table adm-overview">
-      <thead>
-        <tr>
-          <th>&nbsp;</th>
-          <th className="adm-num">today</th>
-          <th className="adm-num">this week</th>
-          <th className="adm-num">week before</th>
-          <th className="adm-num">change</th>
-          <th className="adm-num">all time</th>
-          <th className="adm-trend-head">last 30 days</th>
-        </tr>
-      </thead>
-      <tbody>
-        {totals.rows.map(r => {
-          const m = METRICS[r.key] ?? { label: r.key, unit: "" };
-          const delta = Number(r.last7) - Number(r.prev7);
+    <>
+      <div className="adm-cards">
+        {HEADLINE.map(k => {
+          const r = row(k);
+          if (!r) return null;
           return (
-            <tr key={r.key}>
-              <th scope="row">
-                <span className="adm-metric">{m.label}</span>
-                <span className="adm-unit">{m.unit}</span>
-              </th>
-              <td className="adm-num">{r.today}</td>
-              <td className="adm-num">{r.last7}</td>
-              <td className="adm-num adm-dim">{r.prev7}</td>
-              <td className={`adm-num${delta > 0 ? " adm-up" : delta < 0 ? " adm-down" : " adm-dim"}`}>
-                {delta > 0 ? `+${delta}` : delta < 0 ? delta : "—"}
-              </td>
-              <td className="adm-num adm-dim">{r.total}</td>
-              <td className="adm-trend">
-                <Spark points={series.get(r.key)} label={m.label} days={dayList} unit={m.unit} />
-              </td>
-            </tr>
+            <button
+              key={k}
+              type="button"
+              className={`adm-card${metric === k ? " is-on" : ""}`}
+              onClick={() => setMetric(k)}
+              aria-pressed={metric === k}
+            >
+              <span className="adm-card__label">{METRICS[k].label}</span>
+              <span className="adm-card__value">{Number(r.last7).toLocaleString("en-GB")}</span>
+              <Delta now={r.last7} before={r.prev7} />
+              <span className="adm-card__spark">
+                <Spark points={series.get(k)} tone="accent" plain />
+              </span>
+              <span className="adm-card__total">{Number(r.total).toLocaleString("en-GB")} all time</span>
+            </button>
           );
         })}
-      </tbody>
-    </table>
+      </div>
+
+      <div className="adm-grid">
+        <section className="adm-panel">
+          <div className="adm-panel__head">
+            <h2 className="adm-panel__title">{chosen.label} · last 30 days</h2>
+            <div className="adm-seg" role="tablist" aria-label="Metric">
+              {Object.keys(METRICS).map(k => (
+                <button key={k} type="button" role="tab" aria-selected={metric === k}
+                  className={`adm-seg__btn${metric === k ? " is-on" : ""}`}
+                  onClick={() => setMetric(k)}>
+                  {METRICS[k].label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {series.get(metric)
+            ? <BigChart points={series.get(metric)} days={days} unit={chosen.unit} />
+            : <Empty>&nbsp;</Empty>}
+        </section>
+
+        <aside className="adm-panel">
+          <div className="adm-panel__head">
+            <h2 className="adm-panel__title">Newest accounts</h2>
+          </div>
+          {newest.length === 0 ? <Empty>&nbsp;</Empty> : (
+            <ul className="adm-list">
+              {newest.map(p => (
+                <li key={p.user_id}>
+                  <span className="adm-list__who">
+                    <span className="adm-list__name">{p.display_name || p.email}</span>
+                    <span className="adm-list__meta">
+                      {Number(p.answered) > 0 ? `${p.answered} answered` : "not started"}
+                    </span>
+                  </span>
+                  <span className="adm-list__when">{dmy(p.joined)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+      </div>
+    </>
   );
 }
 
@@ -210,7 +260,7 @@ function People() {
   const thisWeek = rows.filter(p => p.last_active && p.last_active > new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)).length;
 
   return (
-    <>
+    <section className="adm-panel">
       <div className="adm-strip">
         <span><strong>{rows.length}</strong> accounts</span>
         <span><strong>{studied}</strong> have ever studied</span>
@@ -269,7 +319,7 @@ function People() {
           ))}
         </tbody>
       </table>
-    </>
+    </section>
   );
 }
 
@@ -308,7 +358,7 @@ function Generating() {
   const busiest = Math.max(...points);
 
   return (
-    <>
+    <section className="adm-panel">
       <div className="adm-strip">
         <span><strong>{total}</strong> questions in 30 days</span>
         <span><strong>{points[points.length - 1]}</strong> today</span>
@@ -321,7 +371,7 @@ function Generating() {
         several questions, so this shows the shape of usage rather than how close the
         quota is — counting requests would have to happen in the backend.
       </p>
-    </>
+    </section>
   );
 }
 
@@ -396,7 +446,7 @@ function Tokens() {
   const sum = k => totals.rows.reduce((a, r) => a + Number(r[k]), 0);
 
   return (
-    <>
+    <section className="adm-panel">
       <div className="adm-strip">
         <span><strong>{thousands(sum("tokens_today"))}</strong> today</span>
         <span><strong>{thousands(sum("tokens_7d"))}</strong> this week</span>
@@ -442,7 +492,7 @@ function Tokens() {
         only calls that reached the model: a request refused by the rate limiter never
         gets here, and neither does one that failed.
       </p>
-    </>
+    </section>
   );
 }
 
@@ -465,7 +515,7 @@ function Mail() {
   if (rows.length === 0) return <Empty>Nobody has opted in yet.</Empty>;
 
   return (
-    <>
+    <section className="adm-panel">
       <div className="adm-mail-head">
         <span>{rows.length} {rows.length === 1 ? "person has" : "people have"} opted in.</span>
         <button type="button" className="gen-link" onClick={copy}>{copied ? "Copied" : "Copy all"}</button>
@@ -481,7 +531,7 @@ function Mail() {
           ))}
         </tbody>
       </table>
-    </>
+    </section>
   );
 }
 
@@ -529,7 +579,7 @@ function Flags() {
   if (!rows) return <Empty>&nbsp;</Empty>;
   if (rows.length === 0) return <Empty>Nothing flagged. This fills up when someone reports a question.</Empty>;
   return (
-    <ul className="flagq-list">
+    <ul className="flagq-list adm-panel">
       {rows.map((r, i) => (
         <FlagRow
           key={r.question_id}
