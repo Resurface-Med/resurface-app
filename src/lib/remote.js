@@ -237,6 +237,35 @@ export async function fetchIsAdmin() {
   return Boolean(data);
 }
 
+export async function fetchOverview() {
+  const { data, error } = await supabase.rpc("admin_overview");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function fetchPeople() {
+  const { data, error } = await supabase.rpc("admin_people");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function fetchGenerationDaily(days = 14) {
+  const { data, error } = await supabase.rpc("admin_generation_daily", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function fetchMarketingList() {
+  const { data, error } = await supabase.rpc("admin_marketing");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function setAdmin(userId, make) {
+  const { error } = await supabase.rpc("admin_set_admin", { uid: userId, make });
+  if (error) throw new Error(error.message);
+}
+
 export async function fetchFlags() {
   const { data, error } = await supabase.rpc("admin_flags");
   if (error) throw new Error(error.message);

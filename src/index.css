@@ -6386,3 +6386,133 @@ select {
   font-size: 14px;
   color: var(--c-danger);
 }
+
+/* ─── Review: the admin sections ──────────────────────────────────
+   A private tool, so it reads as a report rather than a page: numbers
+   right-aligned and tabular, names carrying their email underneath, and
+   no decoration that would have to be maintained. */
+.adm-body {
+  margin-top: 16px;
+}
+.adm-empty {
+  margin: 0;
+  padding: 18px 0;
+  font-size: 14.5px;
+  color: var(--c-muted);
+}
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.adm-table th,
+.adm-table td {
+  text-align: left;
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--c-border);
+  vertical-align: baseline;
+}
+.adm-table thead th {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--c-muted);
+  letter-spacing: 0.02em;
+}
+.adm-table tbody th {
+  font-weight: 600;
+  color: var(--c-text);
+}
+.adm-table tbody tr:last-child th,
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+/* Four short columns have no business spanning a 1180px page. */
+.adm-table--tight { max-width: 520px; }
+.adm-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.adm-dim { color: var(--c-muted); }
+.adm-up { color: var(--c-success); font-weight: 600; }
+.adm-down { color: var(--c-danger); font-weight: 600; }
+
+/* People: two lines in one cell, so the roster stays narrow enough to read
+   across without the email pushing every other column off the edge. */
+.adm-people tbody th { padding-right: 20px; }
+.adm-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.adm-email,
+.adm-email-cell {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--c-muted);
+  word-break: break-all;
+}
+.adm-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px solid currentColor;
+  border-radius: var(--r-pill);
+  padding: 1px 6px;
+}
+
+/* Generating: a bar per day, scaled to the busiest one in view. */
+.adm-days {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+.adm-days li {
+  display: grid;
+  grid-template-columns: 62px 1fr 44px 84px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+.adm-day { color: var(--c-muted); font-size: 13px; }
+.adm-bar {
+  display: block;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+  overflow: hidden;
+}
+.adm-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
+}
+.adm-by { font-size: 12.5px; text-align: right; }
+.adm-note {
+  margin: 16px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--c-muted);
+  max-width: 46em;
+}
+.adm-mail-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 14.5px;
+}
+.adm-mail-head .gen-link { margin-left: auto; }
+
+@media (max-width: 700px) {
+  .adm-table { font-size: 13.5px; }
+  .adm-days li { grid-template-columns: 52px 1fr 36px; }
+  .adm-by { display: none; }
+}
