@@ -44,12 +44,20 @@ export default function LeaderboardView({ userId }) {
         <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em" }}>
           Questions answered in the last seven days.
         </p>
-        {me && (
-          <p className="lb-you">
-            You’re <strong>#{me.rank}</strong>
-            {me.week_count > 0 ? <> · {me.week_count} this week</> : <> · nothing logged yet this week</>}
-          </p>
-        )}
+        {/* Always rendered, blank until the board arrives. The wave sits
+            directly under the band, so anything that grows the band after
+            first paint moves the wave — and the switch animation has
+            already put it where it belongs by then, which reads as the
+            page shifting at the last moment. Holding the line keeps the
+            band the same height before and after the fetch. */}
+        <p className="lb-you">
+          {me ? (
+            <>
+              You’re <strong>#{me.rank}</strong>
+              {me.week_count > 0 ? <> · {me.week_count} this week</> : <> · nothing logged yet this week</>}
+            </>
+          ) : "\u00a0"}
+        </p>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />

@@ -363,6 +363,33 @@ export default function App() {
     return () => clearTimeout(t);
   }, [leaving, view]);
 
+  /*
+   * The switch animation runs on whatever the arriving view renders. A view
+   * whose chunk has not been fetched yet renders the Suspense fallback, so
+   * the animation plays over that and the real page drops into place when
+   * the chunk lands — the page settling after the motion has finished
+   * instead of during it, which is the one thing a transition must not do.
+   *
+   * Fetching them once the app is idle means a tab is ready before it is
+   * tapped. It costs nothing at startup and the imports are cached, so the
+   * lazy boundaries still do their job on first load.
+   */
+  useEffect(() => {
+    const warm = () => {
+      import("./modes/PracticeMode");
+      import("./views/StatsView");
+      import("./views/LeaderboardView");
+      import("./views/ProfileView");
+      import("./views/GenerateMode");
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warm, { timeout: 3000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(warm, 1200);
+    return () => clearTimeout(id);
+  }, []);
+
   const switching = leaving !== null && leaving !== view;
   /* The outgoing page first and the arriving one second, so the arriving
      one paints in front: it closes over the page you were on, which sits
