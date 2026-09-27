@@ -74,7 +74,7 @@ html, body {
   --c-border: rgba(15, 27, 61, 0.08);
   /* The selected row in the nav. Ink, not brand: a wash of the text colour
      reads as a surface, where a wash of the accent reads as a highlighter. */
-  --c-nav-on: rgba(15, 27, 61, 0.06);
+  --c-nav-on: rgba(15, 27, 61, 0.1);
   --c-border-blu: rgba(53, 98, 245, 0.28);
   --c-text: #0f1b3d;
   --c-sub: #5a6485;
@@ -147,7 +147,7 @@ html, body {
   --c-surface2: #1a2438;
   --c-surface3: #243044;
   --c-border: rgba(160, 180, 220, 0.14);
-  --c-nav-on: rgba(255, 255, 255, 0.08);
+  --c-nav-on: rgba(255, 255, 255, 0.12);
   --c-border-blu: rgba(77, 142, 245, 0.42);
   --c-text: #e8eef8;
   --c-sub: #b4c0d4;
@@ -4209,6 +4209,9 @@ select {
  * is spent in one place, on the icon, which is enough to find at a glance
  * and does not turn a fifth of the sidebar blue.
  */
+.app-nav__item {
+  position: relative;
+}
 .app-nav__item.is-active {
   background: var(--c-nav-on);
   border-color: transparent;
@@ -4217,6 +4220,21 @@ select {
 }
 .app-nav__item.is-active .app-nav__icon {
   color: var(--c-accent);
+}
+/* And a mark in the gutter. The wash says which row without being loud,
+   but a wash alone is easy to miss on a glance down the list; a short bar
+   at the edge is the thing the eye finds, and it sits outside the pill so
+   the row itself stays a plain surface rather than an outlined one. */
+.app-nav__item.is-active::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
 }
 .app-nav__icon {
   flex-shrink: 0;
