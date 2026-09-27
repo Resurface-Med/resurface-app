@@ -538,6 +538,27 @@ export default function App() {
     return () => { cancelled = true; };
   }, [user]);
 
+  /*
+   * The sidebar is `display: none` through a session and comes back the
+   * instant one ends — and being sticky, it is positioned, so it paints
+   * above the session shell still sliding away beneath it. It arrived
+   * fully formed on top of a transition in progress, which is the one
+   * thing on this screen that had no animation at all.
+   *
+   * Marked for as long as it takes to come back, so the nav can be given
+   * an arrival without every page load growing one.
+   */
+  const [navReturning, setNavReturning] = useState(false);
+  const wasInSession = useRef(practiceSessionActive);
+  useEffect(() => {
+    const left = wasInSession.current && !practiceSessionActive;
+    wasInSession.current = practiceSessionActive;
+    if (!left) return;
+    setNavReturning(true);
+    const t = setTimeout(() => setNavReturning(false), VIEW_SWAP_MS);
+    return () => clearTimeout(t);
+  }, [practiceSessionActive]);
+
   const nav = {
     view, setView: handleNav, dueCount, isAdmin,
     email: user?.email,
@@ -582,7 +603,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-    <div className={`app-shell${practiceSessionActive ? " is-session" : ""}`}>
+    <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
         <MarketingPrompt

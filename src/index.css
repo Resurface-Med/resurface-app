@@ -6556,3 +6556,27 @@ select {
 .adm-key:not(:first-child) { margin-left: 12px; }
 .adm-key--gen { background: var(--c-accent); }
 .adm-key--ai { background: var(--c-success); }
+
+/* The sidebar coming back after a session.
+ *
+ * It is `display: none` throughout one and returns the moment it ends, and
+ * being sticky it is positioned — so it paints above the session shell that
+ * is still sliding away underneath. Without this it arrived whole, on top of
+ * a transition already in progress.
+ *
+ * Only on the layouts where the nav is a sidebar. On a phone it is an
+ * off-canvas drawer that is already translated aside, and sliding it again
+ * would fight that. */
+@media (min-width: 901px) {
+  .app-shell.is-nav-returning .app-nav {
+    animation: nav-return 0.46s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+}
+@keyframes nav-return {
+  from { transform: translate3d(calc(-100% - 14px), 0, 0); }
+  to   { transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.is-nav-returning .app-nav { animation: none; }
+}
