@@ -5994,6 +5994,16 @@ select {
 }
 @keyframes sheet-rise { from { transform: translate3d(0, 100dvh, 0); } }
 
+/* And the old sheet settles onto the same line, by the difference between
+   the two band heights, which App.jsx measures onto `--band-delta`. Zero
+   when it is not known, which is simply the old behaviour. Same length and
+   same curve as the rise, so the two waves arrive together. */
+.view-swap.is-leaving .page-band ~ * {
+  will-change: transform;
+  animation: sheet-settle 0.52s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes sheet-settle { to { transform: translate3d(0, var(--band-delta, 0px), 0); } }
+
 /* The band's contents hand over as a roll: the one you are leaving slides
    up and disappears behind the top of the band, the one you asked for
    rises into place from behind the bottom of it, both at once. The two
@@ -6058,7 +6068,8 @@ select {
   [data-in] { animation: none; }
   .view-swap.is-entering .page-band,
   .view-swap.is-leaving .page-band,
-  .view-swap.is-entering .page-band ~ * { animation: none; }
+  .view-swap.is-entering .page-band ~ *,
+  .view-swap.is-leaving .page-band ~ * { animation: none; }
   /* With the motion gone there is nothing to hold the old page behind for,
      and leaving it there would show two headings at once. */
   .view-swap.is-leaving { display: none; }

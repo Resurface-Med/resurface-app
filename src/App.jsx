@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, Component, lazy, Suspense } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, Component, lazy, Suspense } from "react";
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -391,6 +391,36 @@ export default function App() {
   }, []);
 
   const switching = leaving !== null && leaving !== view;
+  /*
+   * Where the wave ends up is set by the height of the band above it, and
+   * that differs from view to view. The arriving sheet rises to its own
+   * wave line, and if that line is higher than the one it is replacing all
+   * is well — it covers the old sheet on the way past.
+   *
+   * If it is lower, the strip between the two lines belongs to the new
+   * page's blue field, and the old sheet is still sitting in it. Being
+   * behind and never moved, it stays white through the whole switch and
+   * turns blue the instant the old page is dropped — the page changing
+   * after the animation has finished.
+   *
+   * So the old sheet settles too, by exactly the difference between the
+   * two band heights, which lands its wave on the same line as the new
+   * one. Both waves arrive together, the strip above them is blue before
+   * anything is dropped, and letting go of the old page changes nothing.
+   * It has to be measured: no stylesheet knows the height of two bands.
+   */
+  const stackRef = useRef(null);
+  useLayoutEffect(() => {
+    const root = stackRef.current;
+    if (!root || !switching) return;
+    const out = root.querySelector(".view-swap.is-leaving");
+    const outBand = out?.querySelector(".page-band");
+    const inBand = root.querySelector(".view-swap.is-entering .page-band");
+    if (!out || !outBand || !inBand) return;
+    /* offsetHeight is layout, so the band's own roll does not disturb it. */
+    out.style.setProperty("--band-delta", `${inBand.offsetHeight - outBand.offsetHeight}px`);
+  }, [switching, leaving, view]);
+
   /* The outgoing page first and the arriving one second, so the arriving
      one paints in front: it closes over the page you were on, which sits
      still underneath until it is covered. Nothing is ever uncovered, so
@@ -507,7 +537,7 @@ export default function App() {
           {/* Two views only while one is replacing the other: the outgoing
               one behind, the arriving one over it. Keyed, so React keeps the
               outgoing instance alive rather than rebuilding it. */}
-          <div className="view-stack">
+          <div className="view-stack" ref={stackRef}>
           {shown.map(v => {
           const out = switching && v === leaving;
           const cls = ["view-swap",
