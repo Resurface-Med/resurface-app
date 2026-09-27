@@ -255,6 +255,18 @@ export async function fetchGenerationDaily(days = 14) {
   return data ?? [];
 }
 
+export async function fetchTokenTotals() {
+  const { data, error } = await supabase.rpc("admin_tokens_totals");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function fetchTokensDaily(days = 14) {
+  const { data, error } = await supabase.rpc("admin_tokens_daily", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchMarketingList() {
   const { data, error } = await supabase.rpc("admin_marketing");
   if (error) throw new Error(error.message);

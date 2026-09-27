@@ -6533,3 +6533,26 @@ select {
   .adm-days li { grid-template-columns: 52px 1fr 36px; }
   .adm-by { display: none; }
 }
+
+/* Tokens: one bar per day, split by what asked for them. */
+.adm-days--split .adm-bar {
+  display: flex;
+}
+.adm-seg-gen,
+.adm-seg-ai {
+  display: block;
+  height: 100%;
+}
+.adm-seg-gen { background: var(--c-accent); }
+.adm-seg-ai { background: var(--c-success); }
+.adm-key {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  margin: 0 5px 0 0;
+  vertical-align: baseline;
+}
+.adm-key:not(:first-child) { margin-left: 12px; }
+.adm-key--gen { background: var(--c-accent); }
+.adm-key--ai { background: var(--c-success); }

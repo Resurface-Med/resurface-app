@@ -4,7 +4,7 @@ import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchPeople, fetchGenerationDaily, fetchMarketingList,
-  setAdmin, fetchFlags, clearFlags,
+  fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
 } from "../lib/remote";
 import { confirm } from "../ui/Confirm";
 
@@ -25,6 +25,7 @@ const SECTIONS = [
   { k: "overview", label: "Overview" },
   { k: "people", label: "People" },
   { k: "generating", label: "Generating" },
+  { k: "tokens", label: "Tokens" },
   { k: "mail", label: "Mail" },
   { k: "flags", label: "Flags" },
 ];
@@ -188,6 +189,90 @@ function Generating() {
   );
 }
 
+/* ── Tokens ────────────────────────────────────────────────────────
+   What the model actually costs, which the question counts never said.
+   Split by what asked for it: generating a lecture's worth of questions
+   and a one-line tutor reply are not the same animal, and input tokens
+   are most of the bill for the first because the lecture goes up with
+   every request. */
+const KINDS = { generate: "Generating", explain: "Resurface AI" };
+const thousands = n => Number(n).toLocaleString("en-GB");
+
+function Tokens() {
+  const [totals] = useSection(fetchTokenTotals);
+  const loadDaily = useCallback(() => fetchTokensDaily(14), []);
+  const [daily] = useSection(loadDaily);
+
+  const days = useMemo(() => {
+    const by = new Map();
+    for (const r of daily.rows ?? []) {
+      const d = by.get(r.day) || { day: r.day, generate: 0, explain: 0, calls: 0 };
+      d[r.kind] = Number(r.total_tokens);
+      d.calls += Number(r.calls);
+      by.set(r.day, d);
+    }
+    return [...by.values()];
+  }, [daily.rows]);
+  const peak = useMemo(() => Math.max(1, ...days.map(d => d.generate + d.explain)), [days]);
+
+  if (totals.error) return <Empty>{totals.error}</Empty>;
+  if (!totals.rows) return <Empty>&nbsp;</Empty>;
+  if (totals.rows.length === 0) {
+    return <Empty>Nothing recorded yet. This fills up as people generate questions and ask the tutor.</Empty>;
+  }
+
+  return (
+    <>
+      <table className="adm-table adm-table--tight">
+        <thead>
+          <tr>
+            <th>&nbsp;</th>
+            <th className="adm-num">today</th>
+            <th className="adm-num">7 days</th>
+            <th className="adm-num">all time</th>
+            <th className="adm-num">calls</th>
+          </tr>
+        </thead>
+        <tbody>
+          {totals.rows.map(r => (
+            <tr key={r.kind}>
+              <th scope="row">{KINDS[r.kind] ?? r.kind}</th>
+              <td className="adm-num">{thousands(r.tokens_today)}</td>
+              <td className="adm-num">{thousands(r.tokens_7d)}</td>
+              <td className="adm-num adm-dim">{thousands(r.tokens_all)}</td>
+              <td className="adm-num adm-dim">{thousands(r.calls_all)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {days.length > 0 && (
+        <ul className="adm-days adm-days--split">
+          {days.map(d => (
+            <li key={d.day}>
+              <span className="adm-day">{dmy(d.day)}</span>
+              <span className="adm-bar">
+                <span className="adm-seg-gen" style={{ width: `${(d.generate / peak) * 100}%` }} />
+                <span className="adm-seg-ai" style={{ width: `${(d.explain / peak) * 100}%` }} />
+              </span>
+              <span className="adm-num">{thousands(d.generate + d.explain)}</span>
+              <span className="adm-dim adm-by">{d.calls} {d.calls === 1 ? "call" : "calls"}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="adm-note">
+        <span className="adm-key adm-key--gen" /> generating
+        <span className="adm-key adm-key--ai" /> Resurface AI
+        {" — "}tokens as the provider reports them, recorded per call by the backend.
+        Counts only calls that reached the model: a request refused by the rate
+        limiter never gets here, and neither does a failed one.
+      </p>
+    </>
+  );
+}
+
 /* ── Mail ─────────────────────────────────────────────────────────── */
 function Mail() {
   const [{ rows, error }] = useSection(fetchMarketingList);
@@ -288,6 +373,7 @@ const PANELS = {
   overview: Overview,
   people: People,
   generating: Generating,
+  tokens: Tokens,
   mail: Mail,
   flags: Flags,
 };
