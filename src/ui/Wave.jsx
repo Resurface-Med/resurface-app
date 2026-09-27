@@ -10,8 +10,14 @@
  * hairline when the scaled height lands on a subpixel.
  */
 export default function Wave({ from, to, flip = false, height }) {
+  /* The sheet below is pulled up a pixel so the two always overlap. Through
+     a view switch the wave and the sheet are transformed together but
+     composited apart, and two layers landing on different sides of a
+     device pixel leave a hairline of the field between them — a blue
+     stitch across the page, right under the swoosh. An overlap has nowhere
+     to show: the bottom pixel of the wave is already the sheet's colour. */
   return (
-    <div style={{ lineHeight: 0, background: from }} aria-hidden="true">
+    <div style={{ lineHeight: 0, background: from, marginBottom: -1 }} aria-hidden="true">
       <svg
         viewBox="0 0 1440 90"
         preserveAspectRatio="none"

@@ -40,11 +40,21 @@ import Dashboard from "./views/Dashboard";
    `view-enter` in index.css — drop it early and the hole comes back. */
 const VIEW_SWAP_MS = 560;
 
-const StudyMode       = lazy(() => import("./modes/PracticeMode"));
-const ProgressView    = lazy(() => import("./views/StatsView"));
-const LeaderboardView = lazy(() => import("./views/LeaderboardView"));
-const ProfileView     = lazy(() => import("./views/ProfileView"));
-const GenerateMode    = lazy(() => import("./views/GenerateMode"));
+/* Kept as named loaders rather than inline, because navigation waits on
+   them as well as `lazy` — see `go`. Calling one twice is free: an import
+   already in flight or already done hands back the same promise. */
+const CHUNK = {
+  [V.STUDY]:       () => import("./modes/PracticeMode"),
+  [V.PROGRESS]:    () => import("./views/StatsView"),
+  [V.LEADERBOARD]: () => import("./views/LeaderboardView"),
+  [V.PROFILE]:     () => import("./views/ProfileView"),
+  [V.GENERATE]:    () => import("./views/GenerateMode"),
+};
+const StudyMode       = lazy(CHUNK[V.STUDY]);
+const ProgressView    = lazy(CHUNK[V.PROGRESS]);
+const LeaderboardView = lazy(CHUNK[V.LEADERBOARD]);
+const ProfileView     = lazy(CHUNK[V.PROFILE]);
+const GenerateMode    = lazy(CHUNK[V.GENERATE]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -327,9 +337,28 @@ export default function App() {
   // "ready to review" directly beneath "Seen: 0".
   const dueCount = useMemo(() => QUESTIONS.filter(q => isReviewDue(srCards[q.id])).length, [srCards]);
 
-  /** One door for every navigation, so the keyed wrapper always remounts. */
+  /**
+   * One door for every navigation, so the keyed wrapper always remounts.
+   *
+   * Every view but the dashboard is a chunk of its own, and the switch
+   * animates whatever the arriving view renders — so a view that has not
+   * been fetched animates its Suspense fallback, which has no band and no
+   * sheet, and the real page drops into place when the chunk lands. That is
+   * the first visit to each tab, every session. Warming them on idle helps
+   * only if you wait, and the first thing anyone does is start tapping.
+   *
+   * So the view changes once its chunk is in hand. Already loaded, that is
+   * a microtask and nothing is delayed; not loaded, the page you are on
+   * stays put a moment longer instead of animating an empty one. The token
+   * keeps a slow chunk from landing on top of a later tap.
+   */
+  const navToken = useRef(0);
   function go(next) {
-    setView(next);
+    const chunk = CHUNK[next];
+    if (!chunk) { setView(next); return; }
+    const mine = ++navToken.current;
+    const arrive = () => { if (navToken.current === mine) setView(next); };
+    chunk().then(arrive, arrive);
   }
 
   /*
@@ -362,33 +391,6 @@ export default function App() {
     const t = setTimeout(() => setLeaving(null), VIEW_SWAP_MS);
     return () => clearTimeout(t);
   }, [leaving, view]);
-
-  /*
-   * The switch animation runs on whatever the arriving view renders. A view
-   * whose chunk has not been fetched yet renders the Suspense fallback, so
-   * the animation plays over that and the real page drops into place when
-   * the chunk lands — the page settling after the motion has finished
-   * instead of during it, which is the one thing a transition must not do.
-   *
-   * Fetching them once the app is idle means a tab is ready before it is
-   * tapped. It costs nothing at startup and the imports are cached, so the
-   * lazy boundaries still do their job on first load.
-   */
-  useEffect(() => {
-    const warm = () => {
-      import("./modes/PracticeMode");
-      import("./views/StatsView");
-      import("./views/LeaderboardView");
-      import("./views/ProfileView");
-      import("./views/GenerateMode");
-    };
-    if (typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(warm, { timeout: 3000 });
-      return () => window.cancelIdleCallback?.(id);
-    }
-    const id = setTimeout(warm, 1200);
-    return () => clearTimeout(id);
-  }, []);
 
   const switching = leaving !== null && leaving !== view;
   /*
