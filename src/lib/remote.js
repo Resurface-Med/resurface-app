@@ -243,6 +243,12 @@ export async function fetchOverview() {
   return data ?? [];
 }
 
+export async function fetchOverviewDaily(days = 30) {
+  const { data, error } = await supabase.rpc("admin_overview_daily", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchPeople() {
   const { data, error } = await supabase.rpc("admin_people");
   if (error) throw new Error(error.message);

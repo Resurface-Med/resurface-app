@@ -3,7 +3,7 @@ import { h1 } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
-  fetchOverview, fetchPeople, fetchGenerationDaily, fetchMarketingList,
+  fetchOverview, fetchOverviewDaily, fetchPeople, fetchGenerationDaily, fetchMarketingList,
   fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
 } from "../lib/remote";
 import { confirm } from "../ui/Confirm";
@@ -60,28 +60,89 @@ function Empty({ children }) {
 }
 
 /* ── Overview ──────────────────────────────────────────────────────
-   Where each number stands and where it stood a week ago. The change is
-   the column worth reading; the rest is the context for it. */
-function Overview() {
-  const [{ rows, error }] = useSection(fetchOverview);
-  if (error) return <Empty>{error}</Empty>;
-  if (!rows) return <Empty>&nbsp;</Empty>;
+   A row per metric across the full width: what happened today, this week,
+   the week before, and in total, with thirty days of shape beside it. The
+   week-on-week change is the number that tells you something; the rest is
+   what you need to know whether to believe it.
+
+   Accounts, Generated, Flags and Decks count things that came into being
+   in the window. Active counts distinct people, which cannot be summed, so
+   it is distinct-in-window — a person studying every day is one, not seven.
+   Answers is the sum of what everybody did. */
+const METRICS = {
+  accounts:  { label: "Accounts", unit: "new" },
+  active:    { label: "Active", unit: "people" },
+  answers:   { label: "Answers", unit: "answered" },
+  generated: { label: "Generated", unit: "questions" },
+  flags:     { label: "Flags", unit: "reports" },
+  decks:     { label: "Decks", unit: "made" },
+};
+
+/* Thirty points into a 128×30 box. Flat data draws flat rather than filling
+   the box, because a run of zeros scaled to full height reads as a signal. */
+function Spark({ points }) {
+  if (!points || points.length < 2) return <span className="adm-spark" />;
+  const peak = Math.max(...points);
+  const w = 128, h = 30, pad = 3;
+  const step = w / (points.length - 1);
+  const y = v => (peak === 0 ? h - pad : h - pad - (v / peak) * (h - pad * 2));
+  const d = points.map((v, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
   return (
-    <table className="adm-table adm-table--tight">
+    <svg className="adm-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
+      <path d={`${d} L${w},${h} L0,${h} Z`} className="adm-spark__fill" />
+      <path d={d} className="adm-spark__line" />
+    </svg>
+  );
+}
+
+function Overview() {
+  const [totals] = useSection(fetchOverview);
+  const loadDaily = useCallback(() => fetchOverviewDaily(30), []);
+  const [daily] = useSection(loadDaily);
+
+  const series = useMemo(() => {
+    const by = new Map();
+    for (const r of daily.rows ?? []) {
+      if (!by.has(r.key)) by.set(r.key, []);
+      by.get(r.key).push(Number(r.value));
+    }
+    return by;
+  }, [daily.rows]);
+
+  if (totals.error) return <Empty>{totals.error}</Empty>;
+  if (!totals.rows) return <Empty>&nbsp;</Empty>;
+
+  return (
+    <table className="adm-table adm-overview">
       <thead>
-        <tr><th>&nbsp;</th><th className="adm-num">now</th><th className="adm-num">7d ago</th><th className="adm-num">change</th></tr>
+        <tr>
+          <th>&nbsp;</th>
+          <th className="adm-num">today</th>
+          <th className="adm-num">this week</th>
+          <th className="adm-num">week before</th>
+          <th className="adm-num">change</th>
+          <th className="adm-num">all time</th>
+          <th className="adm-trend-head">last 30 days</th>
+        </tr>
       </thead>
       <tbody>
-        {rows.map(r => {
-          const delta = Number(r.now_value) - Number(r.prior_value);
+        {totals.rows.map(r => {
+          const m = METRICS[r.key] ?? { label: r.key, unit: "" };
+          const delta = Number(r.last7) - Number(r.prev7);
           return (
-            <tr key={r.metric}>
-              <th scope="row">{r.metric}</th>
-              <td className="adm-num">{r.now_value}</td>
-              <td className="adm-num adm-dim">{r.prior_value}</td>
+            <tr key={r.key}>
+              <th scope="row">
+                <span className="adm-metric">{m.label}</span>
+                <span className="adm-unit">{m.unit}</span>
+              </th>
+              <td className="adm-num">{r.today}</td>
+              <td className="adm-num">{r.last7}</td>
+              <td className="adm-num adm-dim">{r.prev7}</td>
               <td className={`adm-num${delta > 0 ? " adm-up" : delta < 0 ? " adm-down" : " adm-dim"}`}>
                 {delta > 0 ? `+${delta}` : delta < 0 ? delta : "—"}
               </td>
+              <td className="adm-num adm-dim">{r.total}</td>
+              <td className="adm-trend"><Spark points={series.get(r.key)} /></td>
             </tr>
           );
         })}
