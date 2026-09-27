@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
-import { NAV, V } from "../ui/theme";
+import { BookOpen, ChartColumn, Flag, House, LogOut, PanelLeft, Sparkles, Trophy } from "lucide-react";
+import { NAV_GROUPS, V } from "../ui/theme";
 
 const ICONS = {
   [V.DASH]: House,
@@ -22,7 +22,7 @@ function initials(displayName, email) {
   return String(email || "?").slice(0, 1).toUpperCase();
 }
 
-export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false }) {
+export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false, tight = false, onTightChange }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
 
@@ -74,7 +74,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         aria-hidden="true"
       />
 
-      <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
+      <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}${tight ? " is-tight" : ""}`}>
         <div className="app-nav__brand">
           <img
             src="/logo-lockup.png"
@@ -91,6 +91,12 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             height="190"
             className="nav-logo nav-logo-night app-nav__logo"
           />
+          {/* Cut from the lockup, so the two can never drift apart. Shown
+              only when the sidebar is too narrow for the wordmark. */}
+          <img src="/logo-mark.png" alt="Resurface" width="99" height="131"
+            className="nav-logo nav-logo-day app-nav__mark" />
+          <img src="/logo-mark-white.png" alt="" aria-hidden="true" width="99" height="131"
+            className="nav-logo nav-logo-night app-nav__mark" />
           <button
             type="button"
             className="app-nav__close btn-press"
@@ -104,34 +110,56 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         </div>
 
         <nav className="app-nav__list">
-          {/* Admin sits below a rule, after everything a student uses, and
-              only for an account the database calls an admin. */}
-          {(isAdmin ? [...NAV, null, { k: V.ADMIN, label: "Admin" }] : NAV).map((item, idx) => {
-            if (!item) {
-              return <div key={`div-${idx}`} className="app-nav__rule" />;
-            }
+          {/* Admin is a group of its own behind the one rule, after
+              everything a student uses, and only for an account the
+              database calls an admin. */}
+          {(isAdmin ? [...NAV_GROUPS, [{ k: V.ADMIN, label: "Admin", ruled: true }]] : NAV_GROUPS)
+            .map((group, gi) => (
+              <div key={gi} className={`app-nav__group${group[0]?.ruled ? " is-ruled" : ""}`}>
+                {group.map(item => {
+                  const active = view === item.k;
+                  const Icon = ICONS[item.k];
+                  const review = item.k === V.STUDY ? dueCount : 0;
 
-            const active = view === item.k;
-            const Icon = ICONS[item.k];
-            const review = item.k === V.STUDY ? dueCount : 0;
-
-            return (
-              <button
-                key={item.k}
-                type="button"
-                onClick={() => go(item.k)}
-                className={`btn-press app-nav__item${active ? " is-active" : ""}`}
-                aria-current={active ? "page" : undefined}
-              >
-                {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
-                <span className="app-nav__label">{item.label}</span>
-                {review > 0 && <span className="app-nav__review">{review} to review</span>}
-              </button>
-            );
-          })}
+                  return (
+                    <button
+                      key={item.k}
+                      type="button"
+                      onClick={() => go(item.k)}
+                      className={`btn-press app-nav__item${active ? " is-active" : ""}`}
+                      aria-current={active ? "page" : undefined}
+                      title={item.label}
+                    >
+                      {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
+                      <span className="app-nav__label">{item.label}</span>
+                      {review > 0 && (
+                        <span className="app-nav__review">
+                          <span className="app-nav__review-text">{review} to review</span>
+                          <span className="app-nav__review-dot" aria-hidden="true" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
         </nav>
 
         <div className="app-nav__foot">
+          {/* Desktop only: on a phone the sidebar is a drawer that is either
+              open or gone, and a narrower drawer helps nobody. */}
+          <button
+            type="button"
+            className="app-nav__tight btn-press"
+            onClick={() => onTightChange?.(!tight)}
+            aria-pressed={tight}
+            aria-label={tight ? "Widen the sidebar" : "Narrow the sidebar"}
+            title={tight ? "Widen" : "Narrow"}
+          >
+            <PanelLeft size={16} strokeWidth={1.75} aria-hidden="true" />
+            <span className="app-nav__label">Narrow</span>
+          </button>
+
           <div className={`app-nav__account${activeProfile ? " is-active" : ""}`}>
             <button
               type="button"

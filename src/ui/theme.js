@@ -376,10 +376,25 @@ export const chipFieldActive = {
 };
 
 // Labels and destinations only. The marks beside them are Lucide icons in Nav.
-export const NAV = [
-  { k: V.DASH,        label: "Home" },
-  { k: V.STUDY,       label: "Study" },
-  { k: V.GENERATE,    label: "Generate" },
-  { k: V.PROGRESS,    label: "Progress" },
-  { k: V.LEADERBOARD, label: "Leaderboard" },
+/**
+ * The nav, in groups rather than a list.
+ *
+ * Three things, not five: what you came to do, what you look at afterwards,
+ * and running the place. They are separated by space, so the one rule in
+ * the sidebar is doing real work instead of being the third divider
+ * competing with two others.
+ */
+export const NAV_GROUPS = [
+  [
+    { k: V.DASH,        label: "Home" },
+    { k: V.STUDY,       label: "Study" },
+    { k: V.GENERATE,    label: "Generate" },
+  ],
+  [
+    { k: V.PROGRESS,    label: "Progress" },
+    { k: V.LEADERBOARD, label: "Leaderboard" },
+  ],
 ];
+
+/** Flat, for anything that just wants to know the tabs. */
+export const NAV = NAV_GROUPS.flat();
