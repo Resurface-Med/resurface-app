@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ChartColumn, Flag, House, LogOut, PanelLeft, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 
 const ICONS = {
@@ -22,7 +22,7 @@ function initials(displayName, email) {
   return String(email || "?").slice(0, 1).toUpperCase();
 }
 
-export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false, tight = false, onTightChange }) {
+export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
 
@@ -74,7 +74,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         aria-hidden="true"
       />
 
-      <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}${tight ? " is-tight" : ""}`}>
+      <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
         <div className="app-nav__brand">
           <img
             src="/logo-lockup.png"
@@ -91,12 +91,6 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
             height="190"
             className="nav-logo nav-logo-night app-nav__logo"
           />
-          {/* Cut from the lockup, so the two can never drift apart. Shown
-              only when the sidebar is too narrow for the wordmark. */}
-          <img src="/logo-mark.png" alt="Resurface" width="99" height="131"
-            className="nav-logo nav-logo-day app-nav__mark" />
-          <img src="/logo-mark-white.png" alt="" aria-hidden="true" width="99" height="131"
-            className="nav-logo nav-logo-night app-nav__mark" />
           <button
             type="button"
             className="app-nav__close btn-press"
@@ -132,12 +126,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
                     >
                       {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
                       <span className="app-nav__label">{item.label}</span>
-                      {review > 0 && (
-                        <span className="app-nav__review">
-                          <span className="app-nav__review-text">{review} to review</span>
-                          <span className="app-nav__review-dot" aria-hidden="true" />
-                        </span>
-                      )}
+                      {review > 0 && <span className="app-nav__review">{review} to review</span>}
                     </button>
                   );
                 })}
@@ -146,19 +135,6 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         </nav>
 
         <div className="app-nav__foot">
-          {/* Desktop only: on a phone the sidebar is a drawer that is either
-              open or gone, and a narrower drawer helps nobody. */}
-          <button
-            type="button"
-            className="app-nav__tight btn-press"
-            onClick={() => onTightChange?.(!tight)}
-            aria-pressed={tight}
-            aria-label={tight ? "Widen the sidebar" : "Narrow the sidebar"}
-            title={tight ? "Widen" : "Narrow"}
-          >
-            <PanelLeft size={16} strokeWidth={1.75} aria-hidden="true" />
-            <span className="app-nav__label">Narrow</span>
-          </button>
 
           <div className={`app-nav__account${activeProfile ? " is-active" : ""}`}>
             <button

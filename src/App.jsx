@@ -25,7 +25,7 @@ class ErrorBoundary extends Component {
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
-import { themeStore, navStore, todayKey, nextStreak } from "./lib/storage";
+import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
@@ -559,12 +559,8 @@ export default function App() {
     return () => clearTimeout(t);
   }, [practiceSessionActive]);
 
-  const [navTight, setNavTight] = useState(navStore.get);
-
   const nav = {
     view, setView: handleNav, dueCount, isAdmin,
-    tight: navTight,
-    onTightChange: v => { setNavTight(v); navStore.set(v); },
     email: user?.email,
     displayName,
     onSignOut: signOut,

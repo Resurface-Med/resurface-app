@@ -9,14 +9,6 @@
 
 const THEME_KEY = "pq_theme";
 
-/* A device preference, like the theme: which machine you are at, not
-   anything about you. Nothing here is worth a round trip to Postgres. */
-const NAV_KEY = "pq_nav_tight";
-export const navStore = {
-  get: () => { try { return localStorage.getItem(NAV_KEY) === "1"; } catch { return false; } },
-  set: (tight) => { try { localStorage.setItem(NAV_KEY, tight ? "1" : "0"); } catch {} },
-};
-
 export const themeStore = {
   get: () => { try { return localStorage.getItem(THEME_KEY) || "light"; } catch { return "light"; } },
   set: (t) => { try { localStorage.setItem(THEME_KEY, t); } catch {} },
