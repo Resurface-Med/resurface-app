@@ -6559,24 +6559,48 @@ select {
 
 /* The sidebar coming back after a session.
  *
- * It is `display: none` throughout one and returns the moment it ends, and
- * being sticky it is positioned — so it paints above the session shell that
- * is still sliding away underneath. Without this it arrived whole, on top of
- * a transition already in progress.
+ * It is display:none throughout one and returns the moment it ends, and
+ * being sticky it is positioned — so it paints above the session shell
+ * still sliding away underneath. Left alone it arrived whole, on top of a
+ * transition already in progress.
  *
- * Only on the layouts where the nav is a sidebar. On a phone it is an
- * off-canvas drawer that is already translated aside, and sliding it again
- * would fight that. */
+ * What travels is the space it takes up, not the sidebar over the top of
+ * it. Sliding it with a transform would have meant the row reflowing in
+ * one frame — the main column jumping 262px sideways — with the nav then
+ * gliding over that finished layout: two different motions, one of them
+ * instant. Animating the margin means the nav occupies no width at the
+ * start and its full width at the end, so the column it pushes against
+ * moves with it the whole way. Same lesson as the AI dock, where what
+ * moved was the slot.
+ *
+ * Margin rather than width, so nothing inside the sidebar reflows as it
+ * comes: at -248px it takes up exactly zero of the row and is exactly off
+ * the left edge, and it is its own width throughout.
+ *
+ * The gap goes with it. A session sets it to zero, and without this it
+ * would snap back at the moment the mark was dropped — a last 18px jump
+ * after everything else had settled.
+ *
+ * Only where the nav is a sidebar. On a phone it is an off-canvas drawer
+ * already translated aside, and moving it again would fight that. */
 @media (min-width: 901px) {
+  .app-shell.is-nav-returning {
+    animation: shell-reopen 0.46s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
   .app-shell.is-nav-returning .app-nav {
     animation: nav-return 0.46s cubic-bezier(0.4, 0, 0.2, 1) both;
   }
 }
+@keyframes shell-reopen {
+  from { gap: 0; }
+  to   { gap: clamp(8px, 1vw, 18px); }
+}
 @keyframes nav-return {
-  from { transform: translate3d(calc(-100% - 14px), 0, 0); }
-  to   { transform: translate3d(0, 0, 0); }
+  from { margin-left: -248px; }
+  to   { margin-left: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .app-shell.is-nav-returning,
   .app-shell.is-nav-returning .app-nav { animation: none; }
 }
