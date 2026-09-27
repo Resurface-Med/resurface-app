@@ -6671,7 +6671,7 @@ select {
   cursor: pointer;
   line-height: 0;
 }
-.chart-spark-btn:hover { background: var(--c-surface3); }
+.chart-spark-btn:hover { background: var(--c-surface2); }
 .chart-spark-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 1px; }
 .chart-spark {
   display: block;
@@ -6841,10 +6841,15 @@ select {
    room. The panel is the same object in both cases — a soft surface with
    a heading and an action — so the sections read as one place rather than
    five tables that happen to share a tab. */
+/* White with a hairline, the way every other card in the app sits on the
+   sheet — not a blue panel. --c-surface3 is the strongest tint in the set
+   and six of them across a page made the whole tab read blue. */
 .adm-panel {
-  background: var(--c-surface3);
+  background: var(--c-card-solid);
+  border: 1px solid var(--c-border);
   border-radius: var(--r-panel);
   padding: clamp(16px, 1.8vw, 22px);
+  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
 }
 .adm-panel + .adm-panel { margin-top: 14px; }
 .adm-panel__head {
@@ -6875,9 +6880,10 @@ select {
   align-items: stretch;
   gap: 2px;
   padding: 16px 16px 12px;
-  border: 1.5px solid transparent;
+  border: 1.5px solid var(--c-border);
   border-radius: var(--r-card);
-  background: var(--c-surface3);
+  background: var(--c-card-solid);
+  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
   font: inherit;
   text-align: left;
   cursor: pointer;
