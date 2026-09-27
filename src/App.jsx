@@ -419,6 +419,29 @@ export default function App() {
     if (!out || !outBand || !inBand) return;
     /* offsetHeight is layout, so the band's own roll does not disturb it. */
     out.style.setProperty("--band-delta", `${inBand.offsetHeight - outBand.offsetHeight}px`);
+
+    /*
+     * And the old sheet borrows the new one's colour while it is on its
+     * way out. The two waves converge on the same line, so for the last
+     * stretch of the switch the old sheet shows through as a wedge above
+     * the new one, narrowing to a hairline before it closes — and views do
+     * not all use the same white, so that hairline reads as a line drawn
+     * along the swoosh. Two sheets the same colour can overlap by any
+     * amount and show nothing at all. The wave is the sheet's own edge, so
+     * its fill comes across too.
+     */
+    const after = el => {
+      const kids = [...el.parentElement.children];
+      return kids.slice(kids.indexOf(el) + 1);
+    };
+    after(outBand).forEach((el, i) => {
+      const ref = after(inBand)[i];
+      if (!ref) return;
+      el.style.backgroundColor = getComputedStyle(ref).backgroundColor;
+      const path = el.querySelector("svg path");
+      const refPath = ref.querySelector("svg path");
+      if (path && refPath) path.setAttribute("fill", getComputedStyle(refPath).fill);
+    });
   }, [switching, leaving, view]);
 
   /* The outgoing page first and the arriving one second, so the arriving
