@@ -104,9 +104,9 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         </div>
 
         <nav className="app-nav__list">
-          {/* Review sits below a rule, after everything a student uses, and
+          {/* Admin sits below a rule, after everything a student uses, and
               only for an account the database calls an admin. */}
-          {(isAdmin ? [...NAV, null, { k: V.ADMIN, label: "Review" }] : NAV).map((item, idx) => {
+          {(isAdmin ? [...NAV, null, { k: V.ADMIN, label: "Admin" }] : NAV).map((item, idx) => {
             if (!item) {
               return <div key={`div-${idx}`} className="app-nav__rule" />;
             }

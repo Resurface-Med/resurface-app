@@ -98,7 +98,7 @@ function People() {
     const making = !person.is_admin;
     if (!making && !await confirm({
       title: `Remove ${person.display_name || person.email} as an admin?`,
-      body: "They lose the Review tab and everything behind it.",
+      body: "They lose the Admin tab and everything behind it.",
       action: "Remove",
       danger: true,
     })) return;
@@ -300,7 +300,7 @@ export default function AdminView() {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
-        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Review</h1>
+        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Admin</h1>
         <p className="lb-you">Only you and the other admins can see this.</p>
       </div>
 

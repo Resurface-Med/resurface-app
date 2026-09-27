@@ -6316,7 +6316,7 @@ select {
   }
 }
 
-/* ─── Review: what students flagged ───────────────────────────────
+/* ─── Admin: what students flagged ────────────────────────────────
    Read like a list of reports, not a table: the count first because it is
    the thing that sorts urgency, then what was wrong, then the question
    itself at reading size. Notes are quoted — they are somebody's words. */
@@ -6387,7 +6387,7 @@ select {
   color: var(--c-danger);
 }
 
-/* ─── Review: the admin sections ──────────────────────────────────
+/* ─── Admin: the dashboard sections ───────────────────────────────
    A private tool, so it reads as a report rather than a page: numbers
    right-aligned and tabular, names carrying their email underneath, and
    no decoration that would have to be maintained. */
