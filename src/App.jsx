@@ -436,6 +436,29 @@ export default function App() {
       return;
     }
     done = true;
+
+    /*
+     * Send the arriving view to the top, and hold the one leaving where it
+     * was while that happens.
+     *
+     * Switching tabs never reset the scroller, so a new view opened at
+     * whatever offset the last one was left at. Worse, the two views share
+     * a grid cell, so the scroller stays as tall as the taller of them for
+     * the length of the switch: leave a long list scrolled down for a short
+     * page and the height collapses when the old view is dropped, the
+     * browser clamps the offset, and the whole page jumps at the very end
+     * of the animation. Measured at 1900px on a 3000px list.
+     *
+     * Resetting alone would drag the outgoing page up the screen with it,
+     * so it is pushed back down by exactly what was taken off. It ends up
+     * painted where it already was, and the page you are going to starts
+     * at its top, which is where a tab should start.
+     */
+    const scroller = root.closest(".app-main");
+    if (scroller && scroller.scrollTop > 0) {
+      out.style.setProperty("--scroll-hold", `${-scroller.scrollTop}px`);
+      scroller.scrollTop = 0;
+    }
     /* offsetHeight is layout, so the band's own roll does not disturb it. */
     out.style.setProperty("--band-delta", `${inBand.offsetHeight - outBand.offsetHeight}px`);
 

@@ -5985,6 +5985,9 @@ select {
 .view-swap.is-leaving {
   overflow: hidden;
   pointer-events: none;
+  /* Holds the outgoing page still while the scroller is sent back to the
+     top under it. Zero unless App.jsx found something to undo. */
+  transform: translate3d(0, var(--scroll-hold, 0px), 0);
 }
 
 /* The sheet runs to the foot of the page, so it starts a screen below. */
