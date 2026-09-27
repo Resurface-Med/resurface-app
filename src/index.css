@@ -74,7 +74,7 @@ html, body {
   --c-border: rgba(15, 27, 61, 0.08);
   /* The selected row in the nav. Ink, not brand: a wash of the text colour
      reads as a surface, where a wash of the accent reads as a highlighter. */
-  --c-nav-on: rgba(15, 27, 61, 0.1);
+  --c-nav-on: rgba(15, 27, 61, 0.06);
   --c-border-blu: rgba(53, 98, 245, 0.28);
   --c-text: #0f1b3d;
   --c-sub: #5a6485;
@@ -147,7 +147,7 @@ html, body {
   --c-surface2: #1a2438;
   --c-surface3: #243044;
   --c-border: rgba(160, 180, 220, 0.14);
-  --c-nav-on: rgba(255, 255, 255, 0.12);
+  --c-nav-on: rgba(255, 255, 255, 0.08);
   --c-border-blu: rgba(77, 142, 245, 0.42);
   --c-text: #e8eef8;
   --c-sub: #b4c0d4;
@@ -4108,18 +4108,33 @@ select {
   overflow: hidden;
 }
 
+/*
+ * The header zone.
+ *
+ * Two things were making this look unconsidered. The lockup began at 16px
+ * from the edge while every nav icon below it begins at 26px — 12px of
+ * list padding and 14px of the row's own — so the sidebar had two left
+ * margins and neither looked deliberate. And at 156px the brand was the
+ * loudest thing in the panel, above a list it is meant to sit over rather
+ * than compete with.
+ *
+ * So it lines up with the icons, comes down to a size that reads as a
+ * mark rather than a banner, and a hairline closes the zone off: brand
+ * above, navigation below, which is what every sidebar worth copying does.
+ */
 .app-nav__brand {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 16px 16px;
+  padding: 18px 20px 16px 26px;
+  border-bottom: 1px solid var(--c-border);
   flex-shrink: 0;
 }
 
 .app-nav__logo {
   width: 100%;
-  max-width: 156px;
+  max-width: 128px;
   height: auto;
   display: block;
 }
@@ -4161,7 +4176,7 @@ select {
 }
 
 .app-nav__list {
-  padding: 8px 12px 12px;
+  padding: 12px 12px 12px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -4224,7 +4239,8 @@ select {
 /* And a mark in the gutter. The wash says which row without being loud,
    but a wash alone is easy to miss on a glance down the list; a short bar
    at the edge is the thing the eye finds, and it sits outside the pill so
-   the row itself stays a plain surface rather than an outlined one. */
+   the row itself stays a plain surface rather than an outlined one. The
+   bar does the work, which is why the wash can stay as quiet as it is. */
 .app-nav__item.is-active::before {
   content: "";
   position: absolute;
