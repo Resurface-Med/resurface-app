@@ -255,6 +255,12 @@ export async function fetchPeople() {
   return data ?? [];
 }
 
+export async function fetchPeopleDaily(days = 30) {
+  const { data, error } = await supabase.rpc("admin_people_daily", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchGenerationDaily(days = 14) {
   const { data, error } = await supabase.rpc("admin_generation_daily", { days });
   if (error) throw new Error(error.message);

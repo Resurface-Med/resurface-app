@@ -6464,7 +6464,14 @@ select {
   font-weight: 600;
   color: var(--c-muted);
 }
-.adm-trend { text-align: right; padding-right: 0 !important; }
+.adm-trend { text-align: right; }
+/* The roster's chart sits between the counts and the action, so it needs a
+   column of its own rather than whatever is left: without a width the line
+   ran straight into "Make admin". */
+.adm-people .adm-trend,
+.adm-people .adm-trend-head { width: 150px; padding-right: 22px; }
+.adm-people tbody td:last-child,
+.adm-people thead th:last-child { width: 110px; text-align: right; padding-right: 0; }
 .adm-spark {
   display: inline-block;
   width: 128px;
@@ -6649,3 +6656,182 @@ select {
   .app-shell.is-nav-returning,
   .app-shell.is-nav-returning .app-nav { animation: none; }
 }
+
+/* ─── Admin: charts ───────────────────────────────────────────────
+   One series, drawn twice — small enough for a table row, and large
+   enough to read. The small one is a button because every one of them
+   opens. */
+.chart-spark-btn {
+  display: block;
+  margin-left: auto;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+}
+.chart-spark-btn:hover { background: var(--c-surface3); }
+.chart-spark-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 1px; }
+.chart-spark {
+  display: block;
+  width: 128px;
+  height: 30px;
+}
+.chart-line {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.chart-fill { stroke: none; opacity: 0.1; }
+.is-accent .chart-line, .chart-big.is-accent .chart-line { stroke: var(--c-accent); }
+.is-accent .chart-fill { fill: var(--c-accent); }
+.is-success .chart-line { stroke: var(--c-success); }
+.is-success .chart-fill { fill: var(--c-success); }
+
+.chart-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+  background: rgba(12, 22, 56, 0.42);
+  animation: rs-fade-in 0.18s ease both;
+}
+@keyframes rs-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.chart-panel {
+  width: min(980px, 100%);
+  background: var(--c-card-solid);
+  border-radius: var(--r-panel);
+  padding: clamp(18px, 2.4vw, 28px);
+  box-shadow: 0 24px 60px rgba(12, 22, 56, 0.28);
+  animation: rs-pop 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.chart-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.chart-panel__title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.35px;
+  color: var(--c-text);
+}
+.chart-panel__sub {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+.chart-panel__close {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+  color: var(--c-muted);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.chart-panel__close:hover { color: var(--c-text); }
+.chart-big {
+  display: block;
+  width: 100%;
+  height: clamp(180px, 30vh, 260px);
+}
+.chart-guide { stroke: var(--c-border); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.chart-dot { fill: var(--c-accent); }
+.chart-peak { fill: none; stroke: var(--c-accent); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.chart-panel__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chart-readout { font-weight: 600; color: var(--c-text); }
+
+/* A section whose whole point is the chart gets it open already. */
+.chart-inline { margin: 4px 0 0; }
+.chart-inline__bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 160px;
+  padding: 0 2px;
+}
+.chart-col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+.chart-col > span {
+  display: block;
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+  background: var(--c-accent);
+  opacity: 0.85;
+}
+.chart-col.is-success > span { background: var(--c-success); }
+.chart-inline__foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--c-muted);
+}
+
+/* The line above a section: the few numbers worth reading before the table. */
+.adm-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 22px;
+  margin-bottom: 16px;
+  font-size: 13.5px;
+  color: var(--c-muted);
+}
+.adm-strip strong {
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  margin-right: 3px;
+}
+.adm-strip__sort { margin-left: auto; }
+.adm-sort {
+  border: 0;
+  background: none;
+  padding: 2px 4px;
+  font: inherit;
+  color: var(--c-muted);
+  cursor: pointer;
+  border-radius: 5px;
+}
+.adm-sort.is-on { color: var(--c-accent); font-weight: 600; }
+.adm-sort:hover { color: var(--c-text); }
+
+.chart-inline__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.chart-inline__label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--c-text);
+}
+.chart-inline__head .gen-link { margin-left: auto; }

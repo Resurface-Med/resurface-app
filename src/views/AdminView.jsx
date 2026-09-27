@@ -3,9 +3,10 @@ import { h1 } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
-  fetchOverview, fetchOverviewDaily, fetchPeople, fetchGenerationDaily, fetchMarketingList,
-  fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
+  fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily,
+  fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
 } from "../lib/remote";
+import { Spark, ChartPanel } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
 
 /**
@@ -78,23 +79,6 @@ const METRICS = {
   decks:     { label: "Decks", unit: "made" },
 };
 
-/* Thirty points into a 128×30 box. Flat data draws flat rather than filling
-   the box, because a run of zeros scaled to full height reads as a signal. */
-function Spark({ points }) {
-  if (!points || points.length < 2) return <span className="adm-spark" />;
-  const peak = Math.max(...points);
-  const w = 128, h = 30, pad = 3;
-  const step = w / (points.length - 1);
-  const y = v => (peak === 0 ? h - pad : h - pad - (v / peak) * (h - pad * 2));
-  const d = points.map((v, i) => `${i === 0 ? "M" : "L"}${(i * step).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
-  return (
-    <svg className="adm-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden="true">
-      <path d={`${d} L${w},${h} L0,${h} Z`} className="adm-spark__fill" />
-      <path d={d} className="adm-spark__line" />
-    </svg>
-  );
-}
-
 function Overview() {
   const [totals] = useSection(fetchOverview);
   const loadDaily = useCallback(() => fetchOverviewDaily(30), []);
@@ -108,6 +92,13 @@ function Overview() {
     }
     return by;
   }, [daily.rows]);
+
+  /* The days themselves, so an opened chart can say when rather than only
+     how much. Taken from one metric — every metric runs the same range. */
+  const dayList = useMemo(
+    () => (daily.rows ?? []).filter(r => r.key === "accounts").map(r => r.day),
+    [daily.rows],
+  );
 
   if (totals.error) return <Empty>{totals.error}</Empty>;
   if (!totals.rows) return <Empty>&nbsp;</Empty>;
@@ -142,7 +133,9 @@ function Overview() {
                 {delta > 0 ? `+${delta}` : delta < 0 ? delta : "—"}
               </td>
               <td className="adm-num adm-dim">{r.total}</td>
-              <td className="adm-trend"><Spark points={series.get(r.key)} /></td>
+              <td className="adm-trend">
+                <Spark points={series.get(r.key)} label={m.label} days={dayList} unit={m.unit} />
+              </td>
             </tr>
           );
         })}
@@ -151,10 +144,45 @@ function Overview() {
   );
 }
 
-/* ── People ───────────────────────────────────────────────────────── */
+/* ── People ────────────────────────────────────────────────────────
+   The roster, with the same shape beside each name that the overview
+   carries: thirty days of whether they actually study. A join date and a
+   total say who signed up; the line says who stayed. */
 function People() {
   const [{ rows, error }, setState] = useSection(fetchPeople);
+  const loadDaily = useCallback(() => fetchPeopleDaily(30), []);
+  const [daily] = useSection(loadDaily);
   const [busy, setBusy] = useState(null);
+  const [sort, setSort] = useState("recent");
+
+  /* The series arrives sparse — only days somebody did something — so the
+     quiet days are filled in here. Thirty zeros beat thirty rows on the
+     wire, and a line drawn from gaps would lie about its shape. */
+  const { byUser, days } = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i -= 1) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+    const index = new Map(days.map((d, i) => [d, i]));
+    const byUser = new Map();
+    for (const r of daily.rows ?? []) {
+      if (!byUser.has(r.user_id)) byUser.set(r.user_id, Array(days.length).fill(0));
+      const i = index.get(r.day);
+      if (i != null) byUser.get(r.user_id)[i] = Number(r.answers);
+    }
+    return { byUser, days };
+  }, [daily.rows]);
+
+  const sorted = useMemo(() => {
+    const list = [...(rows ?? [])];
+    if (sort === "answers") list.sort((a, b) => Number(b.answered) - Number(a.answered));
+    if (sort === "recent") list.sort((a, b) => String(b.last_active ?? "").localeCompare(String(a.last_active ?? "")));
+    if (sort === "joined") list.sort((a, b) => String(b.joined).localeCompare(String(a.joined)));
+    return list;
+  }, [rows, sort]);
 
   async function toggle(person) {
     const making = !person.is_admin;
@@ -178,41 +206,70 @@ function People() {
   if (error) return <Empty>{error}</Empty>;
   if (!rows) return <Empty>&nbsp;</Empty>;
 
+  const studied = rows.filter(p => Number(p.answered) > 0).length;
+  const thisWeek = rows.filter(p => p.last_active && p.last_active > new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)).length;
+
   return (
-    <table className="adm-table adm-people">
-      <thead>
-        <tr>
-          <th>Who</th>
-          <th>Joined</th>
-          <th>Last seen</th>
-          <th className="adm-num">Answers</th>
-          <th className="adm-num">Gen</th>
-          <th>&nbsp;</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(p => (
-          <tr key={p.user_id}>
-            <th scope="row">
-              <span className="adm-name">
-                {p.display_name || "—"}
-                {p.is_admin && <span className="adm-badge">admin</span>}
-              </span>
-              <span className="adm-email">{p.email}</span>
-            </th>
-            <td className="adm-dim">{dmy(p.joined)}</td>
-            <td className={p.last_active ? "" : "adm-dim"}>{p.last_active ? dmy(p.last_active) : "never"}</td>
-            <td className="adm-num">{p.answered}</td>
-            <td className="adm-num">{p.generated}</td>
-            <td>
-              <button type="button" className="gen-link" disabled={busy === p.user_id} onClick={() => toggle(p)}>
-                {busy === p.user_id ? "…" : p.is_admin ? "Remove" : "Make admin"}
-              </button>
-            </td>
+    <>
+      <div className="adm-strip">
+        <span><strong>{rows.length}</strong> accounts</span>
+        <span><strong>{studied}</strong> have ever studied</span>
+        <span><strong>{thisWeek}</strong> studied this week</span>
+        <span><strong>{rows.filter(p => p.is_admin).length}</strong> admins</span>
+        <span className="adm-strip__sort">
+          sorted by{" "}
+          {[["recent", "last seen"], ["answers", "answers"], ["joined", "joined"]].map(([k, l]) => (
+            <button key={k} type="button"
+              className={`adm-sort${sort === k ? " is-on" : ""}`}
+              onClick={() => setSort(k)}>{l}</button>
+          ))}
+        </span>
+      </div>
+
+      <table className="adm-table adm-people">
+        <thead>
+          <tr>
+            <th>Who</th>
+            <th>Joined</th>
+            <th>Last seen</th>
+            <th className="adm-num">Answers</th>
+            <th className="adm-num">Gen</th>
+            <th className="adm-trend-head">last 30 days</th>
+            <th>&nbsp;</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {sorted.map(p => (
+            <tr key={p.user_id}>
+              <th scope="row">
+                <span className="adm-name">
+                  {p.display_name || "—"}
+                  {p.is_admin && <span className="adm-badge">admin</span>}
+                </span>
+                <span className="adm-email">{p.email}</span>
+              </th>
+              <td className="adm-dim">{dmy(p.joined)}</td>
+              <td className={p.last_active ? "" : "adm-dim"}>{p.last_active ? dmy(p.last_active) : "never"}</td>
+              <td className="adm-num">{p.answered}</td>
+              <td className="adm-num">{p.generated}</td>
+              <td className="adm-trend">
+                <Spark
+                  points={byUser.get(p.user_id)}
+                  days={days}
+                  label={p.display_name || p.email}
+                  unit="answers"
+                />
+              </td>
+              <td>
+                <button type="button" className="gen-link" disabled={busy === p.user_id} onClick={() => toggle(p)}>
+                  {busy === p.user_id ? "…" : p.is_admin ? "Remove" : "Make admin"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }
 
@@ -221,26 +278,44 @@ function People() {
    request returns several questions, so read this as the shape of usage
    rather than a number to set against the quota. */
 function Generating() {
-  const load = useCallback(() => fetchGenerationDaily(14), []);
+  const load = useCallback(() => fetchGenerationDaily(30), []);
   const [{ rows, error }] = useSection(load);
-  const peak = useMemo(() => Math.max(1, ...(rows ?? []).map(r => Number(r.questions))), [rows]);
+
+  const { points, days, people } = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i -= 1) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+    const index = new Map(days.map((d, i) => [d, i]));
+    const points = Array(days.length).fill(0);
+    let people = 0;
+    for (const r of rows ?? []) {
+      const i = index.get(r.day);
+      if (i != null) points[i] = Number(r.questions);
+      people = Math.max(people, Number(r.people));
+    }
+    return { points, days, people };
+  }, [rows]);
 
   if (error) return <Empty>{error}</Empty>;
   if (!rows) return <Empty>&nbsp;</Empty>;
-  if (rows.length === 0) return <Empty>Nothing generated in the last fortnight.</Empty>;
+  if (rows.length === 0) return <Empty>Nothing generated in the last month.</Empty>;
+
+  const total = points.reduce((a, b) => a + b, 0);
+  const busiest = Math.max(...points);
 
   return (
     <>
-      <ul className="adm-days">
-        {rows.map(r => (
-          <li key={r.day}>
-            <span className="adm-day">{dmy(r.day)}</span>
-            <span className="adm-bar"><span style={{ width: `${(Number(r.questions) / peak) * 100}%` }} /></span>
-            <span className="adm-num">{r.questions}</span>
-            <span className="adm-dim adm-by">{r.people} {Number(r.people) === 1 ? "person" : "people"}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="adm-strip">
+        <span><strong>{total}</strong> questions in 30 days</span>
+        <span><strong>{points[points.length - 1]}</strong> today</span>
+        <span><strong>{busiest}</strong> on the busiest day</span>
+        <span><strong>{people}</strong> at most in one day</span>
+      </div>
+      <InlineChart points={points} days={days} label="Questions generated" unit="questions" />
       <p className="adm-note">
         Questions, not requests. The free tier limits requests and each one returns
         several questions, so this shows the shape of usage rather than how close the
@@ -250,31 +325,67 @@ function Generating() {
   );
 }
 
+/* A section whose whole point is the chart gets it open already: bars in
+   the page rather than a line to click through to. The panel is still
+   there behind Expand, for reading a day off it. */
+function InlineChart({ points, days, label, unit, tone = "accent" }) {
+  const [open, setOpen] = useState(false);
+  const peak = Math.max(1, ...points);
+  return (
+    <div className="chart-inline">
+      <div className="chart-inline__head">
+        <span className="chart-inline__label">{label}</span>
+        <button type="button" className="gen-link" onClick={() => setOpen(true)}>Expand</button>
+      </div>
+      <div className="chart-inline__bars">
+        {points.map((v, i) => (
+          <span key={days[i]} className={`chart-col is-${tone}`} title={`${days[i]}: ${v} ${unit}`}>
+            <span style={{ height: `${Math.max(2, (v / peak) * 100)}%` }} />
+          </span>
+        ))}
+      </div>
+      <div className="chart-inline__foot">
+        <span>{days[0] ? dmy(days[0]) : ""}</span>
+        <span>{days[days.length - 1] ? dmy(days[days.length - 1]) : ""}</span>
+      </div>
+      {open && (
+        <ChartPanel points={points} days={days} label={label} unit={unit} tone={tone} onClose={() => setOpen(false)} />
+      )}
+    </div>
+  );
+}
+
 /* ── Tokens ────────────────────────────────────────────────────────
    What the model actually costs, which the question counts never said.
    Split by what asked for it: generating a lecture's worth of questions
-   and a one-line tutor reply are not the same animal, and input tokens
-   are most of the bill for the first because the lecture goes up with
-   every request. */
+   and a one-line tutor reply are not the same animal, and input tokens are
+   most of the bill for the first because the lecture goes up every time. */
 const KINDS = { generate: "Generating", explain: "Resurface AI" };
 const thousands = n => Number(n).toLocaleString("en-GB");
 
 function Tokens() {
   const [totals] = useSection(fetchTokenTotals);
-  const loadDaily = useCallback(() => fetchTokensDaily(14), []);
+  const loadDaily = useCallback(() => fetchTokensDaily(30), []);
   const [daily] = useSection(loadDaily);
 
-  const days = useMemo(() => {
-    const by = new Map();
-    for (const r of daily.rows ?? []) {
-      const d = by.get(r.day) || { day: r.day, generate: 0, explain: 0, calls: 0 };
-      d[r.kind] = Number(r.total_tokens);
-      d.calls += Number(r.calls);
-      by.set(r.day, d);
+  const { days, gen, ai } = useMemo(() => {
+    const days = [];
+    const today = new Date();
+    for (let i = 29; i >= 0; i -= 1) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
     }
-    return [...by.values()];
+    const index = new Map(days.map((d, i) => [d, i]));
+    const gen = Array(days.length).fill(0);
+    const ai = Array(days.length).fill(0);
+    for (const r of daily.rows ?? []) {
+      const i = index.get(r.day);
+      if (i == null) continue;
+      (r.kind === "generate" ? gen : ai)[i] = Number(r.total_tokens);
+    }
+    return { days, gen, ai };
   }, [daily.rows]);
-  const peak = useMemo(() => Math.max(1, ...days.map(d => d.generate + d.explain)), [days]);
 
   if (totals.error) return <Empty>{totals.error}</Empty>;
   if (!totals.rows) return <Empty>&nbsp;</Empty>;
@@ -282,8 +393,17 @@ function Tokens() {
     return <Empty>Nothing recorded yet. This fills up as people generate questions and ask the tutor.</Empty>;
   }
 
+  const sum = k => totals.rows.reduce((a, r) => a + Number(r[k]), 0);
+
   return (
     <>
+      <div className="adm-strip">
+        <span><strong>{thousands(sum("tokens_today"))}</strong> today</span>
+        <span><strong>{thousands(sum("tokens_7d"))}</strong> this week</span>
+        <span><strong>{thousands(sum("tokens_all"))}</strong> all time</span>
+        <span><strong>{thousands(sum("calls_all"))}</strong> calls</span>
+      </div>
+
       <table className="adm-table adm-table--tight">
         <thead>
           <tr>
@@ -292,6 +412,7 @@ function Tokens() {
             <th className="adm-num">7 days</th>
             <th className="adm-num">all time</th>
             <th className="adm-num">calls</th>
+            <th className="adm-trend-head">last 30 days</th>
           </tr>
         </thead>
         <tbody>
@@ -302,33 +423,24 @@ function Tokens() {
               <td className="adm-num">{thousands(r.tokens_7d)}</td>
               <td className="adm-num adm-dim">{thousands(r.tokens_all)}</td>
               <td className="adm-num adm-dim">{thousands(r.calls_all)}</td>
+              <td className="adm-trend">
+                <Spark
+                  points={r.kind === "generate" ? gen : ai}
+                  days={days}
+                  label={`${KINDS[r.kind] ?? r.kind} tokens`}
+                  unit="tokens"
+                  tone={r.kind === "generate" ? "accent" : "success"}
+                />
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {days.length > 0 && (
-        <ul className="adm-days adm-days--split">
-          {days.map(d => (
-            <li key={d.day}>
-              <span className="adm-day">{dmy(d.day)}</span>
-              <span className="adm-bar">
-                <span className="adm-seg-gen" style={{ width: `${(d.generate / peak) * 100}%` }} />
-                <span className="adm-seg-ai" style={{ width: `${(d.explain / peak) * 100}%` }} />
-              </span>
-              <span className="adm-num">{thousands(d.generate + d.explain)}</span>
-              <span className="adm-dim adm-by">{d.calls} {d.calls === 1 ? "call" : "calls"}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
       <p className="adm-note">
-        <span className="adm-key adm-key--gen" /> generating
-        <span className="adm-key adm-key--ai" /> Resurface AI
-        {" — "}tokens as the provider reports them, recorded per call by the backend.
-        Counts only calls that reached the model: a request refused by the rate
-        limiter never gets here, and neither does a failed one.
+        Tokens as the provider reports them, recorded per call by the backend. Counts
+        only calls that reached the model: a request refused by the rate limiter never
+        gets here, and neither does one that failed.
       </p>
     </>
   );
