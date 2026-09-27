@@ -413,12 +413,29 @@ export default function App() {
    */
   const stackRef = useRef(null);
   useLayoutEffect(() => {
+    if (!switching) return;
+    let done = false;
+    const apply = () => {
     const root = stackRef.current;
-    if (!root || !switching) return;
-    const out = root.querySelector(".view-swap.is-leaving");
+    const out = root?.querySelector(".view-swap.is-leaving");
     const outBand = out?.querySelector(".page-band");
-    const inBand = root.querySelector(".view-swap.is-entering .page-band");
-    if (!out || !outBand || !inBand) return;
+    const inBand = root?.querySelector(".view-swap.is-entering .page-band");
+    if (!out || !outBand || !inBand) {
+      /*
+       * The arriving view can be a commit behind. `lazy` renders its
+       * fallback once even when the module is already in hand — it needs a
+       * pass to read the settled promise — and a fallback has no band to
+       * measure. Measuring that commit and stopping is what left the old
+       * sheet sitting where it was, to jump when the page was dropped.
+       *
+       * So wait for it to appear. A custom property inside a keyframe is
+       * re-resolved when it changes, so a delta that arrives a tick late
+       * still steers the settle already running, and that early in it the
+       * distance covered is too small to see.
+       */
+      return;
+    }
+    done = true;
     /* offsetHeight is layout, so the band's own roll does not disturb it. */
     out.style.setProperty("--band-delta", `${inBand.offsetHeight - outBand.offsetHeight}px`);
 
@@ -444,6 +461,17 @@ export default function App() {
       const refPath = ref.querySelector("svg path");
       if (path && refPath) path.setAttribute("fill", getComputedStyle(refPath).fill);
     });
+    };
+    apply();
+    if (done) return;
+    /* Watched rather than polled: the band appears when React commits the
+       real view, which is its own event, not a matter of time passing. */
+    const seen = new MutationObserver(() => {
+      apply();
+      if (done) seen.disconnect();
+    });
+    if (stackRef.current) seen.observe(stackRef.current, { childList: true, subtree: true });
+    return () => seen.disconnect();
   }, [switching, leaving, view]);
 
   /* The outgoing page first and the arriving one second, so the arriving
@@ -572,9 +600,12 @@ export default function App() {
           <div key={v} className={cls}
             aria-hidden={out ? "true" : undefined}
             inert={out ? "" : undefined}>
-          <Suspense fallback={
-            <div style={{ padding: 48, color: "var(--c-on-field-soft)", fontSize: 15 }}>Loading…</div>
-          }>
+          {/* Nothing, rather than a word. Navigation waits for the chunk (see
+              `go`), so this shows for at most the single commit `lazy` needs
+              to read its own resolved promise — and the page being left is
+              still behind it, which is a better thing to be looking at than
+              "Loading…" appearing and vanishing in a frame. */}
+          <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             activity={activity}
             srCards={srCards}
