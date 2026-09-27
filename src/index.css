@@ -72,6 +72,9 @@ html, body {
   --c-surface2: #f3f6fe;
   --c-surface3: #e9eefd;
   --c-border: rgba(15, 27, 61, 0.08);
+  /* The selected row in the nav. Ink, not brand: a wash of the text colour
+     reads as a surface, where a wash of the accent reads as a highlighter. */
+  --c-nav-on: rgba(15, 27, 61, 0.06);
   --c-border-blu: rgba(53, 98, 245, 0.28);
   --c-text: #0f1b3d;
   --c-sub: #5a6485;
@@ -144,6 +147,7 @@ html, body {
   --c-surface2: #1a2438;
   --c-surface3: #243044;
   --c-border: rgba(160, 180, 220, 0.14);
+  --c-nav-on: rgba(255, 255, 255, 0.08);
   --c-border-blu: rgba(77, 142, 245, 0.42);
   --c-text: #e8eef8;
   --c-sub: #b4c0d4;
@@ -4193,11 +4197,26 @@ select {
   background: var(--c-surface2);
   color: var(--c-text);
 }
+/*
+ * The selected row.
+ *
+ * It was a tint of the brand inside a brand-coloured outline, which is the
+ * look of a thing highlighted rather than a thing selected — every sidebar
+ * that does it reads the same way, and none of them look built.
+ *
+ * Now the row is a surface: a wash of the ink colour, no outline at all,
+ * the label at full strength and weight instead of recoloured. The accent
+ * is spent in one place, on the icon, which is enough to find at a glance
+ * and does not turn a fifth of the sidebar blue.
+ */
 .app-nav__item.is-active {
-  background: var(--c-accent-dim);
-  border-color: var(--c-accent-brd);
-  color: var(--c-accent);
+  background: var(--c-nav-on);
+  border-color: transparent;
+  color: var(--c-text);
   font-weight: 600;
+}
+.app-nav__item.is-active .app-nav__icon {
+  color: var(--c-accent);
 }
 .app-nav__icon {
   flex-shrink: 0;
