@@ -6315,3 +6315,74 @@ select {
     height: clamp(160px, calc(var(--app-vh) * 0.24), 240px);
   }
 }
+
+/* ─── Review: what students flagged ───────────────────────────────
+   Read like a list of reports, not a table: the count first because it is
+   the thing that sorts urgency, then what was wrong, then the question
+   itself at reading size. Notes are quoted — they are somebody's words. */
+.flagq-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.flagq {
+  background: var(--c-surface3);
+  border-radius: var(--r-lg, 16px);
+  padding: 16px 18px;
+}
+.flagq__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.flagq__count {
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-danger);
+  flex-shrink: 0;
+}
+.flagq__reasons {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--c-muted);
+  letter-spacing: -0.15px;
+}
+.flagq__clear {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.flagq__stem {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.45;
+  color: var(--c-text);
+}
+.flagq__missing {
+  color: var(--c-muted);
+  font-style: italic;
+}
+.flagq__where {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--c-muted);
+}
+.flagq__notes {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0 0 0 12px;
+  border-left: 2px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--c-text);
+}
+.flagq__error {
+  font-size: 14px;
+  color: var(--c-danger);
+}

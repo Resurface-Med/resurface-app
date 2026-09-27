@@ -223,6 +223,31 @@ export async function loadUserDecks() {
 }
 
 /** Weekly cohort board — security-definer RPC, default-on profiles with names. */
+/**
+ * Reviewing what students have flagged.
+ *
+ * All three are SECURITY DEFINER functions that check an `admins` table
+ * themselves, so a non-admin calling them gets `false` and an empty list
+ * rather than a refusal. The client hiding the section is presentation;
+ * this is the part that actually holds.
+ */
+export async function fetchIsAdmin() {
+  const { data, error } = await supabase.rpc("is_admin");
+  if (error) return false;
+  return Boolean(data);
+}
+
+export async function fetchFlags() {
+  const { data, error } = await supabase.rpc("admin_flags");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function clearFlags(questionId) {
+  const { error } = await supabase.rpc("admin_clear_flags", { qid: questionId });
+  if (error) throw new Error(error.message);
+}
+
 export async function fetchLeaderboardWeek() {
   const { data, error } = await supabase.rpc("leaderboard_week");
   if (error) throw error;

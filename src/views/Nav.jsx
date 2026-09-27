@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, ChartColumn, House, LogOut, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
 import { NAV, V } from "../ui/theme";
 
 const ICONS = {
@@ -8,6 +8,7 @@ const ICONS = {
   [V.GENERATE]: Sparkles,
   [V.PROGRESS]: ChartColumn,
   [V.LEADERBOARD]: Trophy,
+  [V.ADMIN]: Flag,
 };
 
 function initials(displayName, email) {
@@ -21,7 +22,7 @@ function initials(displayName, email) {
   return String(email || "?").slice(0, 1).toUpperCase();
 }
 
-export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut }) {
+export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
 
@@ -103,7 +104,9 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
         </div>
 
         <nav className="app-nav__list">
-          {NAV.map((item, idx) => {
+          {/* Review sits below a rule, after everything a student uses, and
+              only for an account the database calls an admin. */}
+          {(isAdmin ? [...NAV, null, { k: V.ADMIN, label: "Review" }] : NAV).map((item, idx) => {
             if (!item) {
               return <div key={`div-${idx}`} className="app-nav__rule" />;
             }

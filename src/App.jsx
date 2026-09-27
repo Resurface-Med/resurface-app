@@ -27,7 +27,7 @@ import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
-import { loadAll, remote, flushQueue } from "./lib/remote";
+import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
@@ -49,12 +49,14 @@ const CHUNK = {
   [V.LEADERBOARD]: () => import("./views/LeaderboardView"),
   [V.PROFILE]:     () => import("./views/ProfileView"),
   [V.GENERATE]:    () => import("./views/GenerateMode"),
+  [V.ADMIN]:       () => import("./views/AdminView"),
 };
 const StudyMode       = lazy(CHUNK[V.STUDY]);
 const ProgressView    = lazy(CHUNK[V.PROGRESS]);
 const LeaderboardView = lazy(CHUNK[V.LEADERBOARD]);
 const ProfileView     = lazy(CHUNK[V.PROFILE]);
 const GenerateMode    = lazy(CHUNK[V.GENERATE]);
+const AdminView       = lazy(CHUNK[V.ADMIN]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -515,8 +517,18 @@ export default function App() {
     go(newView);
   }
 
+  /* Asked once per session. The answer only decides whether a nav item is
+     drawn — every function behind it checks the admins table itself. */
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    let cancelled = false;
+    fetchIsAdmin().then(ok => { if (!cancelled) setIsAdmin(ok); });
+    return () => { cancelled = true; };
+  }, [user]);
+
   const nav = {
-    view, setView: handleNav, dueCount,
+    view, setView: handleNav, dueCount, isAdmin,
     email: user?.email,
     displayName,
     onSignOut: signOut,
@@ -651,6 +663,8 @@ export default function App() {
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
 
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
+
+          {v === V.ADMIN && <AdminView />}
 
           {v === V.PROFILE && (
             <ProfileView
