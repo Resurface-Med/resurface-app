@@ -5985,10 +5985,27 @@ select {
 .view-swap.is-leaving {
   overflow: hidden;
   pointer-events: none;
-  /* Holds the outgoing page still while the scroller is sent back to the
-     top under it. Zero unless App.jsx found something to undo. */
+}
+
+/* Holds the outgoing page still while the scroller is sent back to the top
+   under it — and only when there was something to hold. A transform makes
+   an element the containing block for every `position: fixed` descendant,
+   identity transforms included, so carrying one here unconditionally tore
+   the study session's shell off the viewport and re-based it to a wrapper
+   as tall as the grid cell. App.jsx adds the mark with the offset. */
+.view-swap.is-leaving.is-held {
   transform: translate3d(0, var(--scroll-hold, 0px), 0);
 }
+
+/* Leaving a session. The shell is a fixed, opaque sheet over the whole
+   window, so unlike a page it does not simply sit behind the one arriving:
+   it covers it, and would blink out when the old view is finally dropped.
+   It leaves the way a sheet should, downward, and the page you asked for
+   is already assembling underneath as it goes. */
+.view-swap.is-leaving .quiz-shell {
+  animation: session-dismiss 0.46s cubic-bezier(0.4, 0, 1, 1) both;
+}
+@keyframes session-dismiss { to { transform: translate3d(0, 100%, 0); } }
 
 /* The sheet runs to the foot of the page, so it starts a screen below. */
 .view-swap.is-entering .page-band ~ * {

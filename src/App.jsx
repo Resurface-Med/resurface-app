@@ -420,24 +420,31 @@ export default function App() {
     const apply = () => {
     const root = stackRef.current;
     const out = root?.querySelector(".view-swap.is-leaving");
-    const outBand = out?.querySelector(".page-band");
-    const inBand = root?.querySelector(".view-swap.is-entering .page-band");
-    if (!out || !outBand || !inBand) {
-      /*
-       * The arriving view can be a commit behind. `lazy` renders its
-       * fallback once even when the module is already in hand — it needs a
-       * pass to read the settled promise — and a fallback has no band to
-       * measure. Measuring that commit and stopping is what left the old
-       * sheet sitting where it was, to jump when the page was dropped.
-       *
-       * So wait for it to appear. A custom property inside a keyframe is
-       * re-resolved when it changes, so a delta that arrives a tick late
-       * still steers the settle already running, and that early in it the
-       * distance covered is too small to see.
-       */
-      return;
-    }
+    const arriving = root?.querySelector(".view-swap.is-entering");
+    /*
+     * Wait for the arriving view to exist, but only for that.
+     *
+     * `lazy` renders its fallback once even when the module is already in
+     * hand — it needs a pass to read its own settled promise — and running
+     * against that commit and stopping is what once left the old sheet
+     * sitting where it was, to jump when the page was dropped. The fallback
+     * is null, so a wrapper with no children at all is that commit, and the
+     * observer below waits it out.
+     *
+     * A view that has rendered something but has no band is a different
+     * thing — a study session has none — and waiting for one would never
+     * end. That case falls through and is handled below.
+     *
+     * Landing late is safe either way: a custom property inside a keyframe
+     * is re-resolved when it changes, so a delta that arrives a tick after
+     * the settle has started still steers it, and that early on the
+     * distance covered is too small to see.
+     */
+    if (!out || !arriving || !arriving.firstElementChild) return;
     done = true;
+
+    const outBand = out.querySelector(".page-band");
+    const inBand = arriving.querySelector(".page-band");
 
     /*
      * Send the arriving view to the top, and hold the one leaving where it
@@ -459,8 +466,12 @@ export default function App() {
     const scroller = root.closest(".app-main");
     if (scroller && scroller.scrollTop > 0) {
       out.style.setProperty("--scroll-hold", `${-scroller.scrollTop}px`);
+      out.classList.add("is-held");
       scroller.scrollTop = 0;
     }
+
+    /* Everything past here needs both bands. A session has none. */
+    if (!outBand || !inBand) return;
     /* offsetHeight is layout, so the band's own roll does not disturb it. */
     out.style.setProperty("--band-delta", `${inBand.offsetHeight - outBand.offsetHeight}px`);
 
