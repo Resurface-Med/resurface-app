@@ -43,8 +43,23 @@ const CHROME = join(
 );
 
 const flag = n => { const i = process.argv.indexOf(`--${n}`); return i === -1 ? null : process.argv[i + 1]; };
-const SITE = (flag("url") || "tryresurface.com").replace(/^https?:\/\//, "");
-const URL = `https://${SITE}`;
+
+/*
+ * Scanned and read are two different jobs, so they are two different values.
+ *
+ * The code goes straight to the app, where the first screen is the sign-in
+ * page — the mark, the line, and a field to start in. Sending a scan to the
+ * marketing site first is a tap that buys nothing.
+ *
+ * The printed line is the short domain, because it is there for whoever
+ * cannot scan and has to type or remember it, and "app." is four characters
+ * and a full stop of pure friction in the one place that matters. They meet
+ * if the short domain ever redirects to the app, which is the tidier end
+ * state and a DNS change rather than a code one.
+ */
+const TARGET = (flag("url") || "app.tryresurface.com").replace(/^https?:\/\//, "");
+const LABEL = (flag("label") || "tryresurface.com").replace(/^https?:\/\//, "");
+const URL = `https://${TARGET}`;
 
 const SHAPES = {
   sticker: { w: 1200, h: 1200 },
@@ -95,7 +110,7 @@ function page(shape, svg) {
   </div>`}
   <div class="card">${svg}</div>
   ${shape === "sticker" ? `<div class="words"><img class="lockup" src="/logo-lockup-white.png" alt="Resurface"></div>`
-    : `<div class="url">${SITE}</div>`}
+    : `<div class="url">${LABEL}</div>`}
 </body></html>`;
 }
 
