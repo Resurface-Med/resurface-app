@@ -42,6 +42,11 @@ const CHROME = join(
   "mac-arm64/chrome-headless-shell-mac-arm64/chrome-headless-shell",
 );
 
+/* The short one, never app.tryresurface.com. Anything printed or posted is
+   read aloud or typed at some point, and the subdomain adds four characters
+   and a full stop to every one of those. */
+const SITE = process.env.BANK_SITE || "tryresurface.com";
+
 const LETTERS = ["A", "B", "C", "D", "E"];
 
 /* The app's own check, not a font glyph: ✓ is whatever the typeface happens
@@ -144,7 +149,7 @@ function page(q, size, answer, css) {
   <div class="sheet">
     <ul>${opts}</ul>
     ${answer ? `<div class="exp">${esc(undash(q.exp))}</div>` : ""}
-    <div class="cue">${answer ? "resurface.study" : "Swipe for the answer →"}</div>
+    <div class="cue">${answer ? SITE : "Swipe for the answer →"}</div>
   </div>
 </body></html>`;
 }
