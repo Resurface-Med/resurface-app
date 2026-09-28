@@ -43,6 +43,27 @@ const CHROME = join(
 );
 
 const LETTERS = ["A", "B", "C", "D", "E"];
+
+/**
+ * Em dashes out.
+ *
+ * The cadence they carry — a clause, a dash, two more clauses — is the most
+ * recognisable tell in machine-written prose, and no amount of typography
+ * hides it. Substituting blindly makes it worse, though: a lone dash joins
+ * two independent clauses, so a comma there is a splice, while a pair of
+ * them is parenthetical and a full stop there breaks the sentence in half.
+ * So it depends on how many there are.
+ *
+ * Done when the slide is drawn rather than in the bank, because the bank is
+ * the product's own copy and rewriting it is a separate decision.
+ */
+function undash(s) {
+  const text = String(s);
+  const dashes = (text.match(/\s+[—–]\s+/g) || []).length;
+  if (dashes === 0) return text;
+  if (dashes >= 2) return text.replace(/\s+[—–]\s+/g, ", ");
+  return text.replace(/\s+[—–]\s+(.)/, (_, c) => `. ${c.toUpperCase()}`);
+}
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 function bank() {
@@ -98,23 +119,25 @@ function page(q, size, answer, css) {
   li.is-right .k{opacity:.85}
   .t{flex:1}
   .tick{font-size:.9em}
-  /* The app's own .q-exp: full strength, medium weight, generous leading,
-     no container. It arrived at that by deleting a pale tinted panel — the
-     stock secondary surface of every generated interface — and a faint grey
-     paragraph floating under the options is the same mistake in a thinner
-     disguise. This is the answer, not a footnote to it. */
-  .exp{margin-top:34px;font-size:${size.exp}px;font-weight:500;line-height:1.72;
+  /* A box of its own, so it is not read as a sixth option.
+     White rather than a tint, because the options are already the tinted
+     surface and a second tint would put it in their family. The accent edge
+     ties it to the answer above it, which is the one thing on the slide it
+     belongs to. */
+  .exp{margin-top:38px;padding:28px 32px 30px;background:var(--c-card-solid);
+       border:1.5px solid var(--c-border);border-left:5px solid var(--c-accent);
+       border-radius:20px;font-size:${size.exp}px;font-weight:500;line-height:1.66;
        letter-spacing:-.15px;color:var(--c-text)}
   .cue{margin-top:auto;padding-top:24px;font-size:24px;font-weight:600;color:var(--c-accent)}
 </style></head><body>
   <div class="top">
     <div class="brand"><img src="/logo-lockup-white.png" alt=""></div>
-    <div class="stem">${esc(q.q)}</div>
+    <div class="stem">${esc(undash(q.q))}</div>
   </div>
   ${WAVE}
   <div class="sheet">
     <ul>${opts}</ul>
-    ${answer ? `<div class="exp">${esc(q.exp)}</div>` : ""}
+    ${answer ? `<div class="exp">${esc(undash(q.exp))}</div>` : ""}
     <div class="cue">${answer ? "resurface.study" : "Swipe for the answer →"}</div>
   </div>
 </body></html>`;
