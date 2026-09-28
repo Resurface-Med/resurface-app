@@ -98,7 +98,13 @@ function page(q, size, answer, css) {
   li.is-right .k{opacity:.85}
   .t{flex:1}
   .tick{font-size:.9em}
-  .exp{margin-top:26px;font-size:${size.exp}px;line-height:1.45;color:var(--c-muted)}
+  /* The app's own .q-exp: full strength, medium weight, generous leading,
+     no container. It arrived at that by deleting a pale tinted panel — the
+     stock secondary surface of every generated interface — and a faint grey
+     paragraph floating under the options is the same mistake in a thinner
+     disguise. This is the answer, not a footnote to it. */
+  .exp{margin-top:34px;font-size:${size.exp}px;font-weight:500;line-height:1.72;
+       letter-spacing:-.15px;color:var(--c-text)}
   .cue{margin-top:auto;padding-top:24px;font-size:24px;font-weight:600;color:var(--c-accent)}
 </style></head><body>
   <div class="top">
