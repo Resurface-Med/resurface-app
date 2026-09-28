@@ -13,3 +13,6 @@ dist
 # Working area for scripts/build-bank.mjs: extracted lectures and
 # questions awaiting review. Never committed — the bank itself is.
 .bank/
+
+# Rendered Instagram posts from scripts/make-posts.mjs.
+.posts/
