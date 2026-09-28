@@ -70,7 +70,6 @@ const WAVE = `<svg class="wave" viewBox="0 0 1440 90" preserveAspectRatio="none"
   <path fill="var(--c-card-solid)" d="M0,44 C240,6 480,82 720,44 C960,6 1200,82 1440,44 L1440,96 L0,96 Z"/></svg>`;
 
 function page(q, size, answer, css) {
-  const topic = q.cat.includes(":") ? q.cat.split(":")[1].trim() : q.cat;
   const opts = q.opts.map((o, i) => {
     const right = answer && i === q.ans;
     return `<li class="${right ? "is-right" : ""}">
@@ -86,10 +85,9 @@ function page(q, size, answer, css) {
   html,body{margin:0;width:${W}px;height:${H}px;overflow:hidden}
   body{background:var(--c-body-bg);font-family:"Poppins",sans-serif;display:flex;flex-direction:column}
   .top{padding:62px 72px 0;color:#fff;flex-shrink:0}
-  .brand{display:flex;align-items:center;gap:14px;margin-bottom:38px}
+  .brand{display:flex;align-items:center;gap:14px;margin-bottom:52px}
   .brand img{height:40px;width:auto}
-  .topic{font-size:26px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;opacity:.72}
-  .stem{font-size:${size.stem}px;font-weight:600;line-height:1.3;letter-spacing:-.8px;margin-top:20px}
+  .stem{font-size:${size.stem}px;font-weight:600;line-height:1.3;letter-spacing:-.8px}
   .wave{display:block;width:100%;height:70px;margin-top:auto;flex-shrink:0}
   .sheet{background:var(--c-card-solid);flex:1;padding:14px 72px 62px;display:flex;flex-direction:column}
   ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
@@ -105,7 +103,6 @@ function page(q, size, answer, css) {
 </style></head><body>
   <div class="top">
     <div class="brand"><img src="/logo-lockup-white.png" alt=""></div>
-    <div class="topic">${esc(q.deck)} · ${esc(topic)}</div>
     <div class="stem">${esc(q.q)}</div>
   </div>
   ${WAVE}
