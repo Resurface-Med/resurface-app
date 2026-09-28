@@ -44,6 +44,13 @@ const CHROME = join(
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
+/* The app's own check, not a font glyph: ✓ is whatever the typeface happens
+   to have and it rendered thin and slightly low against the option's weight.
+   Same path the deck tree ticks with, so they cannot disagree. */
+const TICK = `<svg class="tick" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+  <path d="M2 6.4L4.6 9 10 3.2" stroke="currentColor" stroke-width="2.1"
+        stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
 /**
  * Em dashes out.
  *
@@ -95,7 +102,7 @@ function page(q, size, answer, css) {
     const right = answer && i === q.ans;
     return `<li class="${right ? "is-right" : ""}">
       <span class="k">${LETTERS[i]}</span><span class="t">${esc(o)}</span>
-      ${right ? '<span class="tick">✓</span>' : ""}
+      ${right ? TICK : ""}
     </li>`;
   }).join("");
 
@@ -118,15 +125,14 @@ function page(q, size, answer, css) {
   .k{font-weight:700;opacity:.5;flex-shrink:0;width:1.1em}
   li.is-right .k{opacity:.85}
   .t{flex:1}
-  .tick{font-size:.9em}
+  .tick{width:.78em;height:.78em;flex-shrink:0;stroke:#fff}
   /* A box of its own, so it is not read as a sixth option.
      White rather than a tint, because the options are already the tinted
-     surface and a second tint would put it in their family. The accent edge
-     ties it to the answer above it, which is the one thing on the slide it
-     belongs to. */
+     surface and a second tint would put it in their family. The hairline is
+     all the separation it needs: the options carry colour, so the box does
+     not have to. */
   .exp{margin-top:38px;padding:28px 32px 30px;background:var(--c-card-solid);
-       border:1.5px solid var(--c-border);border-left:5px solid var(--c-accent);
-       border-radius:20px;font-size:${size.exp}px;font-weight:500;line-height:1.66;
+       border:1.5px solid var(--c-border);border-radius:20px;font-size:${size.exp}px;font-weight:500;line-height:1.66;
        letter-spacing:-.15px;color:var(--c-text)}
   .cue{margin-top:auto;padding-top:24px;font-size:24px;font-weight:600;color:var(--c-accent)}
 </style></head><body>
