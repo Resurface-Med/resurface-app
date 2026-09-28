@@ -16,3 +16,6 @@ dist
 
 # Rendered Instagram posts from scripts/make-posts.mjs.
 .posts/
+
+# Generated QR codes from scripts/make-qr.mjs.
+.qr/
