@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import { GEN_ID_BASE } from "../data";
+import { append, dropOnce } from "./queue";
 
 // Server-first data access.
 //
@@ -20,10 +21,7 @@ function writeQueue(q) {
 }
 
 function enqueue(op) {
-  const q = readQueue();
-  // Cap it: an offline session shouldn't grow unbounded, and the newest
-  // writes are the ones worth keeping.
-  writeQueue([...q, op].slice(-500));
+  writeQueue(append(readQueue(), op));
 }
 
 /**
@@ -139,22 +137,37 @@ function apply(op) {
 }
 
 /** Drains anything parked by a failed write. Safe to call repeatedly. */
+/**
+ * Retries everything parked, dropping each write only once it is actually in.
+ *
+ * It used to empty the queue first and write the failures back at the end,
+ * which left every unsent write living only in a local variable for the
+ * length of the flush. Close the tab, lose the network, let the browser kill
+ * a backgrounded page — and a flush of fifty interrupted at ten took the
+ * other forty with it. Anything the app queued while the flush was running
+ * was destroyed by that final write, too.
+ *
+ * So storage is only ever changed after a success, and it is re-read each
+ * time rather than overwritten from a snapshot, which is what keeps writes
+ * made during the flush. The cost is a localStorage write per op, on a path
+ * that runs when a network comes back, over a queue of at most a few hundred.
+ */
 export async function flushQueue() {
-  const q = readQueue();
-  if (q.length === 0) return { flushed: 0, remaining: 0 };
+  const start = readQueue();
+  if (start.length === 0) return { flushed: 0, remaining: 0 };
 
-  writeQueue([]);
-  const failed = [];
-  for (const op of q) {
+  let flushed = 0;
+  for (const op of start) {
     try {
       const { error } = await apply(op);
-      if (error) failed.push(op);
+      if (error) throw error;
+      flushed += 1;
+      writeQueue(dropOnce(readQueue(), op));
     } catch {
-      failed.push(op);
+      /* Left where it is, to be tried again next time. */
     }
   }
-  writeQueue(failed);
-  return { flushed: q.length - failed.length, remaining: failed.length };
+  return { flushed, remaining: readQueue().length };
 }
 
 export function queuedCount() {
