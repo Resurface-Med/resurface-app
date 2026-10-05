@@ -77,6 +77,7 @@ function apply(op) {
     case "profile":
       return supabase.from("profiles").update({
         ...(op.displayName !== undefined ? { display_name: op.displayName } : {}),
+        ...(op.nameChosen !== undefined ? { name_chosen: op.nameChosen } : {}),
         ...(op.showOnLeaderboard !== undefined ? { show_on_leaderboard: op.showOnLeaderboard } : {}),
         ...(op.marketingOptIn !== undefined ? { marketing_opt_in: op.marketingOptIn } : {}),
         updated_at: new Date().toISOString(),
@@ -199,6 +200,9 @@ export async function loadAll(userId) {
       : { streak: 0, longest: 0, lastDate: null },
     dailyGoal: profile.data?.daily_goal ?? 20,
     displayName: profile.data?.display_name ?? "",
+    /* False only while the name is still the one made up from their email —
+       the single question the welcome prompt exists to ask. */
+    nameChosen: profile.data?.name_chosen !== false,
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
     marketingOptIn: profile.data?.marketing_opt_in ?? null,
     timedBests,
@@ -322,6 +326,7 @@ export const remote = {
     kind: "profile",
     userId,
     displayName: patch.displayName,
+    nameChosen: patch.nameChosen,
     showOnLeaderboard: patch.showOnLeaderboard,
     marketingOptIn: patch.marketingOptIn,
   }),

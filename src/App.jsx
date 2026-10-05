@@ -33,6 +33,7 @@ import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
+import NamePrompt from "./ui/NamePrompt";
 import { ConfirmHost } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 
@@ -90,6 +91,9 @@ export default function App() {
   const [activity, setActivity] = useState({});
   const [dailyGoal, setDailyGoal] = useState(20);
   const [displayName, setDisplayName] = useState("");
+  /* False while the name is still the one invented from their email address,
+     which is the only case the welcome prompt is for. */
+  const [nameChosen, setNameChosen] = useState(true);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [generated, setGenerated] = useState([]);
@@ -162,6 +166,7 @@ export default function App() {
       setActivity(d.activity);
       setDailyGoal(d.dailyGoal);
       setDisplayName(d.displayName || "");
+      setNameChosen(d.nameChosen !== false);
       setShowOnLeaderboard(d.showOnLeaderboard !== false);
       setMarketingOptIn(d.marketingOptIn);
       // Before the questions, so the pool is only rebuilt with both in hand.
@@ -606,6 +611,25 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+    <>
+    {/* Asked once, after they are in, and only of the people whose name was
+        made up from their email — anyone who used Google already has their
+        own. Dismissing settles it: a prompt that keeps coming back is worse
+        than the sign-up field it replaced. */}
+    {!nameChosen && (
+      <NamePrompt
+        suggestion={displayName}
+        onSave={name => {
+          setDisplayName(name);
+          setNameChosen(true);
+          remote.profile(user.id, { displayName: name, nameChosen: true });
+        }}
+        onSkip={() => {
+          setNameChosen(true);
+          remote.profile(user.id, { nameChosen: true });
+        }}
+      />
+    )}
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
@@ -749,6 +773,7 @@ export default function App() {
         </div>
       </div>
     </div>
+    </>
     </ErrorBoundary>
   );
 }

@@ -7054,3 +7054,84 @@ select {
   border-top: 1px solid var(--c-border);
 }
 .app-nav__list { gap: 0; }
+
+/* ─── The welcome name prompt ─────────────────────────────────────
+   Asked once, after someone is in, instead of as a third field on the way.
+   Built like the app's other dialogs rather than as its own thing. */
+.np-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 5vw, 40px);
+  background: rgba(12, 22, 56, 0.42);
+  animation: rs-fade-in 0.2s ease both;
+}
+.np {
+  width: min(430px, 100%);
+  background: var(--c-card-solid);
+  border-radius: var(--r-panel);
+  padding: clamp(22px, 3vw, 30px);
+  box-shadow: 0 24px 60px rgba(12, 22, 56, 0.28);
+  animation: rs-pop 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.np__title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  color: var(--c-text);
+}
+.np__sub {
+  margin: 7px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--c-muted);
+}
+.np__field {
+  width: 100%;
+  margin-top: 18px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-ctrl);
+  background: var(--c-surface2);
+  font: inherit;
+  font-size: 16px;
+  color: var(--c-text);
+}
+.np__field:focus {
+  outline: none;
+  border-color: var(--c-accent);
+  background: var(--c-card-solid);
+}
+.np__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.np__save {
+  flex: 1;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.np__save:disabled { opacity: 0.5; cursor: default; }
+.np__skip {
+  border: 0;
+  background: none;
+  padding: 8px 6px;
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+.np__skip:hover { color: var(--c-text); }
