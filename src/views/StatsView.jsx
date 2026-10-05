@@ -3,6 +3,7 @@ import { V, h1 } from "../ui/theme";
 import { QUESTIONS, CURRICULUM } from "../data";
 import Wave from "../ui/Wave";
 import { confirm } from "../ui/Confirm";
+import { seenCount } from "../lib/progress";
 
 /**
  * Progress — coverage and accuracy by subject, then drill into topics.
@@ -65,7 +66,7 @@ function listNames(names) {
  * been opened. Deadpan; no praise, no alarm.
  */
 function summarise(pStats) {
-  const seen = Object.keys(pStats).length;
+  const seen = seenCount(QUESTIONS, pStats);
   const total = QUESTIONS.length;
   if (seen === 0) return { lead: "Nothing attempted yet.", rest: "Answer a few questions and this fills in." };
 

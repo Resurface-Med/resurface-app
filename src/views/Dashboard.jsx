@@ -3,6 +3,7 @@ import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
+import { seenCount, masteredCount, share } from "../lib/progress";
 
 /**
  * The home screen.
@@ -49,13 +50,13 @@ export default function Dashboard({
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
-  const seen = Object.keys(pStats).length;
   const total = QUESTIONS.length;
+  const seen = seenCount(QUESTIONS, pStats);
 
-  const mastered = useMemo(
-    () => Object.values(srCards).filter(c => (c?.interval ?? 0) >= MASTERED_DAYS).length,
-    [srCards],
-  );
+  /* Counted over the questions that exist, not over the cards that are
+     stored: progress outlives the questions it is about, so a card left
+     behind by a deleted deck would otherwise be counted as mastered. */
+  const mastered = useMemo(() => masteredCount(QUESTIONS, srCards, MASTERED_DAYS), [srCards]);
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -88,8 +89,8 @@ export default function Dashboard({
     width: "100%",
   };
 
-  const pctMastered = (mastered / total) * 100;
-  const pctSeenOnly = (Math.max(seen - mastered, 0) / total) * 100;
+  const pctMastered = share(mastered, total) * 100;
+  const pctSeenOnly = share(Math.max(seen - mastered, 0), total) * 100;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
