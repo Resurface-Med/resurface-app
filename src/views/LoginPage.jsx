@@ -38,7 +38,6 @@ export default function LoginPage() {
   const [step, setStep] = useState("form");   // form | code
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -92,9 +91,10 @@ export default function LoginPage() {
         setResendIn(RESEND_SECS);
         setNotice("");
       } else if (mode === "signup") {
-        const name = displayName.trim();
-        if (name.length < 2) throw new Error("Pick a display name (at least 2 characters).");
-        const { data, error: err } = await signUp(trimmed, password, name, marketingOptIn);
+        /* No name is passed: handle_new_user falls back to the Google
+           profile's name and then to the email's local part, so a profile
+           always has one and nobody is asked for it on the way in. */
+        const { data, error: err } = await signUp(trimmed, password, "", marketingOptIn);
         if (err) throw err;
         setEmail(trimmed);
         // With email confirmation on, Supabase returns a user but no session.
@@ -238,6 +238,45 @@ export default function LoginPage() {
             {sub}
           </p>
 
+          {/*
+            * Google first, and not as a courtesy.
+            *
+            * Of the accounts that have ever started here, seven of twelve
+            * email signups never confirmed and all five Google ones did. The
+            * email path asks for three fields and then sends you out of the
+            * app to fetch six digits from your inbox; more than half of
+            * people do not come back. It stays, because not everyone has a
+            * Google account, but it stops being the thing presented first.
+            */}
+          {showGoogle && (
+            <>
+              <button type="button" onClick={signInWithGoogle} className="btn-press" style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
+                color: C.text, background: "var(--c-card-solid)",
+                border: "1.5px solid var(--c-border)", borderRadius: "var(--r-pill)", cursor: "pointer",
+                marginTop: 24,
+              }}>
+                <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+                  <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z"/>
+                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z"/>
+                  <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33Z"/>
+                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z"/>
+                </svg>
+                Continue with Google
+              </button>
+
+              {/* The rule belongs under Google, not over it: it separates the
+                  way in from the other way in, and the one above the line is
+                  the one that works. */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "18px 0 2px" }}>
+                <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
+                <span style={{ fontSize: 12, color: C.muted }}>or use your email</span>
+                <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
+              </div>
+            </>
+          )}
+
           {step === "form" && (
             <form onSubmit={submitForm} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
               <div>
@@ -247,15 +286,15 @@ export default function LoginPage() {
                   placeholder="you@university.ac.uk" style={field} />
               </div>
 
-              {mode === "signup" && (
-                <div>
-                  <label htmlFor="displayName" style={labelStyle}>Display name</label>
-                  <input id="displayName" type="text" required minLength={2} maxLength={32}
-                    autoComplete="nickname" autoFocus
-                    value={displayName} onChange={e => setDisplayName(e.target.value)}
-                    placeholder="Shown on the leaderboard" style={field} />
-                </div>
-              )}
+              {/* No display name here any more.
+                *
+                * It was required, asked third, and justified by a leaderboard
+                * nobody has seen yet — a field between a person and the thing
+                * they came for, in exchange for nothing they wanted. The
+                * database already falls back to the Google profile's name and
+                * then to the email's local part, so an account always has
+                * one, and Profile is where it gets changed to something they
+                * actually chose. */}
 
               <div className={`auth-collapse${hidePassword ? " is-out" : ""}`} aria-hidden={hidePassword}>
                 <div>
@@ -315,30 +354,6 @@ export default function LoginPage() {
             </form>
           )}
 
-          {showGoogle && (
-            <>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0 15px" }}>
-                <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
-                <span style={{ fontSize: 12, color: C.muted }}>or</span>
-                <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
-              </div>
-
-              <button type="button" onClick={signInWithGoogle} className="btn-press" style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                padding: "12px 20px", fontSize: 15, fontWeight: 600, fontFamily: "inherit",
-                color: C.text, background: "var(--c-surface3)",
-                border: "1.5px solid var(--c-border)", borderRadius: "var(--r-pill)", cursor: "pointer",
-              }}>
-                <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
-                  <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z"/>
-                  <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z"/>
-                  <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33Z"/>
-                  <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z"/>
-                </svg>
-                Continue with Google
-              </button>
-            </>
-          )}
 
 
           {step === "form" && (
