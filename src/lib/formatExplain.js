@@ -53,9 +53,9 @@ function convertLatex(inner) {
   s = s.replace(/\\,/g, " ");
   s = s.replace(/\\\s/g, " ");
   s = s.replace(/\^\{([^}]*)\}/g, (_, x) => mapChars(x, SUPER));
-  s = s.replace(/\^([A-Za-z0-9+\-])/g, (_, x) => mapChars(x, SUPER));
+  s = s.replace(/\^([A-Za-z0-9+-])/g, (_, x) => mapChars(x, SUPER));
   s = s.replace(/_\{([^}]*)\}/g, (_, x) => mapChars(x, SUB));
-  s = s.replace(/_([A-Za-z0-9+\-])/g, (_, x) => mapChars(x, SUB));
+  s = s.replace(/_([A-Za-z0-9+-])/g, (_, x) => mapChars(x, SUB));
   s = s.replace(/[{}]/g, "");
   s = s.replace(/\\/g, "");
   return s;

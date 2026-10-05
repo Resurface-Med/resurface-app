@@ -763,7 +763,7 @@ export default function App() {
             targetDeckId={generateInto}
             onTargetDeckChange={id => setGenerateInto(id)}
             onOpenDeck={id => { setOpenDeckId(id); go(V.STUDY); }}
-            onPractise={(deck, cat) => { setLaunchFilter({ deck, cat }); setStudyScope("all"); go(V.STUDY); }} />}
+            />}
 
 
           </Suspense>

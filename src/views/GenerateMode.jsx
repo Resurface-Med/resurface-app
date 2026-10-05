@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
 import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -562,7 +562,7 @@ function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, onPractise = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null }) {
+export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null }) {
   const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
@@ -658,7 +658,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     (function walk(pid, depth) { for (const d of kids(pid)) { out.push({ ...d, depth }); walk(d.id, depth + 1); } })(null, 0);
     return out;
   })();
-  const chosenDeckName = deckChoice === "__new__" ? newDeckName.trim() : (decksById.get(deckChoice)?.name ?? "");
   const deckLabel = deckChoice === "__new__"
     ? [...(newDeckParent ? deckPath(newDeckParent, decksById).map(p => p.name) : []), newDeckName.trim()].join(" › ")
     : deckPath(deckChoice, decksById).map(p => p.name).join(" › ");

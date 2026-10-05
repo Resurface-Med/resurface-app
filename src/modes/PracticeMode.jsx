@@ -527,7 +527,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const scoped = scopedCount(filter);
 
     /* What a row's menu offers. Only your decks have one. */
-    const rowMenu = node => [
+    const rowMenu = _node => [
       { label: "Questions", onSelect: n => { setBrowsing(n.id); setTopicQuery(""); } },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },

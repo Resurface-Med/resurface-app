@@ -138,7 +138,6 @@ export default function QuizShell({
   const progress = (idx + 1) / queue.length;
   const answered = Object.keys(sels).length;
   const answeredThis = sel !== null;
-  const wrong = answeredThis && sel !== q.ans;
   /* The dock is a window you keep open, not a reaction to being wrong: it
      stays across questions and asks about whichever one is in front of
      you, answered or not — a companion while you think, and a tutor once

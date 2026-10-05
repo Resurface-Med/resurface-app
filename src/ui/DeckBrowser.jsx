@@ -41,7 +41,7 @@ export function DeckPicker({ decks, exclude = null, allowTop = false, onPick, an
   );
 }
 
-function QuestionRow({ q, decks, actions, onEdit }) {
+function QuestionRow({ q, actions, onEdit }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const close = useCallback(() => setOpen(false), []);

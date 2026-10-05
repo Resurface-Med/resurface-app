@@ -20,7 +20,17 @@ export default [
       ...reactHooks.configs.recommended.rules,
 
       // JSX use counts as use; the base rule can't see it.
-      "no-unused-vars": ["error", { varsIgnorePattern: "^[A-Z_]", argsIgnorePattern: "^_" }],
+      //
+      // ignoreRestSiblings is off by default and this code uses the pattern it
+      // exists for: `const { id, gen, ...payload } = q` means "everything but
+      // these", and the named halves are the point rather than an oversight.
+      // Eleven of them were being reported as unused variables, which is most
+      // of the noise two real errors were hiding in.
+      "no-unused-vars": ["error", {
+        varsIgnorePattern: "^[A-Z_]",
+        argsIgnorePattern: "^_",
+        ignoreRestSiblings: true,
+      }],
 
       // storage.js deliberately swallows quota and private-mode failures.
       "no-empty": ["error", { allowEmptyCatch: true }],

@@ -55,7 +55,7 @@ export function Menu({ label, items, strong = false, align = "right" }) {
 }
 
 /** The two controls beside a deck's heading. */
-export function DeckControls({ node, deck, actions, onGenerateInto, onNewSub, onCopyFromBank, onRename, questionCount }) {
+export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onCopyFromBank, onRename, questionCount }) {
   const [copied, setCopied] = useState(false);
   async function share() {
     try { await navigator.clipboard.writeText(deckShareUrl(deck)); setCopied(true); setTimeout(() => setCopied(false), 1800); }
