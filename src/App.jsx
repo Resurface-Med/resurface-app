@@ -28,7 +28,7 @@ import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
-import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
+import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -107,10 +107,10 @@ export default function App() {
      sidebar still opens the picker. */
   const [autoStart, setAutoStart] = useState(false);
 
-  /* The bank is one pool: the shipped questions plus your own. Every screen
-     that shows or serves a question reads QUESTIONS, so this is the one
-     place your own questions get into it. Rows are given their deck path
-     here, so decks and questions are always applied together. */
+  /* Every screen that shows or serves a question reads QUESTIONS, and this
+     is the one place anything gets into it — there is no shipped bank any
+     more, so what you have uploaded is all of it. Rows are given their deck
+     path here, so decks and questions are always applied together. */
   const genRowsRef = useRef([]);
   /* The deck list as it is now, not as it was when a callback was made.
      Generate creates a deck and saves questions into it in one go: the
@@ -152,8 +152,9 @@ export default function App() {
     let cancelled = false;
     setDataLoading(true);
     (async () => {
-      // In parallel: the bank doesn't depend on the user, and the user's rows
-      // don't depend on the bank.
+      // Still in parallel, though loadDecks no longer fetches anything: it is
+      // the gate that stops a screen reading QUESTIONS before the user's own
+      // rows have landed.
       const [, d] = await Promise.all([
         loadDecks(),
         (async () => { await flushQueue(); return loadAll(user.id); })(),
@@ -226,23 +227,6 @@ export default function App() {
   }
   /* Copy bank topics into a deck: each becomes a sub-deck holding copies of
      the topic's questions — yours, with fresh ids, like an import. */
-  async function copyBankTopics(targetId, nodes) {
-    let deckRows = decks;
-    let rows = genRowsRef.current;
-    for (const n of nodes) {
-      const qs = questionsInDeck(n.id).filter(q => !q.gen);
-      if (!qs.length) continue;
-      const siblings = deckRows.filter(d => (d.parentId ?? null) === targetId);
-      const sub = await remote.createDeck(user.id, n.name, targetId, siblings.length);
-      const subRow = { id: sub.id, name: n.name, parentId: targetId, position: siblings.length, shareCode: sub.share_code, createdAt: sub.created_at };
-      deckRows = [...deckRows, subRow];
-      const payloads = qs.map(({ q, opts, ans, exp, optExp, img }) => ({ q, opts, ans, exp, optExp, ...(img ? { img } : {}) }));
-      const ids = await remote.addGenerated(user.id, payloads, sub.id);
-      if (ids) rows = [...rows, ...payloads.map((p, i) => ({ ...p, id: ids[i], gen: true, deckId: sub.id }))];
-    }
-    setDecks(deckRows);
-    applyGenerated(rows, deckRows);
-  }
   /* Re-parent a deck. Refused if the target is the deck itself or under it. */
   function moveDeck(id, parentId) {
     let p = parentId;
@@ -261,7 +245,7 @@ export default function App() {
     const q = rows.find(r => r.id === qid);
     if (q) remote.moveGenerated(user.id, q, deckId);
   }
-  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, copyBankTopics, deleteQuestion, moveQuestion };
+  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion };
 
   useEffect(() => {
     if (!user) return;

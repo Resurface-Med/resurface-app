@@ -28,7 +28,9 @@ import { execFileSync } from "node:child_process";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APP = resolve(HERE, "..");
-const DECKS = join(APP, "public", "decks");
+/* The bank no longer ships with the app — it is not the product any more —
+   but it is still 506 written questions, and still the best thing to post. */
+const DECKS = join(APP, "content", "decks");
 const OUT = join(APP, ".posts");
 const PORT = process.env.PREVIEW_PORT || 4173;
 

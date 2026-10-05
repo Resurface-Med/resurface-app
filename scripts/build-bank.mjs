@@ -8,12 +8,12 @@
  *            manifest you can correct before a single token is spent
  *   generate one call per lecture, then every check that can be made without
  *            a human, into pending/ for you to read
- *   merge    approved questions into public/decks, ids continued, index
+ *   merge    approved questions into content/decks, ids continued, index
  *            rewritten, audit run
  *
  * The middle step never writes to the bank. A wrong question in a shared
  * bank is wrong for every student at once, and unlike a generated deck it
- * is not theirs to distrust — so nothing reaches public/decks without
+ * is not theirs to distrust — so nothing reaches content/decks without
  * someone having read it.
  *
  * The prompt is imported from the backend rather than copied. A copy drifts
@@ -32,7 +32,7 @@ import { createRequire } from "node:module";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APP = resolve(HERE, "..");
-const DECKS = join(APP, "public", "decks");
+const DECKS = join(APP, "content", "decks");
 const WORK = join(APP, ".bank");
 const MANIFEST = join(WORK, "manifest.json");
 const PENDING = join(WORK, "pending");

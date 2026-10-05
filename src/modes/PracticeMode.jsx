@@ -8,9 +8,9 @@ import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree from "../ui/DeckTree";
-import { DeckTabs, DeckControls, BankCopier, DeckNameForm } from "../ui/DeckControls";
+import { DeckTabs, DeckControls, DeckNameForm } from "../ui/DeckControls";
 import DeckBrowser from "../ui/DeckBrowser";
-import { buildForest, leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
+import { buildForest, leavesUnder, findNode } from "../lib/decks";
 import { confirm, confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
 
@@ -40,12 +40,6 @@ const SCOPES = [
 ];
 
 /** Where the question came from — orthogonal to Due / Wrong / Saved. */
-const BANKS = [
-  { k: "both", label: "All questions" },
-  { k: "app",  label: "Built-in questions" },
-  { k: "mine", label: "Questions you made" },
-];
-
 const YEARS = [
   { k: "Year 1", label: "Year 1" },
   { k: "Year 2", label: "Year 2" },
@@ -54,12 +48,6 @@ const YEARS = [
   { k: "Year 5", label: "Year 5" },
   { k: "All",    label: "All years" },
 ];
-
-function applyBank(list, bank) {
-  if (bank === "app") return list.filter(q => !q.gen);
-  if (bank === "mine") return list.filter(q => q.gen);
-  return list;
-}
 
 /** Anchored menu — native <select> recenters on the chosen row on iOS and
  *  drifts into the status bar when you pick a lower option. */
@@ -123,23 +111,6 @@ function SetupMenu({ value, onChange, options, ariaLabel, optionLabel }) {
         </ul>
       )}
     </div>
-  );
-}
-
-function BankSelect({ value, onChange }) {
-  const mineCount = QUESTIONS.filter(q => q.gen).length;
-  return (
-    <SetupMenu
-      value={value}
-      onChange={onChange}
-      options={BANKS}
-      ariaLabel="Whose questions"
-      optionLabel={o => (
-        o.k === "mine" && mineCount === 0
-          ? "Questions you made (none yet)"
-          : o.label
-      )}
-    />
   );
 }
 
@@ -250,11 +221,10 @@ function describeSession(s) {
  */
 export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
-  const [bank, setBank] = useState("both");
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
   function scopeCount(k) {
-    const pool = applyBank(QUESTIONS, bank);
+    const pool = QUESTIONS;
     if (k === "due")   return pool.filter(q => isReviewDue(srCards[q.id])).length;
     if (k === "saved") return pool.filter(q => bookmarks.includes(q.id)).length;
     if (k === "wrong") return pool.filter(q => {
@@ -284,9 +254,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [activeRootId, setActiveRootId] = useState(openDeckId);
   const [creatingDeck, setCreatingDeck] = useState(false);
   /* What is replacing the tree, if anything: a name field (new sub-deck or
-     rename, with the deck id it is for), or the bank copier. */
+     rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
-  const [copyingInto, setCopyingInto] = useState(null); // deck id
   const [browsing, setBrowsing] = useState(null);       // deck id whose questions are listed
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
@@ -321,7 +290,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useEffect(() => {
     setFilter(f => ({ ...f, leaves: ["All"] }));
     setNaming(null);
-    setCopyingInto(null);
     setBrowsing(null);
     setTopicQuery("");
   }, [activeRootId]);
@@ -378,12 +346,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   /** Exactly what a Start press would queue, so the button can say so. */
   function scopedCount(f) {
-    return applyScope(applyBank(filteredQuestions(effective(f), pStats), bank)).length;
+    return applyScope(filteredQuestions(effective(f), pStats)).length;
   }
 
   function start(filterOverride) {
     const f = effective(filterOverride ?? filter);
-    const base = applyScope(applyBank(filteredQuestions(f, pStats), bank));
+    const base = applyScope(filteredQuestions(f, pStats));
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
     const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);
@@ -549,7 +517,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     // Scope decides which questions exist at all, so the topic rows can each
     // say how many they would actually give you under it.
     const inScope = applyScope(
-      applyBank(QUESTIONS, bank).filter(x => !filter.unseenOnly || !pStats[x.id]),
+      QUESTIONS.filter(x => !filter.unseenOnly || !pStats[x.id]),
     );
     const eligibleIds = inScope.map(x => x.id);
     const eligibleSet = new Set(eligibleIds);
@@ -560,7 +528,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     /* Inside a tab, the tree is what is under the root — the tab itself is
        the heading, not a row. */
     const forest = activeRoot ? activeRoot.children : fullForest;
-    const bankForest = fullForest.filter(r => r.id === BANK_ROOT);
     const scoped = scopedCount(filter);
 
     /* What a row's menu offers. Only your decks have one. */
@@ -573,12 +540,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         if (await confirmDelete(`“${n.name}”`, n.total)) deckActions.deleteDeck(n.id);
       } },
     ];
-    async function copyFromBank(leaves) {
-      const target = copyingInto;
-      setCopyingInto(null);
-      if (!target || !leaves?.length) return;
-      await deckActions.copyBankTopics(target, leaves.map(id => findNode(bankForest, id)).filter(Boolean));
-    }
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
     /* One topic names itself; several are counted. Spelling out four topic
        names would not fit the button this ends up on, and a list that gets
@@ -600,7 +561,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
                 <div className="setup-title-filters">
                   <YearSelect value={yearValue} onChange={setYear} />
-                  <BankSelect value={bank} onChange={setBank} />
                 </div>
               </div>
             ) : (
@@ -654,7 +614,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           <span className="tg-editbar-meta">{activeRoot?.total ?? 0} question{(activeRoot?.total ?? 0) === 1 ? "" : "s"}</span>
                           <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
                             onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
-                            onCopyFromBank={id => setCopyingInto(id)} onRename={id => setNaming({ mode: "rename", deckId: id })} />
+                            onRename={id => setNaming({ mode: "rename", deckId: id })} />
                         </div>
                       )}
                       <input
@@ -667,11 +627,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       />
                       {browsing ? (
                         <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
-                      ) : copyingInto ? (
-                        <BankCopier bankForest={bankForest} query={topicQuery} onDone={copyFromBank} onCancel={() => setCopyingInto(null)} />
                       ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                         <div className="tg-rows-empty">
-                          Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture, a sub-deck, or topics from ARU Year 1.
+                          Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
                         </div>
                       ) : (
                         <DeckTree
@@ -779,7 +737,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
             <div className="setup-title-filters">
               <YearSelect value={yearValue} onChange={setYear} />
-              <BankSelect value={bank} onChange={setBank} />
             </div>
           </div>
 
@@ -815,13 +772,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               {!creatingDeck && !naming && (
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
-                  <h2 style={{ ...sectionH, margin: 0 }}>{copyingInto ? `Copy into ${decksById.get(copyingInto)?.name ?? "deck"}` : browsing ? (decksById.get(browsing)?.name ?? "Questions") : "What are you revising?"}</h2>
+                  <h2 style={{ ...sectionH, margin: 0 }}>{browsing ? (decksById.get(browsing)?.name ?? "Questions") : "What are you revising?"}</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {!copyingInto && !browsing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
-                    {activeDeck && !copyingInto && !browsing && (
+                    {!browsing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
+                    {activeDeck && !browsing && (
                       <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
                         onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
-                        onCopyFromBank={id => setCopyingInto(id)} onRename={id => setNaming({ mode: "rename", deckId: id })} />
+                        onRename={id => setNaming({ mode: "rename", deckId: id })} />
                     )}
                   </span>
                 </div>
@@ -857,11 +814,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
               ) : browsing ? (
                 <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
-              ) : copyingInto ? (
-                <BankCopier bankForest={bankForest} query={topicQuery} onDone={copyFromBank} onCancel={() => setCopyingInto(null)} />
               ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                 <div className="tg-rows-empty">
-                  Nothing here yet. Press <strong>＋ Add</strong> to bring in a lecture, a sub-deck, or topics from ARU Year 1.
+                  Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
                 </div>
               ) : (
                 <DeckTree

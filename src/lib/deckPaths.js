@@ -1,30 +1,10 @@
 /**
- * Paths, without importing the bank — data/index.js uses these while it
- * loads, so this file must not depend on it.
+ * Deck paths.
+ *
+ * Separate from data/index.js because that module uses these while it is
+ * still assembling, so this one must not depend on it.
  */
-export const BANK_ROOT = "bank";
-export const BANK_NAME = "ARU Year 1";
-
-const SEP = "";
-
-/** The bank's questions get their path from block › subject › topic. */
-export function decorateBankQuestion(q) {
-  const b = q.block || "Other";
-  const bId = `${BANK_ROOT}${SEP}${b}`;
-  const dId = `${bId}${SEP}${q.deck}`;
-  const cId = `${dId}${SEP}${q.cat}`;
-  return {
-    ...q,
-    path: [
-      { id: BANK_ROOT, name: BANK_NAME },
-      { id: bId, name: b },
-      { id: dId, name: q.deck },
-      { id: cId, name: q.cat },
-    ],
-    leaf: cId,
-    rootId: BANK_ROOT,
-  };
-}
+const SEP = "";
 
 /** Ancestors first, the deck itself last. */
 export function deckPath(deckId, decksById) {

@@ -1,13 +1,13 @@
 import { useMemo, useState, useRef, useCallback } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
-import { leavesUnder, findNode, BANK_ROOT } from "../lib/decks";
+import { leavesUnder, findNode } from "../lib/decks";
 
 /**
  * The deck tree: what you are revising.
  *
- * One component for any depth. The bank is "ARU Year 1 › block › subject ›
- * topic"; your decks are however deep you made them. Tick a row to
+ * One component for any depth: your decks are however deep you made them.
+ * Tick a row to
  * practise everything under it — a parent is on when all its leaves are,
  * mixed when some are. Rows carry a coverage bar and a count, and a
  * chevron where there is more underneath. A deck of yours also carries a
@@ -244,4 +244,4 @@ export default function DeckTree({
   );
 }
 
-export { BANK_ROOT, findNode };
+export { findNode };

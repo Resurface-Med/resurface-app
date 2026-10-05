@@ -1,5 +1,4 @@
 // The question bank, fetched at runtime rather than compiled into the bundle.
-import { decorateBankQuestion } from "../lib/deckPaths";
 //
 // Importing the decks as modules inlined 386KB of JSON into the main chunk,
 // which every user downloaded and parsed before the app could paint — including
@@ -152,21 +151,22 @@ let loaded = null;
 export function loadDecks() {
   if (loaded) return loaded;
 
+  /*
+   * Nothing to load any more.
+   *
+   * The app used to ship a bank of 506 questions and fetch it on sign-in.
+   * It is your own material now — what you upload is the whole product —
+   * so there is no shared bank to pull down, and `deckQs` stays empty while
+   * `userQs` carries everything.
+   *
+   * The function survives rather than its callers being unpicked: App.jsx
+   * gates its first render on this resolving, and that gate is also what
+   * makes sure nothing reads QUESTIONS before the user's own rows have
+   * landed. It is the shape, not the fetch, that was load-bearing.
+   */
   loaded = (async () => {
-    const manifest = await fetch("/decks/index.json").then(r => r.json());
-
-    const decks = await Promise.all(
-      manifest.map(entry => fetch(`/decks/${entry.file}`).then(r => r.json())),
-    );
-
-    for (const deck of decks) {
-      deckQs.push(...deck.questions.map(decorateBankQuestion));
-      DECK_MAP[deck.deck] = deck.categories;
-    }
-
     syncQuestions();
-
-    return { count: QUESTIONS.length, decks: decks.length, blocks: BLOCKS.length };
+    return { count: QUESTIONS.length, decks: 0, blocks: BLOCKS.length };
   })();
 
   return loaded;

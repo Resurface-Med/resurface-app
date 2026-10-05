@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { BANK_ROOT, deckShareUrl } from "../lib/decks";
+import { deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
 import Popover, { MenuItems } from "./Popover";
 import { confirmDelete } from "./Confirm";
@@ -7,10 +7,8 @@ import { confirmDelete } from "./Confirm";
 /**
  * The tabs across the top of Study, and what a deck of yours can do.
  *
- * Tabs: All, then every root deck — yours first, the bank last — then New.
- * A deck of yours has two controls, like a deck anywhere: Add (a lecture,
- * a sub-deck, or topics copied from the bank) and a menu (Rename, Share,
- * Delete). The bank has neither; it is read-only.
+ * Tabs: All, then every deck of yours, then New. A deck has two controls:
+ * Add (a lecture, or a sub-deck) and a menu (Rename, Share, Delete).
  */
 
 export function DeckTabs({ roots, activeId, onSelect, onNew }) {
@@ -22,7 +20,7 @@ export function DeckTabs({ roots, activeId, onSelect, onNew }) {
       </button>
       {roots.map(r => (
         <button key={r.id} type="button" role="tab" aria-selected={r.id === activeId}
-          className={`tg-tab${r.id === activeId ? " is-active" : ""}${r.id === BANK_ROOT ? " is-bank" : ""}`}
+          className={`tg-tab${r.id === activeId ? " is-active" : ""}`}
           onClick={() => onSelect(r.id)}>
           {r.name}
         </button>
@@ -55,7 +53,7 @@ export function Menu({ label, items, strong = false, align = "right" }) {
 }
 
 /** The two controls beside a deck's heading. */
-export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onCopyFromBank, onRename, questionCount }) {
+export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename, questionCount }) {
   const [copied, setCopied] = useState(false);
   async function share() {
     try { await navigator.clipboard.writeText(deckShareUrl(deck)); setCopied(true); setTimeout(() => setCopied(false), 1800); }
@@ -64,7 +62,6 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onCopyFr
   const addItems = [
     { label: "Generate from a lecture", onSelect: () => onGenerateInto(deck.id) },
     { label: "New sub-deck", onSelect: () => onNewSub(deck.id) },
-    { label: "Copy from ARU Year 1", onSelect: () => onCopyFromBank(deck.id) },
   ];
   const n = questionCount;
   const menuItems = [
@@ -79,28 +76,6 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onCopyFr
       <Menu label={<><span aria-hidden="true">＋</span> Add</>} items={addItems} strong />
       <Menu label="⋯" items={menuItems} />
     </span>
-  );
-}
-
-/**
- * Copying from the bank: a tree of ARU Year 1 with ticks. Each ticked topic
- * becomes a sub-deck of the target with a copy of its questions — a real
- * copy, yours to keep. Done applies it.
- */
-export function BankCopier({ bankForest, query, onDone, onCancel }) {
-  const [value, setValue] = useState({ leaves: ["nothing"] });
-  const leaves = value.leaves.includes("All") ? null : value.leaves.filter(l => l !== "nothing");
-  return (
-    <div className="tg-adding">
-      <div className="tg-source">
-        <span className="tg-source-note">Tick topics to copy into this deck.</span>
-        <button type="button" className="gen-link tg-source-done" disabled={!leaves || !leaves.length} onClick={() => onDone(leaves)}>
-          {leaves && leaves.length ? `Copy ${leaves.length} topic${leaves.length === 1 ? "" : "s"}` : "Copy"}
-        </button>
-        <button type="button" className="gen-link tg-cancel" onClick={onCancel}>Cancel</button>
-      </div>
-      <DeckTree forest={bankForest} value={value} onChange={setValue} query={query} showAll={false} />
-    </div>
   );
 }
 

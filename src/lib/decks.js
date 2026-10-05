@@ -3,16 +3,14 @@ import { QUESTIONS } from "../data";
 /**
  * Decks: the one container.
  *
- * A deck holds questions and can hold decks. The bank ships as a read-only
- * deck, "ARU Year 1", whose sub-decks are its blocks, subjects and topics;
- * every deck of yours is a real row you own. A question carries the path
+ * A deck holds questions and can hold decks, and every one is a row you
+ * own — the app ships none. A question carries the path
  * to its deck, and a `leaf` key — the deck's id — which is what Study
  * filters on. Names are for reading; keys are for matching, so two decks
  * called "Glycolysis" never collide.
  */
 
-export { BANK_ROOT, BANK_NAME, decorateBankQuestion, deckPath, decorateUserQuestion } from "./deckPaths";
-import { BANK_ROOT } from "./deckPaths";
+export { deckPath, decorateUserQuestion } from "./deckPaths";
 
 export function indexDecks(decks) {
   return new Map(decks.map(d => [d.id, d]));
@@ -76,9 +74,8 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
     }
   }
 
-  // Natural order within a parent; your own decks before the bank.
+  // Natural order within a parent.
   sortSiblings(roots);
-  roots.sort((a, b) => (a.id === BANK_ROOT) - (b.id === BANK_ROOT));
 
   if (rootId) {
     const r = nodes.get(rootId);
