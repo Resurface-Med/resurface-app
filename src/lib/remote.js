@@ -103,10 +103,6 @@ function apply(op) {
     case "generated-remove":
       return supabase.from("generated_questions").delete()
         .eq("user_id", op.userId).eq("id", op.id);
-    // Renaming a deck is rewriting the topic on each of its questions.
-    case "generated-update":
-      return supabase.from("generated_questions").update({ payload: op.payload })
-        .eq("user_id", op.userId).eq("id", op.id);
     case "generated-clear":
       return supabase.from("generated_questions").delete().eq("user_id", op.userId);
     case "practice-clear":
@@ -117,9 +113,26 @@ function apply(op) {
       return supabase.from("decks").update({ ...op.patch, updated_at: new Date().toISOString() }).eq("id", op.deckId);
     case "deck-delete":
       return supabase.from("decks").delete().eq("id", op.deckId);
+    /*
+     * One branch, not two.
+     *
+     * There were two `generated-update` cases, and a switch takes the first:
+     * the one that wrote only the payload. Everything that moves a question
+     * to another deck went through the second, which was unreachable, so the
+     * deck id was silently dropped and the move did not survive a reload.
+     *
+     * Not currently reachable from the UI — the Move control was taken out —
+     * but it would have come back broken with it, looking like a caching bug
+     * rather than a dropped column.
+     *
+     * deck_id is only written when it was actually passed, so renaming a deck
+     * (which rewrites the topic on each of its questions) does not null it.
+     */
     case "generated-update":
-      return supabase.from("generated_questions").update({ payload: op.payload, deck_id: op.deckId })
-        .eq("user_id", op.userId).eq("id", op.id);
+      return supabase.from("generated_questions").update({
+        payload: op.payload,
+        ...(op.deckId !== undefined ? { deck_id: op.deckId } : {}),
+      }).eq("user_id", op.userId).eq("id", op.id);
     default:
       return Promise.resolve({ error: new Error(`unknown op ${op.kind}`) });
   }

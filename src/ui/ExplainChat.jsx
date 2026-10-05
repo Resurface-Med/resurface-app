@@ -134,9 +134,15 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   const threadRef = useRef(null);
   const inputRef = useRef(null);
   /* The question on screen. A reply that comes back after a move belongs
-     to the question that was asked, not the one now showing. */
+     to the question that was asked, not the one now showing.
+   *
+   * Written after the render commits rather than during it. A render can be
+   * thrown away and re-run, and a ref written during one keeps the value
+   * from the attempt that was discarded — so the guard could end up holding
+   * a question that was never shown. Nothing reads this until a reply lands,
+   * which is long after the commit either way. */
   const liveId = useRef(q.id);
-  liveId.current = q.id;
+  useEffect(() => { liveId.current = q.id; }, [q.id]);
 
   const remaining = Math.max(0, ASK_LIMIT - used);
   const atLimit = remaining <= 0;
