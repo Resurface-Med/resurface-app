@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
@@ -247,7 +247,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
   const [bank, setBank] = useState("both");
 
@@ -290,6 +290,33 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
   useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
+
+  /*
+   * "Start studying" should start studying.
+   *
+   * It used to land on this screen — tabs, a deck tree, filters and a count
+   * — for somebody who had just pressed the one button on the dashboard.
+   * The defaults were already right, so it was one more tap to get what the
+   * button had promised, and a wall of configuration at the exact moment a
+   * new person is deciding whether this is worth their evening.
+   *
+   * Only when the dashboard said so. Reaching Study from the sidebar is a
+   * different intention — that is someone choosing what to revise, and the
+   * picker is the point. Consumed immediately, so coming back here later
+   * lands where you left off rather than throwing you into a session.
+   *
+   * If nothing matches, start() returns without doing anything and the
+   * picker is still here, which is the right outcome for an empty bank.
+   *
+   * Layout, not effect: this has to land before the browser paints, or the
+   * picker shows for a frame and the question slides in over it — which is
+   * the configuration screen flashing up anyway, just faster.
+   */
+  useLayoutEffect(() => {
+    if (!autoStart) return;
+    onAutoStartConsumed?.();
+    start();
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     setFilter(f => ({ ...f, leaves: ["All"] }));
     setNaming(null);

@@ -154,7 +154,7 @@ function page(q, size, answer, css) {
 </body></html>`;
 }
 
-function shoot(html, out, css) {
+function shoot(html, out) {
   const tmp = join(APP, "dist", "_post.html");
   writeFileSync(tmp, html);
   execFileSync(CHROME, [
@@ -191,8 +191,8 @@ for (const q of chosen) {
   if (!size) { skipped += 1; console.log(`  skipped #${q.id} — too long to read on a phone`); continue; }
   const dir = join(OUT, String(q.id).padStart(4, "0"));
   mkdirSync(dir, { recursive: true });
-  shoot(page(q, size, false, css), join(dir, "1.png"), css);
-  shoot(page(q, size, true, css), join(dir, "2.png"), css);
+  shoot(page(q, size, false, css), join(dir, "1.png"));
+  shoot(page(q, size, true, css), join(dir, "2.png"));
   const topic = q.cat.includes(":") ? q.cat.split(":")[1].trim() : q.cat;
   writeFileSync(join(dir, "caption.txt"),
     `${topic} — can you get it?\n\nAnswer on slide 2.\n\n` +

@@ -95,7 +95,7 @@ function guessTopic(name) {
   return basename(name, ".pdf")
     .replace(/\.(pptx?|docx?)$/i, "")
     .replace(/[-_]+/g, " ")
-    .replace(/\d{1,2}[.\/-]\d{1,2}[.\/-]\d{2,4}/g, " ")          // 12.11.24, glued or not
+    .replace(/\d{1,2}[./-]\d{1,2}[./-]\d{2,4}/g, " ")          // 12.11.24, glued or not
     .replace(/\b\d{1,2}\s+[a-z]+\s+\d{4}\b/gi, " ")             // 25 September 2025
     .replace(/\bARU\b|\bARU(?=[A-Za-z])/g, " ")                  // the institution, glued or not
     .replace(/\btagged\b|\bfinal\b|\bcopy\b|\bv\d+\b|\blecture\b|\bslides?\b/gi, " ")
@@ -346,7 +346,10 @@ function merge() {
       : { deck: subject, categories: [], questions: [] };
 
     for (const r of usable) {
-      const { _source, _faults, ...q } = r;
+      /* The two bookkeeping fields are for the review pass, not the bank. */
+      const q = { ...r };
+      delete q._source;
+      delete q._faults;
       deck.questions.push({ id: nextId++, ...q });
       if (!deck.categories.includes(q.cat)) deck.categories.push(q.cat);
       added += 1;

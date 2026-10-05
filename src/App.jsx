@@ -99,6 +99,9 @@ export default function App() {
   const [openDeckId, setOpenDeckId] = useState(null);
   /* The deck Generate should file its next questions into. */
   const [generateInto, setGenerateInto] = useState(null);
+  /* Set only by the dashboard's own button, so Study reached from the
+     sidebar still opens the picker. */
+  const [autoStart, setAutoStart] = useState(false);
 
   /* The bank is one pool: the shipped questions plus your own. Every screen
      that shows or serves a question reads QUESTIONS, so this is the one
@@ -678,7 +681,12 @@ export default function App() {
             srCards={srCards}
             dailyGoal={dailyGoal}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
-            onStudy={s => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope(s); go(V.STUDY); }} />}
+            onStudy={s => {
+              setLaunchFilter({ deck: "All", cat: "All" });
+              setStudyScope(s);
+              setAutoStart(true);
+              go(V.STUDY);
+            }} />}
 
           {v === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
@@ -686,6 +694,7 @@ export default function App() {
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
             decks={decks} deckActions={deckActions}
             openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
+            autoStart={autoStart} onAutoStartConsumed={() => setAutoStart(false)}
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
