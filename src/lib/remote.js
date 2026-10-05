@@ -82,8 +82,6 @@ function apply(op) {
         ...(op.marketingOptIn !== undefined ? { marketing_opt_in: op.marketingOptIn } : {}),
         updated_at: new Date().toISOString(),
       }).eq("id", op.userId);
-    case "timed-best":
-      return supabase.from("timed_bests").upsert({ user_id: op.userId, scope: op.scope, score: op.score });
     case "flag":
       // One row per person per question, so flagging again is a correction
       // rather than a second vote.
@@ -152,7 +150,7 @@ export function queuedCount() {
 
 /** One round-trip per table, on sign-in. Shapes match what App.jsx already holds. */
 export async function loadAll(userId) {
-  const [practice, sr, bookmarks, activity, streak, profile, timed, generated, edits] =
+  const [practice, sr, bookmarks, activity, streak, profile, generated, edits] =
     await Promise.all([
       supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId),
       supabase.from("sr_cards").select("*").eq("user_id", userId),
@@ -160,7 +158,6 @@ export async function loadAll(userId) {
       supabase.from("activity").select("day, count").eq("user_id", userId),
       supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("timed_bests").select("scope, score").eq("user_id", userId),
       supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId),
       supabase.from("question_edits").select("question_id, payload").eq("user_id", userId),
     ]);
@@ -184,8 +181,6 @@ export async function loadAll(userId) {
   const activityMap = {};
   for (const r of activity.data ?? []) activityMap[r.day] = r.count;
 
-  const timedBests = {};
-  for (const r of timed.data ?? []) timedBests[r.scope] = r.score;
 
   const questionEdits = {};
   for (const r of edits.data ?? []) questionEdits[r.question_id] = r.payload;
@@ -205,7 +200,6 @@ export async function loadAll(userId) {
     nameChosen: profile.data?.name_chosen !== false,
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
     marketingOptIn: profile.data?.marketing_opt_in ?? null,
-    timedBests,
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything
     // keyed on question_id — flags are cohort-wide, these are not.
@@ -330,7 +324,6 @@ export const remote = {
     showOnLeaderboard: patch.showOnLeaderboard,
     marketingOptIn: patch.marketingOptIn,
   }),
-  timedBest:(userId, scope, score)=> send({ kind: "timed-best", userId, scope, score }),
   questionEdit: (userId, questionId, payload) => send({ kind: "question-edit", userId, questionId, payload }),
   flag:       (userId, questionId, reason, note) => send({ kind: "flag", userId, questionId, reason, note }),
   unflag:     (userId, questionId)               => send({ kind: "flag-remove", userId, questionId }),
