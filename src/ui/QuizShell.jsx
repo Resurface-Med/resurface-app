@@ -29,6 +29,8 @@ export default function QuizShell({
   q,
   idx,
   queue,
+  cleared = 0,
+  distinct = 0,
   sel,
   sels,
   results,
@@ -135,7 +137,9 @@ export default function QuizShell({
     return () => clearTimeout(t);
   }, [railOpen]);
 
-  const progress = (idx + 1) / queue.length;
+  /* Cleared, not seen. The queue grows when something is missed and put
+     back, so a bar driven by position would slide backwards as you work. */
+  const progress = distinct > 0 ? cleared / distinct : 0;
   const answered = Object.keys(sels).length;
   const answeredThis = sel !== null;
   /* The dock is a window you keep open, not a reaction to being wrong: it
@@ -177,7 +181,7 @@ export default function QuizShell({
             />
           </div>
           <span className="quiz-shell__count">
-            {idx + 1}/{queue.length}
+            {cleared}/{distinct}
           </span>
 
           <button

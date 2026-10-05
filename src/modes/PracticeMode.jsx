@@ -3,6 +3,7 @@ import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, 
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
+import { reask, clearedCount, distinctCount } from "../lib/session";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
@@ -432,6 +433,18 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
   }
 
+  /*
+   * The count is questions, not cards.
+   *
+   * A missed question is put back into the queue, so the queue grows as you
+   * go — and a counter reading off its length would climb away from you,
+   * telling someone who picked twenty that they now have twenty-three to do.
+   * The honest number is how many of the questions you chose you have got
+   * right, out of how many there were.
+   */
+  const distinct = useMemo(() => distinctCount(queue), [queue]);
+  const cleared = useMemo(() => clearedCount(results), [results]);
+
   function handleAnswer(i) {
     if (sels[idx] !== undefined || !queue) return;
     const q = queue[idx];
@@ -439,6 +452,30 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setSels(prev => ({ ...prev, [idx]: i }));
     setST(t => t + 1); if (correct) setSC(c => c + 1);
     onAnswer(q.id, correct);
+
+    /*
+     * Got it wrong: it comes back before you leave.
+     *
+     * The scheduler already intended this — a lapse is given a one-minute
+     * step, which is Anki's learning step and exists to bring the card round
+     * again in the same sitting. The session could not honour it, because the
+     * queue was built once and only ever walked forwards, so "one minute"
+     * quietly meant "next time you practise", days later. The single most
+     * useful moment in recall — meeting the thing you just missed, while you
+     * still remember missing it — was being thrown away.
+     *
+     * A few questions further on rather than straight after, because
+     * immediately is recognition rather than recall: you would still be
+     * holding the answer. Far enough to have thought about something else,
+     * near enough to be the same sitting.
+     *
+     * Inserting ahead of where you are is safe even though sels and results
+     * are keyed by queue position: a session only moves forwards, so every
+     * slot past the current one is empty and shifting them disturbs nothing.
+     */
+    if (!correct) {
+      setQueue(prev => reask(prev, idx, q));
+    }
     setResults(prev => ({ ...prev, [idx]: {
       id: q.id, q: q.q, cat: q.cat,
       correct,
@@ -938,6 +975,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       results={results}
       isBookmarked={isBookmarked}
       isLast={idx + 1 >= queue.length}
+      cleared={cleared}
+      distinct={distinct}
       onAnswer={handleAnswer}
       onNext={handleNext}
       onPrev={idx > 0 ? handleBack : null}
