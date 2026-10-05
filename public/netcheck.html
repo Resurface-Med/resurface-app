@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Resurface · network check</title>
+<!--
+  What this is for.
+
+  On a filtered network — eduroam, a hospital wifi, a school — "the app
+  doesn't work" can mean five different things, and they are not fixed the
+  same way. The app is static files from one host, but it signs you in
+  against another, generates against a third, and signs you in with Google
+  against a fourth. Any one of those can be blocked while the rest are fine,
+  and the symptom in the app looks much the same.
+
+  So this asks each of them separately and says which answered.
+
+  Everything here is deliberately dependency-free and inline: if a filter is
+  stripping scripts or blocking a CDN, a checker that needs one tells you
+  nothing. If this page itself will not load, that is already the answer —
+  the app's own domain is being blocked.
+
+  Reachability only. A no-cors request cannot read a response, but it can
+  tell the difference between "answered" and "did not", which is the only
+  thing in question. A host that hangs until the timeout is the signature of
+  a filter black-holing it rather than refusing it, so the two are reported
+  differently.
+-->
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; padding: 28px 20px 60px; background: #3562f5; color: #fff;
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width: 620px; margin: 0 auto; }
+  h1 { font-size: 21px; margin: 0 0 4px; letter-spacing: -.4px; }
+  p.sub { margin: 0 0 22px; opacity: .8; font-size: 14px; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { background: #fff; color: #0f1b3d; border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+  .top { display: flex; align-items: baseline; gap: 10px; }
+  .host { font-weight: 650; font-size: 15px; }
+  .ms { margin-left: auto; font-variant-numeric: tabular-nums; opacity: .55; font-size: 13px; }
+  .what { font-size: 13px; opacity: .7; margin-top: 3px; }
+  .verdict { font-weight: 650; font-size: 13px; margin-top: 8px; }
+  .ok { color: #1f9d55; } .bad { color: #d12b2b; } .slow { color: #b25e00; }
+  .pending { opacity: .5; }
+  #summary { background: rgba(255,255,255,.14); border-radius: 14px; padding: 16px;
+             margin-bottom: 18px; font-size: 14.5px; min-height: 22px; }
+  button { font: inherit; font-weight: 600; padding: 11px 18px; border: 0; border-radius: 999px;
+           background: #fff; color: #3562f5; cursor: pointer; margin-top: 8px; }
+  code { background: rgba(255,255,255,.16); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Network check</h1>
+  <p class="sub">Run this on the network that is giving you trouble. It asks each host the app needs, one at a time.</p>
+
+  <div id="summary">Checking…</div>
+  <ul id="list"></ul>
+  <button onclick="location.reload()">Run again</button>
+  <p class="sub" style="margin-top:18px">
+    If this page loaded at all, <code>app.tryresurface.com</code> is not blocked.
+  </p>
+</main>
+
+<script>
+/* Each host, why the app needs it, and what its absence looks like. */
+var TARGETS = [
+  { host: "uhqpljteohitvytwfadp.supabase.co",
+    url:  "https://uhqpljteohitvytwfadp.supabase.co/auth/v1/health",
+    what: "Sign-in and every piece of your data",
+    sym:  "app loads, but you cannot sign in and nothing saves" },
+  { host: "api.tryresurface.com",
+    url:  "https://api.tryresurface.com/api/keepalive",
+    what: "Generating questions, and the AI tutor",
+    sym:  "app works, but Generate and Ask fail" },
+  { host: "accounts.google.com",
+    url:  "https://accounts.google.com/generate_204",
+    what: "Signing in with Google",
+    sym:  "Continue with Google goes nowhere" },
+  { host: "fonts.googleapis.com",
+    url:  "https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap",
+    what: "The typeface",
+    sym:  "app works but looks wrong" },
+  { host: "app.tryresurface.com",
+    url:  "/manifest.webmanifest",
+    what: "The app itself",
+    sym:  "nothing loads at all" }
+];
+
+var TIMEOUT = 6000;
+
+/* A host that answers is reachable. A host that refuses quickly is usually
+   down or wrong. A host that never answers at all is the shape of a filter
+   swallowing the request, which is what a block looks like from in here. */
+function probe(t) {
+  var started = Date.now();
+  return new Promise(function (resolve) {
+    var done = false;
+    var timer = setTimeout(function () {
+      if (done) return;
+      done = true;
+      resolve({ state: "blocked", ms: Date.now() - started,
+                note: "no answer in " + (TIMEOUT / 1000) + "s — the signature of a filter swallowing it" });
+    }, TIMEOUT);
+
+    fetch(t.url, { mode: "no-cors", cache: "no-store" }).then(function () {
+      if (done) return;
+      done = true; clearTimeout(timer);
+      resolve({ state: "ok", ms: Date.now() - started, note: "answered" });
+    }).catch(function (e) {
+      if (done) return;
+      done = true; clearTimeout(timer);
+      resolve({ state: "refused", ms: Date.now() - started,
+                note: "refused straight away (" + (e && e.message ? e.message : "network error") + ")" });
+    });
+  });
+}
+
+var list = document.getElementById("list");
+var summary = document.getElementById("summary");
+var results = [];
+
+TARGETS.forEach(function (t, i) {
+  var li = document.createElement("li");
+  li.className = "pending";
+  li.innerHTML = '<div class="top"><span class="host"></span><span class="ms">…</span></div>' +
+                 '<div class="what"></div><div class="verdict"></div>';
+  li.querySelector(".host").textContent = t.host;
+  li.querySelector(".what").textContent = t.what;
+  list.appendChild(li);
+  t._li = li;
+  t._i = i;
+});
+
+(function run() {
+  var queue = TARGETS.slice();
+  function next() {
+    var t = queue.shift();
+    if (!t) return finish();
+    probe(t).then(function (r) {
+      t._li.className = "";
+      t._li.querySelector(".ms").textContent = r.ms + "ms";
+      var v = t._li.querySelector(".verdict");
+      v.className = "verdict " + (r.state === "ok" ? "ok" : r.state === "refused" ? "slow" : "bad");
+      v.textContent = (r.state === "ok" ? "Reachable — " : r.state === "refused" ? "Refused — " : "Blocked — ")
+                      + r.note + (r.state !== "ok" ? ". Then: " + t.sym + "." : "");
+      results.push({ host: t.host, state: r.state });
+      next();
+    });
+  }
+  next();
+})();
+
+function finish() {
+  var bad = results.filter(function (r) { return r.state !== "ok"; });
+  if (!bad.length) {
+    summary.innerHTML = "Everything the app needs is reachable from this network. " +
+      "If it still misbehaves here, it is not the network blocking a host.";
+    return;
+  }
+  summary.innerHTML = "<strong>" + bad.length + " of " + results.length +
+    " unreachable:</strong> " + bad.map(function (r) { return r.host; }).join(", ") +
+    ". Send this screen to whoever is fixing it — the list below says what each one breaks.";
+}
+</script>
+</body>
+</html>
