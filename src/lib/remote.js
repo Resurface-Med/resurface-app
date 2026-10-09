@@ -242,7 +242,7 @@ export async function loadUserDecks() {
   if (error) return [];
   return (data ?? []).map(r => ({
     id: r.id, name: r.name, parentId: r.parent_id, position: r.position,
-    shareCode: r.share_code, createdAt: r.created_at, isFolder: Boolean(r.is_folder),
+    shareCode: r.share_code, createdAt: r.created_at,
   }));
 }
 
@@ -384,9 +384,9 @@ export const remote = {
   clearSR:        (userId) => send({ kind: "sr-clear", userId }),
 
   // Decks. Creating waits for the id; the rest is fire-and-forget.
-  createDeck: async (userId, name, parentId = null, position = 0, isFolder = false) => {
+  createDeck: async (userId, name, parentId = null, position = 0) => {
     const { data, error } = await supabase.from("decks")
-      .insert({ owner_id: userId, name, parent_id: parentId, position, is_folder: isFolder })
+      .insert({ owner_id: userId, name, parent_id: parentId, position })
       .select("id, share_code, created_at").single();
     if (error) throw error;
     return data;

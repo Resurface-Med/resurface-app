@@ -1,17 +1,13 @@
 import { QUESTIONS } from "../data";
 
 /**
- * Folders and decks.
+ * Decks: the one container.
  *
- * A deck holds questions. A folder holds decks and folders and never holds
- * questions. Both are rows you own — the app ships none. One container for
- * both jobs is what forced "sub-deck" and "top level" into the interface and
- * made every picker offer destinations that could not accept what you were
- * moving.
- *
- * A question carries the path to its deck, and a `leaf` key — the deck's id —
- * which is what Study filters on. Names are for reading; keys are for
- * matching, so two decks called "Glycolysis" never collide.
+ * A deck holds questions and can hold decks, and every one is a row you
+ * own — the app ships none. A question carries the path
+ * to its deck, and a `leaf` key — the deck's id — which is what Study
+ * filters on. Names are for reading; keys are for matching, so two decks
+ * called "Glycolysis" never collide.
  */
 
 export { deckPath, decorateUserQuestion } from "./deckPaths";
@@ -40,10 +36,10 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
   const nodes = new Map();
   const roots = [];
 
-  function node(id, name, parentNode, mine, isFolder = false) {
+  function node(id, name, parentNode, mine) {
     let n = nodes.get(id);
     if (!n) {
-      n = { id, name, children: [], total: 0, seen: 0, avail: 0, due: 0, mine, isFolder, depth: parentNode ? parentNode.depth + 1 : 0 };
+      n = { id, name, children: [], total: 0, seen: 0, avail: 0, due: 0, mine, depth: parentNode ? parentNode.depth + 1 : 0 };
       nodes.set(id, n);
       if (parentNode) parentNode.children.push(n); else roots.push(n);
     }
@@ -56,7 +52,7 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
   function ensureDeck(d) {
     if (nodes.has(d.id)) return nodes.get(d.id);
     const parent = d.parentId && byId.has(d.parentId) ? ensureDeck(byId.get(d.parentId)) : null;
-    return node(d.id, d.name, parent, true, Boolean(d.isFolder));
+    return node(d.id, d.name, parent, true);
   }
   for (const d of sorted) ensureDeck(d);
 
@@ -120,7 +116,7 @@ export function deckCodeFromLocation() {
   return m ? m[1] : null;
 }
 
-/** The questions in a deck, or in every deck under a folder. */
+/** The questions in a deck, including its sub-decks. */
 export function questionsInDeck(deckId) {
   return QUESTIONS.filter(q => q.path?.some(p => p.id === deckId));
 }

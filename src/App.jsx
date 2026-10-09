@@ -201,10 +201,10 @@ export default function App() {
 
   // ── Decks ─────────────────────────────────────────────────────────────
   // Optimistic like everything else. Creating waits for the id.
-  async function createDeck(name, parentId = null, isFolder = false) {
+  async function createDeck(name, parentId = null) {
     const siblings = decks.filter(d => (d.parentId ?? null) === parentId);
-    const row = await remote.createDeck(user.id, name, parentId, siblings.length, isFolder);
-    const d = { id: row.id, name, parentId, position: siblings.length, shareCode: row.share_code, createdAt: row.created_at, isFolder };
+    const row = await remote.createDeck(user.id, name, parentId, siblings.length);
+    const d = { id: row.id, name, parentId, position: siblings.length, shareCode: row.share_code, createdAt: row.created_at };
     applyDecks([...decks, d]);
     return d;
   }
@@ -212,8 +212,8 @@ export default function App() {
     applyDecks(decks.map(d => d.id === id ? { ...d, name } : d));
     remote.updateDeck(id, { name });
   }
-  /* Deleting a folder deletes what is under it — its decks and their
-     questions. The database cascades; the pool is
+  /* Deleting a deck deletes what is under it — its sub-decks and their
+     questions — the way a deck does. The database cascades; the pool is
      pruned here so nothing lingers until the next load. */
   function deleteDeck(id) {
     const gone = new Set();
@@ -225,14 +225,12 @@ export default function App() {
     applyGenerated(keptRows, keptDecks);
     remote.deleteDeck(id);
   }
+  /* Copy bank topics into a deck: each becomes a sub-deck holding copies of
+     the topic's questions — yours, with fresh ids, like an import. */
   /* Re-parent a deck. Refused if the target is the deck itself or under it. */
   function moveDeck(id, parentId) {
     let p = parentId;
     while (p) { if (p === id) return; p = decks.find(d => d.id === p)?.parentId ?? null; }
-    /* Only a folder can contain things. The database refuses this too; doing
-       it here as well keeps the optimistic update from showing a move that is
-       about to be rejected. */
-    if (parentId && !decks.find(d => d.id === parentId)?.isFolder) return;
     applyDecks(decks.map(d => d.id === id ? { ...d, parentId: parentId ?? null } : d));
     remote.updateDeck(id, { parent_id: parentId ?? null });
   }

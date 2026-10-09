@@ -62,18 +62,6 @@ function Check({ state }) {
   );
 }
 
-/* A folder reads as one at a glance, so the two kinds are told apart by
-   looking rather than by remembering which is which. Decks carry no mark:
-   marking both would be marking neither. */
-function FolderMark() {
-  return (
-    <svg className="topic-folder" width="14" height="14" viewBox="0 0 16 16" aria-label="Folder" role="img">
-      <path d="M1.75 4.25a1 1 0 0 1 1-1h3.1a1 1 0 0 1 .78.37l.74.92h5.88a1 1 0 0 1 1 1v6.2a1 1 0 0 1-1 1h-10.5a1 1 0 0 1-1-1z"
-        fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 /** A row's own menu. Only your decks have one. */
 function RowMenu({ node, items }) {
   const [open, setOpen] = useState(false);
@@ -222,7 +210,6 @@ export default function DeckTree({
             className="topic-hit"
           >
             <Check state={st} />
-            {n.isFolder && <FolderMark />}
             <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
             {depth === 0
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>

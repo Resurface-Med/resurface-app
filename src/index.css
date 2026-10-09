@@ -2027,15 +2027,6 @@ select {
 
 .topic-row.is-child { padding-left: 28px; }
 
-/* The folder mark sits with the name, dimmer than it: it says what the row
-   is, it is not the row's subject. */
-.topic-folder {
-  flex: none;
-  margin-right: 6px;
-  color: var(--c-muted);
-  opacity: 0.85;
-}
-
 .topic-row.is-empty {
   opacity: 0.38;
   cursor: not-allowed;

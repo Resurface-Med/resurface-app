@@ -31,23 +31,16 @@ the theme and a queue of writes that failed mid-session, and nothing else.
 `pq_*` keys are legacy from "principles-quiz" and must never be renamed —
 they are invisible to users and renaming them wipes everyone's progress.
 
-**Folders and decks.** A deck holds questions. A folder holds decks and
-folders and never holds questions. Both rules are enforced by triggers rather
-than only by the interface, and `decks.is_folder` is which. Everything is a
-row you own — the app ships none. Questions filter by `leaf` (a deck id),
-never by name.
+**Decks are the one container.** A deck holds questions and can hold decks.
+The bank ships as a read-only deck, "ARU Year 1"; every deck of yours is a
+real row. Questions filter by `leaf` (a deck id), never by name.
 
-Before 2026-10-09 there was one container called a deck that did both jobs,
-which is what forced "sub-deck" and "top level" into the menus and made every
-picker offer destinations that could not accept what you were moving.
-
-**There is no shipped bank.** It used to be `public/decks/*.json`, 506
-questions for ARU Year 1, fetched on sign-in; `2148149` removed it because
-being matched to one paper is what capped the product at a single cohort. The
-files are kept out of the build in `content/decks/`. `GEN_ID_BASE = 1_000_000`
-in `src/data/index.js` survives it: it separated your questions from the
-bank's ids 1–510, and `practice_stats`, `sr_cards` and `bookmarks` all still
-key on a bare question id, so the offset stays.
+**The bank is fetched, not bundled.** `public/decks/*.json`, listed in
+`index.json`. 506 questions across nine subjects, heavily lopsided —
+biochemistry 153, anatomy 26. Ids are **global across deck files**, not per
+file: anatomy runs to 508 while its own file starts at 377. `GEN_ID_BASE =
+1_000_000` in `src/data/index.js` separates user-written questions, because
+`practice_stats`, `sr_cards` and `bookmarks` all key on a bare question id.
 
 **Generation runs on Gemini**, `gemini-3.5-flash-lite`, free tier, 500
 requests a day shared across all users. `/api/generate` and `/api/explain`

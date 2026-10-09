@@ -78,14 +78,11 @@ create table if not exists public.question_flags (
   created_at timestamp with time zone not null default now()
 );
 
--- is_folder is the whole deck model: false holds questions, true holds decks
--- and folders. The triggers below keep the two from blurring back together.
 create table if not exists public.decks (
   id uuid not null default gen_random_uuid(),
   owner_id uuid not null,
   parent_id uuid,
   name text not null,
-  is_folder boolean not null default false,
   "position" integer not null default 0,
   share_code text not null default encode(gen_random_bytes(6), 'hex'::text),
   created_at timestamp with time zone not null default now(),
@@ -598,47 +595,6 @@ language sql stable security definer set search_path = 'public' as $$
   order by h.name
 $$;
 
--- Only a folder may contain things, and a deck that already holds questions
--- may not become one — that would strand them somewhere nothing can reach.
-create or replace function public.decks_shape_ok()
-returns trigger language plpgsql set search_path = '' as $$
-declare
-  parent_is_folder boolean;
-begin
-  if new.parent_id is not null then
-    select is_folder into parent_is_folder from public.decks where id = new.parent_id;
-    if parent_is_folder is not true then
-      raise exception 'Only a folder can contain decks or folders.';
-    end if;
-  end if;
-
-  if new.is_folder and not coalesce(old.is_folder, false) then
-    if exists (select 1 from public.generated_questions q where q.deck_id = new.id) then
-      raise exception 'This has questions in it, so it cannot become a folder.';
-    end if;
-  end if;
-
-  return new;
-end;
-$$;
-
-revoke all on function public.decks_shape_ok() from anon, authenticated, public;
-
--- The same rule from the other side: a question is filed into a deck, never
--- into a folder.
-create or replace function public.question_deck_ok()
-returns trigger language plpgsql set search_path = '' as $$
-begin
-  if new.deck_id is not null
-     and (select is_folder from public.decks where id = new.deck_id) is true then
-    raise exception 'Questions go in a deck, not a folder.';
-  end if;
-  return new;
-end;
-$$;
-
-revoke all on function public.question_deck_ok() from anon, authenticated, public;
-
 -- -------------------------------------------------------------- triggers
 
 create trigger on_auth_user_created
@@ -652,14 +608,6 @@ create trigger cleanup_question_progress
 create trigger forbid_deck_cycle
   before insert or update of parent_id on public.decks
   for each row execute function public.forbid_deck_cycle();
-
-create trigger decks_shape_ok
-  before insert or update of parent_id, is_folder on public.decks
-  for each row execute function public.decks_shape_ok();
-
-create trigger question_deck_ok
-  before insert or update of deck_id on public.generated_questions
-  for each row execute function public.question_deck_ok();
 
 -- ---------------------------------------------------------------- grants
 --
