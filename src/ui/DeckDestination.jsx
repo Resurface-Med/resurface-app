@@ -21,24 +21,40 @@ import { createPortal } from "react-dom";
  * file instead, which you can read and correct in one glance.
  */
 
+/**
+ * One row, with a rail of guide lines standing in for its ancestors.
+ *
+ * Indentation alone stops reading as a hierarchy past about two levels —
+ * you end up counting pixels to work out whether "Week 2" is a sibling of
+ * "Week 1" or of the thing above it. A line per ancestor is the same device
+ * the deck tree uses and every file browser has.
+ */
 function Row({ label, depth = 0, count, chosen, muted, onClick }) {
   return (
     <button
       type="button"
       className={`dd-row${chosen ? " is-chosen" : ""}${muted ? " is-muted" : ""}`}
-      style={{ paddingLeft: 14 + depth * 18 }}
       onClick={onClick}
     >
+      {depth > 0 && (
+        <span className="dd-rail" aria-hidden="true">
+          {Array.from({ length: depth }, (_, i) => <span key={i} className="dd-guide" />)}
+        </span>
+      )}
       <span className="dd-row-name">{label}</span>
       {typeof count === "number" && (
-        <span className="dd-row-count">{count === 0 ? "empty" : `${count}`}</span>
+        <span className="dd-row-count">
+          {count === 0 ? "empty" : <>{count}<span className="dd-row-unit">{count === 1 ? " question" : " questions"}</span></>}
+        </span>
       )}
-      {chosen && (
-        <svg className="dd-row-tick" width="14" height="14" viewBox="0 0 12 12" aria-hidden="true">
-          <path d="M2 6.4L4.6 9 10 3.2" fill="none" stroke="currentColor" strokeWidth="2.1"
-            strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      )}
+      <span className="dd-row-tick" aria-hidden="true">
+        {chosen && (
+          <svg width="15" height="15" viewBox="0 0 12 12">
+            <path d="M2 6.4L4.6 9 10 3.2" fill="none" stroke="currentColor" strokeWidth="2.1"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
     </button>
   );
 }
@@ -89,14 +105,25 @@ export default function DeckDestination({
     return out;
   }, [decks]);
 
-  /* Searching flattens the tree. Indentation is only meaningful next to the
-     parent it is indented from, and a filtered list has lost those. */
   const q = query.trim().toLowerCase();
+  /* Searching flattens the tree: a guide line pointing at a parent that was
+     filtered out is worse than no line. The path is shown on the row instead
+     so a filtered result still says where it lives. */
   const shown = q
-    ? rows.filter(r => r.name.toLowerCase().includes(q)).map(r => ({ ...r, depth: 0 }))
+    ? rows.filter(r => r.name.toLowerCase().includes(q)).map(r => ({ ...r, depth: 0, flat: true }))
     : rows;
 
   const insideName = inside ? rows.find(r => r.id === inside)?.name : null;
+
+  /* "Week 1 › Upper Renal Tract", for a result whose parents are not shown. */
+  function pathOf(id) {
+    const out = [];
+    const byId = new Map(decks.map(d => [d.id, d]));
+    let cur = byId.get(id);
+    let guard = 0;
+    while (cur && guard++ < 32) { out.unshift(cur.name); cur = cur.parentId ? byId.get(cur.parentId) : null; }
+    return out.join(" › ");
+  }
 
   if (!open) return null;
 
@@ -144,7 +171,7 @@ export default function DeckDestination({
           {shown.map(r => (
             <Row
               key={r.id}
-              label={r.name}
+              label={r.flat ? pathOf(r.id) : r.name}
               depth={r.depth}
               count={countFor?.(r.id)}
               chosen={r.id === chosenId}
