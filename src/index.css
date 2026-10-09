@@ -7181,3 +7181,162 @@ select {
   cursor: pointer;
 }
 .np__skip:hover { color: var(--c-text); }
+
+/* ── Where generated questions go ──────────────────────────────────────── */
+
+.dd-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(26, 47, 122, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.dd-sheet {
+  width: 100%;
+  max-width: 420px;
+  /* tall enough to be worth opening, never taller than the screen */
+  max-height: min(560px, 82vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--c-surface);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(15, 27, 61, 0.28);
+  overflow: hidden;
+}
+.dd-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 14px 12px 18px;
+  border-bottom: 1px solid var(--c-border);
+}
+.dd-title { font-size: 15.5px; font-weight: 650; letter-spacing: -0.2px; color: var(--c-text); }
+.dd-close {
+  margin-left: auto;
+  background: none; border: none; padding: 4px 6px;
+  font-size: 15px; line-height: 1; color: var(--c-muted); cursor: pointer;
+}
+.dd-close:hover { color: var(--c-text); }
+
+.dd-search { padding: 10px 14px; border-bottom: 1px solid var(--c-border); }
+.dd-search input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--c-text);
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+.dd-search input:focus { outline: none; border-color: var(--c-accent); }
+
+.dd-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+.dd-none { margin: 0; padding: 18px 16px; text-align: center; font-size: 14px; color: var(--c-muted); }
+
+.dd-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+}
+.dd-row:hover { background: var(--c-surface2); }
+.dd-row.is-chosen { background: var(--c-surface2); font-weight: 600; }
+/* while naming, the list is for picking a parent, so what is not the parent
+   steps back rather than disappearing */
+.dd-row.is-muted { opacity: 0.5; }
+.dd-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-row-count { flex: none; font-size: 12.5px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.dd-row-tick { flex: none; color: var(--c-accent); }
+
+.dd-foot { border-top: 1px solid var(--c-border); padding: 12px 14px; }
+.dd-newbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: none;
+  padding: 2px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--c-accent);
+  cursor: pointer;
+}
+.dd-newbtn:hover { color: var(--c-accent-lt, var(--c-accent)); }
+
+.dd-new-label { display: block; font-size: 13px; font-weight: 600; color: var(--c-text); margin-bottom: 7px; }
+.dd-new-row { display: flex; gap: 8px; }
+.dd-new-row input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--c-text);
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+}
+.dd-new-row input:focus { outline: none; border-color: var(--c-accent); }
+.dd-create {
+  flex: none;
+  background: var(--c-accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dd-create:disabled { opacity: 0.45; cursor: default; }
+.dd-hint { margin: 8px 0 0; font-size: 12.5px; color: var(--c-muted); }
+
+/* The one row in Generate that opens all of the above. */
+.gen-dest {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gen-dest:hover { border-color: var(--c-accent); }
+.gen-dest-body { flex: 1; min-width: 0; }
+.gen-dest-path { display: block; font-size: 12.5px; color: var(--c-muted); margin-bottom: 2px; }
+.gen-dest-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  color: var(--c-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.gen-dest-name.is-empty { font-weight: 500; color: var(--c-muted); }
+.gen-dest-change { flex: none; font-size: 13.5px; font-weight: 600; color: var(--c-accent); }
+
+@media (max-width: 560px) {
+  .dd-scrim { padding: 0; align-items: flex-end; }
+  .dd-sheet { max-width: none; max-height: 86vh; border-radius: 20px 20px 0 0; }
+}

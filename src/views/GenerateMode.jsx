@@ -2,8 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
 import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
-import { DECK_MAP } from "../data";
-import { deckPath, indexDecks } from "../lib/decks";
+import DeckDestination from "../ui/DeckDestination";
+import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -50,18 +50,6 @@ const band = {
   width: "100%",
 };
 
-const field = {
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "11px 14px",
-  fontSize: 15,
-  fontFamily: "inherit",
-  color: "var(--c-text)",
-  background: "var(--c-surface3)",
-  border: "1.5px solid transparent",
-  borderRadius: "var(--r-ctrl)",
-  outline: "none",
-};
 
 // ── Guessing where a file belongs ───────────────────────────────────────────
 
@@ -75,60 +63,6 @@ const FILENAME_NOISE = new Set([
   "introduction", "draft", "updated", "new",
 ]);
 
-function fileWords(str) {
-  return String(str)
-    .toLowerCase()
-    .replace(/\.[a-z0-9]+$/, "")
-    .replace(/[^a-z]+/g, " ")
-    .split(" ")
-    .filter(t => t.length > 2 && !FILENAME_NOISE.has(t));
-}
-
-/**
- * Where a file probably belongs, or nothing.
- *
- * Topics are searched across every subject rather than inside a guessed one.
- * A topic name is far more distinctive than a subject name — "Glycolysis"
- * identifies one topic on its own, while plenty of lectures never say
- * "Biochemistry" anywhere in the filename — so the subject is taken from
- * whichever topic wins.
- *
- * Three gates, all of them about refusing to guess: half the topic's words
- * must appear, one of them must be a real word rather than a short common
- * one, and the runner-up must be clearly behind. That last gate is what makes
- * "Immunity.pdf" return nothing instead of picking Innate or Adaptive at
- * random, which is the failure that would matter — a wrong topic files
- * questions somewhere they will not be found again.
- */
-function guessPlacement(name) {
-  const w = fileWords(name);
-  if (!w.length) return { deck: null, cat: null };
-
-  const scored = [];
-  for (const [deck, cats] of Object.entries(DECK_MAP)) {
-    for (const cat of cats || []) {
-      const ct = fileWords(shortCat(cat, deck));
-      if (!ct.length) continue;
-      const hits = ct.filter(t => w.some(f =>
-        f === t || (t.length >= 4 && f.startsWith(t)) || (f.length >= 4 && t.startsWith(f))));
-      scored.push({ deck, cat, score: hits.length / ct.length, strong: hits.some(t => t.length >= 5) });
-    }
-  }
-  scored.sort((a, b) => b.score - a.score);
-  const [top, second] = scored;
-  const confident = top && top.score >= 0.5 && top.strong
-    && (!second || top.score - second.score >= 0.2);
-  if (confident) return { deck: top.deck, cat: top.cat };
-
-  // No topic, but the subject may still be named outright.
-  for (const deck of Object.keys(DECK_MAP)) {
-    const d = deck.toLowerCase();
-    if (w.some(t => t.length >= 4 && (d.startsWith(t) || t.startsWith(d)))) {
-      return { deck, cat: null };
-    }
-  }
-  return { deck: null, cat: null };
-}
 
 /**
  * The part of a filename a person would recognise.
@@ -176,9 +110,6 @@ function suggestTopicName(name) {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
-function shortCat(cat, deck) {
-  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
-}
 
 // ── File extraction ─────────────────────────────────────────────────────────
 
@@ -572,6 +503,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [deckChoice, setDeckChoice] = useState(targetDeckId || decks.length === 0 ? "__new__" : "");
   const [newDeckName, setNewDeckName] = useState("");
   const [newDeckParent, setNewDeckParent] = useState(targetDeckId ?? "");
+  const [picking, setPicking] = useState(false);
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -619,7 +551,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     /* A name for the new deck from the file, if none was typed. A file name
        must not overwrite a decision made by hand. */
     if (!newDeckName.trim()) {
-      const guess = suggestTopicName(f.name) || guessPlacement(f.name).cat || "";
+      const guess = suggestTopicName(f.name);
       if (guess) setNewDeckName(guess);
       if (!targetDeckId && !deckChoice) setDeckChoice("__new__");
     }
@@ -652,12 +584,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
 
   const decksById = indexDecks(decks);
   /* Decks in reading order, with depth, for the picker. */
-  const deckOptions = (() => {
-    const out = [];
-    const kids = pid => decks.filter(d => (d.parentId ?? null) === pid).sort((a, b) => a.position - b.position);
-    (function walk(pid, depth) { for (const d of kids(pid)) { out.push({ ...d, depth }); walk(d.id, depth + 1); } })(null, 0);
-    return out;
-  })();
+  /* What the picker offers as the new deck's name: whatever is already
+     pending, else the file's own name cleaned up. Naming needs no cleverness
+     — "2.1 Larynx, trachea, chest wall.pdf" is already the answer — and it is
+     visible and correctable, unlike a guess at which existing deck to use. */
+  const suggestedDeckName = newDeckName.trim()
+    || (file ? suggestTopicName(file.name) : "")
+    || "";
+
   const deckLabel = deckChoice === "__new__"
     ? [...(newDeckParent ? deckPath(newDeckParent, decksById).map(p => p.name) : []), newDeckName.trim()].join(" › ")
     : deckPath(deckChoice, decksById).map(p => p.name).join(" › ");
@@ -868,46 +802,42 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   }
 
 
-  /* Year, Block, Subject, Topic — widest first. Each narrows the one after
-     it, and Topic, the only one that has to be filled, comes last. */
+  /* One row saying where the questions are going, and a picker behind it.
+     This was two dropdowns, the second of which only existed if you chose
+     "＋ New deck…" in the first, and whose own first option was "Top level". */
+  const destParts = hasPlace ? String(deckLabel).split(" › ") : [];
+  const destName = destParts.length ? destParts[destParts.length - 1] : "";
+  const destPath = destParts.slice(0, -1).join(" › ");
+
   const placement = (
     <div className="gen-deck">
-      <label className="gen-field">
-        <span className="gen-field-label">Deck</span>
-        <select value={deckChoice} onChange={e => setDeckChoice(e.target.value)} style={{ ...field, cursor: "pointer" }}>
-          <option value="">Choose a deck…</option>
-          {deckOptions.map(d => (
-            <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
-          ))}
-          <option value="__new__">＋ New deck…</option>
-        </select>
-      </label>
-      {deckChoice === "__new__" && (
-        <div className="gen-grid">
-          <label className="gen-field">
-            <span className="gen-field-label">Name</span>
-            <input
-              type="text"
-              value={newDeckName}
-              onChange={e => setNewDeckName(e.target.value)}
-              placeholder="e.g. 2.1 Larynx, trachea, chest wall"
-              style={field}
-              autoFocus={!newDeckName}
-              maxLength={80}
-            />
-          </label>
-          <label className="gen-field">
-            <span className="gen-field-label">Inside</span>
-            <select value={newDeckParent} onChange={e => setNewDeckParent(e.target.value)} style={{ ...field, cursor: "pointer" }}>
-              <option value="">Top level</option>
-              {deckOptions.map(d => (
-                <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-      )}
-      {(deckChoice && hasPlace) ? <p className="gen-deck-path">Going into <strong>{deckLabel}</strong></p> : null}
+      <button type="button" className="gen-dest" onClick={() => setPicking(true)}>
+        <span className="gen-dest-body">
+          {destPath && <span className="gen-dest-path">{destPath}</span>}
+          <span className={`gen-dest-name${hasPlace ? "" : " is-empty"}`}>
+            {hasPlace ? destName : "Choose a deck"}
+          </span>
+        </span>
+        <span className="gen-dest-change">{hasPlace ? "Change" : "Choose"}</span>
+      </button>
+
+      <DeckDestination
+        open={picking}
+        onClose={() => setPicking(false)}
+        decks={decks}
+        countFor={id => questionsInDeck(id).length}
+        chosenId={deckChoice === "__new__" ? null : deckChoice || null}
+        onChooseExisting={id => { setDeckChoice(id); setNewDeckName(""); setNewDeckParent(""); }}
+        suggestedName={suggestedDeckName}
+        onCreate={(name, parentId) => {
+          /* Held as a pending new deck rather than created now: the row is
+             only made once you actually generate, so backing out of the flow
+             does not leave an empty deck behind. */
+          setDeckChoice("__new__");
+          setNewDeckName(name);
+          setNewDeckParent(parentId ?? "");
+        }}
+      />
     </div>
   );
 
