@@ -68,11 +68,10 @@ function listNames(names) {
 function summarise(pStats) {
   const seen = seenCount(QUESTIONS, pStats);
   const total = QUESTIONS.length;
-  /* Nothing to answer and nothing answered are different problems, and the
-     second sentence used to be given for both: "answer a few questions" is a
-     dead end when you have none, and it is the first thing a new account
-     reads. */
-  if (total === 0) return { lead: "Nothing here yet.", rest: "Add some material and this starts tracking it." };
+  /* Nothing at all: the band says nothing, and the empty state below says it
+     once. Saying it in both is how a header and an empty state end up
+     repeating each other, which is the tell of a page nobody composed. */
+  if (total === 0) return null;
   if (seen === 0) return { lead: "Nothing attempted yet.", rest: "Answer a few questions and this fills in." };
 
   const decks = [...new Set(QUESTIONS.map(q => q.deck))];
@@ -183,42 +182,23 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
  * What the page says when there is nothing to measure.
  *
  * The sheet is built from the curriculum, which is derived from the questions,
- * so with no questions it renders nothing at all — and what was left was the
- * two reset buttons alone under a wave, floating above a screen of empty
- * surface. Offering to reset nothing, to somebody on their first visit, as the
- * only thing on the page.
+ * so a new account renders nothing at all and the two reset buttons were left
+ * standing alone above a screen of empty surface.
  *
- * So: say what the page becomes, and give the one action that gets there. The
- * three lines are the three things it actually measures, which is worth
- * knowing before you have them rather than after.
+ * A title, a line, a button. Nothing here needs explaining at length: the
+ * person is one action away from the page working, and listing what it will
+ * eventually show is a brochure, not an empty state.
  */
 function Blank({ onGenerate }) {
   return (
     <div className="prog-blank">
-      <div className="prog-blank-inner" data-in="up" style={{ "--i": 0 }}>
-        <h2 className="prog-blank-title">Nothing to measure yet</h2>
+      <div className="prog-blank-inner">
+        <h2 className="prog-blank-title">No progress yet</h2>
         <p className="prog-blank-body">
-          Upload a lecture or paste your notes, and Resurface writes questions
-          from them. Once you have answered a few, this page fills in.
+          Add a lecture and your progress will show up here.
         </p>
-
-        <ul className="prog-blank-list">
-          <li>
-            <span className="prog-blank-term">Coverage</span>
-            <span className="prog-blank-def">how much of each subject you have seen</span>
-          </li>
-          <li>
-            <span className="prog-blank-term">Accuracy</span>
-            <span className="prog-blank-def">the share you got right, once there is enough to judge it</span>
-          </li>
-          <li>
-            <span className="prog-blank-term">Weak topics</span>
-            <span className="prog-blank-def">weakest first, each one a way straight into practice</span>
-          </li>
-        </ul>
-
         <button type="button" className="prog-blank-cta btn-press" onClick={onGenerate}>
-          Add your material <span aria-hidden="true">→</span>
+          Add material
         </button>
       </div>
     </div>
@@ -254,10 +234,12 @@ export default function StatsView({
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
-        <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
-          <span className="prog-lead-first">{summary.lead}</span>
-          {summary.rest ? <> {summary.rest}</> : null}
-        </p>
+        {summary && (
+          <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
+            <span className="prog-lead-first">{summary.lead}</span>
+            {summary.rest ? <> {summary.rest}</> : null}
+          </p>
+        )}
       </div>
 
       <Wave from="transparent" to="var(--c-surface2)" />
