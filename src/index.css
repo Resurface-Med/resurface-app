@@ -2493,6 +2493,91 @@ select {
 }
 .prog-practice-all:hover { color: var(--c-accent-lt); }
 
+/* The Progress page with nothing in it.
+   
+   It fills the sheet's space rather than sitting at the top of it: the
+   complaint was a screen of empty surface below two reset links, and content
+   centred in that space reads as composed where content stacked at the top of
+   it reads as abandoned. */
+.prog-blank {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: clamp(28px, 6vh, 72px) clamp(20px, 3vw, 40px) clamp(40px, 8vh, 96px);
+}
+.prog-blank-inner {
+  width: 100%;
+  max-width: 440px;
+  text-align: center;
+}
+.prog-blank-title {
+  margin: 0;
+  font-size: clamp(21px, 2.6vw, 25px);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--c-text);
+}
+.prog-blank-body {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--c-muted);
+}
+
+/* A term and its definition per row, the terms aligned as a column so the
+   three read as one list rather than three sentences. */
+.prog-blank-list {
+  list-style: none;
+  margin: clamp(22px, 3.4vh, 30px) 0 0;
+  padding: 0;
+  text-align: left;
+  border-top: 1px solid var(--c-border);
+}
+.prog-blank-list li {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  align-items: baseline;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--c-border);
+}
+.prog-blank-term {
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  color: var(--c-text);
+}
+.prog-blank-def {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--c-muted);
+}
+
+.prog-blank-cta {
+  margin-top: clamp(22px, 3.4vh, 30px);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  /* Accent-filled, not the dashboard's white pill. That one lives on the blue
+     band, where white on blue is the contrast; here the surface is nearly
+     white and the same token all but disappeared into it. */
+  background: var(--c-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 11px 22px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(53, 98, 245, 0.26);
+}
+.prog-blank-cta:hover { background: var(--c-accent-lt, var(--c-accent)); }
+
+@media (max-width: 460px) {
+  .prog-blank-list li { grid-template-columns: 1fr; gap: 2px; }
+}
+
 .prog-reset {
   display: flex;
   flex-wrap: wrap;

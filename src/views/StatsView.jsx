@@ -68,6 +68,11 @@ function listNames(names) {
 function summarise(pStats) {
   const seen = seenCount(QUESTIONS, pStats);
   const total = QUESTIONS.length;
+  /* Nothing to answer and nothing answered are different problems, and the
+     second sentence used to be given for both: "answer a few questions" is a
+     dead end when you have none, and it is the first thing a new account
+     reads. */
+  if (total === 0) return { lead: "Nothing here yet.", rest: "Add some material and this starts tracking it." };
   if (seen === 0) return { lead: "Nothing attempted yet.", rest: "Answer a few questions and this fills in." };
 
   const decks = [...new Set(QUESTIONS.map(q => q.deck))];
@@ -174,6 +179,52 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
   );
 }
 
+/**
+ * What the page says when there is nothing to measure.
+ *
+ * The sheet is built from the curriculum, which is derived from the questions,
+ * so with no questions it renders nothing at all — and what was left was the
+ * two reset buttons alone under a wave, floating above a screen of empty
+ * surface. Offering to reset nothing, to somebody on their first visit, as the
+ * only thing on the page.
+ *
+ * So: say what the page becomes, and give the one action that gets there. The
+ * three lines are the three things it actually measures, which is worth
+ * knowing before you have them rather than after.
+ */
+function Blank({ onGenerate }) {
+  return (
+    <div className="prog-blank">
+      <div className="prog-blank-inner" data-in="up" style={{ "--i": 0 }}>
+        <h2 className="prog-blank-title">Nothing to measure yet</h2>
+        <p className="prog-blank-body">
+          Upload a lecture or paste your notes, and Resurface writes questions
+          from them. Once you have answered a few, this page fills in.
+        </p>
+
+        <ul className="prog-blank-list">
+          <li>
+            <span className="prog-blank-term">Coverage</span>
+            <span className="prog-blank-def">how much of each subject you have seen</span>
+          </li>
+          <li>
+            <span className="prog-blank-term">Accuracy</span>
+            <span className="prog-blank-def">the share you got right, once there is enough to judge it</span>
+          </li>
+          <li>
+            <span className="prog-blank-term">Weak topics</span>
+            <span className="prog-blank-def">weakest first, each one a way straight into practice</span>
+          </li>
+        </ul>
+
+        <button type="button" className="prog-blank-cta btn-press" onClick={onGenerate}>
+          Add your material <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function StatsView({
   pStats, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
 }) {
@@ -194,6 +245,10 @@ export default function StatsView({
   }
 
   const summary = useMemo(() => summarise(pStats), [pStats]);
+  /* Against the questions that exist, not the rows that are stored — progress
+     outlives the question it was recorded against, so a count taken from the
+     rows can outlive the thing it describes. Same reason seenCount exists. */
+  const attempted = useMemo(() => seenCount(QUESTIONS, pStats) > 0, [pStats]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -207,7 +262,8 @@ export default function StatsView({
 
       <Wave from="transparent" to="var(--c-surface2)" />
 
-      <div style={{ background: "var(--c-surface2)", flex: 1 }}>
+      <div style={{ background: "var(--c-surface2)", flex: 1, display: "flex", flexDirection: "column" }}>
+        {CURRICULUM.length === 0 ? <Blank onGenerate={() => setView(V.GENERATE)} /> : (
         <div className="prog-sheet" style={{ ...band, maxWidth: 760 }}>
           {CURRICULUM.map((b, i) => {
             const blockQs = QUESTIONS.filter(q => q.block === b.block);
@@ -238,23 +294,29 @@ export default function StatsView({
             );
           })}
 
-          <div className="prog-reset">
-            <button
-              type="button"
-              className="prog-reset-btn"
-              onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
-            >
-              Reset practice stats
-            </button>
-            <button
-              type="button"
-              className="prog-reset-btn"
-              onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
-            >
-              Reset review schedule
-            </button>
-          </div>
+          {/* Only once there is something to undo. Two destructive buttons are
+              not an introduction to a page, and that is all this one had on it
+              for anybody who had just signed up. */}
+          {attempted && (
+            <div className="prog-reset">
+              <button
+                type="button"
+                className="prog-reset-btn"
+                onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
+              >
+                Reset practice stats
+              </button>
+              <button
+                type="button"
+                className="prog-reset-btn"
+                onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
+              >
+                Reset review schedule
+              </button>
+            </div>
+          )}
         </div>
+        )}
       </div>
     </div>
   );
