@@ -7182,6 +7182,19 @@ select {
 }
 .np__skip:hover { color: var(--c-text); }
 
+/* The save failing is the one error in this flow that must not be quiet:
+   the questions exist only on screen until the write lands, and they cost a
+   generation to make. */
+.gen-save-error {
+  margin: 0 0 10px;
+  padding: 10px 14px;
+  border-radius: var(--r-ctrl);
+  background: var(--c-danger-bg, rgba(214, 69, 69, 0.1));
+  color: var(--c-danger, #b23b3b);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
 /* ── Where generated questions go ──────────────────────────────────────── */
 /*
  * Sized for a thumb first and a cursor second: 60px rows, 17px names, and on

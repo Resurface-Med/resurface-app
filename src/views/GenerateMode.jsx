@@ -574,13 +574,32 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     const d = await deckActions.createDeck(newDeckName.trim(), newDeckParent || null);
     return d.id;
   }
+  /**
+   * Saves the kept questions, and says which of the two things happened.
+   *
+   * addGenerated parks the rows in the retry queue and returns null when the
+   * write fails, so nothing is lost — but this used to turn that into an empty
+   * array, and the caller went to "Added" regardless. You were told it had
+   * worked, found nothing there, and the obvious response is to generate the
+   * same lecture again: another few thousand tokens out of five hundred
+   * requests a day, to replace questions that were never gone.
+   *
+   * So the two outcomes are now distinguishable, and the screen says which.
+   */
   async function withIds(list, deckId) {
-    if (!user) return list;
+    if (!user) return { rows: list, queued: false };
     const payloads = list.map(({ q, opts, ans, exp, optExp, img }) => ({ q, opts, ans, exp, optExp, ...(img ? { img } : {}) }));
     const ids = await remote.addGenerated(user.id, payloads, deckId);
-    return ids ? payloads.map((q, i) => ({ ...q, id: ids[i], gen: true, deckId })) : [];
+    /* Queued rows have no id yet, and an id is what progress is keyed on, so
+       they cannot join the pool until the queue drains. */
+    if (!ids) return { rows: [], queued: true };
+    return { rows: payloads.map((q, i) => ({ ...q, id: ids[i], gen: true, deckId })), queued: false };
   }
   const [savedDeckId, setSavedDeckId] = useState(null);
+  /* Written, or only queued because the network was not there. */
+  const [savedQueued, setSavedQueued] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const decksById = indexDecks(decks);
   /* Decks in reading order, with depth, for the picker. */
@@ -607,23 +626,41 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         sub={`Keeping ${keptList.length} of ${generated.length}. Untick any you don’t want.`}
         footer={(
           <div className="gen-sticky">
+            {saveError && (
+              <p className="gen-save-error" role="alert">
+                {saveError}
+              </p>
+            )}
             <div className="gen-sticky-inner">
               <button
                 type="button"
                 className="btn-press"
                 style={{ ...primaryBtn, flex: 1 }}
-                disabled={keptList.length === 0}
+                disabled={keptList.length === 0 || saving}
                 onClick={async () => {
-                  const deckId = await resolveDeck();
-                  const saved = await withIds(keptList, deckId);
-                  const merged = [...savedQs, ...saved];
-                  setSavedQs(merged);
-                  onGeneratedChange?.(merged);
-                  setSavedDeckId(deckId);
-                  setPhase("done");
+                  /* Staying on this screen is the whole point of catching it:
+                     the questions exist only here until they are written, and
+                     they cost a generation to make. Dropping the user
+                     somewhere else with an error would throw them away. */
+                  setSaveError(null);
+                  setSaving(true);
+                  try {
+                    const deckId = await resolveDeck();
+                    const { rows, queued } = await withIds(keptList, deckId);
+                    const merged = [...savedQs, ...rows];
+                    setSavedQs(merged);
+                    onGeneratedChange?.(merged);
+                    setSavedDeckId(deckId);
+                    setSavedQueued(queued);
+                    setPhase("done");
+                  } catch (e) {
+                    setSaveError(e?.message || "Could not save them. Your questions are still here — try again.");
+                  } finally {
+                    setSaving(false);
+                  }
                 }}
               >
-                Add {keptList.length} to bank →
+                {saving ? "Saving…" : <>Save {keptList.length} question{keptList.length === 1 ? "" : "s"} →</>}
               </button>
               <button
                 type="button"
@@ -700,8 +737,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   if (phase === "done") {
     return (
       <Shell
-        title="Added"
-        sub="Reload once so Practice and the rest of the app pick them up."
+        title={savedQueued ? "Saved, not sent yet" : "Added"}
+        sub={savedQueued
+          ? "They are on this device and will sync the moment you are back online. Don't generate them again."
+          : "They are in Study now."}
       >
         <div className="gen-done-actions">
           {savedDeckId && onOpenDeck ? (
@@ -790,15 +829,27 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     }
   }
 
+  /* The same two outcomes as the generated path, and the same rule: on a
+     failure stay where the questions are. These were typed by hand, so losing
+     them costs somebody their afternoon rather than their quota. */
   async function addWritten() {
-    const deckId = await resolveDeck();
-    const saved = await withIds(written, deckId);
-    const merged = [...savedQs, ...saved];
-    setSavedQs(merged);
-    onGeneratedChange?.(merged);
-    setSavedDeckId(deckId);
-    setWritten([]);
-    setPhase("done");
+    setSaveError(null);
+    setSaving(true);
+    try {
+      const deckId = await resolveDeck();
+      const { rows, queued } = await withIds(written, deckId);
+      const merged = [...savedQs, ...rows];
+      setSavedQs(merged);
+      onGeneratedChange?.(merged);
+      setSavedDeckId(deckId);
+      setSavedQueued(queued);
+      if (!queued) setWritten([]);
+      setPhase("done");
+    } catch (e) {
+      setSaveError(e?.message || "Could not save them. They are still here — try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
 

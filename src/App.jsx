@@ -132,6 +132,11 @@ export default function App() {
     applyGenerated(genRowsRef.current, deckRows);
   }
   const [dataLoading, setDataLoading] = useState(true);
+  /* Set when the sign-in snapshot could not be fetched. Without this the
+     effect had no catch at all, so a throw left the app on "Loading your
+     progress…" for ever. */
+  const [loadError, setLoadError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Theme is the one thing still read locally, so the page doesn't paint the
   // wrong colour for a frame while auth resolves.
@@ -151,30 +156,41 @@ export default function App() {
     if (!user?.id || recovering) { setDataLoading(false); return; }
     let cancelled = false;
     setDataLoading(true);
+    setLoadError(null);
     (async () => {
-      // Still in parallel, though loadDecks no longer fetches anything: it is
-      // the gate that stops a screen reading QUESTIONS before the user's own
-      // rows have landed.
-      const [, d] = await Promise.all([
-        loadDecks(),
-        (async () => { await flushQueue(); return loadAll(user.id); })(),
-      ]);
-      if (cancelled) return;
-      setPStats(d.pStats);
-      setSrCards(d.srCards);
-      setBookmarks(d.bookmarks);
-      setStreak(d.streak);
-      setActivity(d.activity);
-      setDailyGoal(d.dailyGoal);
-      setDisplayName(d.displayName || "");
-      setNameChosen(d.nameChosen !== false);
-      setShowOnLeaderboard(d.showOnLeaderboard !== false);
-      setMarketingOptIn(d.marketingOptIn);
-      // Before the questions, so the pool is only rebuilt with both in hand.
-      setQuestionEdits(d.questionEdits);
-      applyDecks(d.decks ?? []);
-      applyGenerated(d.generated, d.decks ?? []);
-      setDataLoading(false);
+      try {
+        // Still in parallel, though loadDecks no longer fetches anything: it is
+        // the gate that stops a screen reading QUESTIONS before the user's own
+        // rows have landed.
+        const [, d] = await Promise.all([
+          loadDecks(),
+          (async () => { await flushQueue(); return loadAll(user.id); })(),
+        ]);
+        if (cancelled) return;
+        setPStats(d.pStats);
+        setSrCards(d.srCards);
+        setBookmarks(d.bookmarks);
+        setStreak(d.streak);
+        setActivity(d.activity);
+        setDailyGoal(d.dailyGoal);
+        setDisplayName(d.displayName || "");
+        setNameChosen(d.nameChosen !== false);
+        setShowOnLeaderboard(d.showOnLeaderboard !== false);
+        setMarketingOptIn(d.marketingOptIn);
+        // Before the questions, so the pool is only rebuilt with both in hand.
+        setQuestionEdits(d.questionEdits);
+        applyDecks(d.decks ?? []);
+        applyGenerated(d.generated, d.decks ?? []);
+        setDataLoading(false);
+      } catch (e) {
+        if (cancelled) return;
+        /* Nothing is applied on this path, so the pool keeps whatever it had
+           rather than being replaced with the empty results of a failed
+           fetch. */
+        setLoadError(e?.message || "Could not reach the server.");
+        setDataLoading(false);
+        return;
+      }
 
       // Arrived by a share link: copy the deck to this account and open
       // Study on it. The address goes back to the root so a reload does not
@@ -197,7 +213,7 @@ export default function App() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user?.id, recovering]);
+  }, [user?.id, recovering, reloadKey]);
 
   // ── Decks ─────────────────────────────────────────────────────────────
   // Optimistic like everything else. Creating waits for the id.
@@ -581,6 +597,32 @@ export default function App() {
 
   // Only block on the first auth/data bootstrap. Later token refreshes must
   // not tear down StudyMode — that was ending practice sessions on tab-away.
+  if (user && loadError) {
+    return (
+      <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center", padding: 24 }}>
+        <div style={{ maxWidth: 340, textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "var(--c-on-field)" }}>
+            Couldn’t load your work
+          </p>
+          <p style={{ margin: "8px 0 0", fontSize: 14.5, lineHeight: 1.5, color: "var(--c-on-field)", opacity: 0.75 }}>
+            Nothing is lost — it’s all on the server. Check your connection and try again.
+          </p>
+          <button
+            type="button"
+            onClick={() => setReloadKey(k => k + 1)}
+            style={{
+              marginTop: 20, background: "var(--c-field-object)", color: "var(--c-field-object-ink)",
+              border: "none", borderRadius: "var(--r-pill)", padding: "11px 24px",
+              fontFamily: "inherit", fontSize: 15, fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (authLoading || (user && dataLoading)) {
     return (
       <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center" }}>

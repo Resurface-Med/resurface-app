@@ -189,6 +189,28 @@ export async function loadAll(userId) {
     ]);
   const decks = await loadUserDecks();
 
+  /*
+   * A failed query is not an empty table.
+   *
+   * Every one of these returns { data, error } and nothing here used to read
+   * the error, so one failure — a blip, a project waking from sleep, an
+   * expired token — came back as `generated: []` and the app drew a signed-in
+   * student with three hundred questions an entirely empty screen. No error,
+   * nothing to retry, and the reasonable thing for them to do next is
+   * generate it all again or conclude the app lost it.
+   *
+   * So it refuses instead. The caller shows a retry; wrong data shown
+   * confidently is worse than a page that admits it could not load.
+   */
+  const failed = Object.entries({ practice, sr, bookmarks, activity, streak, profile, generated, edits })
+    .filter(([, r]) => r?.error)
+    .map(([name]) => name);
+  if (failed.length) {
+    const err = new Error(`Could not load: ${failed.join(", ")}`);
+    err.failedTables = failed;
+    throw err;
+  }
+
   const pStats = {};
   for (const r of practice.data ?? []) pStats[r.question_id] = { correct: r.correct, total: r.total };
 
@@ -235,11 +257,16 @@ export async function loadAll(userId) {
   };
 }
 
-/** Your decks, as rows. The tree is built in the app. */
+/**
+ * Your decks, as rows. The tree is built in the app.
+ *
+ * Throws rather than returning [], for the same reason loadAll does: an empty
+ * list and a failed fetch look identical on screen, and one of them is a lie.
+ */
 export async function loadUserDecks() {
   const { data, error } = await supabase.from("decks")
     .select("id, name, parent_id, position, share_code, created_at");
-  if (error) return [];
+  if (error) throw error;
   return (data ?? []).map(r => ({
     id: r.id, name: r.name, parentId: r.parent_id, position: r.position,
     shareCode: r.share_code, createdAt: r.created_at,
