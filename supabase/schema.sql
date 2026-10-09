@@ -109,6 +109,18 @@ create table if not exists public.ai_usage (
   created_at timestamp with time zone not null default now()
 );
 
+-- Where the keepalive cron records that it ran. RLS on and no policies, like
+-- admins: reachable only through keepalive_ping() and admin_heartbeats().
+-- Exists because the cron can fail silently — a 401 every morning breaks
+-- nothing visible and the Supabase pause still arrives a week later — and
+-- Hobby drops runtime logs after an hour, five hours before anyone is awake
+-- to read the 06:00 run.
+create table if not exists public.ops_heartbeat (
+  name    text primary key,
+  last_ok timestamptz not null default now(),
+  detail  jsonb
+);
+
 -- Admin is a table, not a claim or a client-side flag. RLS is on and it has
 -- no policies at all, so it is unreadable and unwritable over the API; only
 -- the SECURITY DEFINER functions below can see it.
@@ -196,6 +208,7 @@ alter table public.decks               enable row level security;
 alter table public.generated_questions enable row level security;
 alter table public.ai_usage            enable row level security;
 alter table public.admins              enable row level security;
+alter table public.ops_heartbeat       enable row level security;
 
 -- auth.uid() is wrapped in a sub-select throughout so it is evaluated once
 -- per query rather than once per row.
@@ -222,7 +235,7 @@ create policy "delete own flags" on public.question_flags for delete to authenti
 -- call and never read the log back. The admin_tokens_* functions read it.
 create policy ai_usage_insert_own on public.ai_usage for insert to authenticated with check (user_id = (select auth.uid()));
 
--- public.admins deliberately has no policies.
+-- public.admins and public.ops_heartbeat deliberately have no policies.
 
 -- ------------------------------------------------------------- functions
 
@@ -551,6 +564,35 @@ begin
     delete from public.admins where user_id = uid;
   end if;
 end;
+$$;
+
+-- The keepalive's one query, which also leaves a trace. anon may execute it:
+-- the route holds the anon key, and with CRON_SECRET unset a stranger calling
+-- it achieves nothing but the job. It takes no arguments, so there is nothing
+-- to inject and nothing to choose.
+create or replace function public.keepalive_ping()
+returns timestamptz language plpgsql security definer set search_path = '' as $$
+declare
+  now_ts timestamptz := now();
+begin
+  insert into public.ops_heartbeat (name, last_ok)
+       values ('keepalive', now_ts)
+  on conflict (name) do update set last_ok = now_ts;
+  return now_ts;
+end;
+$$;
+
+grant execute on function public.keepalive_ping() to anon, authenticated;
+
+-- More than about a day in age_hours means the cron has stopped.
+create or replace function public.admin_heartbeats()
+returns table(name text, last_ok timestamptz, age_hours numeric)
+language sql stable security definer set search_path = 'public' as $$
+  select h.name, h.last_ok,
+         round(extract(epoch from (now() - h.last_ok)) / 3600.0, 1)
+  from public.ops_heartbeat h
+  where public.is_admin()
+  order by h.name
 $$;
 
 -- -------------------------------------------------------------- triggers
