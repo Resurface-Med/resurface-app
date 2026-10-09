@@ -19,3 +19,4 @@ dist
 
 # Generated QR codes from scripts/make-qr.mjs.
 .qr/
+.backups/
