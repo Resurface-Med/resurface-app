@@ -9,45 +9,75 @@ import { confirm } from "./Confirm";
  *
  * Anki keeps these in a separate Browse window; here the list replaces
  * the tree while you look. One row per question: the stem, where it
- * lives, and a menu — Edit, Move to…, Delete. Search narrows by stem.
+ * lives, and a menu — Edit, Move to a deck, Delete. Search narrows by stem.
  */
 
-/** A list of your decks to pick from, indented by depth. */
-export function DeckPicker({ decks, exclude = null, allowTop = false, onPick, anchorRef, open, onClose, current = null }) {
-  const options = useMemo(() => {
+/**
+ * Pick somewhere to put something.
+ *
+ * It asks for one kind at a time, which is the whole point of there being
+ * two. Moving a question offers decks, because a question cannot live in a
+ * folder. Moving a deck or folder offers folders, because nothing else can
+ * contain one. Before, one list offered every container for every job and
+ * left you to work out which of the answers were real.
+ *
+ * Folders still show when picking a deck, greyed and unpickable, because
+ * "Week 1" above "Upper Renal Tract" is how you tell which anatomy you meant.
+ */
+export function DeckPicker({ decks, kind = "deck", exclude = null, onPick, anchorRef, open, onClose, current = null }) {
+  const rows = useMemo(() => {
     const out = [];
     const kids = pid => decks.filter(d => (d.parentId ?? null) === pid);
+    /* Never offer something its own descendant: the database refuses to make
+       a cycle, so offering it is offering an error. */
     const under = new Set();
     if (exclude) (function walk(id) { under.add(id); kids(id).forEach(d => walk(d.id)); })(exclude);
     (function walk(pid, depth) {
       for (const d of kids(pid)) {
         if (under.has(d.id)) continue;
-        out.push({ id: d.id, name: d.name, depth });
+        out.push({ id: d.id, name: d.name, depth, isFolder: Boolean(d.isFolder) });
         walk(d.id, depth + 1);
       }
     })(null, 0);
     return out;
   }, [decks, exclude]);
+
+  const wantFolders = kind === "folder";
+  const shown = wantFolders ? rows.filter(r => r.isFolder) : rows;
+  const pickable = shown.filter(r => wantFolders || !r.isFolder);
+
   const items = [
-    ...(allowTop ? [{ label: "Top level", onSelect: () => onPick(null), disabled: current === null }] : []),
-    ...options.map(o => ({ label: `${"   ".repeat(o.depth)}${o.name}`, onSelect: () => onPick(o.id), disabled: o.id === current })),
+    ...(wantFolders ? [{ label: "No folder", onSelect: () => onPick(null), disabled: current === null }] : []),
+    ...shown.map(r => ({
+      label: `${"   ".repeat(r.depth)}${r.name}`,
+      onSelect: () => onPick(r.id),
+      /* a folder in a deck list is there to be read, not chosen */
+      disabled: r.id === current || (!wantFolders && r.isFolder),
+    })),
   ];
+
   return (
     <Popover anchorRef={anchorRef} open={open} onClose={onClose}>
-      <div className="pop-title">Move into</div>
-      {items.length === 0 && <div className="pop-empty">No other deck yet.</div>}
+      <div className="pop-title">{wantFolders ? "Move to folder" : "Move to deck"}</div>
+      {pickable.length === 0 && (
+        <div className="pop-empty">{wantFolders ? "No folders yet." : "No other deck to move it to."}</div>
+      )}
       <MenuItems items={items} onPick={it => { onClose(); it.onSelect(); }} />
     </Popover>
   );
 }
 
-function QuestionRow({ q, actions, onEdit }) {
+function QuestionRow({ q, decks, actions, onEdit }) {
   const [open, setOpen] = useState(false);
+  /* The picker is its own popover anchored to the same button, so it opens
+     where the menu was rather than somewhere else on the screen. */
+  const [moving, setMoving] = useState(false);
   const ref = useRef(null);
   const close = useCallback(() => setOpen(false), []);
   const where = q.path?.slice(1).map(p => p.name).join(" › ") || q.path?.[0]?.name || "";
   const items = [
     { label: "Edit", onSelect: () => onEdit(q) },
+    { label: "Move to a deck", onSelect: () => setMoving(true) },
     { label: "Delete", danger: true, onSelect: async () => {
       if (await confirm({ title: "Delete this question?", body: "This can’t be undone.", action: "Delete", danger: true })) actions.deleteQuestion(q.id);
     } },
@@ -63,6 +93,11 @@ function QuestionRow({ q, actions, onEdit }) {
       <Popover anchorRef={ref} open={open} onClose={close}>
         <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(); }} />
       </Popover>
+      <DeckPicker
+        decks={decks} kind="deck" current={q.leaf ?? null}
+        anchorRef={ref} open={moving} onClose={() => setMoving(false)}
+        onPick={id => actions.moveQuestion?.(q.id, id)}
+      />
     </li>
   );
 }

@@ -568,7 +568,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [pastedText, setPastedText] = useState("");
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
-     that deck is the parent by default, with the lecture as a new sub-deck. */
+     that folder is the parent by default, with the lecture as a new deck. */
   const [deckChoice, setDeckChoice] = useState(targetDeckId || decks.length === 0 ? "__new__" : "");
   const [newDeckName, setNewDeckName] = useState("");
   const [newDeckParent, setNewDeckParent] = useState(targetDeckId ?? "");
@@ -658,6 +658,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     (function walk(pid, depth) { for (const d of kids(pid)) { out.push({ ...d, depth }); walk(d.id, depth + 1); } })(null, 0);
     return out;
   })();
+  /* Questions go in a deck; a folder is only the path to one. So the
+     destination list offers decks and shows folders unpickable above them,
+     and the folder list offers folders only. One list for one job. */
+  const folderOptions = deckOptions.filter(d => d.isFolder);
   const deckLabel = deckChoice === "__new__"
     ? [...(newDeckParent ? deckPath(newDeckParent, decksById).map(p => p.name) : []), newDeckName.trim()].join(" › ")
     : deckPath(deckChoice, decksById).map(p => p.name).join(" › ");
@@ -873,11 +877,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const placement = (
     <div className="gen-deck">
       <label className="gen-field">
-        <span className="gen-field-label">Deck</span>
+        <span className="gen-field-label">Add questions to</span>
         <select value={deckChoice} onChange={e => setDeckChoice(e.target.value)} style={{ ...field, cursor: "pointer" }}>
           <option value="">Choose a deck…</option>
           {deckOptions.map(d => (
-            <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
+            d.isFolder
+              /* there for the path, not to be chosen */
+              ? <option key={d.id} value="" disabled>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
+              : <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
           ))}
           <option value="__new__">＋ New deck…</option>
         </select>
@@ -897,10 +904,10 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
             />
           </label>
           <label className="gen-field">
-            <span className="gen-field-label">Inside</span>
+            <span className="gen-field-label">Folder</span>
             <select value={newDeckParent} onChange={e => setNewDeckParent(e.target.value)} style={{ ...field, cursor: "pointer" }}>
-              <option value="">Top level</option>
-              {deckOptions.map(d => (
+              <option value="">No folder</option>
+              {folderOptions.map(d => (
                 <option key={d.id} value={d.id}>{"\u00a0\u00a0".repeat(d.depth)}{d.name}</option>
               ))}
             </select>

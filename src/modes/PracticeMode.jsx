@@ -252,10 +252,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      tab scopes the tree; the filter's leaves are read inside that scope,
      and "All" inside a tab means all of the tab. */
   const [activeRootId, setActiveRootId] = useState(openDeckId);
+  /* false, or { isFolder } while naming a new root. */
   const [creatingDeck, setCreatingDeck] = useState(false);
-  /* What is replacing the tree, if anything: a name field (new sub-deck or
+  /* What is replacing the tree, if anything: a name field (new deck, new folder or
      rename, with the deck id it is for). */
-  const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
+  const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId, isFolder }
   const [browsing, setBrowsing] = useState(null);       // deck id whose questions are listed
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
@@ -294,8 +295,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setTopicQuery("");
   }, [activeRootId]);
   function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
-  async function createDeckNamed(name, parentId = null) {
-    const d = await deckActions.createDeck(name, parentId);
+  async function createDeckNamed(name, parentId = null, isFolder = false) {
+    const d = await deckActions.createDeck(name, parentId, isFolder);
     setCreatingDeck(false);
     setNaming(null);
     if (!parentId) setActiveRootId(d.id);
@@ -526,20 +527,35 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const roots = fullForest;
     const activeRoot = activeRootId ? findNode(fullForest, activeRootId) : null;
     /* Inside a tab, the tree is what is under the root — the tab itself is
-       the heading, not a row. */
-    const forest = activeRoot ? activeRoot.children : fullForest;
+       the heading, not a row. Unless the root is a deck rather than a folder,
+       in which case there is nothing under it and the deck itself is the only
+       row there is to tick. Without this, opening the tab of a deck that sits
+       at the top level showed an empty tree and no way to start. */
+    const forest = activeRoot
+      ? (activeRoot.children.length ? activeRoot.children : [activeRoot])
+      : fullForest;
     const scoped = scopedCount(filter);
 
-    /* What a row's menu offers. Only your decks have one. */
-    const rowMenu = _node => [
-      { label: "Questions", onSelect: n => { setBrowsing(n.id); setTopicQuery(""); } },
-      { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
-      { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
-      ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
-      { label: "Delete", danger: true, onSelect: async n => {
-        if (await confirmDelete(`“${n.name}”`, n.total)) deckActions.deleteDeck(n.id);
-      } },
-    ];
+    /* What a row's menu offers, which depends on what the row is. A folder
+       holds decks and folders; a deck holds questions. Offering both sets to
+       both kinds is what the single "deck" concept forced, and what made this
+       menu unreadable. */
+    const rowMenu = node => {
+      const isFolder = Boolean(decksById.get(node?.id)?.isFolder);
+      return [
+        ...(isFolder ? [] : [{ label: "Questions", onSelect: n => { setBrowsing(n.id); setTopicQuery(""); } }]),
+        { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
+        ...(isFolder ? [
+          { label: "New deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id, isFolder: false }) },
+          { label: "New folder", onSelect: n => setNaming({ mode: "sub", deckId: n.id, isFolder: true }) },
+        ] : onGenerateInto ? [
+          { label: "Add questions", onSelect: n => onGenerateInto(n.id) },
+        ] : []),
+        { label: "Delete", danger: true, onSelect: async n => {
+          if (await confirmDelete(`“${n.name}”`, n.total)) deckActions.deleteDeck(n.id);
+        } },
+      ];
+    };
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
     /* One topic names itself; several are counted. Spelling out four topic
        names would not fit the button this ends up on, and a list that gets
@@ -597,15 +613,17 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
+                  <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={isFolder => setCreatingDeck({ isFolder })} />
                   {creatingDeck ? (
-                    <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
+                    <DeckNameForm onSubmit={n => createDeckNamed(n, null, creatingDeck?.isFolder)}
+                      placeholder={creatingDeck?.isFolder ? "Name the folder" : "Name the deck"}
+                      onCancel={() => setCreatingDeck(false)} />
                   ) : naming ? (
                     <DeckNameForm
                       initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
-                      placeholder={naming.mode === "rename" ? "Name" : "Name the sub-deck"}
+                      placeholder={naming.mode === "rename" ? "Name" : naming.isFolder ? "Name the folder" : "Name the deck"}
                       onCancel={() => setNaming(null)}
-                      onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
+                      onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId, naming.isFolder); }}
                     />
                   ) : (
                     <>
@@ -613,7 +631,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         <div className="tg-editbar">
                           <span className="tg-editbar-meta">{activeRoot?.total ?? 0} question{(activeRoot?.total ?? 0) === 1 ? "" : "s"}</span>
                           <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
-                            onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
+                            decks={decks} onGenerateInto={onGenerateInto}
+                            onNewSub={(id, isFolder) => setNaming({ mode: "sub", deckId: id, isFolder })}
                             onRename={id => setNaming({ mode: "rename", deckId: id })} />
                         </div>
                       )}
@@ -629,7 +648,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
                       ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                         <div className="tg-rows-empty">
-                          Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
+                          Nothing here yet. Press <strong>＋</strong> above to add a deck or a folder.
                         </div>
                       ) : (
                         <DeckTree
@@ -768,7 +787,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             paddingTop: "clamp(12px, 2vh, 18px)",
           }}>
 
-            <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
+            <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={isFolder => setCreatingDeck({ isFolder })} />
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               {!creatingDeck && !naming && (
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
@@ -777,7 +796,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     {!browsing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
                     {activeDeck && !browsing && (
                       <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
-                        onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
+                        decks={decks} onGenerateInto={onGenerateInto}
+                            onNewSub={(id, isFolder) => setNaming({ mode: "sub", deckId: id, isFolder })}
                         onRename={id => setNaming({ mode: "rename", deckId: id })} />
                     )}
                   </span>
@@ -786,7 +806,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               {naming && (
                 <DeckNameForm
                   initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
-                  placeholder={naming.mode === "rename" ? "Name" : `Name the sub-deck of ${decksById.get(naming.deckId)?.name ?? ""}`}
+                  placeholder={naming.mode === "rename" ? "Name" : naming.isFolder ? `Name the folder in ${decksById.get(naming.deckId)?.name ?? ""}` : `Name the deck in ${decksById.get(naming.deckId)?.name ?? ""}`}
                   onCancel={() => setNaming(null)}
                   onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
                 />
@@ -811,12 +831,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingDeck ? (
-                <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
+                <DeckNameForm onSubmit={n => createDeckNamed(n, null, creatingDeck?.isFolder)}
+                      placeholder={creatingDeck?.isFolder ? "Name the folder" : "Name the deck"}
+                      onCancel={() => setCreatingDeck(false)} />
               ) : browsing ? (
                 <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
               ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                 <div className="tg-rows-empty">
-                  Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
+                  Nothing here yet. Press <strong>＋</strong> above to add a deck or a folder.
                 </div>
               ) : (
                 <DeckTree
