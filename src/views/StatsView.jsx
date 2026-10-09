@@ -1,22 +1,34 @@
 import { useMemo, useState } from "react";
 import { V, h1 } from "../ui/theme";
-import { QUESTIONS, CURRICULUM } from "../data";
+import { QUESTIONS } from "../data";
 import Wave from "../ui/Wave";
 import { confirm } from "../ui/Confirm";
-import { seenCount } from "../lib/progress";
+import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
 
 /**
- * Progress — coverage and accuracy by subject, then drill into topics.
+ * Progress — coverage and accuracy over your decks, as deep as you made them.
  *
- * The band says where you stand in a sentence, computed from the data,
- * rather than as numerals: the numbers are on the sheet, and a sentence
- * says what they mean. The sheet is one card per block, the practice
- * card's surface, with a row per subject; a subject opens its topics
- * inside the card, weakest first, each with Practice as a text link.
+ * It used to read three fixed fields off every question: block, subject,
+ * topic. Those were the bank's shape, which was always exactly three levels,
+ * and they are manufactured from the deck path — root, the one below it, the
+ * last one. Your decks are whatever depth you made them, so the three were
+ * only ever right at exactly three:
  *
- * Accuracy is shown only once there is enough to mean something — ten
- * attempts for a subject, five for a topic — and never in red. Two wrong
- * out of two is not a failing subject; it is Tuesday.
+ *     Renal                            Renal / Renal / Renal
+ *     Renal > Week 1                   Renal / Week 1 / Week 1
+ *     Renal > Week 1 > Upper Tract     correct
+ *     Year 2 > Renal > Week 1 > Upper  Week 1 silently dropped
+ *
+ * One level repeated the same name three times, two duplicated it, four lost
+ * a level in the middle — and Generate pushes people straight into the first
+ * of those, since a new deck with no parent is one level. So this walks the
+ * decks themselves now. Depth stops being something you can get wrong,
+ * because nothing is being flattened into a shape it does not have.
+ *
+ * The band says where you stand in a sentence: the numbers are on the sheet,
+ * and a sentence says what they mean. Accuracy appears only once there is
+ * enough of it to mean anything, and never in red — two wrong out of two is
+ * not a failing subject, it is Tuesday.
  */
 
 const band = {
@@ -26,30 +38,11 @@ const band = {
   width: "100%",
 };
 
-const SUBJECT_MIN_ATTEMPTS = 10;
-const TOPIC_MIN_ATTEMPTS = 5;
-
-function shortCat(cat, deck) {
-  return cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
-}
-
-function tally(qs, pStats) {
-  let correct = 0, attempts = 0, seen = 0;
-  for (const q of qs) {
-    const s = pStats[q.id];
-    if (s) { correct += s.correct; attempts += s.total; seen++; }
-  }
-  const pct = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
-  return { total: qs.length, seen, attempts, pct };
-}
-
-function topicStats(cat, pStats) {
-  return tally(QUESTIONS.filter(q => q.cat === cat), pStats);
-}
-
-function deckStats(deck, pStats) {
-  return tally(QUESTIONS.filter(q => q.deck === deck), pStats);
-}
+/* Enough attempts to be worth reporting a percentage from. Shallower rows
+   cover more questions, so they need more behind them before the number
+   stops being noise. */
+const MIN_ATTEMPTS = [10, 10, 5];
+function minFor(depth) { return MIN_ATTEMPTS[Math.min(depth, MIN_ATTEMPTS.length - 1)]; }
 
 /** "Immunology, Histology and Anatomy" — or "and 4 others" past three. */
 function listNames(names) {
@@ -61,42 +54,40 @@ function listNames(names) {
 }
 
 /**
- * The band's sentence. Says the one or two things worth saying: how much
- * of the bank you have seen, which subject is going best, which have not
- * been opened. Deadpan; no praise, no alarm.
+ * The band's sentence. How much you have seen, which deck is going best,
+ * which have not been opened. Deadpan; no praise, no alarm.
  */
-function summarise(pStats) {
+function summarise(roots, pStats) {
   const seen = seenCount(QUESTIONS, pStats);
   const total = QUESTIONS.length;
-  /* Nothing at all: the band says nothing, and the empty state below says it
+  /* Nothing at all: the band says nothing and the empty state below says it
      once. Saying it in both is how a header and an empty state end up
-     repeating each other, which is the tell of a page nobody composed. */
+     repeating each other. */
   if (total === 0) return null;
   if (seen === 0) return { lead: "Nothing attempted yet.", rest: "Answer a few questions and this fills in." };
 
-  const decks = [...new Set(QUESTIONS.map(q => q.deck))];
-  const stats = decks.map(deck => ({ deck, ...deckStats(deck, pStats) }));
-  const rated = stats.filter(s => s.attempts >= SUBJECT_MIN_ATTEMPTS).sort((a, b) => b.pct - a.pct);
-  const untouched = stats.filter(s => s.seen === 0).map(s => s.deck);
+  const rated = roots.filter(r => r.attempts >= minFor(0)).sort((a, b) => pctOf(b) - pctOf(a));
+  const untouched = roots.filter(r => r.seen === 0).map(r => r.name);
 
   const rest = [];
-  if (rated.length >= 2 && rated[0].pct - rated[rated.length - 1].pct >= 15) {
-    rest.push(`${rated[0].deck} is going best; ${rated[rated.length - 1].deck} least.`);
+  if (rated.length >= 2 && pctOf(rated[0]) - pctOf(rated[rated.length - 1]) >= 15) {
+    rest.push(`${rated[0].name} is going best; ${rated[rated.length - 1].name} least.`);
   } else if (rated.length >= 1) {
-    rest.push(`${rated[0].deck} is going best.`);
+    rest.push(`${rated[0].name} is going best.`);
   }
-  if (untouched.length > 0 && untouched.length < decks.length) {
+  if (untouched.length > 0 && untouched.length < roots.length) {
     rest.push(`${listNames(untouched)} ${untouched.length === 1 ? "is" : "are"} untouched.`);
   }
   return { lead: `You’ve seen ${seen} of ${total}.`, rest: rest.join(" ") };
 }
 
-/* Coverage as a length, with accuracy inside it: of the part you have
-   seen, the correct share is solid and the rest faded. No label — the two
-   tones are the reading. */
-function Bar({ seen, total, attempts, pct, min }) {
-  const cover = total ? Math.max(0, Math.min(1, seen / total)) : 0;
-  const rated = attempts >= min && pct !== null;
+/* Coverage as a length, with accuracy inside it: of the part you have seen,
+   the correct share is solid and the rest faded. No label — the two tones are
+   the reading. */
+function Bar({ node, depth }) {
+  const cover = node.total ? Math.max(0, Math.min(1, node.seen / node.total)) : 0;
+  const pct = pctOf(node);
+  const rated = node.attempts >= minFor(depth) && pct !== null;
   const right = rated ? cover * (pct / 100) : 0;
   return (
     <span
@@ -113,64 +104,62 @@ function Bar({ seen, total, attempts, pct, min }) {
   );
 }
 
-/* The figure: how much is seen, and — on the open subject only, once
-   there is enough behind it — how much of that was correct. */
-function Figure({ seen, total, attempts, pct, min, withPct = false }) {
-  const rated = withPct && attempts >= min && pct !== null;
+function Figure({ node, depth, withPct = false }) {
+  const pct = pctOf(node);
+  const rated = withPct && node.attempts >= minFor(depth) && pct !== null;
   return (
     <span className="prog-fig-seen">
-      {seen} of {total}
+      {node.seen} of {node.total}
       {rated && <span className="prog-fig-pct"> · {pct}% correct</span>}
     </span>
   );
 }
 
-function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
-  const d = deckStats(deck, pStats);
-  const sorted = useMemo(() => {
-    return [...cats].sort((a, b) => {
-      const pa = topicStats(a, pStats).pct;
-      const pb = topicStats(b, pStats).pct;
-      if (pa === null && pb === null) return 0;
-      if (pa === null) return 1;
-      if (pb === null) return -1;
-      return pa - pb;
-    });
-  }, [cats, pStats]);
+/**
+ * One deck and everything under it, at any depth.
+ *
+ * A deck with children opens to show them; one without is a way straight into
+ * practising it. The old version had a row type per level — subject, then
+ * topic — which is why it could only describe three.
+ */
+function Node({ node, depth, open, onToggle, onPractice }) {
+  const hasKids = node.children.length > 0;
+  const isOpen = open.has(node.id);
+
+  if (!hasKids) {
+    return (
+      <li className={`prog-topic${node.seen === 0 ? " is-untouched" : ""}`}>
+        <button type="button" className="prog-topic-row" onClick={() => onPractice(node)}>
+          <span className="prog-topic-line">
+            <span className="prog-topic-name">{node.name}</span>
+            <Figure node={node} depth={depth} />
+            <span className="prog-topic-go" aria-hidden="true">→</span>
+          </span>
+          <Bar node={node} depth={depth} />
+        </button>
+      </li>
+    );
+  }
 
   return (
-    <li className={`prog-subject${open ? " is-open" : ""}${d.seen === 0 ? " is-untouched" : ""}`}>
-      <button type="button" className="prog-subject-row" onClick={onToggle} aria-expanded={open}>
+    <li className={`prog-subject${isOpen ? " is-open" : ""}${node.seen === 0 ? " is-untouched" : ""}`}>
+      <button type="button" className="prog-subject-row" onClick={() => onToggle(node.id)} aria-expanded={isOpen}>
         <span className="prog-subject-line">
-          <span className="prog-subject-name">{deck}</span>
-          <Figure {...d} min={SUBJECT_MIN_ATTEMPTS} withPct={open} />
+          <span className="prog-subject-name">{node.name}</span>
+          <Figure node={node} depth={depth} withPct={isOpen} />
         </span>
-        {open && <Bar {...d} min={SUBJECT_MIN_ATTEMPTS} />}
+        {isOpen && <Bar node={node} depth={depth} />}
       </button>
 
-      {open && (
+      {isOpen && (
         <>
-          {/* Each topic row is the way into practising it — one verb for
-              the whole list rather than one per line. */}
           <ul className="prog-topics">
-            {sorted.map(cat => {
-              const t = topicStats(cat, pStats);
-              return (
-                <li key={cat} className={`prog-topic${t.seen === 0 ? " is-untouched" : ""}`}>
-                  <button type="button" className="prog-topic-row" onClick={() => onPractice(deck, cat)}>
-                    <span className="prog-topic-line">
-                      <span className="prog-topic-name">{shortCat(cat, deck)}</span>
-                      <Figure {...t} />
-                      <span className="prog-topic-go" aria-hidden="true">→</span>
-                    </span>
-                    <Bar {...t} min={TOPIC_MIN_ATTEMPTS} />
-                  </button>
-                </li>
-              );
-            })}
+            {node.children.map(c => (
+              <Node key={c.id} node={c} depth={depth + 1} open={open} onToggle={onToggle} onPractice={onPractice} />
+            ))}
           </ul>
-          <button type="button" className="prog-practice-all" onClick={() => onPractice(deck, null)}>
-            Practice all of {deck} <span aria-hidden="true">→</span>
+          <button type="button" className="prog-practice-all" onClick={() => onPractice(node)}>
+            Practice all of {node.name} <span aria-hidden="true">→</span>
           </button>
         </>
       )}
@@ -181,13 +170,8 @@ function SubjectRow({ deck, cats, pStats, open, onToggle, onPractice }) {
 /**
  * What the page says when there is nothing to measure.
  *
- * The sheet is built from the curriculum, which is derived from the questions,
- * so a new account renders nothing at all and the two reset buttons were left
- * standing alone above a screen of empty surface.
- *
- * A title, a line, a button. Nothing here needs explaining at length: the
- * person is one action away from the page working, and listing what it will
- * eventually show is a brochure, not an empty state.
+ * A title, a line, a button. Somebody who has just signed up does not need
+ * the feature described, they need the one action that makes it work.
  */
 function Blank({ onGenerate }) {
   return (
@@ -206,28 +190,36 @@ function Blank({ onGenerate }) {
 }
 
 export default function StatsView({
-  pStats, setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
+  pStats, decks = [], setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
 }) {
-  const [openDecks, setOpenDecks] = useState(() => new Set());
+  const [open, setOpen] = useState(() => new Set());
 
-  function practice(deck, cat) {
+  const roots = useMemo(
+    () => buildTree(QUESTIONS, decks, pStats),
+    [decks, pStats],
+  );
+
+  /* By leaf id, not by name. Study filters on leaves — the deck ids with
+     nothing under them — and that is the only identifier here that cannot be
+     ambiguous: two decks may share a name, and the block/subject/topic labels
+     this page used to read were manufactured and wrong at most depths. */
+  function practice(node) {
     setStudyScope?.("all");
-    setLaunchFilter(cat ? { deck, cat } : { deck });
+    setLaunchFilter({ leaves: leavesUnder(node) });
     setView(V.STUDY);
   }
 
-  function toggleDeck(key) {
-    setOpenDecks(prev => {
+  function toggle(id) {
+    setOpen(prev => {
       const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }
 
-  const summary = useMemo(() => summarise(pStats), [pStats]);
+  const summary = useMemo(() => summarise(roots, pStats), [roots, pStats]);
   /* Against the questions that exist, not the rows that are stored — progress
-     outlives the question it was recorded against, so a count taken from the
-     rows can outlive the thing it describes. Same reason seenCount exists. */
+     outlives the question it was recorded against. */
   const attempted = useMemo(() => seenCount(QUESTIONS, pStats) > 0, [pStats]);
 
   return (
@@ -245,59 +237,54 @@ export default function StatsView({
       <Wave from="transparent" to="var(--c-surface2)" />
 
       <div style={{ background: "var(--c-surface2)", flex: 1, display: "flex", flexDirection: "column" }}>
-        {CURRICULUM.length === 0 ? <Blank onGenerate={() => setView(V.GENERATE)} /> : (
-        <div className="prog-sheet" style={{ ...band, maxWidth: 760 }}>
-          {CURRICULUM.map((b, i) => {
-            const blockQs = QUESTIONS.filter(q => q.block === b.block);
-            const bt = tally(blockQs, pStats);
-            return (
-            <section key={b.block} className="prog-card anim-scale-in" style={{ "--i": i }}>
-              <div className="prog-card-head">
-                <h2 className="prog-card-title">{b.block}</h2>
-                <span className="prog-card-fig">{bt.seen} of {bt.total}</span>
-              </div>
-              <ul className="prog-subjects">
-                {b.decks.map(d => {
-                  const key = `${b.block}/${d.deck}`;
-                  return (
-                    <SubjectRow
-                      key={key}
-                      deck={d.deck}
-                      cats={d.cats}
-                      pStats={pStats}
-                      open={openDecks.has(key)}
-                      onToggle={() => toggleDeck(key)}
-                      onPractice={practice}
-                    />
-                  );
-                })}
-              </ul>
-            </section>
-            );
-          })}
+        {roots.length === 0 ? <Blank onGenerate={() => setView(V.GENERATE)} /> : (
+          <div className="prog-sheet" style={{ ...band, maxWidth: 760 }}>
+            {/* One card per deck at the top of your tree, whatever you have
+                called them. There is no fixed level here any more. */}
+            {roots.map((r, i) => (
+              <section key={r.id} className="prog-card anim-scale-in" style={{ "--i": i }}>
+                <div className="prog-card-head">
+                  <h2 className="prog-card-title">{r.name}</h2>
+                  <span className="prog-card-fig">{r.seen} of {r.total}</span>
+                </div>
+                {r.children.length > 0 ? (
+                  <ul className="prog-subjects">
+                    {r.children.map(c => (
+                      <Node key={c.id} node={c} depth={1} open={open} onToggle={toggle} onPractice={practice} />
+                    ))}
+                  </ul>
+                ) : (
+                  /* A deck at the top of the tree with nothing under it is the
+                     commonest shape of all — one lecture, filed on its own —
+                     and used to render as a card with an empty body. */
+                  <ul className="prog-subjects">
+                    <Node node={r} depth={1} open={open} onToggle={toggle} onPractice={practice} />
+                  </ul>
+                )}
+              </section>
+            ))}
 
-          {/* Only once there is something to undo. Two destructive buttons are
-              not an introduction to a page, and that is all this one had on it
-              for anybody who had just signed up. */}
-          {attempted && (
-            <div className="prog-reset">
-              <button
-                type="button"
-                className="prog-reset-btn"
-                onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
-              >
-                Reset practice stats
-              </button>
-              <button
-                type="button"
-                className="prog-reset-btn"
-                onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
-              >
-                Reset review schedule
-              </button>
-            </div>
-          )}
-        </div>
+            {/* Only once there is something to undo. Two destructive buttons
+                are not an introduction to a page. */}
+            {attempted && (
+              <div className="prog-reset">
+                <button
+                  type="button"
+                  className="prog-reset-btn"
+                  onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
+                >
+                  Reset practice stats
+                </button>
+                <button
+                  type="button"
+                  className="prog-reset-btn"
+                  onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
+                >
+                  Reset review schedule
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

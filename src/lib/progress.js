@@ -47,3 +47,54 @@ export function share(part, total) {
   if (!total || total <= 0) return 0;
   return Math.max(0, Math.min(1, part / total));
 }
+
+/**
+ * Your decks as a tree, each node carrying what is under it.
+ *
+ * Counted by walking each question's path, so a question lands in every deck
+ * above it as well as its own — which is what makes a parent's figure the sum
+ * of its children rather than a separate number that can disagree with them.
+ */
+export function buildTree(questions, decks, pStats) {
+  const nodes = new Map();
+  for (const d of decks) {
+    nodes.set(d.id, {
+      id: d.id, name: d.name, parentId: d.parentId ?? null,
+      children: [], total: 0, seen: 0, correct: 0, attempts: 0,
+    });
+  }
+
+  for (const q of questions) {
+    const s = pStats[q.id];
+    for (const step of q.path ?? []) {
+      const n = nodes.get(step.id);
+      if (!n) continue;
+      n.total += 1;
+      if (s) { n.seen += 1; n.correct += s.correct; n.attempts += s.total; }
+    }
+  }
+
+  const roots = [];
+  for (const n of nodes.values()) {
+    const parent = n.parentId ? nodes.get(n.parentId) : null;
+    if (parent) parent.children.push(n); else roots.push(n);
+  }
+
+  const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+  (function sort(list) {
+    list.sort((a, b) => collator.compare(a.name, b.name));
+    list.forEach(n => sort(n.children));
+  })(roots);
+
+  return roots;
+}
+
+/** Every deck id under a node with nothing of its own underneath it. */
+export function leavesUnder(n) {
+  if (!n.children.length) return [n.id];
+  return n.children.flatMap(leavesUnder);
+}
+
+export function pctOf(n) {
+  return n.attempts > 0 ? Math.round((n.correct / n.attempts) * 100) : null;
+}

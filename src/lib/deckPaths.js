@@ -19,9 +19,20 @@ export function deckPath(deckId, decksById) {
 }
 
 /**
- * Your questions get their path from their deck. The old block / deck / cat
- * fields are kept as labels — Progress and the session summary read them —
- * derived from the path: root deck, the level under it, the deck itself.
+ * Your questions get their path from their deck.
+ *
+ * block / deck / cat are what is left of the shipped bank's fixed shape, and
+ * only two of them are true at every depth: `block` is the first step of the
+ * path and `cat` the last, so both are whatever you actually called those
+ * decks. `deck` is the second step, or the first again when there is no
+ * second — which means at one level it repeats `block`, at two it repeats
+ * `cat`, and past three it names a level while the ones between it and the
+ * leaf go unmentioned.
+ *
+ * Progress used to be built on all three and was correspondingly wrong at
+ * every depth but three; it walks the decks themselves now. What still reads
+ * these is the session summary, and it reads `cat`. Do not add a reader of
+ * `deck` — walk `path`, which is the real thing these are flattened from.
  */
 export function decorateUserQuestion(row, decksById) {
   const path = row.deckId ? deckPath(row.deckId, decksById) : [];

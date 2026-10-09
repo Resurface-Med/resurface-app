@@ -738,7 +738,7 @@ export default function App() {
               go(V.STUDY);
             }} />}
 
-          {v === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}`} scope={studyScope}
+          {v === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}|${(launchFilter.leaves ?? []).join(",")}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
@@ -748,7 +748,7 @@ export default function App() {
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
-          {v === V.PROGRESS && <ProgressView pStats={pStats} setView={go}
+          {v === V.PROGRESS && <ProgressView pStats={pStats} decks={decks} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
