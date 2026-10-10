@@ -441,12 +441,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      * are keyed by queue position: a session only moves forwards, so every
      * slot past the current one is empty and shifting them disturbs nothing.
      */
-    /* Off is a real preference, not a failure of nerve: a question you have
-       just got wrong coming round again is the point for one person and an
-       interruption for another, and the person who finds it an interruption
-       stops using the thing. On by default, because getting it wrong twice is
-       how it stops being wrong. */
-    if (!correct && filter.retryWrong !== false) {
+    /* Off unless asked for. A question you have just got wrong coming round
+       again is the point of the thing for one person and an interruption for
+       another, and the one who finds it an interruption stops using it. Read
+       as `=== true` rather than `!== false` so a filter from anywhere that
+       predates the field lands on the default rather than against it. */
+    if (!correct && filter.retryWrong === true) {
       setQueue(prev => reask(prev, idx, q));
     }
     setResults(prev => ({ ...prev, [idx]: {
@@ -718,10 +718,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       <button
                         type="button"
                         className="btn-press"
-                        onClick={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong === false }))}
-                        aria-pressed={filter.retryWrong !== false}
+                        onClick={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
+                        aria-pressed={filter.retryWrong === true}
                         title="Ask a question again later in the session if you get it wrong"
-                        style={toggleChip(filter.retryWrong !== false)}
+                        style={toggleChip(filter.retryWrong === true)}
                       >
                         Repeat wrong
                       </button>
@@ -915,10 +915,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     <button
                       type="button"
                       className="btn-press"
-                      onClick={() => { setFilter(f => ({ ...f, retryWrong: f.retryWrong === false })); }}
-                      aria-pressed={filter.retryWrong !== false}
+                      onClick={() => { setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true })); }}
+                      aria-pressed={filter.retryWrong === true}
                       title="Ask a question again later in the session if you get it wrong"
-                      style={toggleChip(filter.retryWrong !== false)}
+                      style={toggleChip(filter.retryWrong === true)}
                     >
                       Repeat wrong
                     </button>

@@ -219,4 +219,4 @@ export function filteredQuestions(filter, pStats = {}) {
 /* retryWrong is a session behaviour rather than a filter of the pool, so
    filteredQuestions ignores it; it rides here because it is set from the same
    row of controls and travels with them. */
-export const defaultFilter = { year: ["All"], leaves: ["All"], unseenOnly: false, retryWrong: true };
+export const defaultFilter = { year: ["All"], leaves: ["All"], unseenOnly: false, retryWrong: false };
