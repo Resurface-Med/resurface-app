@@ -2,8 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
 import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
-import DeckDestination from "../ui/DeckDestination";
-import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
+import { deckPath, indexDecks } from "../lib/decks";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -500,10 +499,20 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
      that deck is the parent by default, with the lecture as a new sub-deck. */
-  const [deckChoice, setDeckChoice] = useState(targetDeckId || decks.length === 0 ? "__new__" : "");
-  const [newDeckName, setNewDeckName] = useState("");
-  const [newDeckParent, setNewDeckParent] = useState(targetDeckId ?? "");
-  const [picking, setPicking] = useState(false);
+  /*
+   * Where the questions go, as one name.
+   *
+   * Anki's convention: a deck is a name, and "::" puts one inside another, so
+   * "Week 1 - Renal::Upper Renal Tract" is a deck inside a deck. Most people
+   * coming to this have used Anki, and it collapses four separate problems
+   * into typing — choosing an existing deck, making a new one, saying what to
+   * put it inside, and changing your mind about the name — which were a
+   * dropdown, a second dropdown, a modal and nowhere respectively.
+   *
+   * Arriving from a deck's ＋ Add prefills that deck and a "::", so whatever
+   * the file is called lands inside it.
+   */
+  const [deckName, setDeckName] = useState("");
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -524,8 +533,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
      yourself. */
   const [mode, setMode] = useState("ai");
   useEffect(() => {
-    if (targetDeckId) { setDeckChoice("__new__"); setNewDeckParent(targetDeckId); }
-  }, [targetDeckId]);
+    if (!targetDeckId) return;
+    /* Came here from a deck's ＋ Add, so that deck and a "::" are already
+       typed and whatever the file is called lands inside it. */
+    setDeckName(cur => (cur.trim() ? cur : `${deckPath(targetDeckId, indexDecks(decks)).map(p => p.name).join("::")}::`));
+  }, [targetDeckId, decks]);
   const [written, setWritten] = useState([]);
   const [writing, setWriting] = useState(false);
   // Cancel has to stop the request, not just hide the window — otherwise the
@@ -548,13 +560,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     setFile(f);
     setPastedText("");
     setPasting(false);
-    /* A name for the new deck from the file, if none was typed. A file name
-       must not overwrite a decision made by hand. */
-    if (!newDeckName.trim()) {
-      const guess = suggestTopicName(f.name);
-      if (guess) setNewDeckName(guess);
-      if (!targetDeckId && !deckChoice) setDeckChoice("__new__");
-    }
+    /* The file names the deck, unless you have already named it yourself.
+       Trailing "::" means you have chosen a parent and not yet said what goes
+       in it, so the file finishes the sentence. */
+    const guess = suggestTopicName(f.name);
+    if (!guess) return;
+    setDeckName(cur => {
+      const t = cur.trim();
+      if (!t) return guess;
+      if (t.endsWith("::")) return t + guess;
+      return cur;
+    });
   }
 
   const cancelGenerate = useCallback(() => {
@@ -569,10 +585,29 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    * answered before that reload would have nowhere to record the answer.
    */
   /* The deck the questions are going into — created now if it is new. */
+  /**
+   * Turns the typed name into a deck id, making whatever does not exist yet.
+   *
+   * Each segment is matched against the decks that already sit at that level,
+   * case-insensitively, so typing a name you already have uses it rather than
+   * making a second one beside it with different capitals.
+   */
   async function resolveDeck() {
-    if (deckChoice && deckChoice !== "__new__") return deckChoice;
-    const d = await deckActions.createDeck(newDeckName.trim(), newDeckParent || null);
-    return d.id;
+    const parts = deckName.split("::").map(x => x.trim()).filter(Boolean);
+    if (!parts.length) throw new Error("Give the deck a name first.");
+    let parentId = null;
+    /* Created ones are tracked here because the decks prop will not have
+       updated between the awaits in this loop. */
+    let known = decks;
+    for (const name of parts) {
+      const hit = known.find(d => (d.parentId ?? null) === parentId
+        && d.name.trim().toLowerCase() === name.toLowerCase());
+      if (hit) { parentId = hit.id; continue; }
+      const made = await deckActions.createDeck(name, parentId);
+      known = [...known, { ...made, parentId }];
+      parentId = made.id;
+    }
+    return parentId;
   }
   /**
    * Saves the kept questions, and says which of the two things happened.
@@ -607,15 +642,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
      pending, else the file's own name cleaned up. Naming needs no cleverness
      — "2.1 Larynx, trachea, chest wall.pdf" is already the answer — and it is
      visible and correctable, unlike a guess at which existing deck to use. */
-  const suggestedDeckName = newDeckName.trim()
-    || (file ? suggestTopicName(file.name) : "")
-    || "";
-
-  const deckLabel = deckChoice === "__new__"
-    ? [...(newDeckParent ? deckPath(newDeckParent, decksById).map(p => p.name) : []), newDeckName.trim()].join(" › ")
-    : deckPath(deckChoice, decksById).map(p => p.name).join(" › ");
+  /** "Week 1 - Renal::Upper Renal Tract" for a deck that already exists. */
+  function fullName(id) {
+    return deckPath(id, decksById).map(p => p.name).join("::");
+  }
+  const deckLabel = deckName.split("::").map(x => x.trim()).filter(Boolean).join(" › ");
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
-  const hasPlace = deckChoice === "__new__" ? Boolean(newDeckName.trim()) : Boolean(deckChoice);
+  const hasPlace = deckName.split("::").some(x => x.trim());
   const canGenerate = (file || pastedText.trim()) && hasPlace && countNum >= 1;
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
@@ -853,42 +886,39 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   }
 
 
-  /* One row saying where the questions are going, and a picker behind it.
-     This was two dropdowns, the second of which only existed if you chose
-     "＋ New deck…" in the first, and whose own first option was "Top level". */
-  const destParts = hasPlace ? String(deckLabel).split(" › ") : [];
-  const destName = destParts.length ? destParts[destParts.length - 1] : "";
-  const destPath = destParts.slice(0, -1).join(" › ");
-
+  /*
+   * One field. Anki's "::" means one deck inside another, which is the
+   * convention most people arriving here already have, and it replaces a
+   * dropdown of existing decks, a second dropdown for the parent, a modal for
+   * browsing them and — the thing that prompted this — no way at all to
+   * change the name the file had decided on.
+   *
+   * The list is a datalist rather than a menu: it suggests what you have
+   * without stopping you typing something you have not got yet.
+   */
   const placement = (
     <div className="gen-deck">
-      <button type="button" className="gen-dest" onClick={() => setPicking(true)}>
-        <span className="gen-dest-body">
-          {destPath && <span className="gen-dest-path">{destPath}</span>}
-          <span className={`gen-dest-name${hasPlace ? "" : " is-empty"}`}>
-            {hasPlace ? destName : "Choose a deck"}
-          </span>
-        </span>
-        <span className="gen-dest-change">{hasPlace ? "Change" : "Choose"}</span>
-      </button>
-
-      <DeckDestination
-        open={picking}
-        onClose={() => setPicking(false)}
-        decks={decks}
-        countFor={id => questionsInDeck(id).length}
-        chosenId={deckChoice === "__new__" ? null : deckChoice || null}
-        onChooseExisting={id => { setDeckChoice(id); setNewDeckName(""); setNewDeckParent(""); }}
-        suggestedName={suggestedDeckName}
-        onCreate={(name, parentId) => {
-          /* Held as a pending new deck rather than created now: the row is
-             only made once you actually generate, so backing out of the flow
-             does not leave an empty deck behind. */
-          setDeckChoice("__new__");
-          setNewDeckName(name);
-          setNewDeckParent(parentId ?? "");
-        }}
-      />
+      <label className="gen-field">
+        <span className="gen-field-label">Deck</span>
+        <input
+          type="text"
+          list="gen-deck-names"
+          value={deckName}
+          onChange={e => setDeckName(e.target.value)}
+          placeholder="e.g. Week 1 - Renal::Upper Renal Tract"
+          className="gen-deck-input"
+          maxLength={200}
+          autoComplete="off"
+          spellCheck={false}
+        />
+      </label>
+      <datalist id="gen-deck-names">
+        {decks.map(d => <option key={d.id} value={fullName(d.id)} />)}
+      </datalist>
+      <p className="gen-deck-hint">
+        Type <code>::</code> to put one deck inside another. Anything that doesn’t exist yet gets made.
+      </p>
+      {hasPlace && <p className="gen-deck-path">Going into <strong>{deckLabel}</strong></p>}
     </div>
   );
 
