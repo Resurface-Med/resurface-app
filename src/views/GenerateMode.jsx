@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
 import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
-import { deckPath, indexDecks } from "../lib/decks";
+import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
+import DeckDestination from "../ui/DeckDestination";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -513,6 +514,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    * the file is called lands inside it.
    */
   const [deckName, setDeckName] = useState("");
+  const [picking, setPicking] = useState(false);
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -887,38 +889,61 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
 
 
   /*
-   * One field. Anki's "::" means one deck inside another, which is the
-   * convention most people arriving here already have, and it replaces a
-   * dropdown of existing decks, a second dropdown for the parent, a modal for
-   * browsing them and — the thing that prompted this — no way at all to
-   * change the name the file had decided on.
+   * Two ways into one value.
    *
-   * The list is a datalist rather than a menu: it suggests what you have
-   * without stopping you typing something you have not got yet.
+   * The field is the truth: a deck's name, with Anki's "::" to put one inside
+   * another. Typing it is the fast path once you know what your decks are
+   * called, and it is the only way to change a name the file chose for you —
+   * which is what was missing when this was a picker alone.
+   *
+   * Browse fills the same field by pointing instead of typing, for when you
+   * have forgotten what you called something, or have never used Anki and do
+   * not know that "::" means anything. Neither is a mode: whatever the picker
+   * chooses lands in the box as text, where it can still be edited.
    */
   const placement = (
     <div className="gen-deck">
       <label className="gen-field">
         <span className="gen-field-label">Deck</span>
-        <input
-          type="text"
-          list="gen-deck-names"
-          value={deckName}
-          onChange={e => setDeckName(e.target.value)}
-          placeholder="e.g. Week 1 - Renal::Upper Renal Tract"
-          className="gen-deck-input"
-          maxLength={200}
-          autoComplete="off"
-          spellCheck={false}
-        />
+        <span className="gen-deck-row">
+          <input
+            type="text"
+            list="gen-deck-names"
+            value={deckName}
+            onChange={e => setDeckName(e.target.value)}
+            placeholder="e.g. Week 1 - Renal::Upper Renal Tract"
+            className="gen-deck-input"
+            maxLength={200}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <button type="button" className="gen-deck-browse" onClick={() => setPicking(true)}>
+            Browse
+          </button>
+        </span>
       </label>
       <datalist id="gen-deck-names">
         {decks.map(d => <option key={d.id} value={fullName(d.id)} />)}
       </datalist>
       <p className="gen-deck-hint">
-        Type <code>::</code> to put one deck inside another. Anything that doesn’t exist yet gets made.
+        Type <code>::</code> to put one deck inside another, or browse what you have.
+        Anything that doesn’t exist yet gets made.
       </p>
       {hasPlace && <p className="gen-deck-path">Going into <strong>{deckLabel}</strong></p>}
+
+      <DeckDestination
+        open={picking}
+        onClose={() => setPicking(false)}
+        decks={decks}
+        countFor={id => questionsInDeck(id).length}
+        chosenId={decks.find(d => fullName(d.id).toLowerCase() === deckName.trim().toLowerCase())?.id ?? null}
+        onChooseExisting={id => setDeckName(fullName(id))}
+        suggestedName={deckName.split("::").pop().trim() || (file ? suggestTopicName(file.name) : "")}
+        /* A new deck from the picker is not created there either — it becomes
+           text in the field like everything else, and is made when you
+           generate. */
+        onCreate={(name, parentId) => setDeckName(parentId ? `${fullName(parentId)}::${name}` : name)}
+      />
     </div>
   );
 
