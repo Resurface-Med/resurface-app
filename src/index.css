@@ -7524,6 +7524,12 @@ select {
   border-radius: var(--r-ctrl);
 }
 .gen-deck-input:focus { outline: none; border-color: var(--c-accent); }
+/* Chrome draws its own ▼ on any input with a `list`, which here sat inside a
+   field that already has Browse beside it saying the same thing twice — and
+   in the browser's shape rather than this one's. The suggestions still appear
+   as you type; only the marker goes. */
+.gen-deck-input::-webkit-calendar-picker-indicator { display: none !important; }
+.gen-deck-input::-webkit-list-button { display: none !important; }
 .gen-deck-hint {
   margin: 8px 2px 0;
   font-size: 13px;
