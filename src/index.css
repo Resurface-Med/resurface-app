@@ -5214,42 +5214,66 @@ select {
   gap: 8px;
 }
 
-/* Checkboxes, not pills. The pills beside these — From, How many — are each
-   one choice out of a set, and borrowing that shape for an independent on/off
-   made you read the fill to find out whether it was on. A box is on or off.
-   The box itself is .topic-check, the same one the deck tree ticks with, so
-   there is one tick in the product rather than three. */
+/*
+ * The third control in the dock, and it has to be the same object as the two
+ * beside it.
+ *
+ * From and How many are segmented: one track, segments inside, the chosen one
+ * filled. These were two bare checkboxes on the page with no track at all, so
+ * they read as something stuck on after the fact next to two finished
+ * controls — which is what they were. Same track now: .setup-seg's surface,
+ * radius and 3px padding, so three identical objects sit across the row.
+ *
+ * Inside it they stay ticks rather than becoming filled segments, because
+ * these two are independent and the two beside them are one-of-a-set. The
+ * track says they belong to the same family; the tick says they behave
+ * differently.
+ */
 .setup-opt-checks {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 18px;
+  gap: 3px;
+  padding: 3px;
+  background: var(--c-surface3);
+  border-radius: var(--r-pill);
+  width: fit-content;
+  max-width: 100%;
 }
 .opt-check {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 2px;
+  gap: 8px;
+  flex: 0 0 auto;
+  /* matches dockChip exactly, so the row's three tracks are one height */
+  padding: 7px 12px;
   background: none;
-  border: none;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-pill);
   font-family: inherit;
   cursor: pointer;
-  /* a thumb-sized target without a box drawn round it */
-  min-height: 34px;
+  white-space: nowrap;
+  transition: background 0.15s ease;
 }
+.opt-check:hover { background: var(--c-card-solid); }
+.opt-check[aria-checked="true"] { background: var(--c-card-solid); }
 .opt-check-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.1px;
-  color: var(--c-text);
-  white-space: nowrap;
+  color: var(--c-sub, var(--c-text));
 }
-.opt-check:hover .topic-check { border-color: var(--c-accent); }
+.opt-check[aria-checked="true"] .opt-check-label { color: var(--c-text); font-weight: 600; }
 
-@media (max-width: 480px) {
-  /* Stacked on a phone: side by side they wrap mid-label and read as four
-     things rather than two. */
-  .setup-opt-checks { flex-direction: column; align-items: flex-start; gap: 0; }
+/* The tick shrinks to sit inside a 13px row without bulking it out. */
+.opt-check .topic-check {
+  width: 15px;
+  height: 15px;
+  border-radius: 5px;
+}
+
+@media (max-width: 560px) {
+  .setup-opt-checks { width: 100%; }
+  .opt-check { flex: 1 1 auto; justify-content: center; }
 }
 /* Full width and equal shares, so no tap lands on dead space beside a control. */
 .setup-options .setup-seg { width: 100%; max-width: none; }
