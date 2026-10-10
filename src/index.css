@@ -5214,20 +5214,42 @@ select {
   gap: 8px;
 }
 
-/* Two chips rather than one, so they wrap instead of pushing the row wider
-   than a phone. Each stays a whole chip when it drops to the next line. */
-.setup-opt-chips {
+/* Checkboxes, not pills. The pills beside these — From, How many — are each
+   one choice out of a set, and borrowing that shape for an independent on/off
+   made you read the fill to find out whether it was on. A box is on or off.
+   The box itself is .topic-check, the same one the deck tree ticks with, so
+   there is one tick in the product rather than three. */
+.setup-opt-checks {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 18px;
 }
-.setup-opt-chips > button { flex: 0 0 auto; }
+.opt-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 2px;
+  background: none;
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+  /* a thumb-sized target without a box drawn round it */
+  min-height: 34px;
+}
+.opt-check-label {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+.opt-check:hover .topic-check { border-color: var(--c-accent); }
 
-@media (max-width: 420px) {
-  /* On the narrowest screens let them share the width evenly rather than
-     leaving one stranded on its own line. */
-  .setup-opt-chips > button { flex: 1 1 auto; justify-content: center; }
+@media (max-width: 480px) {
+  /* Stacked on a phone: side by side they wrap mid-label and read as four
+     things rather than two. */
+  .setup-opt-checks { flex-direction: column; align-items: flex-start; gap: 0; }
 }
 /* Full width and equal shares, so no tap lands on dead space beside a control. */
 .setup-options .setup-seg { width: 100%; max-width: none; }

@@ -150,15 +150,36 @@ function useIsPhone() {
 /** A toggle that stands on its own needs a resting state you can see. Inside a
  *  segmented track the track is the affordance, so `dockChip` goes transparent
  *  when off — standing alone that reads as a label, not a control. */
-function toggleChip(active) {
-  return {
-    ...chipBtn,
-    ...(active ? { ...chipBtnActive, boxShadow: "none" } : {}),
-    padding: "7px 12px",
-    fontSize: 13,
-    whiteSpace: "nowrap",
-  };
+/**
+ * A labelled checkbox, using the deck tree's own tick.
+ *
+ * These were pills. A pill is for choosing one of a set — which is what From
+ * and How many beside them are doing — and reusing it for an independent
+ * on/off says the wrong thing about the control and leaves you reading the
+ * fill to work out whether it is on. A box is on or off and says so.
+ */
+function OptCheck({ on, onChange, label, hint }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={on}
+      onClick={onChange}
+      className="opt-check"
+      title={hint}
+    >
+      <span className={`topic-check${on ? " is-on" : ""}`} aria-hidden="true">
+        {on && (
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6.4L4.6 9 10 3.2" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </span>
+      <span className="opt-check-label">{label}</span>
+    </button>
+  );
 }
+
 
 function dockChip(active, disabled) {
   return {
@@ -705,26 +726,19 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
                   <div className="setup-opt-group">
                     <span className="setup-dock-label">Options</span>
-                    <div className="setup-opt-chips">
-                      <button
-                        type="button"
-                        className="btn-press"
-                        onClick={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
-                        aria-pressed={filter.unseenOnly}
-                        style={toggleChip(filter.unseenOnly)}
-                      >
-                        Unseen only
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-press"
-                        onClick={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
-                        aria-pressed={filter.retryWrong === true}
-                        title="Ask a question again later in the session if you get it wrong"
-                        style={toggleChip(filter.retryWrong === true)}
-                      >
-                        Repeat wrong
-                      </button>
+                    <div className="setup-opt-checks">
+                      <OptCheck
+                        on={filter.unseenOnly}
+                        onChange={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
+                        label="Unseen only"
+                        hint="Leave out questions you have already answered"
+                      />
+                      <OptCheck
+                        on={filter.retryWrong === true}
+                        onChange={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
+                        label="Repeat wrong"
+                        hint="Ask a question again later in the session if you get it wrong"
+                      />
                     </div>
                   </div>
 
@@ -902,26 +916,19 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
                 <div className="setup-dock-group">
                   <span className="setup-dock-label">Options</span>
-                  <div className="setup-opt-chips">
-                    <button
-                      type="button"
-                      className="btn-press"
-                      onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
-                      aria-pressed={filter.unseenOnly}
-                      style={toggleChip(filter.unseenOnly)}
-                    >
-                      Unseen only
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-press"
-                      onClick={() => { setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true })); }}
-                      aria-pressed={filter.retryWrong === true}
-                      title="Ask a question again later in the session if you get it wrong"
-                      style={toggleChip(filter.retryWrong === true)}
-                    >
-                      Repeat wrong
-                    </button>
+                  <div className="setup-opt-checks">
+                    <OptCheck
+                      on={filter.unseenOnly}
+                      onChange={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
+                      label="Unseen only"
+                      hint="Leave out questions you have already answered"
+                    />
+                    <OptCheck
+                      on={filter.retryWrong === true}
+                      onChange={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
+                      label="Repeat wrong"
+                      hint="Ask a question again later in the session if you get it wrong"
+                    />
                   </div>
                 </div>
               </div>
