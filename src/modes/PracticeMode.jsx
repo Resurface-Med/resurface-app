@@ -639,6 +639,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           onChange={next => setFilter(f => ({ ...f, ...next }))}
                           query={topicQuery}
                           allLabel={activeRoot ? `All of ${activeRoot.name}` : "Everything"}
+                          allAvail={activeRoot ? activeRoot.avail : null}
                           rowMenu={rowMenu}
                           allowEmpty
                         />
@@ -826,6 +827,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   onChange={next => setFilter(f => ({ ...f, ...next }))}
                   query={topicQuery}
                   allLabel={activeRoot ? `All of ${activeRoot.name}` : "Everything"}
+                  allAvail={activeRoot ? activeRoot.avail : null}
                   rowMenu={rowMenu}
                   allowEmpty
                 />

@@ -95,7 +95,7 @@ function prune(nodes, q) {
 
 export default function DeckTree({
   forest, value, onChange, query = "",
-  allLabel = "Everything", showAll = true,
+  allLabel = "Everything", showAll = true, allAvail = null,
   rowMenu = null, allowEmpty = false,
 }) {
   const q = query.trim().toLowerCase();
@@ -109,7 +109,15 @@ export default function DeckTree({
     return leaves.includes("All") || leaves.length === 0 ? null : new Set(leaves);
   }, [value.leaves]);
 
-  const totalAvail = useMemo(() => forest.reduce((n, r) => n + r.avail, 0), [forest]);
+  /* Summing the rows shown is right when there are rows. A deck with no
+     sub-decks has none — it holds its questions itself — and summing an empty
+     list gave "All of Upper Renal Tract 0" above a blank list, for a deck with
+     fifteen questions in it. The caller passes the figure for the thing the
+     row actually names. */
+  const totalAvail = useMemo(
+    () => (allAvail != null ? allAvail : forest.reduce((n, r) => n + r.avail, 0)),
+    [forest, allAvail],
+  );
 
   /* Open: the first root and the branch holding the first chosen leaf. A
      scoped tree (one root) opens fully — it is small. */
@@ -238,6 +246,14 @@ export default function DeckTree({
       )}
       {q && tree.length === 0 && (
         <p style={{ padding: "20px 4px", fontSize: 14.5, color: C.muted }}>No deck matches “{query.trim()}”.</p>
+      )}
+      {/* A deck holding its own questions has nothing under it to choose
+          between, which is not the same as having nothing in it — and an
+          unexplained blank where the list goes reads as the second. */}
+      {!q && tree.length === 0 && showAll && (
+        <p style={{ padding: "16px 4px", fontSize: 14.5, color: C.muted }}>
+          No sub-decks — everything here is in the one deck.
+        </p>
       )}
       {tree.map((r, i) => <Row key={r.id} n={r} isLast={i === tree.length - 1} />)}
     </div>
