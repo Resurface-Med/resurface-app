@@ -7524,12 +7524,44 @@ select {
   border-radius: var(--r-ctrl);
 }
 .gen-deck-input:focus { outline: none; border-color: var(--c-accent); }
-/* Chrome draws its own ▼ on any input with a `list`, which here sat inside a
-   field that already has Browse beside it saying the same thing twice — and
-   in the browser's shape rather than this one's. The suggestions still appear
-   as you type; only the marker goes. */
-.gen-deck-input::-webkit-calendar-picker-indicator { display: none !important; }
-.gen-deck-input::-webkit-list-button { display: none !important; }
+/* No <datalist>: Chrome draws a dropdown marker on any input carrying one and
+   would not give it up, and it sat next to a Browse button already offering
+   the same thing. The list below is ours. */
+.gen-deck-field { position: relative; flex: 1; min-width: 0; display: flex; }
+.gen-sug {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--c-card-solid);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-ctrl);
+  box-shadow: var(--c-card-shadow-lift);
+}
+.gen-sug-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--c-text);
+  text-align: left;
+  cursor: pointer;
+}
+.gen-sug-row:hover { background: var(--c-surface2); }
+.gen-sug-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gen-sug-count { flex: none; font-size: 12.5px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
 .gen-deck-hint {
   margin: 8px 2px 0;
   font-size: 13px;

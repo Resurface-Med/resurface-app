@@ -515,6 +515,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    */
   const [deckName, setDeckName] = useState("");
   const [picking, setPicking] = useState(false);
+  /* Our own suggestion list rather than <datalist>. Chrome draws a dropdown
+     marker on any input with a `list` and will not reliably let it go —
+     ::-webkit-calendar-picker-indicator { display: none } is deployed and the
+     triangle is still there — and it sat beside a Browse button already
+     offering the same thing. Rendering the list ourselves also means it can
+     show what is in each deck. */
+  const [sugOpen, setSugOpen] = useState(false);
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -901,30 +908,59 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    * not know that "::" means anything. Neither is a mode: whatever the picker
    * chooses lands in the box as text, where it can still be edited.
    */
+  /* What you have, narrowed by what you have typed. An exact match is
+     dropped: there is nothing to suggest when the box already says it. */
+  const suggestions = (() => {
+    const typed = deckName.trim().toLowerCase();
+    return decks
+      .map(d => ({ id: d.id, name: fullName(d.id), count: questionsInDeck(d.id).length }))
+      .filter(x => x.name.toLowerCase() !== typed && (!typed || x.name.toLowerCase().includes(typed)))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 8);
+  })();
+
   const placement = (
     <div className="gen-deck">
       <label className="gen-field">
         <span className="gen-field-label">Deck</span>
         <span className="gen-deck-row">
-          <input
-            type="text"
-            list="gen-deck-names"
-            value={deckName}
-            onChange={e => setDeckName(e.target.value)}
-            placeholder="e.g. Week 1 - Renal::Upper Renal Tract"
-            className="gen-deck-input"
-            maxLength={200}
-            autoComplete="off"
-            spellCheck={false}
-          />
+          <span className="gen-deck-field">
+            <input
+              type="text"
+              value={deckName}
+              onChange={e => { setDeckName(e.target.value); setSugOpen(true); }}
+              onFocus={() => setSugOpen(true)}
+              onBlur={() => setSugOpen(false)}
+              onKeyDown={e => { if (e.key === "Escape") setSugOpen(false); }}
+              placeholder="e.g. Week 1 - Renal::Upper Renal Tract"
+              className="gen-deck-input"
+              maxLength={200}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {sugOpen && suggestions.length > 0 && (
+              <ul className="gen-sug">
+                {suggestions.map(sg => (
+                  <li key={sg.id}>
+                    {/* mousedown, not click: blur would close the list first */}
+                    <button
+                      type="button"
+                      className="gen-sug-row"
+                      onMouseDown={e => { e.preventDefault(); setDeckName(sg.name); setSugOpen(false); }}
+                    >
+                      <span className="gen-sug-name">{sg.name}</span>
+                      <span className="gen-sug-count">{sg.count === 0 ? "empty" : `${sg.count}`}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
           <button type="button" className="gen-deck-browse" onClick={() => setPicking(true)}>
             Browse
           </button>
         </span>
       </label>
-      <datalist id="gen-deck-names">
-        {decks.map(d => <option key={d.id} value={fullName(d.id)} />)}
-      </datalist>
       <p className="gen-deck-hint">
         Type <code>::</code> to put one deck inside another, or browse what you have.
         Anything that doesn’t exist yet gets made.
