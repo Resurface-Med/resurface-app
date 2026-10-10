@@ -5213,6 +5213,22 @@ select {
   flex-direction: column;
   gap: 8px;
 }
+
+/* Two chips rather than one, so they wrap instead of pushing the row wider
+   than a phone. Each stays a whole chip when it drops to the next line. */
+.setup-opt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.setup-opt-chips > button { flex: 0 0 auto; }
+
+@media (max-width: 420px) {
+  /* On the narrowest screens let them share the width evenly rather than
+     leaving one stranded on its own line. */
+  .setup-opt-chips > button { flex: 1 1 auto; justify-content: center; }
+}
 /* Full width and equal shares, so no tap lands on dead space beside a control. */
 .setup-options .setup-seg { width: 100%; max-width: none; }
 .setup-options .setup-seg > button { flex: 1 1 0; min-width: 0; }

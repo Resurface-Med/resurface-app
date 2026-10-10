@@ -441,7 +441,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      * are keyed by queue position: a session only moves forwards, so every
      * slot past the current one is empty and shifting them disturbs nothing.
      */
-    if (!correct) {
+    /* Off is a real preference, not a failure of nerve: a question you have
+       just got wrong coming round again is the point for one person and an
+       interruption for another, and the person who finds it an interruption
+       stops using the thing. On by default, because getting it wrong twice is
+       how it stops being wrong. */
+    if (!correct && filter.retryWrong !== false) {
       setQueue(prev => reask(prev, idx, q));
     }
     setResults(prev => ({ ...prev, [idx]: {
@@ -699,16 +704,28 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </div>
 
                   <div className="setup-opt-group">
-                    <span className="setup-dock-label">Filter</span>
-                    <button
-                      type="button"
-                      className="btn-press"
-                      onClick={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
-                      aria-pressed={filter.unseenOnly}
-                      style={{ ...toggleChip(filter.unseenOnly), alignSelf: "flex-start" }}
-                    >
-                      Unseen only
-                    </button>
+                    <span className="setup-dock-label">Options</span>
+                    <div className="setup-opt-chips">
+                      <button
+                        type="button"
+                        className="btn-press"
+                        onClick={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
+                        aria-pressed={filter.unseenOnly}
+                        style={toggleChip(filter.unseenOnly)}
+                      >
+                        Unseen only
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-press"
+                        onClick={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong === false }))}
+                        aria-pressed={filter.retryWrong !== false}
+                        title="Ask a question again later in the session if you get it wrong"
+                        style={toggleChip(filter.retryWrong !== false)}
+                      >
+                        Repeat wrong
+                      </button>
+                    </div>
                   </div>
 
                   <button
@@ -884,16 +901,28 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 </div>
 
                 <div className="setup-dock-group">
-                  <span className="setup-dock-label">Filter</span>
-                  <button
-                    type="button"
-                    className="btn-press"
-                    onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
-                    aria-pressed={filter.unseenOnly}
-                    style={toggleChip(filter.unseenOnly)}
-                  >
-                    Unseen only
-                  </button>
+                  <span className="setup-dock-label">Options</span>
+                  <div className="setup-opt-chips">
+                    <button
+                      type="button"
+                      className="btn-press"
+                      onClick={() => { setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly })); }}
+                      aria-pressed={filter.unseenOnly}
+                      style={toggleChip(filter.unseenOnly)}
+                    >
+                      Unseen only
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-press"
+                      onClick={() => { setFilter(f => ({ ...f, retryWrong: f.retryWrong === false })); }}
+                      aria-pressed={filter.retryWrong !== false}
+                      title="Ask a question again later in the session if you get it wrong"
+                      style={toggleChip(filter.retryWrong !== false)}
+                    >
+                      Repeat wrong
+                    </button>
+                  </div>
                 </div>
               </div>
 
