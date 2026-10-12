@@ -1067,7 +1067,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   return (
     <Shell
       title="Generate"
-      sub="Drop slides, notes or an Anki deck — Resurface writes the questions."
+      sub="Drop an Anki deck, slides or notes — Resurface writes the questions."
       maxWidth={640}
       sheet="var(--c-surface2)"
     >
@@ -1113,7 +1113,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         <div key={`${mode}-${step}`} className="gen-step" style={{ "--dir": dir }}>
           {step === 0 && (
             <>
-              <h2 className="gen-card-title">Upload a lecture, notes or Anki deck</h2>
+              <h2 className="gen-card-title">Upload an Anki deck, lecture or notes</h2>
               {file ? (
                 <div className="gen-source is-file">
                   <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
@@ -1166,7 +1166,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   </svg>
                   <span className="gen-source-text">
                     <span className="gen-source-lead">Drop a file here, or browse</span>
-                    <span className="gen-source-meta">PowerPoint, PDF, image or Anki deck</span>
+                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF or image</span>
                   </span>
                 </button>
               )}
