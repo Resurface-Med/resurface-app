@@ -42,18 +42,23 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 // so the model can still see them.
 const MIN_USEFUL_CHARS = 220;
 
-const COUNT_PRESETS = [5, 10, 15, 20];
+const COUNT_PRESETS = [5, 10, 20, 40];
 /*
- * The same ceiling the server enforces, which is the point of it being here.
+ * The same ceiling the server enforces, which is the point of it being here:
+ * the client used to allow thirty while the server clamped to twenty without
+ * saying so, so the button promised thirty and twenty arrived.
  *
- * The client used to allow thirty and the server clamped to twenty without
- * saying so, so the button read "Write 30 questions" and twenty arrived.
- * Twenty is the real limit: a question with five options, an explanation and
- * one line per wrong option runs about 340 output tokens, so thirty would
- * come to ten thousand and risk being cut off mid-JSON — which fails the
- * whole batch rather than returning fewer.
+ * Forty, because requests are what the free tier counts and questions are
+ * not — two requests for forty questions costs twice as much of the day as
+ * one. Measured against a real generation of ten: 0.7s and 340 output
+ * tokens a question, so forty is about 28 seconds and 13,600 tokens, inside
+ * both the 55s attempt timeout and the 16,000 the Harder path already
+ * budgets.
+ *
+ * Whether a lecture has forty fair questions in it is a different question,
+ * and the honest answer is that it depends on the lecture.
  */
-const MAX_COUNT = 20;
+const MAX_COUNT = 40;
 
 const band = {
   maxWidth: 1180,
