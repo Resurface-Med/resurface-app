@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import JSZip from "jszip";
-import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
+import { h1, primaryBtn } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
 import { chunk } from "../lib/chunk";
@@ -42,23 +42,22 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 // so the model can still see them.
 const MIN_USEFUL_CHARS = 220;
 
-const COUNT_PRESETS = [5, 10, 20, 40];
 /*
  * The same ceiling the server enforces, which is the point of it being here:
  * the client used to allow thirty while the server clamped to twenty without
  * saying so, so the button promised thirty and twenty arrived.
  *
- * Forty, because requests are what the free tier counts and questions are
- * not — two requests for forty questions costs twice as much of the day as
+ * Fifty, because requests are what the free tier counts and questions are
+ * not — two requests for fifty questions costs twice as much of the day as
  * one. Measured against a real generation of ten: 0.7s and 340 output
- * tokens a question, so forty is about 28 seconds and 13,600 tokens, inside
- * both the 55s attempt timeout and the 16,000 the Harder path already
- * budgets.
+ * tokens a question, so fifty is about 35 seconds against a 55s attempt
+ * timeout, and ~17,000 output tokens, which is past anything this codebase
+ * had assumed before. See the note on the server's MAX_COUNT.
  *
  * Whether a lecture has forty fair questions in it is a different question,
  * and the honest answer is that it depends on the lecture.
  */
-const MAX_COUNT = 40;
+const MAX_COUNT = 50;
 
 const band = {
   maxWidth: 1180,
@@ -1196,45 +1195,34 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           {step === 2 && mode === "ai" && (
             <>
               <h2 className="gen-card-title">How many questions</h2>
-              <div className="gen-count-row">
-                <div className="gen-chips" role="radiogroup" aria-label="Question count">
-                  {COUNT_PRESETS.map(n => (
-                    <button
-                      key={n}
-                      type="button"
-                      className="btn-press"
-                      onClick={() => setCountRaw(String(n))}
-                      style={countNum === n ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
-                {/* Outside the radiogroup on purpose — a textbox is not one of
-                    the radios. Empty while a preset is chosen, so the row does
-                    not offer 10 twice. */}
+              {/*
+                * A slider, not chips and an "Other" box.
+                *
+                * The chips offered four numbers and sent anything else to a
+                * text field, which is two controls for one value and made the
+                * uncommon answer the awkward one. A range says what the
+                * possible answers are by existing, and the ceiling is a fact
+                * about the track rather than a message after you overshoot.
+                */}
+              <div className="gen-count">
+                <output className="gen-count-value" htmlFor="gen-count">{countNum}</output>
                 <input
-                  type="text"
-                  inputMode="numeric"
-                  aria-label="Or type a number of questions"
-                  className="gen-count-input"
-                  placeholder="Other"
-                  value={COUNT_PRESETS.includes(countNum) ? "" : countRaw}
-                  onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
-                  /* Corrected when you leave the field rather than as you
-                     type: clamping mid-keystroke turns "30" into "2" the
-                     moment the 3 lands and you cannot type past it. */
-                  onBlur={e => {
-                    const v = e.target.value.trim();
-                    if (!v) { setCountRaw(String(countNum || 10)); return; }
-                    const n = Math.max(1, Math.min(MAX_COUNT, parseInt(v) || 0));
-                    setCountRaw(String(n));
-                  }}
+                  id="gen-count"
+                  className="gen-count-slider"
+                  type="range"
+                  min={1}
+                  max={MAX_COUNT}
+                  step={1}
+                  value={countNum}
+                  onChange={e => setCountRaw(e.target.value)}
+                  aria-label="How many questions"
+                  aria-valuetext={`${countNum} question${countNum === 1 ? "" : "s"}`}
                 />
+                <div className="gen-count-ends" aria-hidden="true">
+                  <span>1</span>
+                  <span>{MAX_COUNT}</span>
+                </div>
               </div>
-              {parseInt(countRaw) > MAX_COUNT && (
-                <p className="gen-count-note">{MAX_COUNT} at a time is the most.</p>
-              )}
               {error && <p className="gen-error">{error}</p>}
             </>
           )}

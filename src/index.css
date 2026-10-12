@@ -7612,6 +7612,70 @@ select {
   color: var(--c-muted);
 }
 .gen-deck-note { color: var(--c-muted); font-weight: 500; }
+/* How many questions: one control, and the ceiling is the end of the track
+   rather than a message you get after asking for too much. */
+.gen-count { margin-top: 4px; }
+.gen-count-value {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1.6px;
+  line-height: 1;
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 14px;
+}
+.gen-count-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 34px;              /* the target, not the track */
+  background: none;
+  cursor: pointer;
+}
+.gen-count-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+}
+.gen-count-slider::-moz-range-track {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--c-surface3);
+}
+/* Firefox fills behind the thumb for free; Chrome does not, and faking it
+   with a gradient means recomputing on every input, so the track simply
+   stays one colour in both and the number above says where you are. */
+.gen-count-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -9px;          /* centres a 26px thumb on an 8px track */
+  border-radius: 50%;
+  background: var(--c-accent);
+  border: 3px solid var(--c-card-solid);
+  box-shadow: 0 2px 8px rgba(53, 98, 245, 0.4);
+}
+.gen-count-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  border: 3px solid var(--c-card-solid);
+  box-shadow: 0 2px 8px rgba(53, 98, 245, 0.4);
+}
+.gen-count-slider:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+.gen-count-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  font-variant-numeric: tabular-nums;
+  padding: 0 2px;
+}
+
 .gen-count-note { margin: 8px 2px 0; font-size: 13px; line-height: 1.5; color: var(--c-muted); }
 
 .gen-deck-hint code {
