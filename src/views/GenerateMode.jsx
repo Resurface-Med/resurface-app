@@ -1194,7 +1194,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
 
           {step === 2 && mode === "ai" && (
             <>
-              <h2 className="gen-card-title">How many questions</h2>
               {/*
                 * A slider, not chips and an "Other" box.
                 *
@@ -1205,7 +1204,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                 * about the track rather than a message after you overshoot.
                 */}
               <div className="gen-count">
-                <output className="gen-count-value" htmlFor="gen-count">{countNum}</output>
+                {/* The value sits on the heading row as a value, not above
+                    the track as a headline. It was 40px at weight 800 —
+                    larger and bolder than the card title it sat under, which
+                    is why it read as shouting. */}
+                <div className="gen-count-head">
+                  <h2 className="gen-card-title">How many questions</h2>
+                  <output className="gen-count-value" htmlFor="gen-count">{countNum}</output>
+                </div>
                 <input
                   id="gen-count"
                   className="gen-count-slider"

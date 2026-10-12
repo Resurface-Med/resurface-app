@@ -7615,15 +7615,24 @@ select {
 /* How many questions: one control, and the ceiling is the end of the track
    rather than a message you get after asking for too much. */
 .gen-count { margin-top: 4px; }
+/* Heading and value on one line, baselines aligned, so the number reads as
+   the answer to the question beside it. */
+.gen-count-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 clamp(16px, 2.4vh, 22px);
+}
+.gen-count-head .gen-card-title { margin: 0; }
 .gen-count-value {
-  display: block;
-  font-size: 40px;
-  font-weight: 800;
-  letter-spacing: -1.6px;
+  flex: none;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
   line-height: 1;
-  color: var(--c-text);
+  color: var(--c-accent);
   font-variant-numeric: tabular-nums;
-  margin-bottom: 14px;
 }
 .gen-count-slider {
   -webkit-appearance: none;
