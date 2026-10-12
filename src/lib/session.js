@@ -32,23 +32,3 @@ export function reask(queue, idx, question, gap = REASK_GAP) {
   next.splice(Math.max(at, idx + 1), 0, question);
   return next;
 }
-
-/**
- * How many of the chosen questions have been got right.
- *
- * The count a session shows is questions, not cards. The queue grows as
- * things are put back into it, and a counter reading off its length would
- * climb away from the person using it — telling someone who asked for twenty
- * that they now have twenty-three to do. Getting the same question right
- * twice is still one question.
- */
-export function clearedCount(results) {
-  const got = new Set();
-  for (const r of Object.values(results || {})) if (r && r.correct) got.add(r.id);
-  return got.size;
-}
-
-/** How many distinct questions a queue holds, however many times each appears. */
-export function distinctCount(queue) {
-  return queue ? new Set(queue.map(q => q.id)).size : 0;
-}

@@ -3,7 +3,7 @@ import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, 
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
-import { reask, clearedCount, distinctCount } from "../lib/session";
+import { reask } from "../lib/session";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
@@ -421,18 +421,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   function discardSession() {
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
   }
-
-  /*
-   * The count is questions, not cards.
-   *
-   * A missed question is put back into the queue, so the queue grows as you
-   * go — and a counter reading off its length would climb away from you,
-   * telling someone who picked twenty that they now have twenty-three to do.
-   * The honest number is how many of the questions you chose you have got
-   * right, out of how many there were.
-   */
-  const distinct = useMemo(() => distinctCount(queue), [queue]);
-  const cleared = useMemo(() => clearedCount(results), [results]);
 
   function handleAnswer(i) {
     if (sels[idx] !== undefined || !queue) return;
@@ -968,8 +956,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       results={results}
       isBookmarked={isBookmarked}
       isLast={idx + 1 >= queue.length}
-      cleared={cleared}
-      distinct={distinct}
       onAnswer={handleAnswer}
       onNext={handleNext}
       onPrev={idx > 0 ? handleBack : null}

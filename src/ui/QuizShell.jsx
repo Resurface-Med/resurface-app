@@ -29,8 +29,6 @@ export default function QuizShell({
   q,
   idx,
   queue,
-  cleared = 0,
-  distinct = 0,
   sel,
   sels,
   results,
@@ -137,9 +135,26 @@ export default function QuizShell({
     return () => clearTimeout(t);
   }, [railOpen]);
 
-  /* Cleared, not seen. The queue grows when something is missed and put
-     back, so a bar driven by position would slide backwards as you work. */
-  const progress = distinct > 0 ? cleared / distinct : 0;
+  /*
+   * Where you are, not how you are doing.
+   *
+   * This read cleared/distinct — questions got right out of questions chosen
+   * — so answering five and getting two right showed 2/15 while you were
+   * looking at the sixth. It is the number in the corner of a quiz; people
+   * read it as their position, and it told them their score.
+   *
+   * It was that way because a missed question is put back into the queue, so
+   * a position counter would have had a total that climbed as you worked.
+   * Repeating wrong ones is off by default now and opt-in when it is on, so
+   * for almost everybody the queue is fixed at the length they asked for —
+   * and for the person who turned it on, a total that grows is the truth:
+   * there really are more cards to see.
+   */
+  const total = queue?.length ?? 0;
+  const position = Math.min(idx + 1, total);
+  /* Questions behind you, so the bar is empty on the first and fills as the
+     last one is answered rather than arriving full before it. */
+  const progress = total > 0 ? idx / total : 0;
   const answered = Object.keys(sels).length;
   const answeredThis = sel !== null;
   /* The dock is a window you keep open, not a reaction to being wrong: it
@@ -181,7 +196,7 @@ export default function QuizShell({
             />
           </div>
           <span className="quiz-shell__count">
-            {cleared}/{distinct}
+            {position}/{total}
           </span>
 
           <button
