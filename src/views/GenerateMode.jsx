@@ -951,6 +951,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       .slice(0, 8);
   })();
 
+  /* Recomputed as the name is typed, so the note under the field tracks it. */
+  const existingCount = (() => {
+    const id = existingDeckId(deckName);
+    return id ? questionsInDeck(id).length : 0;
+  })();
+
   const placement = (
     <div className="gen-deck">
       <label className="gen-field">
@@ -997,7 +1003,20 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         Type <code>::</code> to put one deck inside another, or browse what you have.
         Anything that doesn’t exist yet gets made.
       </p>
-      {hasPlace && <p className="gen-deck-path">Going into <strong>{deckLabel}</strong></p>}
+      {hasPlace && (
+        <p className="gen-deck-path">
+          Going into <strong>{deckLabel}</strong>
+          {/* Whether duplicate-avoidance is actually going to happen, said
+              before you spend a generation rather than discovered after.
+              It depends on the typed name matching a deck that exists, and
+              when it silently did not there was nothing on screen to say
+              so — which is exactly how the first attempt at this looked
+              like the model ignoring instructions. */}
+          {existingCount > 0
+            ? <span className="gen-deck-note"> · avoiding the {existingCount} question{existingCount === 1 ? "" : "s"} already in it</span>
+            : <span className="gen-deck-note"> · new deck, nothing to avoid</span>}
+        </p>
+      )}
 
       <DeckDestination
         open={picking}
