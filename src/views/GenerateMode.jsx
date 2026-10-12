@@ -544,9 +544,23 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [mode, setMode] = useState("ai");
   useEffect(() => {
     if (!targetDeckId) return;
-    /* Came here from a deck's ＋ Add, so that deck and a "::" are already
-       typed and whatever the file is called lands inside it. */
-    setDeckName(cur => (cur.trim() ? cur : `${deckPath(targetDeckId, indexDecks(decks)).map(p => p.name).join("::")}::`));
+    /*
+     * The deck you pressed Add on, and nothing after it.
+     *
+     * This used to append "::", which means "make a new deck inside this
+     * one" — so the file name completed it and the questions landed in a
+     * sub-deck named after the PDF. Nobody asked for that. Making the deck
+     * was the decision; putting the questions somewhere else is the app
+     * overruling it, and "Generate into this" ought to go into this.
+     *
+     * A sub-deck is still a keystroke away: type "::Lecture 2". That is the
+     * point of the convention — nesting is something you ask for rather than
+     * something that happens to you.
+     *
+     * It also means the deck exists, so its questions are sent as the list
+     * to avoid. The trailing "::" was why that list was always empty.
+     */
+    setDeckName(cur => (cur.trim() ? cur : deckPath(targetDeckId, indexDecks(decks)).map(p => p.name).join("::")));
   }, [targetDeckId, decks]);
   const [written, setWritten] = useState([]);
   const [writing, setWriting] = useState(false);
@@ -1038,7 +1052,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   return (
     <Shell
       title="Generate"
-      sub="Drop slides or notes — Resurface writes the questions."
+      sub="Drop slides, notes or an Anki deck — Resurface writes the questions."
       maxWidth={640}
       sheet="var(--c-surface2)"
     >
@@ -1084,7 +1098,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         <div key={`${mode}-${step}`} className="gen-step" style={{ "--dir": dir }}>
           {step === 0 && (
             <>
-              <h2 className="gen-card-title">Upload your lecture/notes</h2>
+              <h2 className="gen-card-title">Upload a lecture, notes or Anki deck</h2>
               {file ? (
                 <div className="gen-source is-file">
                   <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
@@ -1136,7 +1150,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                     <rect className="gen-sheet-ln l4" x="12" y="56" width="27" height="5.5" rx="2.75" />
                   </svg>
                   <span className="gen-source-text">
-                    <span className="gen-source-lead">Drop a lecture here, or browse</span>
+                    <span className="gen-source-lead">Drop a file here, or browse</span>
                     <span className="gen-source-meta">PowerPoint, PDF, image or Anki deck</span>
                   </span>
                 </button>
