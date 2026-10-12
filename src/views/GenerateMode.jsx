@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import { h1, primaryBtn, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
+import { chunk } from "../lib/chunk";
 import DeckDestination from "../ui/DeckDestination";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
@@ -152,10 +153,10 @@ let pdfjsPromise = null;
 async function loadPdfjs() {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
-      const [pdfjs, worker] = await Promise.all([
+      const [pdfjs, worker] = await chunk(() => Promise.all([
         import("pdfjs-dist"),
         import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-      ]);
+      ]))();
       pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
       return pdfjs;
     })();
@@ -211,10 +212,10 @@ let sqlJsPromise = null;
 function loadSqlJs() {
   if (!sqlJsPromise) {
     sqlJsPromise = (async () => {
-      const [{ default: initSqlJs }, wasm] = await Promise.all([
+      const [{ default: initSqlJs }, wasm] = await chunk(() => Promise.all([
         import("sql.js"),
         import("sql.js/dist/sql-wasm.wasm?url"),
-      ]);
+      ]))();
       return initSqlJs({ locateFile: () => wasm.default });
     })();
   }
@@ -244,7 +245,7 @@ async function extractApkg(file) {
   const zip = await JSZip.loadAsync(file);
   let bytes;
   if (zip.files["collection.anki21b"]) {
-    const { decompress } = await import("fzstd");
+    const { decompress } = await chunk(() => import("fzstd"))();
     bytes = decompress(await zip.files["collection.anki21b"].async("uint8array"));
   } else {
     const name = ["collection.anki21", "collection.anki2"].find(n => zip.files[n]);

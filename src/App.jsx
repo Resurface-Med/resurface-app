@@ -29,6 +29,7 @@ import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
+import { chunk, chunkLoadedOk } from "./lib/chunk";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -45,12 +46,12 @@ const VIEW_SWAP_MS = 560;
    them as well as `lazy` — see `go`. Calling one twice is free: an import
    already in flight or already done hands back the same promise. */
 const CHUNK = {
-  [V.STUDY]:       () => import("./modes/PracticeMode"),
-  [V.PROGRESS]:    () => import("./views/StatsView"),
-  [V.LEADERBOARD]: () => import("./views/LeaderboardView"),
-  [V.PROFILE]:     () => import("./views/ProfileView"),
-  [V.GENERATE]:    () => import("./views/GenerateMode"),
-  [V.ADMIN]:       () => import("./views/AdminView"),
+  [V.STUDY]:       chunk(() => import("./modes/PracticeMode")),
+  [V.PROGRESS]:    chunk(() => import("./views/StatsView")),
+  [V.LEADERBOARD]: chunk(() => import("./views/LeaderboardView")),
+  [V.PROFILE]:     chunk(() => import("./views/ProfileView")),
+  [V.GENERATE]:    chunk(() => import("./views/GenerateMode")),
+  [V.ADMIN]:       chunk(() => import("./views/AdminView")),
 };
 const StudyMode       = lazy(CHUNK[V.STUDY]);
 const ProgressView    = lazy(CHUNK[V.PROGRESS]);
@@ -141,6 +142,11 @@ export default function App() {
   // Theme is the one thing still read locally, so the page doesn't paint the
   // wrong colour for a frame while auth resolves.
   const [theme, setTheme] = useState(() => themeStore.get());
+
+  /* The app rendered, so whatever reload may have happened worked. Clearing
+     the guard here rather than never means a tab left open across two
+     deploys recovers from the second as well as the first. */
+  useEffect(() => { chunkLoadedOk(); }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -265,12 +271,17 @@ export default function App() {
 
   useEffect(() => {
     if (!user) return;
+    /* Not wrapped in chunk(): these run in the background with nobody
+       waiting, and a stale one must not reload the page out from under
+       somebody mid-sentence. The reload belongs to the press that needs the
+       chunk now. Swallowed so a failure is not an unhandled rejection. */
     const warm = () => {
-      import("./modes/PracticeMode");
-      import("./views/StatsView");
-      import("./views/LeaderboardView");
-      import("./views/ProfileView");
-      import("./views/GenerateMode");
+      const quiet = () => {};
+      import("./modes/PracticeMode").catch(quiet);
+      import("./views/StatsView").catch(quiet);
+      import("./views/LeaderboardView").catch(quiet);
+      import("./views/ProfileView").catch(quiet);
+      import("./views/GenerateMode").catch(quiet);
     };
     const ric = window.requestIdleCallback;
     const id = ric ? ric(warm, { timeout: 3000 }) : setTimeout(warm, 1500);
