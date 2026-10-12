@@ -1,6 +1,24 @@
 /* ─── UI scale ────────────────────────────────────────────────── */
+/*
+ * One scale, and it is 1.
+ *
+ * This was 1.12, which drew the whole desktop app at 112% — 15px body text
+ * at 16.8, a 46px heading at 51.5. It was set to make the UI "comfortable at
+ * arm's length", judged on the one display it was written on, and that
+ * display is a MacBook running a scaled resolution that fits more on it than
+ * a default one does. So every size here was chosen while looking at it 12%
+ * larger than specified, on a canvas wider than most people have. Two
+ * compounding reasons it looks right here and oversized everywhere else,
+ * which is what Jiggy reported.
+ *
+ * Not replaced with a different number or made responsive: a second scale is
+ * a second thing to design and test at, and the reason this went unnoticed
+ * for months is that nobody was looking at the same pixels. If the type ever
+ * reads small on a large monitor, that is the type scale to change, once,
+ * where it can be seen.
+ */
 :root {
-  --app-scale: 1.12;
+  --app-scale: 1;
   /* dvh, not vh. On phones 100vh is the viewport with the browser chrome
      *hidden*, so a full-height screen sits partly behind the address bar and
      the bottom of it is unreachable until you scroll. dvh tracks the chrome. */
@@ -43,17 +61,6 @@
 
 #root {
   zoom: var(--app-scale);
-}
-
-/* ─── Phones ─────────────────────────────────────────────────────── */
-/* The 1.12 zoom exists to make a desktop UI comfortable at arm's length. A
-   phone is already held close, and dividing a 390px viewport by 1.12 leaves
-   348px of usable width — the layout was being asked to fit a screen 12%
-   smaller than the real one. At this size the scale is simply 1. */
-@media (max-width: 900px) {
-  :root {
-    --app-scale: 1;
-  }
 }
 
 /* Nothing may exceed the viewport width. A single overflowing child turns the
