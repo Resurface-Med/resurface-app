@@ -43,6 +43,17 @@ const MAX_READ_BYTES = 60 * 1024 * 1024;
 const MIN_USEFUL_CHARS = 220;
 
 const COUNT_PRESETS = [5, 10, 15, 20];
+/*
+ * The same ceiling the server enforces, which is the point of it being here.
+ *
+ * The client used to allow thirty and the server clamped to twenty without
+ * saying so, so the button read "Write 30 questions" and twenty arrived.
+ * Twenty is the real limit: a question with five options, an explanation and
+ * one line per wrong option runs about 340 output tokens, so thirty would
+ * come to ten thousand and risk being cut off mid-JSON — which fails the
+ * whole batch rather than returning fewer.
+ */
+const MAX_COUNT = 20;
 
 const band = {
   maxWidth: 1180,
@@ -702,7 +713,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       .filter(Boolean);
   }
   const deckLabel = deckName.split("::").map(x => x.trim()).filter(Boolean).join(" › ");
-  const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
+  const countNum = Math.max(1, Math.min(MAX_COUNT, parseInt(countRaw) || 0));
   const hasPlace = deckName.split("::").some(x => x.trim());
   const canGenerate = (file || pastedText.trim()) && hasPlace && countNum >= 1;
   // ── Review ────────────────────────────────────────────────────────────
@@ -1205,9 +1216,20 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   placeholder="Other"
                   value={COUNT_PRESETS.includes(countNum) ? "" : countRaw}
                   onChange={e => setCountRaw(e.target.value.replace(/\D/g, ""))}
-                  onBlur={e => { if (!e.target.value.trim()) setCountRaw(String(countNum || 10)); }}
+                  /* Corrected when you leave the field rather than as you
+                     type: clamping mid-keystroke turns "30" into "2" the
+                     moment the 3 lands and you cannot type past it. */
+                  onBlur={e => {
+                    const v = e.target.value.trim();
+                    if (!v) { setCountRaw(String(countNum || 10)); return; }
+                    const n = Math.max(1, Math.min(MAX_COUNT, parseInt(v) || 0));
+                    setCountRaw(String(n));
+                  }}
                 />
               </div>
+              {parseInt(countRaw) > MAX_COUNT && (
+                <p className="gen-count-note">Most you can ask for at once is {MAX_COUNT}. Generate again into the same deck for more — it avoids what is already there.</p>
+              )}
               {error && <p className="gen-error">{error}</p>}
             </>
           )}
