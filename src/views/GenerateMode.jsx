@@ -277,7 +277,7 @@ async function extractApkg(file) {
   return `Flashcards from an Anki deck, front — back. Write questions that test the same facts; the other cards' answers are the natural distractors.${note}\n\n${lines.join("\n")}`;
 }
 
-async function generateQuestions({ file, pastedText, deckLabel, count, signal }) {
+async function generateQuestions({ file, pastedText, deckLabel, count, avoid, signal }) {
   let userContent = [];
 
   if (file) {
@@ -338,7 +338,7 @@ async function generateQuestions({ file, pastedText, deckLabel, count, signal })
       "content-type": "application/json",
       authorization: `Bearer ${session?.access_token ?? ""}`,
     },
-    body: JSON.stringify({ userContent, count }),
+    body: JSON.stringify({ userContent, count, avoid }),
     signal,
   });
 
@@ -655,6 +655,37 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   function fullName(id) {
     return deckPath(id, decksById).map(p => p.name).join("::");
   }
+
+  /**
+   * The id of the typed deck if every level of it already exists, else null.
+   *
+   * Deliberately not resolveDeck: that one creates what is missing, and this
+   * runs before you have committed to anything. A name that is only half
+   * real has nothing in it to duplicate anyway.
+   */
+  function existingDeckId(name) {
+    const parts = name.split("::").map(x => x.trim()).filter(Boolean);
+    if (!parts.length) return null;
+    let parentId = null;
+    for (const part of parts) {
+      const hit = decks.find(d => (d.parentId ?? null) === parentId
+        && d.name.trim().toLowerCase() === part.toLowerCase());
+      if (!hit) return null;
+      parentId = hit.id;
+    }
+    return parentId;
+  }
+
+  /* What is already in the deck being added to, so a second pass over the
+     same lecture covers new ground. Oldest first: the server keeps the tail,
+     and the recent ones are the likely collisions. */
+  function avoidStems() {
+    const id = existingDeckId(deckName);
+    if (!id) return [];
+    return questionsInDeck(id)
+      .map(q => (typeof q.q === "string" ? q.q : ""))
+      .filter(Boolean);
+  }
   const deckLabel = deckName.split("::").map(x => x.trim()).filter(Boolean).join(" › ");
   const countNum = Math.max(1, Math.min(30, parseInt(countRaw) || 0));
   const hasPlace = deckName.split("::").some(x => x.trim());
@@ -853,6 +884,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         pastedText,
         deckLabel,
         count: countNum,
+        avoid: avoidStems(),
         signal: ctrl.signal,
       });
       setGenerated(qs);
