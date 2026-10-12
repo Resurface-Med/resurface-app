@@ -1228,7 +1228,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                 />
               </div>
               {parseInt(countRaw) > MAX_COUNT && (
-                <p className="gen-count-note">Most you can ask for at once is {MAX_COUNT}. Generate again into the same deck for more — it avoids what is already there.</p>
+                <p className="gen-count-note">{MAX_COUNT} at a time is the most.</p>
               )}
               {error && <p className="gen-error">{error}</p>}
             </>
