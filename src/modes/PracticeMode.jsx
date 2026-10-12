@@ -9,7 +9,6 @@ import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree from "../ui/DeckTree";
 import { DeckTabs, DeckControls, DeckNameForm } from "../ui/DeckControls";
-import DeckBrowser from "../ui/DeckBrowser";
 import { buildForest, leavesUnder, findNode } from "../lib/decks";
 import { confirm, confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
@@ -277,7 +276,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* What is replacing the tree, if anything: a name field (new sub-deck or
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
-  const [browsing, setBrowsing] = useState(null);       // deck id whose questions are listed
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
   useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
@@ -311,7 +309,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useEffect(() => {
     setFilter(f => ({ ...f, leaves: ["All"] }));
     setNaming(null);
-    setBrowsing(null);
     setTopicQuery("");
   }, [activeRootId]);
   function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
@@ -546,7 +543,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* What a row's menu offers. Only your decks have one. */
     const rowMenu = _node => [
-      { label: "Questions", onSelect: n => { setBrowsing(n.id); setTopicQuery(""); } },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
@@ -639,9 +635,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         aria-label="Search decks"
                         className="setup-search"
                       />
-                      {browsing ? (
-                        <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
-                      ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
+                      {activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                         <div className="tg-rows-empty">
                           Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
                         </div>
@@ -792,10 +786,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               {!creatingDeck && !naming && (
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
-                  <h2 style={{ ...sectionH, margin: 0 }}>{browsing ? (decksById.get(browsing)?.name ?? "Questions") : "What are you revising?"}</h2>
+                  <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    {!browsing && <>{scoped} question{scoped === 1 ? "" : "s"}</>}
-                    {activeDeck && !browsing && (
+                    <>{scoped} question{scoped === 1 ? "" : "s"}</>
+                    {activeDeck && (
                       <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
                         onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
                         onRename={id => setNaming({ mode: "rename", deckId: id })} />
@@ -816,8 +810,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   type="search"
                   value={topicQuery}
                   onChange={e => setTopicQuery(e.target.value)}
-                  placeholder={browsing ? "Search questions" : "Search decks"}
-                  aria-label={browsing ? "Search questions" : "Search decks"}
+                  placeholder="Search decks"
+                  aria-label="Search decks"
                   style={{
                     width: "100%", boxSizing: "border-box",
                     padding: "11px 16px", fontSize: 14.5, fontFamily: "inherit",
@@ -832,8 +826,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingDeck ? (
                 <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
-              ) : browsing ? (
-                <DeckBrowser deckId={browsing} decks={decks} actions={deckActions} query={topicQuery} onDone={() => setBrowsing(null)} />
               ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
                 <div className="tg-rows-empty">
                   Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.

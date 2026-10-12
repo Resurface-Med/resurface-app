@@ -2727,29 +2727,6 @@ select {
 }
 .topic-count__unit { font-weight: 500; }
 
-/* The questions in a deck, listed in place. */
-.qb-list { list-style: none; margin: 0; padding: 0; }
-.qb-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 11px 4px 11px 6px;
-  border-top: 1px solid var(--c-border);
-}
-.qb-row:first-child { border-top: none; }
-.qb-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.qb-stem {
-  font-size: 14.5px;
-  font-weight: 500;
-  color: var(--c-text);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.qb-meta { font-size: 12.5px; color: var(--c-muted); }
-.qb-row .deck-menu-btn { color: var(--c-muted); }
 .pop-title { padding: 6px 12px 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c-muted); }
 .pop-empty { padding: 8px 12px 10px; font-size: 13.5px; color: var(--c-muted); }
 .pop-item { white-space: pre; }
@@ -2822,7 +2799,6 @@ select {
 }
 .topic-row:hover .deck-menu-btn, .deck-menu-btn[aria-expanded="true"] { color: var(--c-sub); }
 .deck-menu-btn:hover { background: var(--c-surface3); color: var(--c-text); }
-.tg-source-note { font-size: 13.5px; color: var(--c-sub); }
 .tg-head { margin: 2px 0 12px; }
 .tg-name {
   margin: 0;
@@ -2870,7 +2846,6 @@ select {
 }
 .tg-foot .gen-link { font-size: 14px; }
 .tg-foot-bank { color: var(--c-sub); font-weight: 500; }
-.tg-source-done { margin-left: auto; font-size: 13.5px; }
 
 .tg-rows {
   list-style: none;
@@ -2927,7 +2902,6 @@ select {
 }
 .tg-row-x:hover { color: var(--c-danger); background: var(--c-surface3); }
 .tg-adding { margin-top: 4px; }
-.tg-source { display: flex; gap: 14px; margin: 0 0 8px 2px; }
 .tg-source-opt {
   padding: 0;
   background: none;
