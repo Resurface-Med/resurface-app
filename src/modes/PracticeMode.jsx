@@ -8,8 +8,8 @@ import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree from "../ui/DeckTree";
-import { DeckTabs, DeckControls, DeckNameForm } from "../ui/DeckControls";
-import { buildForest, leavesUnder, findNode } from "../lib/decks";
+import { DeckTabs, DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
+import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm, confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
 
@@ -273,6 +273,19 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      and "All" inside a tab means all of the tab. */
   const [activeRootId, setActiveRootId] = useState(openDeckId);
   const [creatingDeck, setCreatingDeck] = useState(false);
+  /* The deck whose share link is open, or null. One sheet for the screen,
+     opened by whichever row's menu asked — it used to live inside
+     DeckControls, which only rendered for the active tab's root deck. */
+  const [sharing, setSharing] = useState(null);
+  const [shareCopied, setShareCopied] = useState(false);
+  async function copyShareLink() {
+    if (!sharing) return;
+    try {
+      await navigator.clipboard.writeText(deckShareUrl(sharing));
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch { /* the sheet shows the link regardless */ }
+  }
   /* What is replacing the tree, if anything: a name field (new sub-deck or
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
@@ -563,6 +576,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
+      /* Share is here rather than only on a root deck's tab, which is where
+         it used to live and why fourteen shareable decks had been shared
+         exactly zero times. */
+      { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
       { label: "Delete", danger: true, onSelect: async n => {
         if (await confirmDelete(`“${n.name}”`, n.total)) deckActions.deleteDeck(n.id);
       } },
@@ -806,6 +823,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
                     <>{scoped} question{scoped === 1 ? "" : "s"}</>
+                    <button type="button" className="gen-link" onClick={() => setCreatingDeck(true)}>
+                      ＋ New deck
+                    </button>
                     {activeDeck && (
                       <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
                         onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
@@ -951,6 +971,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             </div>
           </div>
         </div>
+        {sharing && (
+          <ShareSheet
+            deck={sharing}
+            url={deckShareUrl(sharing)}
+            copied={shareCopied}
+            onCopy={copyShareLink}
+            onClose={() => { setSharing(null); setShareCopied(false); }}
+          />
+        )}
       </div>
     );
   }

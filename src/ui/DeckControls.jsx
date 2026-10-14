@@ -72,7 +72,7 @@ export function Menu({ label, items, strong = false, align = "right" }) {
  * its border — because the whole fault in version one was that copying was
  * invisible.
  */
-function ShareSheet({ deck, url, copied, onCopy, onClose }) {
+export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
   useEffect(() => {
     const onKey = e => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
