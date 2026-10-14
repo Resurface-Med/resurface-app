@@ -325,13 +325,17 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setTopicQuery("");
   }, [activeRootId]);
   function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
+  const isPhone = useIsPhone();
   async function createDeckNamed(name, parentId = null) {
     const d = await deckActions.createDeck(name, parentId);
     setCreatingDeck(false);
     setNaming(null);
-    if (!parentId) setActiveRootId(d.id);
+    /* Only the phone has tabs, and this is what selects one. On desktop it
+       used to strand you: the new deck became the "active root", which drew
+       its own empty state instead of the tree, and with the tab strip gone
+       there was nothing left to click to get back out of it. */
+    if (!parentId && isPhone) setActiveRootId(d.id);
   }
-  const isPhone = useIsPhone();
   // Phones split the setup in two. A phone screen cannot hold a scrolling list
   // and a full set of controls at once without the controls eating half of it,
   // so the list gets the screen, then the options do.
@@ -826,11 +830,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     <button type="button" className="gen-link" onClick={() => setCreatingDeck(true)}>
                       ＋ New deck
                     </button>
-                    {activeDeck && (
-                      <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
-                        onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
-                        onRename={id => setNaming({ mode: "rename", deckId: id })} />
-                    )}
                   </span>
                 </div>
               )}
@@ -863,13 +862,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingDeck ? (
                 <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
-              ) : activeRoot && activeRoot.total === 0 && !activeRoot.children.length ? (
+              ) : forest.length === 0 ? (
                 <div className="tg-rows-empty">
-                  Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
+                  No decks yet. Press <strong>＋ New deck</strong> to make one.
                 </div>
               ) : (
                 <DeckTree
-                  key={activeRootId ?? "all"}
+                  key="all"
                   forest={forest}
                   value={filter}
                   onChange={next => setFilter(f => ({ ...f, ...next }))}
