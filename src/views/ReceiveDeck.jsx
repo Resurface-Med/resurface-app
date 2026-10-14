@@ -11,11 +11,11 @@ import { remote } from "../lib/remote";
  * on — no title, no count, no sender — and clicking it was irreversible in
  * the sense that mattered: a deck you did not ask for, mixed in with yours.
  *
- * So the code is looked up first and nothing happens until the button. It
- * names the deck, says how big it is and who made it, and is explicit that
- * what arrives is a copy — your own, to edit or delete, that will not change
- * when theirs does. That is the one thing people get wrong about this model,
- * and the moment they are deciding is the moment to say it.
+ * So the code is looked up first and nothing happens until the button. Three
+ * facts: who sent it, what it is called, how many questions. Everything else
+ * that was here — the sub-deck count, a sentence explaining that the copy is
+ * yours and will not track theirs — was true and was not what anybody is
+ * deciding on, which is only whether they want the thing.
  *
  * Built from the same pieces as the rest of the app — the card, the two
  * buttons and the colours out of theme.js — rather than its own small
@@ -33,7 +33,7 @@ function Shell({ children }) {
       padding: 24,
     }}>
       <div className="anim-scale-in" style={{
-        ...card, maxWidth: 400, width: "100%", textAlign: "center", padding: "36px 28px",
+        ...card, maxWidth: 420, width: "100%", textAlign: "center", padding: "40px 32px",
       }}>
         {children}
       </div>
@@ -137,27 +137,29 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
 
   return (
     <Shell>
-      <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--c-accent)", marginBottom: 10 }}>
+      <div style={{ fontSize: 15, fontWeight: 600, color: "var(--c-accent)", marginBottom: 14 }}>
         {deck.owner_name} shared a deck with you
       </div>
-      <Title>{deck.name}</Title>
-      <div style={{ fontSize: 14, color: C.sub, marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
-        {deck.questions} question{deck.questions === 1 ? "" : "s"}
-        {deck.decks > 0 && ` · ${deck.decks} sub-deck${deck.decks === 1 ? "" : "s"}`}
+      <div style={{ fontSize: 25, color: C.text, fontWeight: 700, letterSpacing: -0.6, lineHeight: 1.2, overflowWrap: "anywhere" }}>
+        {deck.name}
       </div>
-      <Body space={error ? 14 : 28}>
-        You’ll get your own copy to edit, study and delete as you like. It won’t change when theirs does.
-      </Body>
+      {/* Questions only. The sub-deck count was a second number next to the
+          one that matters, and how it is filed is the recipient's problem
+          once it is theirs. The sentence about it being a copy went for the
+          same reason: true, but not what anyone is deciding on. */}
+      <div style={{ fontSize: 15, color: C.sub, marginTop: 8, fontVariantNumeric: "tabular-nums" }}>
+        {deck.questions} question{deck.questions === 1 ? "" : "s"}
+      </div>
       {error && (
         <div role="alert" style={{
           fontSize: 13.5, lineHeight: 1.45, color: "var(--c-danger)",
           background: "var(--c-danger-bg, rgba(214, 69, 69, 0.1))",
-          borderRadius: "var(--r-ctrl)", padding: "10px 14px", marginBottom: 20,
+          borderRadius: "var(--r-ctrl)", padding: "10px 14px", marginTop: 20,
         }}>
           {error}
         </div>
       )}
-      <div style={{ display: "flex", gap: 10 }}>
+      <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
         <button type="button" className="btn-press" onClick={add} disabled={adding}
           style={{ ...primaryBtn, ...dialogBtn, ...(adding ? { opacity: 0.55 } : {}) }}>
           {adding ? "Adding…" : "Add to my decks"}
