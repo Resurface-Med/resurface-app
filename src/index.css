@@ -7769,9 +7769,14 @@ select {
   flex: 1;
   min-width: 0;
   padding: 12px 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 13px;
-  color: var(--c-text);
+  /* Poppins, like everything else. A URL is one of the few things that has a
+     reason to be monospaced — you sometimes read it character by character —
+     but this one is copied, never typed, and it was the only monospace on
+     screen in the whole product. */
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: -0.1px;
+  color: var(--c-muted);
   background: var(--c-surface2);
   border: 1.5px solid var(--c-border);
   border-radius: var(--r-ctrl);
