@@ -4,7 +4,6 @@ import { deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
 import Popover, { MenuItems } from "./Popover";
 import { confirmDelete } from "./Confirm";
-import { C, card, primaryBtn } from "./theme";
 
 /**
  * The tabs across the top of Study, and what a deck of yours can do.
@@ -55,17 +54,23 @@ export function Menu({ label, items, strong = false, align = "right" }) {
 }
 
 /**
- * The link, and a button to copy it.
+ * Share.
  *
- * Share used to write the clipboard silently and change a menu item to "Link
- * copied" for 1.8 seconds inside a menu that had already closed, so pressing
- * it usually looked like nothing had happened. Then I replaced that with a
- * dialog carrying a heading, a sentence explaining the copy model and two
- * buttons — which is a lot of screen for one URL.
+ * Three versions got here. First the clipboard was written silently and a
+ * menu item said "Link copied" for 1.8 seconds inside a menu that had already
+ * closed, so pressing Share looked like nothing happening. Then a dialog with
+ * a heading, a paragraph about what a copy means and two buttons, which is a
+ * lot of window for one URL — and the paragraph belonged on the recipient's
+ * screen, since they are the one deciding. Then just a bare input and a
+ * button, floating in a card with nothing to say what it was.
  *
- * A row: the link, and Copy. Nothing to read, nothing to dismiss but the
- * usual click away or Escape. What a copy means is explained on the screen
- * the recipient sees, which is where the person deciding actually is.
+ * This one: a title, one line of what the link does, the link, and Copy.
+ * Which is what Notion, Linear and Figma all settled on, because there is
+ * genuinely nothing else to put here.
+ *
+ * Copy confirms in place — the button becomes a tick and the field flashes
+ * its border — because the whole fault in version one was that copying was
+ * invisible.
  */
 function ShareSheet({ deck, url, copied, onCopy, onClose }) {
   useEffect(() => {
@@ -76,32 +81,40 @@ function ShareSheet({ deck, url, copied, onCopy, onClose }) {
 
   return createPortal(
     <div
+      className="shr-scrim"
       role="dialog" aria-modal="true" aria-label={`Share ${deck.name}`}
-      style={{
-        position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",
-        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-        backdropFilter: "blur(4px)", padding: 24,
-      }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="anim-scale-in" style={{ ...card, maxWidth: 440, width: "100%", padding: 20 }}>
-        <div style={{ display: "flex", gap: 10 }}>
+      <div className="shr-card">
+        <div className="shr-head">
+          <h2 className="shr-title">Share deck</h2>
+          <button type="button" className="shr-x" onClick={onClose} aria-label="Close">
+            <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+        <p className="shr-sub">Anyone with the link can add <strong>{deck.name}</strong> to their own decks.</p>
+
+        <div className={`shr-row${copied ? " is-copied" : ""}`}>
           <input
             readOnly
             value={url}
             autoFocus
             onFocus={e => e.target.select()}
             aria-label={`Link to ${deck.name}`}
-            style={{
-              flex: 1, minWidth: 0, padding: "12px 14px",
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 13,
-              color: C.text, background: "var(--c-surface2)",
-              border: "1.5px solid var(--c-border)", borderRadius: "var(--r-ctrl)",
-            }}
+            className="shr-link"
           />
-          <button type="button" className="btn-press" onClick={onCopy}
-            style={{ ...primaryBtn, flex: "none", padding: "12px 20px", fontSize: 14.5 }}>
-            {copied ? "Copied" : "Copy"}
+          <button type="button" className="shr-copy btn-press" onClick={onCopy}>
+            {copied ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M2 6.4L4.6 9 10 3.2" fill="none" stroke="currentColor" strokeWidth="2.2"
+                    strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Copied
+              </>
+            ) : "Copy"}
           </button>
         </div>
       </div>

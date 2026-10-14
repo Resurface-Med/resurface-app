@@ -7695,3 +7695,124 @@ select {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
+
+/* ── Share ─────────────────────────────────────────────────────────────── */
+/*
+ * The scrim fades and the card rises a little under it, on the app's one
+ * curve, so the thing arrives rather than appearing. Both are short: this is
+ * a window you open to copy one line and close, and anything longer than
+ * about a fifth of a second starts being in the way.
+ */
+.shr-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(26, 47, 122, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 0.18s ease both;
+}
+.shr-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--c-card-solid);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-panel);
+  box-shadow: var(--c-card-shadow-lift);
+  padding: 24px;
+  animation: shrRise 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+@keyframes shrRise {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.97); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.shr-head { display: flex; align-items: center; gap: 12px; }
+.shr-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.35px;
+  color: var(--c-text);
+}
+.shr-x {
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--c-muted);
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.shr-x:hover { background: var(--c-surface2); color: var(--c-text); }
+
+.shr-sub {
+  margin: 6px 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--c-muted);
+}
+.shr-sub strong { color: var(--c-text); font-weight: 600; }
+
+.shr-row { display: flex; gap: 10px; }
+.shr-link {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--c-text);
+  background: var(--c-surface2);
+  border: 1.5px solid var(--c-border);
+  border-radius: var(--r-ctrl);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.shr-link:focus { outline: none; border-color: var(--c-accent); }
+/* The field answers too, so the confirmation is not only on the button the
+   pointer is already covering. */
+.shr-row.is-copied .shr-link {
+  border-color: var(--c-accent);
+  background: var(--c-card-solid);
+}
+
+.shr-copy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 104px;
+  padding: 12px 20px;
+  background: var(--c-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+  cursor: pointer;
+  box-shadow: var(--c-cta-shadow);
+  /* min-width is fixed so "Copy" becoming "Copied" does not resize the row */
+  transition: background 0.18s ease;
+}
+.shr-copy svg { animation: pop 0.2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (max-width: 480px) {
+  .shr-row { flex-direction: column; }
+  .shr-copy { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shr-scrim, .shr-card, .shr-copy svg { animation: none; }
+}
