@@ -2063,8 +2063,15 @@ select {
   outline: 2px solid var(--c-accent);
   outline-offset: -2px;
 }
-.topic-row[draggable="true"] { cursor: grab; }
-.topic-row[draggable="true"]:active { cursor: grabbing; }
+.topic-row[data-deck-id] { cursor: grab; }
+/* While a drag is running, nothing should select under the pointer and no
+   row should swallow the move events with its own hover handling. */
+.topic-tree-drop.is-armed,
+.topic-tree-drop.is-armed * {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing !important;
+}
 
 .topic-hit {
   display: flex;

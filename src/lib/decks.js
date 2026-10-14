@@ -84,6 +84,31 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
   return roots;
 }
 
+/**
+ * Whether a deck may be dropped onto another.
+ *
+ * A null target is the top level, which anything may go to. Nothing may go
+ * into itself or into anything beneath it: the database refuses a cycle, so
+ * allowing the drop would only produce an error.
+ *
+ * Here rather than in the component so it can be tested without a browser —
+ * three attempts at this were lost inside drag events where a wrong answer
+ * looks exactly like no answer at all.
+ */
+export function canDropDeck(forest, fromId, targetId) {
+  if (!fromId || fromId === targetId) return false;
+  if (targetId === null) return true;
+  let inSubtree = false;
+  (function walk(nodes, inside) {
+    for (const x of nodes) {
+      const within = inside || x.id === fromId;
+      if (within && x.id === targetId) inSubtree = true;
+      walk(x.children, within);
+    }
+  })(forest, false);
+  return !inSubtree;
+}
+
 /** Every leaf id under a node (a node with no children is its own leaf). */
 export function leavesUnder(n) {
   if (!n.children.length) return [n.id];

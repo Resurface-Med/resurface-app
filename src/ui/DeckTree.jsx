@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useCallback } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
-import { leavesUnder, findNode } from "../lib/decks";
+import { leavesUnder, findNode, canDropDeck } from "../lib/decks";
 
 /**
  * The deck tree: what you are revising.
@@ -181,36 +181,66 @@ export default function DeckTree({
   const isAll = selected === null;
 
   /*
-   * Which row is being dragged, and which it is over.
+   * Dragging a deck onto another, on pointer events rather than HTML5 drag.
    *
-   * The id is a ref as well as state. dragover fires many times a second and
-   * its handler closes over whatever dragId was when that row last rendered,
-   * so a predicate reading the state variable can be answering about a drag
-   * that has already moved on — and a dragover that does not call
-   * preventDefault silently forbids the drop. The ref is always current.
-   * The state is only for the two things that have to repaint.
+   * Three attempts at the native API did not survive contact: the row would
+   * grey out and nothing would land, because a dragover handler that fails to
+   * call preventDefault refuses the drop in silence and there is no way to
+   * see which of a dozen reasons it was. Pointer events have none of that —
+   * no drag images, no dataTransfer, no dropEffect, and the element under the
+   * cursor is whatever elementFromPoint says it is. They are also the same
+   * events a finger produces, so touch comes free when phones get this.
+   *
+   * A drag starts only after the pointer has moved a few pixels, so a plain
+   * click on a row still ticks it.
    */
-  const dragRef = useRef(null);
+  const dragRef = useRef(null);      // { id, startX, startY, moved }
   const [dragId, setDragId] = useState(null);
   const [dropId, setDropId] = useState(null);
 
-  /* A deck cannot go inside itself or inside its own descendant — the
-     database refuses it, so offering it would be offering an error. */
-  /* null target means the top level, which anything may be dropped on. */
-  function canDrop(targetId) {
-    const from = dragRef.current;
-    if (!onMove || !from || from === targetId) return false;
-    if (targetId === null) return true;
-    let inSubtree = false;
-    (function walk(nodes, inside) {
-      for (const x of nodes) {
-        const within = inside || x.id === from;
-        if (within && x.id === targetId) inSubtree = true;
-        walk(x.children, within);
-      }
-    })(forest, false);
-    return !inSubtree;
+  function rowUnder(x, y) {
+    const el = document.elementFromPoint(x, y);
+    const row = el?.closest?.("[data-deck-id]");
+    return row?.dataset.deckId ?? null;
   }
+
+  function beginDrag(e, id) {
+    /* Left button only, and never from a control inside the row — the
+       chevron and the menu have their own jobs. */
+    if (e.button !== 0) return;
+    if (e.target.closest("button, [role='menu']") && !e.target.closest(".topic-hit")) return;
+    dragRef.current = { id, startX: e.clientX, startY: e.clientY, moved: false };
+  }
+
+  function onPointerMove(e) {
+    const d = dragRef.current;
+    if (!d) return;
+    if (!d.moved) {
+      if (Math.abs(e.clientX - d.startX) < 6 && Math.abs(e.clientY - d.startY) < 6) return;
+      d.moved = true;
+      setDragId(d.id);
+    }
+    const over = rowUnder(e.clientX, e.clientY);
+    setDropId(over !== null && !canDropDeck(forest, dragRef.current?.id, over) ? null : over);
+  }
+
+  function endDrag(e) {
+    const d = dragRef.current;
+    dragRef.current = null;
+    if (!d) return;
+    const wasDragging = d.moved;
+    setDragId(null);
+    setDropId(null);
+    if (!wasDragging) return;
+    /* Suppress the click the pointer-up would otherwise produce, so finishing
+       a drag on a row does not also tick it. */
+    e.preventDefault();
+    const to = rowUnder(e.clientX, e.clientY);
+    if (to === d.id) return;
+    if (to !== null && !canDropDeck(forest, d.id, to)) return;
+    onMove?.(d.id, to);
+  }
+
 
   const STEP = 26, PAD = 14;
 
@@ -242,15 +272,10 @@ export default function DeckTree({
         <div
           className={cls}
           style={{ paddingLeft: padLeft, "--depth": depth }}
-          /* The row carries its id and nothing else. All the drag handling is
-             one set of listeners on the container below: per-row handlers
-             each closed over their own render's state, so the predicate that
-             decides whether a drop is allowed could be answering about a drag
-             that had already moved on — and a dragover that does not call
-             preventDefault forbids the drop silently, which is why the row
-             greyed out and nothing ever landed. */
+          /* The row carries its id; the dragging is done by the pointer
+             handlers on the container, which find rows by coordinate. */
           data-deck-id={n.id}
-          draggable={Boolean(onMove && n.mine)}
+          onPointerDown={onMove && n.mine ? e => beginDrag(e, n.id) : undefined}
         >
           <span className="topic-twist">
             {kids.length > 0 && (
@@ -289,49 +314,15 @@ export default function DeckTree({
     <div
       role="group"
       aria-label="Decks"
-      /* Space below the rows to drop onto, and a dashed edge while a drag is
-         in the air over it, so "out of the deck it is in" is somewhere you
-         can actually aim. */
+      /* Space below the rows to drop onto, and a lit edge while a drag is
+         over it, so "out of the deck it is in" is somewhere you can aim. */
       className={`topic-tree-drop${dragId ? " is-armed" : ""}${dragId && dropId === null ? " is-drop-root" : ""}`}
-      onDragStart={e => {
-        const row = e.target.closest?.("[data-deck-id]");
-        if (!row) return;
-        dragRef.current = row.dataset.deckId;
-        setDragId(row.dataset.deckId);
-        e.dataTransfer.effectAllowed = "move";
-        /* Firefox refuses to begin a drag without data, and the drop reads
-           this rather than relying on the component still holding it. */
-        e.dataTransfer.setData("text/plain", row.dataset.deckId);
-      }}
-      onDragEnd={() => { dragRef.current = null; setDragId(null); setDropId(null); }}
-      onDragOver={e => {
-        if (!onMove || !dragRef.current) return;
-        const row = e.target.closest?.("[data-deck-id]");
-        const id = row?.dataset.deckId ?? null;
-        /* Over a row it may go into, or over the container itself, which
-           means the top level — otherwise there is no way to pull a deck
-           back out of the one it is in. */
-        if (id !== null && !canDrop(id)) { setDropId(null); return; }
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        if (dropId !== id) setDropId(id);
-      }}
-      onDragLeave={e => {
-        if (e.currentTarget.contains(e.relatedTarget)) return;
-        setDropId(null);
-      }}
-      onDrop={e => {
-        if (!onMove) return;
-        const from = e.dataTransfer.getData("text/plain") || dragRef.current;
-        const row = e.target.closest?.("[data-deck-id]");
-        const to = row?.dataset.deckId ?? null;
-        dragRef.current = null;
-        setDragId(null); setDropId(null);
-        if (!from || from === to) return;
-        if (to !== null && !canDrop(to)) return;
-        e.preventDefault();
-        onMove(from, to);
-      }}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      /* A pointer that leaves the window, or is taken by something else,
+         must not leave a drag running for ever. */
+      onPointerCancel={endDrag}
+      onPointerLeave={endDrag}
     >
       {!q && showAll && (
         <button type="button" role="checkbox" aria-checked={isAll} onClick={pickAll}
