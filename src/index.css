@@ -7821,3 +7821,29 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .shr-scrim, .shr-card, .shr-copy svg { animation: none; }
 }
+
+/* Delete account: below the other danger actions and set apart from them,
+   because resetting progress and signing out are both recoverable and this
+   is not. A text link rather than a fourth button — the weight belongs on
+   the dialog that asks you to type the word, not on the thing you click to
+   open it. */
+.profile-delete {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--c-border);
+}
+.profile-delete-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: var(--c-danger);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.profile-delete-btn:hover { opacity: 0.8; }
+.profile-delete-btn:disabled { opacity: 0.5; cursor: default; text-decoration: none; }

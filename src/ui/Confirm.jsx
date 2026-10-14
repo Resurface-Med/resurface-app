@@ -7,6 +7,12 @@ import { C, card, primaryBtn, btnGhost } from "./theme";
  * Call `confirm({ title, body, action })` from anywhere and await the
  * answer. One host renders whichever question is open. The action button
  * is the app's own; a destructive one is red.
+ *
+ * `typeToConfirm` adds a field that must be typed before the button works.
+ * For the few things a mis-click should not be able to do — deleting an
+ * account is the only one so far — where the cost of being wrong is total
+ * and there is nothing to undo it with. Reaching for it on anything less
+ * teaches people to type past it.
  */
 let listener = null;
 
@@ -31,18 +37,26 @@ const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "
 
 export function ConfirmHost() {
   const [q, setQ] = useState(null);
+  const [typed, setTyped] = useState("");
   useEffect(() => {
     listener = setQ;
     return () => { if (listener === setQ) listener = null; };
   }, []);
+  useEffect(() => { setTyped(""); }, [q]);
   useEffect(() => {
     if (!q) return;
-    const onKey = e => { if (e.key === "Escape") answer(false); if (e.key === "Enter") answer(true); };
+    const onKey = e => {
+      if (e.key === "Escape") answer(false);
+      /* Enter is the shortcut for yes, which is exactly wrong when the point
+         is that you had to type something first. */
+      if (e.key === "Enter" && !q.typeToConfirm) answer(true);
+    };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [q]);
   function answer(yes) { q.resolve(yes); setQ(null); }
   if (!q) return null;
+  const locked = Boolean(q.typeToConfirm) && typed.trim().toLowerCase() !== q.typeToConfirm.toLowerCase();
   return (
     <div
       role="dialog" aria-modal="true" aria-label={q.title}
@@ -58,13 +72,38 @@ export function ConfirmHost() {
         {q.body && (
           <div style={{ fontSize: 14, color: C.sub, marginBottom: 28, lineHeight: 1.55 }}>{q.body}</div>
         )}
+        {q.typeToConfirm && (
+          <div style={{ marginBottom: 22, textAlign: "left" }}>
+            <label htmlFor="confirm-type" style={{ display: "block", fontSize: 13, color: C.sub, marginBottom: 7 }}>
+              Type <strong style={{ color: C.text }}>{q.typeToConfirm}</strong> to confirm
+            </label>
+            <input
+              id="confirm-type"
+              value={typed}
+              autoFocus
+              autoComplete="off"
+              onChange={e => setTyped(e.target.value)}
+              style={{
+                width: "100%", boxSizing: "border-box", padding: "11px 14px",
+                fontFamily: "inherit", fontSize: 15, color: C.text,
+                background: "var(--c-surface2)", border: "1.5px solid var(--c-border)",
+                borderRadius: "var(--r-ctrl)",
+              }}
+            />
+          </div>
+        )}
         <div style={{ display: "flex", gap: 10, marginTop: q.body ? 0 : 24 }}>
           <button
             type="button"
             className="btn-press"
-            autoFocus
+            autoFocus={!q.typeToConfirm}
+            disabled={locked}
             onClick={() => answer(true)}
-            style={{ ...primaryBtn, ...dialogBtn, ...(q.danger ? { background: "var(--c-danger)", boxShadow: "none" } : {}) }}
+            style={{
+              ...primaryBtn, ...dialogBtn,
+              ...(q.danger ? { background: "var(--c-danger)", boxShadow: "none" } : {}),
+              ...(locked ? { opacity: 0.4, cursor: "default" } : {}),
+            }}
           >
             {q.action ?? "OK"}
           </button>

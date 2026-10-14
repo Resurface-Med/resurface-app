@@ -41,7 +41,7 @@ export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal,
   onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
 }) {
-  const { user, updatePassword } = useAuth();
+  const { user, updatePassword, signOut } = useAuth();
   const providers = authProviders(user);
   const canChangePassword = providers.includes("email");
   const [name, setName] = useState(displayName || "");
@@ -50,6 +50,7 @@ export default function ProfileView({
   const [goal, setGoal] = useState(dailyGoal || 20);
   const [nameSaved, setNameSaved] = useState(false);
   const [prefSaved, setPrefSaved] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
 
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
@@ -116,6 +117,44 @@ export default function ProfileView({
       setPwErr(err.message || "Couldn't change your password.");
     } finally {
       setPwBusy(false);
+    }
+  }
+
+  /**
+   * Deleting the account, which is the one thing here with nothing behind it.
+   *
+   * Everything else in this section is recoverable by doing the work again;
+   * this is not, and there is no export, so what goes is gone. Hence a typed
+   * confirmation rather than a second button to press by accident, and the
+   * body says what leaves rather than "this cannot be undone", which every
+   * dialog says and nobody reads.
+   */
+  async function deleteAccount() {
+    const ok = await confirm({
+      title: "Delete your account?",
+      body: "Your decks, questions, progress and streaks are deleted straight away. There is no way to get them back.",
+      action: "Delete",
+      danger: true,
+      typeToConfirm: "delete",
+    });
+    if (!ok) return;
+    setDeleteBusy(true);
+    try {
+      await remote.deleteOwnAccount();
+      /* Signing out locally too: the session's token is still valid-looking
+         to the client until it is cleared, and an app sitting on a signed-in
+         screen for an account that no longer exists fails at every request
+         rather than at one obvious place. */
+      await signOut();
+      window.location.replace("/");
+    } catch (e) {
+      setDeleteBusy(false);
+      await confirm({
+        title: "Couldn’t delete the account",
+        body: e?.message || "Something went wrong. Nothing has been deleted — try again.",
+        action: "OK",
+        cancel: null,
+      });
     }
   }
 
@@ -342,6 +381,20 @@ export default function ProfileView({
               >
                 Sign out
               </button>
+            </div>
+
+            <div className="profile-delete">
+              <button
+                type="button"
+                className="profile-delete-btn"
+                onClick={deleteAccount}
+                disabled={deleteBusy}
+              >
+                {deleteBusy ? "Deleting…" : "Delete my account"}
+              </button>
+              <p style={{ ...meta, marginTop: 6 }}>
+                Everything goes: decks, questions, progress. It cannot be undone.
+              </p>
             </div>
           </section>
         </div>

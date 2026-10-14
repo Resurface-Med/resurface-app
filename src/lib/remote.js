@@ -439,6 +439,16 @@ export const remote = {
     const row = Array.isArray(data) ? data[0] : data;
     return row ?? null;
   },
+  /**
+   * Deletes the signed-in account and everything cascading from it.
+   *
+   * The function takes no arguments on purpose: it deletes auth.uid() and
+   * there is no way to name somebody else's row.
+   */
+  deleteOwnAccount: async () => {
+    const { error } = await supabase.rpc("delete_own_account");
+    if (error) throw error;
+  },
   copyDeckByCode: async (code) => {
     const { data, error } = await supabase.rpc("copy_deck_by_code", { code });
     if (error) throw error;
