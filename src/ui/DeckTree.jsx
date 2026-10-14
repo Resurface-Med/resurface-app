@@ -97,6 +97,12 @@ export default function DeckTree({
   forest, value, onChange, query = "",
   allLabel = "Everything", showAll = true, allAvail = null,
   rowMenu = null, allowEmpty = false,
+  /* Clicking a name studies that deck. Without it the name falls back to
+     ticking the box, which is what the whole row used to do. */
+  onStudy = null,
+  /* Dragging a row onto another re-parents it. moveDeck has existed in
+     App.jsx since decks did, and no component had ever called it. */
+  onMove = null,
 }) {
   const q = query.trim().toLowerCase();
   const tree = useMemo(() => (q ? prune(forest, q) : forest), [forest, q]);
@@ -177,6 +183,25 @@ export default function DeckTree({
 
   const isAll = selected === null;
 
+  /* Which row is being dragged, and which it is over. */
+  const [dragId, setDragId] = useState(null);
+  const [dropId, setDropId] = useState(null);
+
+  /* A deck cannot go inside itself or inside its own descendant — the
+     database refuses it, so offering it would be offering an error. */
+  function canDrop(targetId) {
+    if (!onMove || !dragId || dragId === targetId) return false;
+    let inSubtree = false;
+    (function walk(nodes, inside) {
+      for (const x of nodes) {
+        const within = inside || x.id === dragId;
+        if (within && x.id === targetId) inSubtree = true;
+        walk(x.children, within);
+      }
+    })(forest, false);
+    return !inSubtree;
+  }
+
   const STEP = 26, PAD = 14;
 
   function Row({ n, isLast }) {
@@ -186,12 +211,16 @@ export default function DeckTree({
     const st = state(n);
     const depth = n.depth - base;
     const nested = depth > 0;
+    const dragging = dragId === n.id;
+    const over = dropId === n.id;
     const cls = [
       "topic-row",
       depth <= 1 ? "topic-row-roomy" : "is-child",
       depth === 0 ? "is-block" : "",
       st === true ? "is-active" : "",
       empty ? "is-empty" : "",
+      dragging ? "is-dragging" : "",
+      over ? "is-drop" : "",
     ].filter(Boolean).join(" ");
     const padLeft = PAD + depth * STEP;
     const menu = rowMenu && n.mine ? rowMenu(n) : null;
@@ -200,7 +229,34 @@ export default function DeckTree({
       <div
         className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}`}
       >
-        <div className={cls} style={{ paddingLeft: padLeft, "--depth": depth }}>
+        <div
+          className={cls}
+          style={{ paddingLeft: padLeft, "--depth": depth }}
+          /* The row drags, not the name, so the name stays a plain button. */
+          draggable={Boolean(onMove && n.mine)}
+          onDragStart={e => {
+            if (!onMove || !n.mine) return;
+            setDragId(n.id);
+            e.dataTransfer.effectAllowed = "move";
+            /* Firefox will not begin a drag unless data is set. */
+            e.dataTransfer.setData("text/plain", n.id);
+          }}
+          onDragEnd={() => { setDragId(null); setDropId(null); }}
+          onDragOver={e => {
+            if (!canDrop(n.id)) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+            if (dropId !== n.id) setDropId(n.id);
+          }}
+          onDragLeave={() => { if (dropId === n.id) setDropId(null); }}
+          onDrop={e => {
+            if (!canDrop(n.id)) return;
+            e.preventDefault();
+            const id = dragId;
+            setDragId(null); setDropId(null);
+            if (id) onMove(id, n.id);
+          }}
+        >
           <span className="topic-twist">
             {kids.length > 0 && (
               <button type="button" onClick={() => toggleOpen(n.id)} aria-expanded={isOpen}
@@ -209,15 +265,30 @@ export default function DeckTree({
               </button>
             )}
           </span>
+
+          {/* Two targets where there was one. The box picks several decks;
+              the name studies this one. The whole row used to be the
+              checkbox, which is why starting a session took six decisions —
+              you could only build a filter, then press Start elsewhere. */}
           <button
             type="button"
             role="checkbox"
             aria-checked={st === "mixed" ? "mixed" : st}
+            aria-label={`Select ${n.name}`}
             disabled={n.avail === 0}
-            onClick={() => toggleNode(n)}
-            className="topic-hit"
+            onClick={e => { e.stopPropagation(); toggleNode(n); }}
+            className="topic-tick"
           >
             <Check state={st} />
+          </button>
+
+          <button
+            type="button"
+            className="topic-hit"
+            disabled={n.avail === 0}
+            onClick={() => (onStudy ? onStudy(n) : toggleNode(n))}
+            title={onStudy && n.avail > 0 ? `Study ${n.name}` : undefined}
+          >
             <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
             {depth === 0
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
@@ -233,7 +304,6 @@ export default function DeckTree({
       </div>
     );
   }
-
   return (
     <div role="group" aria-label="Decks">
       {!q && showAll && (
