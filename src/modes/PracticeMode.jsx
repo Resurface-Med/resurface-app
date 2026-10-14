@@ -384,22 +384,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return applyScope(filteredQuestions(effective(f), pStats)).length;
   }
 
-  /**
-   * Study one deck now, from its name.
-   *
-   * The deck list used to be an input to a form: tick leaves, choose From,
-   * choose How many, press Start. Six decisions before a question. Anki's
-   * list is a list of things you click to study, and the options are a
-   * setting you keep rather than a form you fill, so the row below is still
-   * there and still remembered — it is just no longer in the way.
-   */
-  function studyNode(node) {
-    const leaves = leavesUnder(node);
-    if (!leaves.length) return;
-    const next = { ...filter, leaves };
-    setFilter(next);
-    start(next);
-  }
 
   function start(filterOverride) {
     const f = effective(filterOverride ?? filter);
@@ -687,7 +671,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           allLabel="Everything"
                           allAvail={null}
                           rowMenu={rowMenu}
-                          onStudy={studyNode}
                           allowEmpty
                         />
                       )}
@@ -876,7 +859,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   allLabel="Everything"
                   allAvail={null}
                   rowMenu={rowMenu}
-                  onStudy={studyNode}
                   /* Desktop only for now: HTML5 drag is unusable on touch and
                      wants a long-press pointer implementation of its own. */
                   onMove={(id, parentId) => deckActions.moveDeck(id, parentId)}

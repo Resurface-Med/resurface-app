@@ -2039,24 +2039,6 @@ select {
   cursor: not-allowed;
 }
 
-/* The tick is its own target now, beside the name rather than wrapping it.
-   The box picks several decks; the name studies one. */
-.topic-tick {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  margin-left: -6px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: 8px;
-}
-.topic-tick:disabled { cursor: default; opacity: 0.5; }
-.topic-tick:hover:not(:disabled) { background: var(--c-surface3); }
-
 /* Dragging a deck onto another nests it. The row being dragged fades; the
    one under the pointer is outlined, so the answer to "where will this land"
    is the row you are over rather than a line between rows. */
