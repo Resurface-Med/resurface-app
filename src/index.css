@@ -2039,6 +2039,19 @@ select {
   cursor: not-allowed;
 }
 
+/* The tree itself is the drop target for "no longer inside anything". It
+   only claims space while a drag is happening, so the list is not padded out
+   by a zone nobody is using. */
+.topic-tree-drop.is-armed {
+  min-height: 180px;
+  border-radius: var(--r-card);
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+.topic-tree-drop.is-drop-root {
+  background: var(--c-surface2);
+  box-shadow: inset 0 0 0 2px var(--c-accent-brd);
+}
+
 /* Dragging a deck onto another nests it. The row being dragged fades; the
    one under the pointer is outlined, so the answer to "where will this land"
    is the row you are over rather than a line between rows. */

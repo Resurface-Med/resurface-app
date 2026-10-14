@@ -196,9 +196,11 @@ export default function DeckTree({
 
   /* A deck cannot go inside itself or inside its own descendant — the
      database refuses it, so offering it would be offering an error. */
+  /* null target means the top level, which anything may be dropped on. */
   function canDrop(targetId) {
     const from = dragRef.current;
     if (!onMove || !from || from === targetId) return false;
+    if (targetId === null) return true;
     let inSubtree = false;
     (function walk(nodes, inside) {
       for (const x of nodes) {
@@ -240,40 +242,15 @@ export default function DeckTree({
         <div
           className={cls}
           style={{ paddingLeft: padLeft, "--depth": depth }}
-          /* The row drags, not the name, so the name stays a plain button. */
+          /* The row carries its id and nothing else. All the drag handling is
+             one set of listeners on the container below: per-row handlers
+             each closed over their own render's state, so the predicate that
+             decides whether a drop is allowed could be answering about a drag
+             that had already moved on — and a dragover that does not call
+             preventDefault forbids the drop silently, which is why the row
+             greyed out and nothing ever landed. */
+          data-deck-id={n.id}
           draggable={Boolean(onMove && n.mine)}
-          onDragStart={e => {
-            if (!onMove || !n.mine) return;
-            dragRef.current = n.id;
-            setDragId(n.id);
-            e.dataTransfer.effectAllowed = "move";
-            /* Firefox will not begin a drag unless data is set, and this is
-               also what the drop reads — the event carries the id rather than
-               the component having to still be holding it. */
-            e.dataTransfer.setData("text/plain", n.id);
-          }}
-          onDragEnd={() => { dragRef.current = null; setDragId(null); setDropId(null); }}
-          onDragOver={e => {
-            if (!canDrop(n.id)) return;
-            e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
-            if (dropId !== n.id) setDropId(n.id);
-          }}
-          /* Only when the pointer has actually left the row. Moving from the
-             row onto its own name fires dragleave, and clearing the highlight
-             there made the target flicker away under the cursor. */
-          onDragLeave={e => {
-            if (e.currentTarget.contains(e.relatedTarget)) return;
-            if (dropId === n.id) setDropId(null);
-          }}
-          onDrop={e => {
-            if (!canDrop(n.id)) return;
-            e.preventDefault();
-            const id = e.dataTransfer.getData("text/plain") || dragRef.current;
-            dragRef.current = null;
-            setDragId(null); setDropId(null);
-            if (id && id !== n.id) onMove(id, n.id);
-          }}
         >
           <span className="topic-twist">
             {kids.length > 0 && (
@@ -309,7 +286,53 @@ export default function DeckTree({
     );
   }
   return (
-    <div role="group" aria-label="Decks">
+    <div
+      role="group"
+      aria-label="Decks"
+      /* Space below the rows to drop onto, and a dashed edge while a drag is
+         in the air over it, so "out of the deck it is in" is somewhere you
+         can actually aim. */
+      className={`topic-tree-drop${dragId ? " is-armed" : ""}${dragId && dropId === null ? " is-drop-root" : ""}`}
+      onDragStart={e => {
+        const row = e.target.closest?.("[data-deck-id]");
+        if (!row) return;
+        dragRef.current = row.dataset.deckId;
+        setDragId(row.dataset.deckId);
+        e.dataTransfer.effectAllowed = "move";
+        /* Firefox refuses to begin a drag without data, and the drop reads
+           this rather than relying on the component still holding it. */
+        e.dataTransfer.setData("text/plain", row.dataset.deckId);
+      }}
+      onDragEnd={() => { dragRef.current = null; setDragId(null); setDropId(null); }}
+      onDragOver={e => {
+        if (!onMove || !dragRef.current) return;
+        const row = e.target.closest?.("[data-deck-id]");
+        const id = row?.dataset.deckId ?? null;
+        /* Over a row it may go into, or over the container itself, which
+           means the top level — otherwise there is no way to pull a deck
+           back out of the one it is in. */
+        if (id !== null && !canDrop(id)) { setDropId(null); return; }
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (dropId !== id) setDropId(id);
+      }}
+      onDragLeave={e => {
+        if (e.currentTarget.contains(e.relatedTarget)) return;
+        setDropId(null);
+      }}
+      onDrop={e => {
+        if (!onMove) return;
+        const from = e.dataTransfer.getData("text/plain") || dragRef.current;
+        const row = e.target.closest?.("[data-deck-id]");
+        const to = row?.dataset.deckId ?? null;
+        dragRef.current = null;
+        setDragId(null); setDropId(null);
+        if (!from || from === to) return;
+        if (to !== null && !canDrop(to)) return;
+        e.preventDefault();
+        onMove(from, to);
+      }}
+    >
       {!q && showAll && (
         <button type="button" role="checkbox" aria-checked={isAll} onClick={pickAll}
           className={`topic-all${isAll ? " is-active" : ""}`}>
