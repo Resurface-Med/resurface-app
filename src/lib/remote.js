@@ -426,6 +426,19 @@ export const remote = {
     return send({ kind: "generated-update", userId, id: id - GEN_ID_BASE, payload, deckId });
   },
   /** Opening a share link copies the deck to you. Returns your new root id, or null. */
+  /**
+   * What a share code points at, without taking it.
+   *
+   * The receive screen's whole reason for existing: copyDeckByCode used to be
+   * the only thing that took a code, so opening a link copied the deck before
+   * anyone had seen what it was.
+   */
+  deckPreview: async (code) => {
+    const { data, error } = await supabase.rpc("deck_preview", { code });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    return row ?? null;
+  },
   copyDeckByCode: async (code) => {
     const { data, error } = await supabase.rpc("copy_deck_by_code", { code });
     if (error) throw error;

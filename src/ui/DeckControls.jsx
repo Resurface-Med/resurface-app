@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
 import Popover, { MenuItems } from "./Popover";
@@ -52,12 +53,63 @@ export function Menu({ label, items, strong = false, align = "right" }) {
   );
 }
 
+/**
+ * What Share puts on screen after it has copied the link.
+ *
+ * It used to put nothing there: the clipboard was written and the menu item
+ * read "Link copied" for 1.8 seconds, inside a menu that had already closed.
+ * So the common outcome was pressing Share, seeing nothing happen, and not
+ * knowing whether there was a link to paste.
+ *
+ * The link is shown instead, selectable, with what the person receiving it
+ * will see — because the next thing you do is paste it into a chat, and
+ * knowing it says the deck's name and not just a URL is the difference
+ * between sending it and not bothering.
+ */
+function ShareSheet({ deck, url, copied, onClose }) {
+  return createPortal(
+    <div className="shr-scrim" role="dialog" aria-modal="true" aria-label={`Share ${deck.name}`}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="shr-card">
+        <h2 className="shr-title">Share “{deck.name}”</h2>
+        <p className="shr-body">
+          Anyone with this link can take their own copy. Yours stays as it is.
+        </p>
+        <input
+          className="shr-link"
+          readOnly
+          value={url}
+          onFocus={e => e.target.select()}
+          aria-label="Share link"
+        />
+        <div className="shr-actions">
+          <button type="button" className="shr-primary" onClick={() => {
+            navigator.clipboard?.writeText(url).catch(() => {});
+          }}>
+            {copied ? "Copied" : "Copy link"}
+          </button>
+          <button type="button" className="shr-ghost" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 /** The two controls beside a deck's heading. */
 export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename, questionCount }) {
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
   async function share() {
-    try { await navigator.clipboard.writeText(deckShareUrl(deck)); setCopied(true); setTimeout(() => setCopied(false), 1800); }
-    catch { window.prompt("Copy this link", deckShareUrl(deck)); }
+    setSharing(true);
+    /* Attempted, not required. A refused clipboard is not a failure here —
+       the link is on screen to select — so it only decides what the button
+       says. */
+    try {
+      await navigator.clipboard.writeText(deckShareUrl(deck));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch { /* the sheet shows the link regardless */ }
   }
   const addItems = [
     { label: "Generate from a lecture", onSelect: () => onGenerateInto(deck.id) },
@@ -66,7 +118,7 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename
   const n = questionCount;
   const menuItems = [
     { label: "Rename", onSelect: () => onRename(deck.id) },
-    { label: copied ? "Link copied" : "Share", onSelect: share },
+    { label: "Share", onSelect: share },
     { label: "Delete", danger: true, onSelect: async () => {
       if (await confirmDelete(`“${deck.name}”`, n)) actions.deleteDeck(deck.id);
     } },
@@ -75,6 +127,9 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename
     <span className="tg-controls">
       <Menu label={<><span aria-hidden="true">＋</span> Add</>} items={addItems} strong />
       <Menu label="⋯" items={menuItems} />
+      {sharing && (
+        <ShareSheet deck={deck} url={deckShareUrl(deck)} copied={copied} onClose={() => setSharing(false)} />
+      )}
     </span>
   );
 }

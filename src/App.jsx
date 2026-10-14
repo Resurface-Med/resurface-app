@@ -30,6 +30,7 @@ import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
+import ReceiveDeck from "./views/ReceiveDeck";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -132,6 +133,14 @@ export default function App() {
     setDecks(deckRows);
     applyGenerated(genRowsRef.current, deckRows);
   }
+  /* A share code in the address, held until the receive screen has finished
+     with it. Read once at startup: the address is cleared immediately so a
+     reload cannot re-run it, which means this state is the only record. */
+  const [shareCode, setShareCode] = useState(() => {
+    const code = deckCodeFromLocation();
+    if (code) window.history.replaceState(null, "", "/");
+    return code;
+  });
   const [dataLoading, setDataLoading] = useState(true);
   /* Set when the sign-in snapshot could not be fetched. Without this the
      effect had no catch at all, so a throw left the app on "Loading your
@@ -198,25 +207,6 @@ export default function App() {
         return;
       }
 
-      // Arrived by a share link: copy the deck to this account and open
-      // Study on it. The address goes back to the root so a reload does not
-      // copy it twice.
-      const code = deckCodeFromLocation();
-      if (code) {
-        window.history.replaceState(null, "", "/");
-        try {
-          const id = await remote.copyDeckByCode(code);
-          if (cancelled) return;
-          if (id) {
-            const fresh = await loadAll(user.id);
-            if (cancelled) return;
-            applyDecks(fresh.decks ?? []);
-            applyGenerated(fresh.generated, fresh.decks ?? []);
-            setOpenDeckId(id);
-            setView(V.STUDY);
-          }
-        } catch {}
-      }
     })();
     return () => { cancelled = true; };
   }, [user?.id, recovering, reloadKey]);
@@ -645,6 +635,27 @@ export default function App() {
   }
 
   if (!user) return <LoginPage />;
+
+  /* Before the app proper: somebody following a link is here to answer one
+     question, and the nav behind it is noise until they have. After the data
+     load, so adding a deck can apply straight into the pool rather than
+     racing it. */
+  if (shareCode) {
+    return (
+      <ReceiveDeck
+        code={shareCode}
+        onSkip={() => setShareCode(null)}
+        onAdded={async (id) => {
+          const fresh = await loadAll(user.id);
+          applyDecks(fresh.decks ?? []);
+          applyGenerated(fresh.generated, fresh.decks ?? []);
+          setOpenDeckId(id);
+          setView(V.STUDY);
+          setShareCode(null);
+        }}
+      />
+    );
+  }
 
   return (
     <ErrorBoundary>
