@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-
-const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "nowrap" };
 import { deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
 import Popover, { MenuItems } from "./Popover";
 import { confirmDelete } from "./Confirm";
-import { C, card, primaryBtn, btnGhost } from "./theme";
+import { C, card, primaryBtn } from "./theme";
 
 /**
  * The tabs across the top of Study, and what a deck of yours can do.
@@ -57,58 +55,53 @@ export function Menu({ label, items, strong = false, align = "right" }) {
 }
 
 /**
- * What Share puts on screen after it has copied the link.
+ * The link, and a button to copy it.
  *
- * It used to put nothing there: the clipboard was written and the menu item
- * read "Link copied" for 1.8 seconds, inside a menu that had already closed.
- * So the common outcome was pressing Share, seeing nothing happen, and not
- * knowing whether there was a link to paste.
+ * Share used to write the clipboard silently and change a menu item to "Link
+ * copied" for 1.8 seconds inside a menu that had already closed, so pressing
+ * it usually looked like nothing had happened. Then I replaced that with a
+ * dialog carrying a heading, a sentence explaining the copy model and two
+ * buttons — which is a lot of screen for one URL.
  *
- * The link is shown instead, selectable, so a refused clipboard is no longer
- * a silent dead end.
- *
- * Shaped exactly like Confirm — the same card, buttons, sizes and scrim —
- * because it is the same kind of object and the app should only have one of
- * those. The first version invented its own and looked like it.
+ * A row: the link, and Copy. Nothing to read, nothing to dismiss but the
+ * usual click away or Escape. What a copy means is explained on the screen
+ * the recipient sees, which is where the person deciding actually is.
  */
 function ShareSheet({ deck, url, copied, onCopy, onClose }) {
+  useEffect(() => {
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return createPortal(
     <div
       role="dialog" aria-modal="true" aria-label={`Share ${deck.name}`}
       style={{
         position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",
         display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-        backdropFilter: "blur(4px)",
+        backdropFilter: "blur(4px)", padding: 24,
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="anim-scale-in" style={{ ...card, maxWidth: 400, width: "90%", padding: "32px 28px" }}>
-        <div style={{ fontSize: 18, color: C.text, fontWeight: 600, letterSpacing: -0.3, overflowWrap: "anywhere" }}>
-          Share “{deck.name}”
-        </div>
-        <div style={{ fontSize: 14, color: C.sub, marginTop: 8, marginBottom: 18, lineHeight: 1.55 }}>
-          Anyone with this link can take their own copy. Yours stays as it is.
-        </div>
-        <input
-          readOnly
-          value={url}
-          onFocus={e => e.target.select()}
-          aria-label="Share link"
-          style={{
-            width: "100%", boxSizing: "border-box", padding: "12px 14px",
-            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 13,
-            color: C.text, background: "var(--c-surface2)",
-            border: "1.5px solid var(--c-border)", borderRadius: "var(--r-ctrl)",
-          }}
-        />
-        <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
+      <div className="anim-scale-in" style={{ ...card, maxWidth: 440, width: "100%", padding: 20 }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          <input
+            readOnly
+            value={url}
+            autoFocus
+            onFocus={e => e.target.select()}
+            aria-label={`Link to ${deck.name}`}
+            style={{
+              flex: 1, minWidth: 0, padding: "12px 14px",
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 13,
+              color: C.text, background: "var(--c-surface2)",
+              border: "1.5px solid var(--c-border)", borderRadius: "var(--r-ctrl)",
+            }}
+          />
           <button type="button" className="btn-press" onClick={onCopy}
-            style={{ ...primaryBtn, ...dialogBtn }}>
-            {copied ? "Copied" : "Copy link"}
-          </button>
-          <button type="button" className="btn-press" onClick={onClose}
-            style={{ ...btnGhost, ...dialogBtn }}>
-            Done
+            style={{ ...primaryBtn, flex: "none", padding: "12px 20px", fontSize: 14.5 }}>
+            {copied ? "Copied" : "Copy"}
           </button>
         </div>
       </div>
