@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { C, card, primaryBtn, btnGhost } from "../ui/theme";
 import { remote } from "../lib/remote";
 
 /**
@@ -15,7 +16,47 @@ import { remote } from "../lib/remote";
  * what arrives is a copy — your own, to edit or delete, that will not change
  * when theirs does. That is the one thing people get wrong about this model,
  * and the moment they are deciding is the moment to say it.
+ *
+ * Built from the same pieces as the rest of the app — the card, the two
+ * buttons and the colours out of theme.js — rather than its own small
+ * dialect. The first version invented all of it and read as a different
+ * product bolted to the front of this one.
  */
+
+const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "nowrap" };
+
+function Shell({ children }) {
+  return (
+    <div style={{
+      minHeight: "var(--app-vh)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: 24,
+    }}>
+      <div className="anim-scale-in" style={{
+        ...card, maxWidth: 400, width: "100%", textAlign: "center", padding: "36px 28px",
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function Title({ children }) {
+  return (
+    <div style={{ fontSize: 18, color: C.text, fontWeight: 600, letterSpacing: -0.3 }}>
+      {children}
+    </div>
+  );
+}
+
+function Body({ children, space = 28 }) {
+  return (
+    <div style={{ fontSize: 14, color: C.sub, lineHeight: 1.55, marginTop: 8, marginBottom: space }}>
+      {children}
+    </div>
+  );
+}
+
 export default function ReceiveDeck({ code, onAdded, onSkip }) {
   const [state, setState] = useState("loading");   // loading | ready | missing | failed
   const [deck, setDeck] = useState(null);
@@ -54,62 +95,78 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
     }
   }
 
-  return (
-    <div className="recv">
-      <div className="recv-card anim-scale-in">
-        {state === "loading" && <p className="recv-quiet">Looking…</p>}
-
-        {state === "missing" && (
-          <>
-            <h1 className="recv-title">That link doesn’t work</h1>
-            <p className="recv-body">
-              It may have been typed wrong, or the deck may have been deleted. Ask whoever sent it for a new link.
-            </p>
-            <button type="button" className="recv-ghost" onClick={onSkip}>Go to my decks</button>
-          </>
-        )}
-
-        {state === "failed" && (
-          <>
-            <h1 className="recv-title">Couldn’t check that link</h1>
-            <p className="recv-body">Something went wrong reaching the server. Your connection may be down.</p>
-            <button type="button" className="recv-ghost" onClick={onSkip}>Go to my decks</button>
-          </>
-        )}
-
-        {state === "ready" && deck && (
-          <>
-            <p className="recv-from">
-              {deck.mine ? "This is your own deck" : `${deck.owner_name} shared a deck with you`}
-            </p>
-            <h1 className="recv-title">{deck.name}</h1>
-            <p className="recv-meta">
-              {deck.questions} question{deck.questions === 1 ? "" : "s"}
-              {deck.decks > 0 && ` · ${deck.decks} sub-deck${deck.decks === 1 ? "" : "s"}`}
-            </p>
-
-            {deck.mine ? (
-              <>
-                <p className="recv-body">You made this one, so there is nothing to add.</p>
-                <button type="button" className="recv-primary" onClick={onSkip}>Open my decks</button>
-              </>
-            ) : (
-              <>
-                <p className="recv-body">
-                  You’ll get your own copy to edit, study and delete as you like. It won’t change when theirs does.
-                </p>
-                {error && <p className="recv-error" role="alert">{error}</p>}
-                <button type="button" className="recv-primary" onClick={add} disabled={adding}>
-                  {adding ? "Adding…" : "Add to my decks"}
-                </button>
-                <button type="button" className="recv-ghost" onClick={onSkip} disabled={adding}>
-                  No thanks
-                </button>
-              </>
-            )}
-          </>
-        )}
+  if (state === "loading") {
+    return (
+      <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center" }}>
+        <div style={{ color: "var(--c-on-field)", fontSize: 15, fontWeight: 500, opacity: 0.9 }}>
+          Looking…
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  if (state === "missing" || state === "failed") {
+    return (
+      <Shell>
+        <Title>{state === "missing" ? "That link doesn’t work" : "Couldn’t check that link"}</Title>
+        <Body>
+          {state === "missing"
+            ? "It may have been typed wrong, or the deck may have been deleted. Ask whoever sent it for a new link."
+            : "Something went wrong reaching the server. Your connection may be down."}
+        </Body>
+        <button type="button" className="btn-press" onClick={onSkip}
+          style={{ ...primaryBtn, ...dialogBtn, width: "100%" }}>
+          Go to my decks
+        </button>
+      </Shell>
+    );
+  }
+
+  if (deck.mine) {
+    return (
+      <Shell>
+        <Title>{deck.name}</Title>
+        <Body>This is your own deck, so there is nothing to add.</Body>
+        <button type="button" className="btn-press" onClick={onSkip}
+          style={{ ...primaryBtn, ...dialogBtn, width: "100%" }}>
+          Open my decks
+        </button>
+      </Shell>
+    );
+  }
+
+  return (
+    <Shell>
+      <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--c-accent)", marginBottom: 10 }}>
+        {deck.owner_name} shared a deck with you
+      </div>
+      <Title>{deck.name}</Title>
+      <div style={{ fontSize: 14, color: C.sub, marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
+        {deck.questions} question{deck.questions === 1 ? "" : "s"}
+        {deck.decks > 0 && ` · ${deck.decks} sub-deck${deck.decks === 1 ? "" : "s"}`}
+      </div>
+      <Body space={error ? 14 : 28}>
+        You’ll get your own copy to edit, study and delete as you like. It won’t change when theirs does.
+      </Body>
+      {error && (
+        <div role="alert" style={{
+          fontSize: 13.5, lineHeight: 1.45, color: "var(--c-danger)",
+          background: "var(--c-danger-bg, rgba(214, 69, 69, 0.1))",
+          borderRadius: "var(--r-ctrl)", padding: "10px 14px", marginBottom: 20,
+        }}>
+          {error}
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 10 }}>
+        <button type="button" className="btn-press" onClick={add} disabled={adding}
+          style={{ ...primaryBtn, ...dialogBtn, ...(adding ? { opacity: 0.55 } : {}) }}>
+          {adding ? "Adding…" : "Add to my decks"}
+        </button>
+        <button type="button" className="btn-press" onClick={onSkip} disabled={adding}
+          style={{ ...btnGhost, ...dialogBtn }}>
+          No thanks
+        </button>
+      </div>
+    </Shell>
   );
 }
