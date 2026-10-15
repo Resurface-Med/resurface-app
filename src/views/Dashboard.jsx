@@ -184,8 +184,8 @@ export default function Dashboard({
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           {empty ? (
-            <section data-in="rise" style={{ "--i": 5, maxWidth: 560 }}>
-              <h2 style={sectionH}>How it works</h2>
+            <section data-in="rise" className="dash-film-wrap" style={{ "--i": 5 }}>
+              <h2 style={{ ...sectionH, textAlign: "center" }}>How it works</h2>
               <button type="button" className="dash-film" onClick={() => setFilmOpen(true)} aria-label="Watch how Resurface works">
                 <img src="/intro/poster-16x9.jpg" alt="" width="1280" height="720" />
                 <span className="dash-film__play">
