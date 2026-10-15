@@ -619,19 +619,16 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        it shows. Decks that exist but are empty stay listed, to organise. */
     const noQuestions = QUESTIONS.length === 0;
     const blank = noQuestions && fullForest.length === 0;
+    /* Progress's empty state, not a new one (StatsView Blank): a small
+       centred title, one muted line, one small button, the same words. */
     const renderEmpty = () => (
-      <div className="practice-empty" data-in="rise" style={{ "--i": 2 }}>
-        <h2 className="practice-empty__title">Nothing to practise yet.</h2>
-        <p className="practice-empty__sub">Turn a lecture into questions and they’ll be here, ready to practise.</p>
-        <div className="practice-empty__acts">
-          <button type="button" className="btn-press" style={{ ...primaryBtn, ...lg }} onClick={() => onGenerateInto?.(null)}>
-            Turn your content into questions <span aria-hidden="true">→</span>
+      <div className="prog-blank">
+        <div className="prog-blank-inner">
+          <h2 className="prog-blank-title">Nothing to practise yet</h2>
+          <p className="prog-blank-body">Add a lecture and your questions will show up here.</p>
+          <button type="button" className="prog-blank-cta btn-press" onClick={() => onGenerateInto?.(null)}>
+            Add material
           </button>
-          {blank && (
-            <button type="button" className="gen-link" onClick={() => setCreatingDeck(true)}>
-              or make an empty deck
-            </button>
-          )}
         </div>
       </div>
     );
