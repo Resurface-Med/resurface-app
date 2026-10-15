@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createApi } from "../src/lib/api.js";
 
-const PRIMARY = "https://api.tryresurface.com", FALLBACK = "https://resurface-backend-resurface.vercel.app";
+const PRIMARY = "https://api.tryresurface.com", FALLBACK = "https://resurface-backend-orpin.vercel.app";
 const API_BASES = [PRIMARY, FALLBACK];
 /* A network where some hosts are blocked: a blocked host throws, as fetch does. */
 function network({ blocked = [], probeOnly = [], status = 200 } = {}) {

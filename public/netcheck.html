@@ -61,7 +61,7 @@
   <button onclick="location.reload()">Run again</button>
   <p class="sub" style="margin-top:18px">
     Will not load on <code>app.tryresurface.com</code>? Open
-    <code>resurface-app.vercel.app/netcheck.html</code> instead.
+    <code>resurface-app-eight.vercel.app/netcheck.html</code> instead.
   </p>
 </main>
 
@@ -74,7 +74,7 @@
  * reply from our own backend, an image that actually decodes.
  *
  * Absolute URLs throughout, so the page tests the same hosts whether it was
- * opened on app.tryresurface.com or on resurface-app.vercel.app — the second
+ * opened on app.tryresurface.com or on resurface-app-eight.vercel.app — the second
  * is the one to use if the first will not load. The ?nc on each URL tells the
  * app's service worker to stay out of it, or a cached copy would pass.
  */
@@ -116,12 +116,12 @@ var TARGETS = [
   { host: "api.tryresurface.com", what: "Generating questions, and Resurface AI",
     sym: "Generate and Ask fail — unless the fallback below is reachable",
     run: function () { return backend("https://api.tryresurface.com"); } },
-  { host: "resurface-app.vercel.app", what: "The app's second address",
+  { host: "resurface-app-eight.vercel.app", what: "The app's second address",
     sym: "no way round a blocked app.tryresurface.com",
-    run: function () { return jsonHas("https://resurface-app.vercel.app/manifest.webmanifest", "name"); } },
-  { host: "resurface-backend-resurface.vercel.app", what: "The API's second address — the app falls back to it",
+    run: function () { return jsonHas("https://resurface-app-eight.vercel.app/manifest.webmanifest", "name"); } },
+  { host: "resurface-backend-orpin.vercel.app", what: "The API's second address — the app falls back to it",
     sym: "no way round a blocked api.tryresurface.com",
-    run: function () { return backend("https://resurface-backend-resurface.vercel.app"); } },
+    run: function () { return backend("https://resurface-backend-orpin.vercel.app"); } },
   { host: "accounts.google.com", what: "Signing in with Google",
     sym: "Continue with Google goes nowhere",
     run: function () { return fetch("https://accounts.google.com/generate_204", { mode: "no-cors", cache: "no-store" }).then(function () { return true; }); } },

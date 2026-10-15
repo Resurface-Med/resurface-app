@@ -19,7 +19,7 @@ const PRIMARY = import.meta.env.VITE_API_BASE
   || (import.meta.env.DEV ? "" : "https://api.tryresurface.com");
 
 /* The backend project's own Vercel name. Same deployment, same code. */
-const FALLBACK = "https://resurface-backend-resurface.vercel.app";
+const FALLBACK = "https://resurface-backend-orpin.vercel.app";
 
 export const API_BASES = PRIMARY === "" ? [""] : [PRIMARY, FALLBACK];
 
