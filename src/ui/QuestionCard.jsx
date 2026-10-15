@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { usePref, setPref } from "../lib/prefs";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
@@ -92,7 +93,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const [eliminated, setEliminated] = useState(new Set());
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+  /* Every option, or just the right one and yours. Remembered rather than
+     reset per question: someone who wants to see them all wants it on every
+     question, and someone who doesn't was closing it on every one. */
+  const showAll = usePref("showAllOptions");
   const [explainingLocal, setExplainingLocal] = useState(false);
   /* Set when a drag just became a mark, so that same gesture does not also
      pick the option the words sit in. */
@@ -125,7 +129,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   useEffect(() => {
     setPending(null);
     setEliminated(new Set());
-    setShowAll(false);
     /* The dock's open state lives on the session. Resetting it here closed
        Resurface AI on every new question. */
     if (!onAiOpenChange) setExplainingLocal(false);
@@ -433,7 +436,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <button
               type="button"
               className="q-allopts"
-              onClick={() => setShowAll(v => !v)}
+              onClick={() => setPref("showAllOptions", !showAll)}
               aria-expanded={showAll}
             >
               {showAll ? "Hide the others" : `All ${q.opts.length} options`}

@@ -30,6 +30,7 @@ import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
+import { loadPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
 import ReceiveDeck from "./views/ReceiveDeck";
 import LoginPage from "./views/LoginPage";
@@ -193,6 +194,7 @@ export default function App() {
         setNameChosen(d.nameChosen !== false);
         setShowOnLeaderboard(d.showOnLeaderboard !== false);
         setMarketingOptIn(d.marketingOptIn);
+        loadPrefs({ showAllOptions: d.showAllOptions }, patch => remote.profile(user.id, patch));
         // Before the questions, so the pool is only rebuilt with both in hand.
         setQuestionEdits(d.questionEdits);
         applyDecks(d.decks ?? []);
