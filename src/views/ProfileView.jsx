@@ -300,9 +300,6 @@ export default function ProfileView({
                     Night
                   </button>
                 </div>
-                <p style={{ ...meta, marginTop: 8 }}>
-                  Applies straight away, and is remembered on this device.
-                </p>
               </div>
             </div>
           </section>
