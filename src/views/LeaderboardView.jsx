@@ -121,7 +121,7 @@ export default function LeaderboardView({ userId }) {
                   <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 2 + Math.min(i, 12) }}>
                     <span className="lb-rank">#{r.rank}</span>
                     <span className="lb-name">
-                      {r.display_name}
+                      <span className="lb-name-text">{r.display_name}</span>
                       {r.user_id === FOUNDER_ID ? <FounderGem /> : null}
                       {mine ? <span className="lb-me-tag">you</span> : null}
                     </span>
