@@ -610,6 +610,31 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        the heading, not a row. */
     const forest = activeRoot ? activeRoot.children : fullForest;
     const scoped = scopedCount(filter);
+
+    /* An account with nothing to practise. This screen used to give it the
+       whole machine anyway — a search box with nothing to search, a dashed
+       "No decks yet" box, From / How many / Options, and a disabled "Nothing
+       left here — try another topic". With no questions it says so once and
+       offers the one thing that fixes it; with no decks either, that is all
+       it shows. Decks that exist but are empty stay listed, to organise. */
+    const noQuestions = QUESTIONS.length === 0;
+    const blank = noQuestions && fullForest.length === 0;
+    const renderEmpty = () => (
+      <div className="practice-empty" data-in="rise" style={{ "--i": 2 }}>
+        <h2 className="practice-empty__title">Nothing to practise yet.</h2>
+        <p className="practice-empty__sub">Turn a lecture into questions and they’ll be here, ready to practise.</p>
+        <div className="practice-empty__acts">
+          <button type="button" className="btn-press" style={{ ...primaryBtn, ...lg }} onClick={() => onGenerateInto?.(null)}>
+            Turn your content into questions <span aria-hidden="true">→</span>
+          </button>
+          {blank && (
+            <button type="button" className="gen-link" onClick={() => setCreatingDeck(true)}>
+              or make an empty deck
+            </button>
+          )}
+        </div>
+      </div>
+    );
     /* A rename happens in the deck's own row when that row is on screen. The
        form at the top is left for what has no row — on phones, the open
        tab's own deck. */
@@ -652,7 +677,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               <div className="setup-title-row">
                 <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
                 <div className="setup-title-filters">
-                  <YearSelect value={yearValue} onChange={setYear} />
+                  {!noQuestions && <YearSelect value={yearValue} onChange={setYear} />}
                 </div>
               </div>
             ) : (
@@ -689,7 +714,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
+                  {!blank && <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />}
                   {creatingDeck ? (
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
                   ) : naming && !inlineRename ? (
@@ -699,8 +724,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       onCancel={() => setNaming(null)}
                       onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
                     />
-                  ) : (
+                  ) : blank ? renderEmpty() : (
                     <>
+                      {noQuestions && renderEmpty()}
                       {activeDeck && (
                         <div className="tg-editbar">
                           <span className="tg-editbar-meta">{activeRoot?.total ?? 0} question{(activeRoot?.total ?? 0) === 1 ? "" : "s"}</span>
@@ -745,7 +771,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   )}
                   {/* Sticky, because the topic list is longer than a phone and
                       the way out should not be at the bottom of a scroll. */}
-                  <div className="setup-next-dock">
+                  <div className={`setup-next-dock${noQuestions ? " is-hidden" : ""}`}>
                     <button
                       className="btn-press"
                       disabled={scoped === 0}
@@ -839,7 +865,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           <div className="setup-title-row">
             <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
             <div className="setup-title-filters">
-              <YearSelect value={yearValue} onChange={setYear} />
+              {!noQuestions && <YearSelect value={yearValue} onChange={setYear} />}
             </div>
           </div>
 
@@ -872,7 +898,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           }}>
 
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              {!creatingDeck && (!naming || inlineRename) && (
+              {!blank && !creatingDeck && (!naming || inlineRename) && (
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
@@ -891,7 +917,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
                 />
               )}
-              {!creatingDeck && (!naming || inlineRename) && (
+              {!blank && !creatingDeck && (!naming || inlineRename) && (
                 <input
                   type="search"
                   value={topicQuery}
@@ -909,14 +935,16 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
             </div>
 
-            <div className="topic-scroll" data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
+            <div className={`topic-scroll${blank ? " is-plain" : ""}`} data-in="rise" style={{ marginTop: 2, "--i": 2 }}>
               {creatingDeck ? (
                 <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
-              ) : forest.length === 0 ? (
+              ) : blank ? renderEmpty() : forest.length === 0 ? (
                 <div className="tg-rows-empty">
                   No decks yet. Press <strong>＋ New deck</strong> to make one.
                 </div>
               ) : (
+                <>
+                {noQuestions && renderEmpty()}
                 <DeckTree
                   key="all"
                   forest={forest}
@@ -930,10 +958,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   {...renameProps}
                   allowEmpty
                 />
+                </>
               )}
             </div>
 
-            <div className="setup-dock" data-in="rise" style={{ "--i": 3 }}>
+            <div className={`setup-dock${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
               <div className="setup-dock-row">
                 <div className="setup-dock-group">
                   <span className="setup-dock-label">From</span>
