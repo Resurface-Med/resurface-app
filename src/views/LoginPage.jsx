@@ -283,7 +283,7 @@ export default function LoginPage() {
                 <label htmlFor="email" style={labelStyle}>Email</label>
                 <input id="email" type="email" required autoComplete="email" autoFocus={mode !== "signup"}
                   value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="you@university.ac.uk" style={field} />
+                  placeholder="you@gmail.com" style={field} />
               </div>
 
               {/* No display name here any more.
