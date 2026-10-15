@@ -3163,26 +3163,12 @@ html.is-deck-dragging * {
   white-space: nowrap;
 }
 .lb-name-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* The founder's diamond: sits on the name's baseline, a touch of shine. */
+/* The founder's crown, after the name. */
 .lb-founder {
   display: inline-flex;
   flex-shrink: 0;
   margin-left: 8.5px;
-  filter: drop-shadow(0 1px 1.5px rgba(27, 55, 168, 0.35));
 }
-/* Once every few seconds, briefly. */
-.lb-founder__glint {
-  transform-box: fill-box;
-  transform-origin: center;
-  opacity: 0;
-  animation: gemGlint 5.5s ease-in-out 1.5s infinite;
-}
-@keyframes gemGlint {
-  0%, 82%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
-  89%           { opacity: 1; transform: scale(1) rotate(45deg); }
-  95%           { opacity: 0; transform: scale(0.5) rotate(90deg); }
-}
-@media (prefers-reduced-motion: reduce) { .lb-founder__glint { animation: none; } }
 .lb-me-tag {
   flex-shrink: 0;
   line-height: 1;

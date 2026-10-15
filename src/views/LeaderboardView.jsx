@@ -24,30 +24,14 @@ const band = {
 const FOUNDER_ID = "0b920395-b28e-442e-a68b-28e0b7d0a06b";
 
 export function FounderGem() {
-  /* A brilliant cut, lit from the top left: five crown facets light to
-     mid, three pavilion facets deep. Each facet is its own shade, which is
-     what makes it read as a stone rather than a flat badge at 18px. */
-  const crown = [
-    ["6,3 1.5,9 7,9", "#9fb7ff"],
-    ["6,3 7,9 12,3", "#d3defe"],
-    ["12,3 7,9 17,9", "#7d9cff"],
-    ["12,3 17,9 18,3", "#b2c6ff"],
-    ["18,3 17,9 22.5,9", "#5f84f8"],
-  ];
-  const pavilion = [
-    ["1.5,9 7,9 12,21.5", "#4a6ff0"],
-    ["7,9 17,9 12,21.5", "#2f58e3"],
-    ["17,9 22.5,9 12,21.5", "#1e3cb6"],
-  ];
+  /* A plain crown in the brand blue: three points and a band. Flat on
+     purpose — it sits beside a name and should read at a glance, not
+     invite a closer look. */
   return (
     <span className="lb-founder" title="Founder" aria-label="Founder" role="img">
-      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-        {[...crown, ...pavilion].map(([pts, fill]) => (
-          <polygon key={pts} points={pts} fill={fill} stroke="#ffffff" strokeOpacity="0.35" strokeWidth="0.45" strokeLinejoin="round" />
-        ))}
-        <polygon points="6,3 18,3 22.5,9 12,21.5 1.5,9" fill="none" stroke="#1b37a8" strokeOpacity="0.55" strokeWidth="0.7" strokeLinejoin="round" />
-        {/* The glint: a four-point sparkle off the top-right corner. */}
-        <path className="lb-founder__glint" d="M20 0.6 L20.7 2.3 L22.4 3 L20.7 3.7 L20 5.4 L19.3 3.7 L17.6 3 L19.3 2.3 Z" fill="#ffffff" />
+      <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 8.2l4.6 4.1L12 5l4.4 7.3L21 8.2 19.2 17H4.8z" fill="var(--c-accent)" stroke="var(--c-accent)" strokeWidth="1.6" strokeLinejoin="round" />
+        <rect x="4.8" y="18.6" width="14.4" height="2.4" rx="1.2" fill="var(--c-accent)" />
       </svg>
     </span>
   );
