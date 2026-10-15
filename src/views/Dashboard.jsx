@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import IntroFilm from "../ui/IntroFilm";
+import { usePref, setPref } from "../lib/prefs";
 import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
@@ -80,6 +82,13 @@ export default function Dashboard({
      which is to get your first lecture in. */
   const empty = total === 0;
 
+  /* The film plays once, by itself, the first time an empty account lands
+     here; after that it is the poster below, to watch again. Seen is saved
+     on the profile, so a second device does not play it again. */
+  const introSeen = usePref("introSeen");
+  const [filmOpen, setFilmOpen] = useState(() => empty && !introSeen);
+  function closeFilm() { setFilmOpen(false); setPref("introSeen", true); }
+
   const actions = empty
     ? [{ scope: "generate", label: "Turn your content into questions", primary: true }]
     : dueCount > 0
@@ -103,6 +112,7 @@ export default function Dashboard({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+      {filmOpen && <IntroFilm onClose={closeFilm} onStart={() => { closeFilm(); setView?.(V.GENERATE); }} />}
       {/* ── Blue field: who you are, and the one thing to do ───────── */}
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
         <header style={{
@@ -173,11 +183,13 @@ export default function Dashboard({
           {empty ? (
             <section data-in="rise" style={{ "--i": 5, maxWidth: 560 }}>
               <h2 style={sectionH}>How it works</h2>
-              <ol className="dash-steps">
-                <li><strong>Upload a lecture.</strong> Slides, a PDF, or an Anki deck you already have.</li>
-                <li><strong>Keep the questions you want.</strong> Single best answer, written from your lecture and nothing else.</li>
-                <li><strong>Practise.</strong> What you get wrong comes back before you forget it.</li>
-              </ol>
+              <button type="button" className="dash-film" onClick={() => setFilmOpen(true)} aria-label="Watch how Resurface works">
+                <img src="/intro/poster-16x9.jpg" alt="" width="1280" height="720" />
+                <span className="dash-film__play">
+                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor" /></svg>
+                  Watch · 47s
+                </span>
+              </button>
             </section>
           ) : (
           <div className="dash-split">

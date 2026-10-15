@@ -199,7 +199,7 @@ export default function App() {
         setNameChosen(d.nameChosen !== false);
         setShowOnLeaderboard(d.showOnLeaderboard !== false);
         setMarketingOptIn(d.marketingOptIn);
-        loadPrefs({ showAllOptions: d.showAllOptions }, patch => remote.profile(user.id, patch));
+        loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
         // Before the questions, so the pool is only rebuilt with both in hand.
         setQuestionEdits(d.questionEdits);
         applyDecks(d.decks ?? []);

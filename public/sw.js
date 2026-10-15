@@ -84,6 +84,9 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname === "/sw.js") return;
   /* The network check has to see the network, not this cache. */
   if (url.pathname === "/netcheck.html" || url.searchParams.has("nc")) return;
+  /* Video and audio arrive as ranges (206), which a cache cannot store — a
+     put would throw and take the response down with it. They go straight out. */
+  if (req.headers.has("range") || req.destination === "video" || req.destination === "audio") return;
   if (req.mode === "navigate") event.respondWith(page(req));
   else if (url.pathname.startsWith("/assets/")) event.respondWith(asset(req));
   else event.respondWith(other(req));
