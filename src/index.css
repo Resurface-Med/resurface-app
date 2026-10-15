@@ -3167,7 +3167,7 @@ html.is-deck-dragging * {
 .lb-founder {
   display: inline-flex;
   flex-shrink: 0;
-  margin-left: 7px;
+  margin-left: 10px;
   filter: drop-shadow(0 1px 1.5px rgba(27, 55, 168, 0.35));
 }
 /* Once every few seconds, briefly. */
