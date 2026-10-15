@@ -12,7 +12,7 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
-      globals: globals.browser,
+      globals: { ...globals.browser, __PREVIEW_TOOLS__: "readonly" },
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
     plugins: { "react-hooks": reactHooks },
@@ -57,7 +57,7 @@ export default [
   },
 
   {
-    files: ["api/**/*.js", "scripts/**/*.mjs", "tests/**/*.js"],
+    files: ["api/**/*.js", "scripts/**/*.mjs", "tests/**/*.js", "vite.config.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",

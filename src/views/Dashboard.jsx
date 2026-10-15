@@ -80,14 +80,17 @@ export default function Dashboard({
      list, "All 0 questions are waiting." Three of the first nine accounts
      signed up here and did nothing else. Without questions it has one job,
      which is to get your first lecture in. */
-  const empty = total === 0;
+  /* ?firstrun on a preview build: this screen as a brand-new account sees
+     it, film and all, without making one. Nothing is saved. */
+  const previewFirstRun = __PREVIEW_TOOLS__ && new URLSearchParams(window.location.search).has("firstrun");
+  const empty = total === 0 || previewFirstRun;
 
   /* The film plays once, by itself, the first time an empty account lands
      here; after that it is the poster below, to watch again. Seen is saved
      on the profile, so a second device does not play it again. */
   const introSeen = usePref("introSeen");
-  const [filmOpen, setFilmOpen] = useState(() => empty && !introSeen);
-  function closeFilm() { setFilmOpen(false); setPref("introSeen", true); }
+  const [filmOpen, setFilmOpen] = useState(() => empty && (!introSeen || previewFirstRun));
+  function closeFilm() { setFilmOpen(false); if (!previewFirstRun) setPref("introSeen", true); }
 
   const actions = empty
     ? [{ scope: "generate", label: "Turn your content into questions", primary: true }]
