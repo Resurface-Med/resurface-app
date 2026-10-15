@@ -8140,11 +8140,21 @@ html.is-deck-dragging * {
   animation: filmSheen 4.6s cubic-bezier(0.4, 0, 0.2, 1) 1.4s infinite;
   pointer-events: none;
 }
-.dash-film__play { z-index: 2; }
+/* And the pill floats: a slow, small bob, so the card reads as something to
+   press. The pill is centred with a transform, so the bob carries it. */
+.dash-film__play { z-index: 2; animation: filmBob 2.6s ease-in-out infinite; }
+@keyframes filmBob {
+  0%, 100% { transform: translate(-50%, -50%); }
+  50%      { transform: translate(-50%, calc(-50% - 4px)); }
+}
+.dash-film:hover .dash-film__play { animation-play-state: paused; }
 @keyframes filmSheen {
   0%   { transform: translateX(-70%); }
   34%  { transform: translateX(70%); }
   100% { transform: translateX(70%); }
 }
 .dash-film:hover::after { animation-play-state: paused; opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .dash-film::after { animation: none; display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .dash-film::after { animation: none; display: none; }
+  .dash-film__play { animation: none; }
+}
