@@ -40,7 +40,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
             checked={emails}
             onChange={e => setEmails(e.target.checked)}
           />
-          <span>Email me revision reminders, new features and student offers</span>
+          <span>I agree to receive news, tips, and study emails</span>
         </label>
         <button type="submit" className="btn-press" style={primaryBtn}>
           Next

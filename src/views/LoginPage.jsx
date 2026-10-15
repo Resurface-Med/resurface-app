@@ -314,7 +314,7 @@ export default function LoginPage() {
                     checked={marketingOptIn}
                     onChange={e => setMarketingOptIn(e.target.checked)}
                   />
-                  <span>Email me revision reminders, new features and student offers</span>
+                  <span>I agree to receive news, tips, and study emails</span>
                 </label>
               )}
 

@@ -244,7 +244,7 @@ export default function ProfileView({
                   checked={emails}
                   onChange={e => setEmailOptIn(e.target.checked)}
                 />
-                <span>Email me revision reminders, new features and student offers</span>
+                <span>Send me news, tips, and study emails</span>
               </label>
             </div>
           </section>
