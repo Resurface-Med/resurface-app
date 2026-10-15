@@ -28,7 +28,7 @@ import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner } from "./lib/remote";
-import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
+import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
@@ -112,6 +112,9 @@ export default function App() {
   /* Set only by the dashboard's own button, so Study reached from the
      sidebar still opens the picker. */
   const [autoStart, setAutoStart] = useState(false);
+  /* Bumped by practise() so Study remounts, and so starts, even when it is
+     already the view on screen. */
+  const [startNonce, setStartNonce] = useState(0);
 
   /* Every screen that shows or serves a question reads QUESTIONS, and this
      is the one place anything gets into it — there is no shipped bank any
@@ -269,6 +272,16 @@ export default function App() {
     if (q) remote.moveGenerated(user.id, q, deckId);
   }
   const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion };
+
+  /* Straight into a session on these questions (see PracticeMode.startWith). */
+  function practise(ids, limit = null) {
+    if (!ids?.length) return;
+    setLaunchFilter({ deck: "All", cat: "All" });
+    setStudyScope("all");
+    setAutoStart({ ids, limit });
+    setStartNonce(n => n + 1);
+    go(V.STUDY);
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -671,7 +684,12 @@ export default function App() {
           applyDecks(fresh.decks ?? []);
           applyGenerated(fresh.generated, fresh.decks ?? []);
           setOpenDeckId(id);
-          setView(V.STUDY);
+          /* A deck someone sent you is a deck to practise, not to file. Ten
+             to start, so the first session is one sitting, not two hundred
+             questions; the rest are in the deck, which is now open. */
+          const ids = questionsInDeck(id).map(q => q.id);
+          if (ids.length) practise(ids, 10);
+          else setView(V.STUDY);
           setShareCode(null);
         }}
       />
@@ -781,7 +799,7 @@ export default function App() {
               go(V.STUDY);
             }} />}
 
-          {v === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}|${(launchFilter.leaves ?? []).join(",")}`} scope={studyScope}
+          {v === V.STUDY && <StudyMode key={`${studyScope}|${launchFilter.deck}|${launchFilter.cat}|${(launchFilter.leaves ?? []).join(",")}|${startNonce}`} scope={studyScope}
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
@@ -829,6 +847,7 @@ export default function App() {
 
           {v === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
             onBusyChange={setGenerateBusy}
+            onPractise={ids => practise(ids)}
             decks={decks} deckActions={deckActions}
             targetDeckId={generateInto}
             onTargetDeckChange={id => setGenerateInto(id)}

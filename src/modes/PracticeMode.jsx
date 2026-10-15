@@ -340,7 +340,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useLayoutEffect(() => {
     if (!autoStart) return;
     onAutoStartConsumed?.();
-    start();
+    if (autoStart.ids) startWith(autoStart.ids, autoStart.limit);
+    else start();
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     setFilter(f => ({ ...f, leaves: ["All"] }));
@@ -419,6 +420,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
     setSessionFilter(f);
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
+  }
+
+  /*
+   * A session on exactly these questions, for the two moments a new person
+   * is most likely to start: the questions they just generated, and a deck a
+   * friend just sent. Both used to land on the deck list, where they had to
+   * find the deck, tick it and press Start — and of the first people with
+   * questions and no answers, every one had stopped there.
+   */
+  function startWith(ids, limit = null) {
+    const want = new Set(ids);
+    let qs = shuffle(QUESTIONS.filter(q => want.has(q.id)));
+    if (!qs.length) return;
+    if (limit) qs = qs.slice(0, limit);
+    localStorage.removeItem(SESSION_KEY); setSavedSession(null);
+    setSessionFilter(null);
+    setQueue(qs.map(shuffleOptions)); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
   function setYear(next) {

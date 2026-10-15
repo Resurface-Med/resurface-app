@@ -508,7 +508,7 @@ function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null, onBusyChange = null }) {
+export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null, onBusyChange = null, onPractise = null }) {
   const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
@@ -695,6 +695,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [savedDeckId, setSavedDeckId] = useState(null);
   /* Written, or only queued because the network was not there. */
   const [savedQueued, setSavedQueued] = useState(false);
+  /* The ids of what was just saved, so Done can start a session on them. */
+  const [justSaved, setJustSaved] = useState([]);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
 
@@ -778,6 +780,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                     onGeneratedChange?.(merged);
                     setSavedDeckId(deckId);
                     setSavedQueued(queued);
+                    setJustSaved(rows.map(r => r.id).filter(id => typeof id === "number"));
                     setPhase("done");
                   } catch (e) {
                     setSaveError(e?.message || "Could not save them. Your questions are still here — try again.");
@@ -869,7 +872,24 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           : "They are in Study now."}
       >
         <div className="gen-done-actions">
-          {savedDeckId && onOpenDeck ? (
+          {/* Answer them now, while you want to. This used to file them
+              ("Added", then the deck list), and the people who generated and
+              never answered a question had all stopped right here. */}
+          {justSaved.length > 0 && onPractise ? (
+            <>
+              <button type="button" className="btn-press" style={primaryBtn} onClick={() => { onTargetDeckChange?.(null); onPractise(justSaved); }}>
+                Practise {justSaved.length === 1 ? "it" : `these ${justSaved.length}`} now <span aria-hidden="true">→</span>
+              </button>
+              {savedDeckId && onOpenDeck && (
+                <button type="button" className="btn-press gen-text-btn" onClick={() => {
+                  const root = deckPath(savedDeckId, decksById)[0]?.id ?? savedDeckId;
+                  onTargetDeckChange?.(null); onOpenDeck(root);
+                }}>
+                  Open {deckPath(savedDeckId, decksById)[0]?.name ?? "deck"}
+                </button>
+              )}
+            </>
+          ) : savedDeckId && onOpenDeck ? (
             <button type="button" className="btn-press" style={primaryBtn} onClick={() => {
               /* Study opens on the root tab holding this deck. */
               const root = deckPath(savedDeckId, decksById)[0]?.id ?? savedDeckId;
@@ -970,6 +990,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       onGeneratedChange?.(merged);
       setSavedDeckId(deckId);
       setSavedQueued(queued);
+      setJustSaved(rows.map(r => r.id).filter(id => typeof id === "number"));
       if (!queued) setWritten([]);
       setPhase("done");
     } catch (e) {

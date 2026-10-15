@@ -73,7 +73,16 @@ export default function Dashboard({
 
   // Two actions, max: reviews that are due, and open practice. Wrong-answer
   // drilling lives inside Practice as a scope — it does not need a third door.
-  const actions = dueCount > 0
+  /* Nothing to study yet. The app shipped 506 questions until October, and
+     this screen still spoke as if it did: "Start studying" into an empty
+     list, "All 0 questions are waiting." Three of the first nine accounts
+     signed up here and did nothing else. Without questions it has one job,
+     which is to get your first lecture in. */
+  const empty = total === 0;
+
+  const actions = empty
+    ? [{ scope: "generate", label: "Turn a lecture into questions", primary: true }]
+    : dueCount > 0
     ? [
         { scope: "due", label: `Review ${dueCount} due`, primary: true },
         { scope: "all", label: "Practice", primary: false },
@@ -129,7 +138,7 @@ export default function Dashboard({
           {actions.map((a, i) => (
             <button
               key={a.scope}
-              onClick={() => onStudy?.(a.scope)}
+              onClick={() => (a.scope === "generate" ? setView?.(V.GENERATE) : onStudy?.(a.scope))}
               className="btn-press"
               data-in="pop"
               style={{ "--i": 2 + i, ...(a.primary ? {
@@ -149,6 +158,11 @@ export default function Dashboard({
             </button>
           ))}
         </div>
+        {empty && (
+          <p data-in="rise" style={{ "--i": 3, margin: "12px 0 0", fontSize: 15, color: OF.soft, maxWidth: 520, lineHeight: 1.5 }}>
+            Drop in your slides, a PDF or an Anki deck, and get exam-style questions in about thirty seconds.
+          </p>
+        )}
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
@@ -156,6 +170,16 @@ export default function Dashboard({
       {/* ── Sheet: where you stand, and what you've been doing ─────── */}
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
+          {empty ? (
+            <section data-in="rise" style={{ "--i": 5, maxWidth: 560 }}>
+              <h2 style={sectionH}>How it works</h2>
+              <ol className="dash-steps">
+                <li><strong>Upload a lecture.</strong> Slides, a PDF, or an Anki deck you already have.</li>
+                <li><strong>Keep the questions you want.</strong> Single best answer, written from your lecture and nothing else.</li>
+                <li><strong>Practise.</strong> What you get wrong comes back before you forget it.</li>
+              </ol>
+            </section>
+          ) : (
           <div className="dash-split">
 
             <section data-in="rise" style={{ "--i": 5 }}>
@@ -283,6 +307,7 @@ export default function Dashboard({
             </section>
 
           </div>
+          )}
         </div>
       </div>
     </div>

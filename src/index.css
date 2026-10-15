@@ -8032,3 +8032,18 @@ html.is-deck-dragging * {
 }
 .profile-delete-btn:hover { opacity: 0.8; }
 .profile-delete-btn:disabled { opacity: 0.5; cursor: default; text-decoration: none; }
+
+/* The first-run dashboard's three steps: a real sequence, so numbered, and
+   nothing around them — the sheet is the container. */
+.dash-steps {
+  margin: 14px 0 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--c-sub);
+}
+.dash-steps strong { color: var(--c-text); font-weight: 600; }
+.dash-steps li::marker { color: var(--c-muted); font-weight: 600; }
