@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import StreakFlame from "../ui/StreakFlame";
 import { h1, OF, C } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { fetchLeaderboardWeek } from "../lib/remote";
@@ -113,7 +114,7 @@ export default function LeaderboardView({ userId }) {
                     </span>
                     <span className="lb-stats">
                       <span className="lb-count">{r.week_count}</span>
-                      <span className="lb-streak">{r.streak > 0 ? `${r.streak}d` : ""}</span>
+                      <span className="lb-streak">{r.streak > 0 ? <StreakFlame days={r.streak} size={15} small /> : null}</span>
                     </span>
                   </li>
                 );

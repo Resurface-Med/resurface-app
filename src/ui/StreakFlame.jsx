@@ -7,10 +7,10 @@
  * base: the outer flame sways and stretches, the core answers out of step.
  * Still under reduced motion.
  */
-export default function StreakFlame({ days, best = 0, size = 30 }) {
+export default function StreakFlame({ days, best = 0, size = 30, small = false }) {
   const label = `${days}-day streak${best > days ? ` · best ${best}` : ""}`;
   return (
-    <span className="streak" title={label} aria-label={label} role="img">
+    <span className={`streak${small ? " streak--small" : ""}`} title={label} aria-label={label} role="img">
       <svg className="streak__flame" width={size * 0.82} height={size} viewBox="0 0 20 24" aria-hidden="true">
         <defs>
           <linearGradient id="streak-outer" x1="0" y1="0" x2="0" y2="1">

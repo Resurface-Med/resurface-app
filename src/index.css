@@ -3199,7 +3199,9 @@ html.is-deck-dragging * {
   font-size: 13.5px;
   font-weight: 500;
   color: var(--c-muted);
-  min-width: 2.4em;
+  min-width: 2.8em;
+  display: inline-flex;
+  justify-content: flex-end;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -8201,6 +8203,15 @@ html.is-deck-dragging * {
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+/* On the leaderboard: row-sized, the number in the column's muted style. */
+.streak--small { gap: 3px; }
+.streak--small .streak__n {
+  font-size: 13.5px; font-weight: 600; letter-spacing: 0;
+  color: var(--c-sub);
+}
+/* Optical, not geometric: the flame's weight sits low in its box, so
+   centred by its box it reads as dropping below the number. */
+.streak--small .streak__flame { filter: none; transform: translateY(-1.5px); }
 .streak__flame { overflow: visible; filter: drop-shadow(0 2px 6px rgba(255, 110, 30, 0.35)); }
 .streak__outer, .streak__inner { transform-box: fill-box; transform-origin: 50% 100%; }
 .streak__outer { animation: flameOuter 1.6s ease-in-out infinite; }
