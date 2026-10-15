@@ -57,7 +57,6 @@ export default function LeaderboardView({ userId }) {
     return () => { cancelled = true; };
   }, []);
 
-  const me = rows?.find(r => r.user_id === userId);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -72,14 +71,6 @@ export default function LeaderboardView({ userId }) {
             already put it where it belongs by then, which reads as the
             page shifting at the last moment. Holding the line keeps the
             band the same height before and after the fetch. */}
-        <p className="lb-you">
-          {me ? (
-            <>
-              You’re <strong>#{me.rank}</strong>
-              {me.week_count > 0 ? <> · {me.week_count} this week</> : <> · nothing logged yet this week</>}
-            </>
-          ) : "\u00a0"}
-        </p>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />

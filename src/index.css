@@ -3100,17 +3100,6 @@ html.is-deck-dragging * {
 .tg-source-opt.is-on { color: var(--c-text); }
 
 /* ─── Leaderboard ────────────────────────────────────────────────── */
-.lb-you {
-  margin: 14px 0 0;
-  font-size: 14.5px;
-  font-weight: 500;
-  color: var(--c-on-field-soft);
-  letter-spacing: -0.15px;
-}
-.lb-you strong {
-  color: var(--c-on-field);
-  font-weight: 600;
-}
 .lb-list {
   list-style: none;
   margin: 0;
