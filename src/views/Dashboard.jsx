@@ -81,7 +81,7 @@ export default function Dashboard({
   const empty = total === 0;
 
   const actions = empty
-    ? [{ scope: "generate", label: "Turn a lecture into questions", primary: true }]
+    ? [{ scope: "generate", label: "Turn your content into questions", primary: true }]
     : dueCount > 0
     ? [
         { scope: "due", label: `Review ${dueCount} due`, primary: true },
