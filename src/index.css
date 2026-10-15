@@ -2699,33 +2699,33 @@ html.is-deck-dragging * {
   padding: clamp(40px, 9vh, 96px) clamp(20px, 3vw, 40px) clamp(56px, 12vh, 128px);
 }
 .prog-blank-inner {
-  max-width: 340px;
+  max-width: 400px;
   text-align: center;
 }
 .prog-blank-title {
   margin: 0;
-  font-size: 17px;
+  font-size: 21px;
   font-weight: 600;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.4px;
   color: var(--c-text);
 }
 .prog-blank-body {
-  margin: 6px 0 0;
-  font-size: 14.5px;
+  margin: 8px 0 0;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--c-muted);
   /* so the second line is not a single orphaned word */
   text-wrap: balance;
 }
 .prog-blank-cta {
-  margin-top: 20px;
+  margin-top: 24px;
   background: var(--c-accent);
   color: #fff;
   border: none;
   border-radius: var(--r-pill);
-  padding: 9px 18px;
+  padding: 12px 24px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 600;
   cursor: pointer;
 }
