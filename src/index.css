@@ -8121,30 +8121,30 @@ html.is-deck-dragging * {
   .intro-film, .intro-film__stage, .intro-film__end, .intro-film__cta { animation: none; }
 }
 
-/* The first-run button's sheen: a soft band of light crosses it every few
-   seconds, so the one thing to do on an empty dashboard catches the eye.
-   Light only — no glow, no bounce, no colour change. Still while hovered,
-   and off for anyone who has asked for less motion. */
-.cta-shimmer { position: relative; overflow: hidden; isolation: isolate; }
-.cta-shimmer::after {
+/* The film card's shimmer: a band of white light crosses the poster every
+   few seconds, behind the Watch pill, so the way to see what the app does
+   catches the eye on an empty dashboard. Still while hovered, and off for
+   anyone who has asked for less motion. */
+.dash-film::after {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: -1;
+  inset: -10% -30%;
+  z-index: 1;
   background: linear-gradient(105deg,
-    transparent 30%,
-    rgba(53, 98, 245, 0.10) 44%,
-    rgba(53, 98, 245, 0.22) 50%,
-    rgba(53, 98, 245, 0.10) 56%,
-    transparent 70%);
-  transform: translateX(-120%);
-  animation: ctaSheen 4.2s cubic-bezier(0.4, 0, 0.2, 1) 1.2s infinite;
+    transparent 38%,
+    rgba(255, 255, 255, 0.10) 45%,
+    rgba(255, 255, 255, 0.26) 50%,
+    rgba(255, 255, 255, 0.10) 55%,
+    transparent 62%);
+  transform: translateX(-70%);
+  animation: filmSheen 4.6s cubic-bezier(0.4, 0, 0.2, 1) 1.4s infinite;
   pointer-events: none;
 }
-@keyframes ctaSheen {
-  0%   { transform: translateX(-120%); }
-  32%  { transform: translateX(120%); }
-  100% { transform: translateX(120%); }
+.dash-film__play { z-index: 2; }
+@keyframes filmSheen {
+  0%   { transform: translateX(-70%); }
+  34%  { transform: translateX(70%); }
+  100% { transform: translateX(70%); }
 }
-.cta-shimmer:hover::after { animation-play-state: paused; opacity: 0; }
-@media (prefers-reduced-motion: reduce) { .cta-shimmer::after { animation: none; display: none; } }
+.dash-film:hover::after { animation-play-state: paused; opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .dash-film::after { animation: none; display: none; } }
