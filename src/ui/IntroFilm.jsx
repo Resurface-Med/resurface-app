@@ -4,19 +4,30 @@ import { createPortal } from "react-dom";
 /**
  * The launch film, as the first thing a new account sees.
  *
- * Rendered out of resurface-film (frames 0–1411 of the 1554: everything but
- * the "Sign up for free" end card, which is wrong for someone signed in), at
- * 720p, 16:9 for wide screens and 9:16 for tall ones. When it ends the one
+ * Rendered out of resurface-film, frames 228–1411 of the 1554: from the
+ * wave rising out of the dark to the progress shot — not the opening count,
+ * and not the "Sign up for free" end card, which is wrong for someone signed
+ * in. 39 seconds, 16:9 for wide screens and 9:16 for tall ones. When it ends the one
  * action the film has been leading up to takes its place.
  *
  * Muted, so browsers allow it to start on its own — the film has no sound.
  * With reduced motion asked for, it waits on the poster to be played.
  */
 const tall = () => typeof window !== "undefined" && window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+/* 1080p unless the browser says to save data or the connection is slow. A
+   browser that does not report its connection (Safari, Firefox) gets 1080p:
+   at 720p the film's type went soft on a laptop screen. */
+const quality = () => {
+  const c = typeof navigator !== "undefined" ? navigator.connection : null;
+  if (c?.saveData) return "720";
+  if (c && /(^|-)2g$|^3g$/.test(c.effectiveType || "")) return "720";
+  return "1080";
+};
 const reduced = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function IntroFilm({ onClose, onStart }) {
   const [shape] = useState(() => (tall() ? "9x16" : "16x9"));
+  const [q] = useState(quality);
   const [ended, setEnded] = useState(false);
   const [progress, setProgress] = useState(0);
   const video = useRef(null);
@@ -55,7 +66,7 @@ export default function IntroFilm({ onClose, onStart }) {
         <video
           ref={video}
           className="intro-film__video"
-          src={`/intro/resurface-${shape}.mp4`}
+          src={`/intro/resurface-${shape}-${q}.mp4`}
           poster={`/intro/poster-${shape}.jpg`}
           muted
           playsInline

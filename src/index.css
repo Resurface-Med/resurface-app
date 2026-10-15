@@ -8063,7 +8063,7 @@ html.is-deck-dragging * {
 .intro-film__video { display: block; width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: filter 0.5s ease, transform 0.6s cubic-bezier(0.2, 0, 0, 1); }
 /* At the end the last frame steps back and the action comes forward, rather
    than the button sitting on top of the film's own card. */
-.intro-film__stage.is-ended .intro-film__video { filter: blur(14px) brightness(0.8); transform: scale(1.06); cursor: default; }
+.intro-film__stage.is-ended .intro-film__video { filter: blur(20px) brightness(0.42) saturate(0.85); transform: scale(1.08); cursor: default; }
 .intro-film__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255, 255, 255, 0.18); }
 .intro-film__bar i { display: block; height: 100%; background: #fff; transform-origin: left; transition: transform 0.25s linear; }
 .intro-film__close {
@@ -8075,21 +8075,28 @@ html.is-deck-dragging * {
 .intro-film__close:hover { background: rgba(10, 18, 48, 0.55); }
 .intro-film__end {
   position: absolute; inset: 0;
+  /* A vignette on top of the darkened frame, so the eye has nowhere to go
+     but the middle. */
+  background: radial-gradient(ellipse 60% 55% at 50% 50%, rgba(8, 14, 40, 0) 0%, rgba(8, 14, 40, 0.55) 100%);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
   padding: 24px;
   animation: introRise 0.4s cubic-bezier(0.2, 0, 0, 1) both;
 }
 .intro-film__cta {
   display: flex; align-items: center; gap: 8px;
-  padding: 14px clamp(18px, 5vw, 26px); border: none; border-radius: 999px; cursor: pointer;
-  font-family: inherit; font-size: clamp(14px, 4vw, 16px); font-weight: 600; line-height: 1;
+  padding: clamp(16px, 2.2vw, 20px) clamp(22px, 4.4vw, 38px); border: none; border-radius: 999px; cursor: pointer;
+  font-family: inherit; font-size: clamp(15px, 4vw, 20px); font-weight: 700; line-height: 1; letter-spacing: -0.2px;
   white-space: nowrap; max-width: 100%;
   color: #2f5cf0; background: #fff;
-  box-shadow: 0 8px 24px rgba(5, 10, 30, 0.25);
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.14), 0 18px 48px rgba(0, 0, 0, 0.45);
+  animation: introCta 0.5s cubic-bezier(0.2, 0, 0, 1) 0.1s both;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+.intro-film__cta:hover { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.2), 0 18px 48px rgba(0, 0, 0, 0.45); }
+@keyframes introCta { from { transform: scale(0.9); opacity: 0; } to { transform: none; opacity: 1; } }
 .intro-film__again {
   border: none; background: none; cursor: pointer;
-  font-family: inherit; font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.85);
+  font-family: inherit; font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.7);
 }
 .intro-film__again:hover { color: #fff; }
 .intro-film button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
@@ -8111,5 +8118,5 @@ html.is-deck-dragging * {
 }
 .dash-film:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) {
-  .intro-film, .intro-film__stage, .intro-film__end { animation: none; }
+  .intro-film, .intro-film__stage, .intro-film__end, .intro-film__cta { animation: none; }
 }
