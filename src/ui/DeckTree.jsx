@@ -1,7 +1,10 @@
-import { useMemo, useState, useRef, useCallback } from "react";
+import { useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
-import { leavesUnder, findNode, canDropDeck } from "../lib/decks";
+import MoveToPicker from "./MoveToPicker";
+import { leavesUnder, findNode } from "../lib/decks";
+import { stepMove, placeOf } from "../lib/deckOrder";
+import { useFlip, useDeckDrag } from "./useDeckDrag";
 
 /**
  * The deck tree: what you are revising.
@@ -62,24 +65,34 @@ function Check({ state }) {
   );
 }
 
-/** A row's own menu. Only your decks have one. */
-function RowMenu({ node, items }) {
-  const [open, setOpen] = useState(false);
+/** A row's own menu. Only your decks have one. An item marked `picker`
+    swaps the menu for the Move to… list, anchored to the same ⋯. */
+function RowMenu({ node, items, renderPicker }) {
+  const [mode, setMode] = useState(null);           // null | "menu" | "picker"
   const ref = useRef(null);
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => setMode(null), []);
   return (
     <span className="deck-menu">
-      <button ref={ref} type="button" className="deck-menu-btn" aria-label={`Options for ${node.name}`} aria-haspopup="menu" aria-expanded={open}
-        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}>
+      <button ref={ref} type="button" className="deck-menu-btn" aria-label={`Options for ${node.name}`} aria-haspopup="menu" aria-expanded={mode !== null}
+        onClick={e => { e.stopPropagation(); setMode(m => (m ? null : "menu")); }}>
         <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
           <circle cx="3.25" cy="8" r="1.2" fill="currentColor" />
           <circle cx="8" cy="8" r="1.2" fill="currentColor" />
           <circle cx="12.75" cy="8" r="1.2" fill="currentColor" />
         </svg>
       </button>
-      <Popover anchorRef={ref} open={open} onClose={close}>
-        <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(node, ref.current); }} />
+      <Popover anchorRef={ref} open={mode === "menu"} onClose={close}>
+        <MenuItems items={items} onPick={it => {
+          if (it.picker) { setMode("picker"); return; }
+          setMode(null);
+          it.onSelect(node, ref.current);
+        }} />
       </Popover>
+      {renderPicker && (
+        <Popover anchorRef={ref} open={mode === "picker"} onClose={close} className="pop-wide">
+          {renderPicker(close)}
+        </Popover>
+      )}
     </span>
   );
 }
@@ -97,9 +110,14 @@ export default function DeckTree({
   forest, value, onChange, query = "",
   allLabel = "Everything", showAll = true, allAvail = null,
   rowMenu = null, allowEmpty = false,
-  /* Dragging a row onto another re-parents it. moveDeck has existed in
-     App.jsx since decks did, and no component had ever called it. */
+  /* onMove(id, parentId, beforeId): drag, Alt+arrows, and the row menu's
+     Move up / Move down / Move to… all end here. Without it the tree is
+     read-only. */
   onMove = null,
+  /* The whole tree, when `forest` is only part of it (a tab, on phones), so
+     Move to… can offer every deck; and the deck that part hangs from. */
+  allForest = null,
+  rootParentId = null,
 }) {
   const q = query.trim().toLowerCase();
   const tree = useMemo(() => (q ? prune(forest, q) : forest), [forest, q]);
@@ -180,105 +198,168 @@ export default function DeckTree({
 
   const isAll = selected === null;
 
-  /*
-   * Dragging a deck onto another, on pointer events rather than HTML5 drag.
-   *
-   * Three attempts at the native API did not survive contact: the row would
-   * grey out and nothing would land, because a dragover handler that fails to
-   * call preventDefault refuses the drop in silence and there is no way to
-   * see which of a dozen reasons it was. Pointer events have none of that —
-   * no drag images, no dataTransfer, no dropEffect, and the element under the
-   * cursor is whatever elementFromPoint says it is. They are also the same
-   * events a finger produces, so touch comes free when phones get this.
-   *
-   * A drag starts only after the pointer has moved a few pixels, so a plain
-   * click on a row still ticks it.
-   */
-  const dragRef = useRef(null);      // { id, startX, startY, moved }
-  const [dragId, setDragId] = useState(null);
-  const [dropId, setDropId] = useState(null);
-
-  function rowUnder(x, y) {
-    const el = document.elementFromPoint(x, y);
-    const row = el?.closest?.("[data-deck-id]");
-    return row?.dataset.deckId ?? null;
-  }
-
-  function beginDrag(e, id) {
-    /* Left button only, and never from a control inside the row — the
-       chevron and the menu have their own jobs. */
-    if (e.button !== 0) return;
-    if (e.target.closest("button, [role='menu']") && !e.target.closest(".topic-hit")) return;
-    dragRef.current = { id, startX: e.clientX, startY: e.clientY, moved: false };
-  }
-
-  function onPointerMove(e) {
-    const d = dragRef.current;
-    if (!d) return;
-    if (!d.moved) {
-      if (Math.abs(e.clientX - d.startX) < 6 && Math.abs(e.clientY - d.startY) < 6) return;
-      d.moved = true;
-      setDragId(d.id);
-    }
-    const over = rowUnder(e.clientX, e.clientY);
-    setDropId(over !== null && !canDropDeck(forest, dragRef.current?.id, over) ? null : over);
-  }
-
-  function endDrag(e) {
-    const d = dragRef.current;
-    dragRef.current = null;
-    if (!d) return;
-    const wasDragging = d.moved;
-    setDragId(null);
-    setDropId(null);
-    if (!wasDragging) return;
-    /* Suppress the click the pointer-up would otherwise produce, so finishing
-       a drag on a row does not also tick it. */
-    e.preventDefault();
-    const to = rowUnder(e.clientX, e.clientY);
-    if (to === d.id) return;
-    if (to !== null && !canDropDeck(forest, d.id, to)) return;
-    onMove?.(d.id, to);
-  }
-
-
   const STEP = 26, PAD = 14;
 
-  function Row({ n, isLast }) {
+  /* ── Moving decks ─────────────────────────────────────────────── */
+
+  const containerRef = useRef(null);
+  const flip = useFlip(containerRef);
+  const coarse = typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+  const canMove = Boolean(onMove) && !q;
+  const drag = useDeckDrag({
+    containerRef, flip, forest, open, setOpen, base, rootParentId,
+    enabled: canMove, indentPx: coarse ? 24 : STEP,
+    onMove: (id, parentId, beforeId) => { onMove(id, parentId, beforeId); announceMove(id, parentId); },
+  });
+  const view = drag.view;
+  const shownOpen = view ? view.open : open;
+  const everything = allForest ?? forest;
+
+  const [said, setSaid] = useState("");
+  function nameOf(id) { return findNode(everything, id)?.name ?? ""; }
+  function announceMove(id, parentId) {
+    setSaid(`Moved ${nameOf(id)} ${parentId === rootParentId || parentId === null ? "to the top" : `into ${nameOf(parentId)}`}.`);
+  }
+
+  /* After a keyboard move the row may have remounted under a new parent,
+     taking focus with it; put it back on the same deck. */
+  const focusAfter = useRef(null);
+  useLayoutEffect(() => {
+    const id = focusAfter.current;
+    if (!id) return;
+    focusAfter.current = null;
+    containerRef.current?.querySelector(`[data-deck-id="${CSS.escape(id)}"] .topic-hit`)?.focus();
+  });
+
+  function moveNow(id, to) {
+    if (!to) return false;
+    flip.snapshot();
+    onMove(id, to.parentId, to.beforeId);
+    if (to.parentId && to.parentId !== rootParentId) {
+      setOpen(prev => { const next = new Set(prev); next.add(to.parentId); return next; });
+    }
+    announceMove(id, to.parentId);
+    return true;
+  }
+
+  const KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowRight: "in", ArrowLeft: "out" };
+  function onRowKey(e, n) {
+    if (!canMove || !e.altKey || !KEYS[e.key]) return;
+    e.preventDefault();
+    if (moveNow(n.id, stepMove(forest, n.id, KEYS[e.key], rootParentId))) focusAfter.current = n.id;
+  }
+
+  /* The menu: the caller's items, with the moves before the dangerous one. */
+  function menuFor(n) {
+    const items = rowMenu && n.mine ? rowMenu(n) : null;
+    if (!items || !onMove) return items;
+    const up = stepMove(forest, n.id, "up", rootParentId);
+    const down = stepMove(forest, n.id, "down", rootParentId);
+    const moves = [
+      { label: "Move up", disabled: !up, onSelect: () => moveNow(n.id, up) },
+      { label: "Move down", disabled: !down, onSelect: () => moveNow(n.id, down) },
+      { label: "Move to…", picker: true },
+    ];
+    const at = items.findIndex(it => it.danger);
+    return at < 0 ? [...items, ...moves] : [...items.slice(0, at), ...moves, ...items.slice(at)];
+  }
+  function pickerFor(n) {
+    if (!onMove) return null;
+    const here = placeOf(everything, n.id)?.parentId ?? null;
+    return close => (
+      <MoveToPicker
+        forest={everything}
+        node={n}
+        currentParentId={here}
+        onPick={parentId => {
+          close();
+          if (parentId === here) return;
+          moveNow(n.id, { parentId, beforeId: null });
+          if (parentId) setOpen(prev => { const next = new Set(prev); placeOf(everything, parentId) && next.add(parentId); return next; });
+        }}
+      />
+    );
+  }
+
+  /* The tree as drawn while dragging: the dragged deck still in its place
+     (hidden — see useDeckDrag), and a gap where it would land. */
+  const shown = useMemo(() => {
+    if (!view) return tree;
+    const gapNode = { id: "__gap", gap: true, depth: view.gap.depth + 0, children: [] };
+    let placed = false;
+    function put(list, parentId) {
+      const out = list.map(n => ({ ...n, children: put(n.children, n.id) }));
+      if (parentId === view.gap.parentId && !placed) {
+        const at = view.gap.beforeId ? out.findIndex(n => n.id === view.gap.beforeId) : -1;
+        out.splice(at < 0 ? out.length : at, 0, gapNode);
+        placed = true;
+      }
+      return out;
+    }
+    return put(tree, rootParentId);
+  }, [tree, view, rootParentId]);
+
+  function rowClasses(depth) {
+    return [
+      "topic-row",
+      depth <= 1 ? "topic-row-roomy" : "is-child",
+    ];
+  }
+  function wrapClass(depth, isLast, extra = "") {
+    return `tree-node${depth === 0 ? " topic-block" : ""}${depth > 0 ? " is-nested" : ""}${isLast ? " is-last" : ""}${extra}`;
+  }
+
+  /* Rows are drawn by a function, not a component defined in here: a
+     component declared inside DeckTree is a new type every render, so React
+     threw the whole tree away and rebuilt it on each one — every pointer
+     move of a drag — which is why nothing in it could ever animate. */
+  function renderGap(n, isLast) {
+    const depth = n.depth - base;
+    return (
+      <div key="__gap" className={wrapClass(depth, isLast)}>
+        <div
+          className={[...rowClasses(depth), "deck-gap"].join(" ")}
+          data-flip-id="__gap"
+          aria-hidden="true"
+          style={{ paddingLeft: PAD + depth * STEP, "--depth": depth, height: view.gapH, minHeight: view.gapH, paddingTop: 0, paddingBottom: 0, boxSizing: "border-box" }}
+        >
+          <span className="deck-gap__slot" />
+        </div>
+      </div>
+    );
+  }
+
+  function renderRow(n, isLast) {
+    if (n.gap) return renderGap(n, isLast);
     const kids = n.children;
-    const isOpen = q ? true : open.has(n.id);
+    const realKids = kids.filter(k => !k.gap && k.id !== view?.dragId);
+    const isOpen = q ? true : shownOpen.has(n.id);
     const empty = n.avail === 0 && !(allowEmpty && n.mine);
     const st = state(n);
     const depth = n.depth - base;
-    const nested = depth > 0;
-    const dragging = dragId === n.id;
-    const over = dropId === n.id;
+    const lifted = view?.dragId === n.id;
     const cls = [
-      "topic-row",
-      depth <= 1 ? "topic-row-roomy" : "is-child",
+      ...rowClasses(depth),
       depth === 0 ? "is-block" : "",
       st === true ? "is-active" : "",
       empty ? "is-empty" : "",
-      dragging ? "is-dragging" : "",
-      over ? "is-drop" : "",
+      view?.intoId === n.id ? "is-drop" : "",
+      canMove && n.mine ? "is-movable" : "",
     ].filter(Boolean).join(" ");
     const padLeft = PAD + depth * STEP;
-    const menu = rowMenu && n.mine ? rowMenu(n) : null;
+    const menu = menuFor(n);
 
     return (
-      <div
-        className={`tree-node${depth === 0 ? " topic-block" : ""}${nested ? " is-nested" : ""}${isLast ? " is-last" : ""}`}
-      >
+      <div key={n.id} className={wrapClass(depth, isLast, lifted ? " is-lifted" : "")}>
         <div
           className={cls}
           style={{ paddingLeft: padLeft, "--depth": depth }}
-          /* The row carries its id; the dragging is done by the pointer
-             handlers on the container, which find rows by coordinate. */
           data-deck-id={n.id}
-          onPointerDown={onMove && n.mine ? e => beginDrag(e, n.id) : undefined}
+          data-flip-id={n.id}
+          onPointerDown={canMove && n.mine ? e => drag.onRowPointerDown(e, n.id) : undefined}
         >
           <span className="topic-twist">
-            {kids.length > 0 && (
+            {realKids.length > 0 && (
               <button type="button" onClick={() => toggleOpen(n.id)} aria-expanded={isOpen}
                 aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
                 <Chevron open={isOpen} />
@@ -291,8 +372,10 @@ export default function DeckTree({
             className="topic-hit"
             role="checkbox"
             aria-checked={st === "mixed" ? "mixed" : st}
+            aria-keyshortcuts={canMove ? "Alt+ArrowUp Alt+ArrowDown Alt+ArrowLeft Alt+ArrowRight" : undefined}
             disabled={n.avail === 0}
             onClick={() => toggleNode(n)}
+            onKeyDown={e => onRowKey(e, n)}
           >
             <Check state={st} />
             <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
@@ -300,29 +383,23 @@ export default function DeckTree({
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
               : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
           </button>
-          {menu ? <RowMenu node={n} items={menu} /> : <span className="topic-menu-slot" aria-hidden="true" />}
+          {menu ? <RowMenu node={n} items={menu} renderPicker={pickerFor(n)} /> : <span className="topic-menu-slot" aria-hidden="true" />}
         </div>
-        {isOpen && kids.length > 0 && (
+        {isOpen && !lifted && kids.length > 0 && (
           <div className="tree-kids">
-            {kids.map((k, i) => <Row key={k.id} n={k} isLast={i === kids.length - 1} />)}
+            {kids.map((k, i) => renderRow(k, i === kids.length - 1))}
           </div>
         )}
       </div>
     );
   }
+
   return (
     <div
+      ref={containerRef}
       role="group"
       aria-label="Decks"
-      /* Space below the rows to drop onto, and a lit edge while a drag is
-         over it, so "out of the deck it is in" is somewhere you can aim. */
-      className={`topic-tree-drop${dragId ? " is-armed" : ""}${dragId && dropId === null ? " is-drop-root" : ""}`}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      /* A pointer that leaves the window, or is taken by something else,
-         must not leave a drag running for ever. */
-      onPointerCancel={endDrag}
-      onPointerLeave={endDrag}
+      className={`topic-tree-drop${view ? " is-armed" : ""}`}
     >
       {!q && showAll && (
         <button type="button" role="checkbox" aria-checked={isAll} onClick={pickAll}
@@ -343,7 +420,8 @@ export default function DeckTree({
           No sub-decks — everything here is in the one deck.
         </p>
       )}
-      {tree.map((r, i) => <Row key={r.id} n={r} isLast={i === tree.length - 1} />)}
+      {shown.map((r, i) => renderRow(r, i === shown.length - 1))}
+      <div aria-live="polite" className="sr-only">{said}</div>
     </div>
   );
 }

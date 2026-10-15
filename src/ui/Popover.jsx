@@ -20,11 +20,17 @@ export default function Popover({ anchorRef, open, onClose, align = "right", chi
     if (!a || !p) return;
     const w = p.offsetWidth, h = p.offsetHeight;
     const gap = 8, pad = 8;
-    const below = a.bottom + gap + h <= window.innerHeight - pad;
-    const top = below ? a.bottom + gap : Math.max(pad, a.top - gap - h);
+    /* Below if it fits, above if that fits, and otherwise on whichever side
+       has more room, shortened to it — never over the thing it came from. */
+    const roomBelow = window.innerHeight - pad - (a.bottom + gap);
+    const roomAbove = a.top - gap - pad;
+    const below = h <= roomBelow || (h > roomAbove && roomBelow >= roomAbove);
+    const room = Math.max(120, below ? roomBelow : roomAbove);
+    const height = Math.min(h, room);
+    const top = below ? a.bottom + gap : Math.max(pad, a.top - gap - height);
     let left = align === "right" ? a.right - w : a.left;
     left = Math.min(Math.max(pad, left), window.innerWidth - w - pad);
-    setPos({ top, left });
+    setPos({ top, left, maxHeight: h > room ? room : null });
   }, [open, anchorRef, align]);
 
   useEffect(() => {
@@ -34,7 +40,9 @@ export default function Popover({ anchorRef, open, onClose, align = "right", chi
       onClose();
     };
     const onKey = e => { if (e.key === "Escape") onClose(); };
-    const onMove = () => onClose();
+    /* The page scrolling moves the anchor, so the menu closes. The menu's own
+       list scrolling does not — the Move to… picker scrolls. */
+    const onMove = e => { if (!popRef.current?.contains(e.target)) onClose(); };
     document.addEventListener("pointerdown", onDown, true);
     document.addEventListener("keydown", onKey);
     window.addEventListener("resize", onMove);
@@ -53,7 +61,7 @@ export default function Popover({ anchorRef, open, onClose, align = "right", chi
       ref={popRef}
       className={`pop ${className}`}
       role="menu"
-      style={{ position: "fixed", top: pos?.top ?? -9999, left: pos?.left ?? -9999, zIndex: 400, visibility: pos ? "visible" : "hidden" }}
+      style={{ position: "fixed", top: pos?.top ?? -9999, left: pos?.left ?? -9999, zIndex: 400, visibility: pos ? "visible" : "hidden", ...(pos?.maxHeight ? { maxHeight: pos.maxHeight, overflowY: "auto" } : {}) }}
     >
       {children}
     </div>,

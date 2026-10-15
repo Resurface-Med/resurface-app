@@ -1,4 +1,5 @@
 import { QUESTIONS } from "../data";
+import { compareDecks } from "./deckOrder";
 
 /**
  * Decks: the one container.
@@ -23,12 +24,10 @@ export function indexDecks(decks) {
  *
  * Node: { id, name, children: [], total, seen, avail, mine, depth }.
  */
-const natural = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
-
-/** Siblings in reading order: "2.9" before "2.10", A before B. */
-export function sortSiblings(nodes) {
-  nodes.sort((a, b) => natural.compare(a.name, b.name));
-  nodes.forEach(n => sortSiblings(n.children));
+/** Siblings in the order you put them in (see lib/deckOrder.js). */
+function orderSiblings(nodes, byId) {
+  nodes.sort((a, b) => compareDecks(byId.get(a.id) ?? a, byId.get(b.id) ?? b));
+  nodes.forEach(n => orderSiblings(n.children, byId));
   return nodes;
 }
 
@@ -48,7 +47,7 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
 
   // Your decks first, in their own order, so an empty one is still there.
   const byId = indexDecks(decks);
-  const sorted = [...decks].sort((a, b) => (a.position - b.position) || String(a.createdAt).localeCompare(String(b.createdAt)));
+  const sorted = [...decks].sort(compareDecks);
   function ensureDeck(d) {
     if (nodes.has(d.id)) return nodes.get(d.id);
     const parent = d.parentId && byId.has(d.parentId) ? ensureDeck(byId.get(d.parentId)) : null;
@@ -74,8 +73,9 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
     }
   }
 
-  // Natural order within a parent.
-  sortSiblings(roots);
+  /* Manual order within a parent. Sorted after building rather than relied on
+     from insertion, because a child seen first inserts its parent early. */
+  orderSiblings(roots, byId);
 
   if (rootId) {
     const r = nodes.get(rootId);

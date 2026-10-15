@@ -29,6 +29,7 @@ import { themeStore, todayKey, nextStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
+import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
 import ReceiveDeck from "./views/ReceiveDeck";
 import LoginPage from "./views/LoginPage";
@@ -214,9 +215,11 @@ export default function App() {
   // ── Decks ─────────────────────────────────────────────────────────────
   // Optimistic like everything else. Creating waits for the id.
   async function createDeck(name, parentId = null) {
-    const siblings = decks.filter(d => (d.parentId ?? null) === parentId);
-    const row = await remote.createDeck(user.id, name, parentId, siblings.length);
-    const d = { id: row.id, name, parentId, position: siblings.length, shareCode: row.share_code, createdAt: row.created_at };
+    /* At the end of its parent: order is manual, and a new deck turning up in
+       the middle of a list you arranged would be moving your things for you. */
+    const position = nextPosition(decksRef.current, parentId);
+    const row = await remote.createDeck(user.id, name, parentId, position);
+    const d = { id: row.id, name, parentId, position, shareCode: row.share_code, createdAt: row.created_at };
     applyDecks([...decks, d]);
     return d;
   }
@@ -239,12 +242,16 @@ export default function App() {
   }
   /* Copy bank topics into a deck: each becomes a sub-deck holding copies of
      the topic's questions — yours, with fresh ids, like an import. */
-  /* Re-parent a deck. Refused if the target is the deck itself or under it. */
-  function moveDeck(id, parentId) {
-    let p = parentId;
-    while (p) { if (p === id) return; p = decks.find(d => d.id === p)?.parentId ?? null; }
-    applyDecks(decks.map(d => d.id === id ? { ...d, parentId: parentId ?? null } : d));
-    remote.updateDeck(id, { parent_id: parentId ?? null });
+  /* Put a deck under parentId (null: the top level), just before sibling
+     beforeId (null: at the end). Refused if the target is the deck itself or
+     under it. Usually one write — see lib/deckOrder.js. Reads decksRef, not
+     the render's decks, so two moves in quick succession build on each other. */
+  function moveDeck(id, parentId = null, beforeId = null) {
+    const r = moveDeckTo(decksRef.current, id, parentId ?? null, beforeId ?? null);
+    if (!r || r.changes.length === 0) return false;
+    applyDecks(r.decks);
+    for (const c of r.changes) remote.updateDeck(c.id, c.patch);
+    return true;
   }
   function deleteQuestion(qid) {
     const rows = genRowsRef.current.filter(r => r.id !== qid);

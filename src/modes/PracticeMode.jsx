@@ -671,6 +671,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           allLabel="Everything"
                           allAvail={null}
                           rowMenu={rowMenu}
+                          /* Inside a tab the tree is that deck's children, so
+                             its top level is the tab's deck, and Move to…
+                             needs the whole tree to reach the other tabs. */
+                          onMove={(id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId)}
+                          allForest={fullForest}
+                          rootParentId={activeRoot ? activeRootId : null}
                           allowEmpty
                         />
                       )}
@@ -859,9 +865,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   allLabel="Everything"
                   allAvail={null}
                   rowMenu={rowMenu}
-                  /* Desktop only for now: HTML5 drag is unusable on touch and
-                     wants a long-press pointer implementation of its own. */
-                  onMove={(id, parentId) => deckActions.moveDeck(id, parentId)}
+                  onMove={(id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId)}
                   allowEmpty
                 />
               )}

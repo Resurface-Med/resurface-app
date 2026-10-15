@@ -35,6 +35,13 @@ they are invisible to users and renaming them wipes everyone's progress.
 to any depth; every one is a row you own and the app ships none. Questions
 filter by `leaf` (a deck id), never by name — two decks may share a name.
 
+**Order is manual** (2026-10-15). `position` is a sparse integer, 1024
+apart, so a move writes one row — the midpoint of its new neighbours — and
+siblings are only renumbered when there is no room (`src/lib/deckOrder.js`,
+pure, tested). Moving is drag (pointer events, long-press on touch,
+`src/ui/useDeckDrag.js`), Alt+arrows, and Move up / Move down / Move to… in
+the row's ⋯. Four HTML5-drag attempts failed before it; don't go back.
+
 A folders-and-decks split was tried on 2026-10-09 and reverted the same day
 (`84426e3`, `198ae3c`); don't rebuild it without asking.
 

@@ -40,6 +40,21 @@ async function send(op) {
   }
 }
 
+/*
+ * Deck writes, one at a time and in the order they were made.
+ *
+ * Reordering sends several writes to the same rows in quick succession —
+ * holding Alt+↓ is a write per step — and fired in parallel the last one sent
+ * is not guaranteed to be the last one applied, which would leave the
+ * database disagreeing with the screen until the next reload.
+ */
+let deckChain = Promise.resolve();
+function inOrder(run) {
+  const next = deckChain.then(run, run);
+  deckChain = next.catch(() => {});
+  return next;
+}
+
 /** The single place that knows how an op becomes a query. */
 function apply(op) {
   switch (op.kind) {
@@ -418,8 +433,8 @@ export const remote = {
     if (error) throw error;
     return data;
   },
-  updateDeck: (deckId, patch) => send({ kind: "deck-update", deckId, patch }),
-  deleteDeck: (deckId)        => send({ kind: "deck-delete", deckId }),
+  updateDeck: (deckId, patch) => inOrder(() => send({ kind: "deck-update", deckId, patch })),
+  deleteDeck: (deckId)        => inOrder(() => send({ kind: "deck-delete", deckId })),
   /** Move a question to another deck (payload unchanged). */
   moveGenerated: (userId, q, deckId) => {
     const { id, gen, deckId: _d, createdAt, path, leaf, rootId, block, deck, cat, year, ...payload } = q;
