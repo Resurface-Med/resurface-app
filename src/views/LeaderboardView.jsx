@@ -18,6 +18,29 @@ const band = {
   width: "100%",
 };
 
+/* Rafil's account. The founder's diamond is pinned to the account id, not
+   the display name — anyone can call themselves Rafil, nobody can be this
+   account. */
+const FOUNDER_ID = "0b920395-b28e-442e-a68b-28e0b7d0a06b";
+
+export function FounderGem() {
+  return (
+    <span className="lb-founder" title="Founder" aria-label="Founder" role="img">
+      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <defs>
+          <linearGradient id="lb-gem" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#7fa2ff" />
+            <stop offset="0.55" stopColor="#3562f5" />
+            <stop offset="1" stopColor="#1f3fc4" />
+          </linearGradient>
+        </defs>
+        <path d="M4.2 1.8h7.6L15 6 8 14.6 1 6z" fill="url(#lb-gem)" />
+        <path d="M1 6h14M4.2 1.8 6 6l2 8.6L10 6l1.8-4.2M6 6l2-4.2L10 6" fill="none" stroke="#fff" strokeOpacity="0.55" strokeWidth="0.8" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
+
 export default function LeaderboardView({ userId }) {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
@@ -87,6 +110,7 @@ export default function LeaderboardView({ userId }) {
                     <span className="lb-rank">#{r.rank}</span>
                     <span className="lb-name">
                       {r.display_name}
+                      {r.user_id === FOUNDER_ID ? <FounderGem /> : null}
                       {mine ? <span className="lb-me-tag">you</span> : null}
                     </span>
                     <span className="lb-stats">

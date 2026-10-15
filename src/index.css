@@ -3159,6 +3159,13 @@ html.is-deck-dragging * {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The founder's diamond: sits on the name's baseline, a touch of shine. */
+.lb-founder {
+  display: inline-flex;
+  margin-left: 7px;
+  vertical-align: -1px;
+  filter: drop-shadow(0 1px 2px rgba(53, 98, 245, 0.35));
+}
 .lb-me-tag {
   margin-left: 10px;
   font-size: 12.5px;
