@@ -8106,8 +8106,10 @@ html.is-deck-dragging * {
    dashboard it is the main thing to look at. */
 .dash-film-wrap {
   width: 100%;
-  /* As large as fits under the band without the pill going off-screen. */
-  max-width: max(560px, min(960px, calc((100dvh - 380px) * 16 / 9)));
+  /* Large, but the whole card fits under the band with room below it. The
+     500px is the band, the heading and a margin, measured in the real app
+     rather than the harness — whose band is shorter. */
+  max-width: max(480px, min(860px, calc((100dvh - 500px) * 16 / 9)));
   margin: 0 auto;
 }
 .dash-film {
