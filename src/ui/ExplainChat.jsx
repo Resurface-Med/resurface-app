@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { apiFetch } from "../lib/api";
+import aiBooks from "../assets/ai-books.png?inline"; // inline: see QuizShell
 import { supabase } from "../lib/supabase";
 import { splitMarks } from "../lib/formatExplain";
 
@@ -7,8 +9,6 @@ import { splitMarks } from "../lib/formatExplain";
  * student asks (quick prompts or free text). Cap: 3 asks per question.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE
-  || (import.meta.env.DEV ? "" : "https://api.tryresurface.com");
 
 const ASK_LIMIT = 3;
 const ASK_STORE = "rs_ai_asks";
@@ -200,7 +200,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
           text: m.apiText || m.text,
         }));
 
-      const res = await fetch(`${API_BASE}/api/explain`, {
+      const res = await apiFetch("/api/explain", {
         method: "POST",
         headers: authHeaders(session?.access_token),
         body: JSON.stringify({
@@ -262,10 +262,10 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
       <header className="ai-dock__head">
         <h2 className="ai-dock__brand" aria-label="Resurface AI">
           <img
-            src="/books.webp"
+            src={aiBooks}
             alt=""
-            width="64"
-            height="64"
+            width="96"
+            height="96"
             className="ai-dock__mark"
           />
           <span className="ai-dock__suffix">

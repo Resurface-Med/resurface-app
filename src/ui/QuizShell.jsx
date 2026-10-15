@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+/* Built into the bundle (?inline), not fetched from /public. These only
+   appear once a session or the tutor opens — usually long after the app
+   loaded — and on a network that blocks the app's domain (eduroam) that
+   later fetch was the one that failed, leaving a broken image on the
+   button. Inline, it arrives with the code that draws it. */
+import aiMark from "../assets/ai-mark.png?inline";
 
 import EditQuestionModal from "./EditQuestionModal";
 import ExplainChat from "./ExplainChat";
@@ -389,10 +395,10 @@ export default function QuizShell({
             aria-pressed={aiOpen}
           >
             <img
-              src="/icon-192.png"
+              src={aiMark}
               alt=""
-              width="192"
-              height="192"
+              width="96"
+              height="96"
               className="quiz-ai-toggle__mark"
             />
             <span className="quiz-ai-toggle__label">

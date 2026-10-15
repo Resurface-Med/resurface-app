@@ -60,60 +60,95 @@
   <ul id="list"></ul>
   <button onclick="location.reload()">Run again</button>
   <p class="sub" style="margin-top:18px">
-    If this page loaded at all, <code>app.tryresurface.com</code> is not blocked.
+    Will not load on <code>app.tryresurface.com</code>? Open
+    <code>resurface-app.vercel.app/netcheck.html</code> instead.
   </p>
 </main>
 
 <script>
-/* Each host, why the app needs it, and what its absence looks like. */
+/*
+ * Each check proves the real server answered, not merely that something did.
+ * A campus filter can answer in a blocked site's place with its own page, and
+ * a check that only asks "did anything reply" calls that reachable. So each
+ * one reads something only the real host would send: a JSON body, a CORS
+ * reply from our own backend, an image that actually decodes.
+ *
+ * Absolute URLs throughout, so the page tests the same hosts whether it was
+ * opened on app.tryresurface.com or on resurface-app.vercel.app — the second
+ * is the one to use if the first will not load. The ?nc on each URL tells the
+ * app's service worker to stay out of it, or a cached copy would pass.
+ */
+var SUPABASE = "https://uhqpljteohitvytwfadp.supabase.co";
+var KEY = "sb_publishable_0ZlQhc0Gn_bD5-AFIgPOrw_xKVHv8hJ";
+function nc(u) { return u + (u.indexOf("?") < 0 ? "?" : "&") + "nc=" + Date.now(); }
+
+function jsonHas(url, field, opts) {
+  return fetch(nc(url), Object.assign({ cache: "no-store" }, opts || {})).then(function (r) {
+    return r.json().then(function (j) { return j && field in j; }, function () { return false; });
+  });
+}
+function backend(base) {
+  /* Our backend answers an unsigned POST with 401 and a JSON error, and its
+     CORS reply names this page's origin. A filter's page does neither. */
+  return fetch(nc(base + "/api/generate"), { method: "POST", cache: "no-store",
+    headers: { "content-type": "application/json" }, body: "{}" })
+    .then(function (r) { return r.json().then(function (j) { return r.status === 401 && "error" in j; }, function () { return false; }); });
+}
+function image(url) {
+  return new Promise(function (resolve) {
+    var img = new Image();
+    img.onload = function () { resolve(img.naturalWidth > 0); };
+    img.onerror = function () { resolve(false); };
+    img.src = nc(url);
+  });
+}
+
 var TARGETS = [
-  { host: "uhqpljteohitvytwfadp.supabase.co",
-    url:  "https://uhqpljteohitvytwfadp.supabase.co/auth/v1/health",
-    what: "Sign-in and every piece of your data",
-    sym:  "app loads, but you cannot sign in and nothing saves" },
-  { host: "api.tryresurface.com",
-    url:  "https://api.tryresurface.com/api/keepalive",
-    what: "Generating questions, and the AI tutor",
-    sym:  "app works, but Generate and Ask fail" },
-  { host: "accounts.google.com",
-    url:  "https://accounts.google.com/generate_204",
-    what: "Signing in with Google",
-    sym:  "Continue with Google goes nowhere" },
-  { host: "fonts.googleapis.com",
-    url:  "https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap",
-    what: "The typeface",
-    sym:  "app works but looks wrong" },
-  { host: "app.tryresurface.com",
-    url:  "/manifest.webmanifest",
-    what: "The app itself",
-    sym:  "nothing loads at all" }
+  { host: "uhqpljteohitvytwfadp.supabase.co", what: "Sign-in and every piece of your data",
+    sym: "you cannot sign in and nothing saves",
+    run: function () { return jsonHas(SUPABASE + "/auth/v1/settings", "external", { headers: { apikey: KEY } }); } },
+  { host: "app.tryresurface.com", what: "The app — fresh loads and its images",
+    sym: "a reload fails, and images like the Resurface AI mark do not appear",
+    run: function () { return jsonHas("https://app.tryresurface.com/manifest.webmanifest", "name"); } },
+  { host: "app.tryresurface.com (image)", what: "An image from the app, as the AI button loads it",
+    sym: "the Resurface AI mark is broken",
+    run: function () { return image("https://app.tryresurface.com/icon-192.png"); } },
+  { host: "api.tryresurface.com", what: "Generating questions, and Resurface AI",
+    sym: "Generate and Ask fail — unless the fallback below is reachable",
+    run: function () { return backend("https://api.tryresurface.com"); } },
+  { host: "resurface-app.vercel.app", what: "The app's second address",
+    sym: "no way round a blocked app.tryresurface.com",
+    run: function () { return jsonHas("https://resurface-app.vercel.app/manifest.webmanifest", "name"); } },
+  { host: "resurface-backend-resurface.vercel.app", what: "The API's second address — the app falls back to it",
+    sym: "no way round a blocked api.tryresurface.com",
+    run: function () { return backend("https://resurface-backend-resurface.vercel.app"); } },
+  { host: "accounts.google.com", what: "Signing in with Google",
+    sym: "Continue with Google goes nowhere",
+    run: function () { return fetch("https://accounts.google.com/generate_204", { mode: "no-cors", cache: "no-store" }).then(function () { return true; }); } },
+  { host: "fonts.googleapis.com", what: "The typeface",
+    sym: "the app works but looks wrong",
+    run: function () { return fetch("https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap", { cache: "no-store" }).then(function (r) { return r.text(); }).then(function (t) { return /@font-face/.test(t); }); } }
 ];
 
 var TIMEOUT = 6000;
 
-/* A host that answers is reachable. A host that refuses quickly is usually
-   down or wrong. A host that never answers at all is the shape of a filter
-   swallowing the request, which is what a block looks like from in here. */
 function probe(t) {
   var started = Date.now();
   return new Promise(function (resolve) {
     var done = false;
+    function end(state, note) {
+      if (done) return;
+      done = true; clearTimeout(timer);
+      resolve({ state: state, ms: Date.now() - started, note: note });
+    }
     var timer = setTimeout(function () {
-      if (done) return;
-      done = true;
-      resolve({ state: "blocked", ms: Date.now() - started,
-                note: "no answer in " + (TIMEOUT / 1000) + "s — the signature of a filter swallowing it" });
+      end("blocked", "no answer in " + (TIMEOUT / 1000) + "s — the signature of a filter swallowing it");
     }, TIMEOUT);
-
-    fetch(t.url, { mode: "no-cors", cache: "no-store" }).then(function () {
-      if (done) return;
-      done = true; clearTimeout(timer);
-      resolve({ state: "ok", ms: Date.now() - started, note: "answered" });
-    }).catch(function (e) {
-      if (done) return;
-      done = true; clearTimeout(timer);
-      resolve({ state: "refused", ms: Date.now() - started,
-                note: "refused straight away (" + (e && e.message ? e.message : "network error") + ")" });
+    t.run().then(function (real) {
+      if (real) end("ok", "the real server answered");
+      else end("impostor", "something answered, but not the real server — a filter's block page, most likely");
+    }, function (e) {
+      end("refused", "refused straight away (" + (e && e.message ? e.message : "network error") + ")");
     });
   });
 }
@@ -122,7 +157,7 @@ var list = document.getElementById("list");
 var summary = document.getElementById("summary");
 var results = [];
 
-TARGETS.forEach(function (t, i) {
+TARGETS.forEach(function (t) {
   var li = document.createElement("li");
   li.className = "pending";
   li.innerHTML = '<div class="top"><span class="host"></span><span class="ms">…</span></div>' +
@@ -131,7 +166,6 @@ TARGETS.forEach(function (t, i) {
   li.querySelector(".what").textContent = t.what;
   list.appendChild(li);
   t._li = li;
-  t._i = i;
 });
 
 (function run() {
@@ -144,8 +178,8 @@ TARGETS.forEach(function (t, i) {
       t._li.querySelector(".ms").textContent = r.ms + "ms";
       var v = t._li.querySelector(".verdict");
       v.className = "verdict " + (r.state === "ok" ? "ok" : r.state === "refused" ? "slow" : "bad");
-      v.textContent = (r.state === "ok" ? "Reachable — " : r.state === "refused" ? "Refused — " : "Blocked — ")
-                      + r.note + (r.state !== "ok" ? ". Then: " + t.sym + "." : "");
+      var word = { ok: "Reachable — ", refused: "Refused — ", blocked: "Blocked — ", impostor: "Filtered — " }[r.state];
+      v.textContent = word + r.note + (r.state !== "ok" ? ". Then: " + t.sym + "." : "");
       results.push({ host: t.host, state: r.state });
       next();
     });
@@ -162,7 +196,7 @@ function finish() {
   }
   summary.innerHTML = "<strong>" + bad.length + " of " + results.length +
     " unreachable:</strong> " + bad.map(function (r) { return r.host; }).join(", ") +
-    ". Send this screen to whoever is fixing it — the list below says what each one breaks.";
+    ". Screenshot this whole page and send it — the list below says what each one breaks.";
 }
 </script>
 </body>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { apiFetch } from "../lib/api";
 import JSZip from "jszip";
 import { h1, primaryBtn } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -24,8 +25,6 @@ import { supabase } from "../lib/supabase";
  * was a form; then the answered steps collapsed to lines, which hid them.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE
-  || (import.meta.env.DEV ? "" : "https://api.tryresurface.com");
 
 // Only the images-in-a-PDF fallback is still bounded by this. The size limit
 // exists because a file is base64-encoded into a JSON body — which inflates it
@@ -348,7 +347,7 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
 
   const { data: { session } } = await supabase.auth.getSession();
 
-  const res = await fetch(`${API_BASE}/api/generate`, {
+  const res = await apiFetch("/api/generate", {
     method: "POST",
     headers: {
       "content-type": "application/json",

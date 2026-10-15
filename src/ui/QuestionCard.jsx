@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import aiMark from "../assets/ai-mark.png?inline"; // inline: see QuizShell
 import { usePref, setPref } from "../lib/prefs";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
@@ -418,10 +419,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                   being small. The hero render put detail at 26px that had
                   nowhere to go and came out looking like an emoji. */}
               <img
-                src="/icon-192.png"
+                src={aiMark}
                 alt=""
-                width="192"
-                height="192"
+                width="96"
+                height="96"
                 className="q-review-ai__mark"
               />
               Ask Resurface AI
