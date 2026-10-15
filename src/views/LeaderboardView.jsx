@@ -29,7 +29,9 @@ export function FounderGem() {
      invite a closer look. */
   return (
     <span className="lb-founder" title="Founder" aria-label="Founder" role="img">
-      <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true">
+      {/* Cropped to the crown itself (it spans y 5–21), so its middle is
+          the box's middle and the flex centring lines it up. */}
+      <svg width="17" height="16" viewBox="2 4 20 18" aria-hidden="true">
         <path d="M3 8.2l4.6 4.1L12 5l4.4 7.3L21 8.2 19.2 17H4.8z" fill="var(--c-accent)" stroke="var(--c-accent)" strokeWidth="1.6" strokeLinejoin="round" />
         <rect x="4.8" y="18.6" width="14.4" height="2.4" rx="1.2" fill="var(--c-accent)" />
       </svg>

@@ -3168,6 +3168,9 @@ html.is-deck-dragging * {
   display: inline-flex;
   flex-shrink: 0;
   margin-left: 8.5px;
+  /* Onto the middle of the name's capitals, not of its line box, which
+     carries descender space below them (measured: 0.7px). */
+  transform: translateY(-0.7px);
 }
 .lb-me-tag {
   flex-shrink: 0;
