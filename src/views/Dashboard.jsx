@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import IntroFilm from "../ui/IntroFilm";
+import StreakFlame from "../ui/StreakFlame";
 import { usePref, setPref } from "../lib/prefs";
 import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -128,18 +129,8 @@ export default function Dashboard({
           </div>
 
           {streak.streak > 0 && (
-            <div data-in="right" style={{ display: "flex", alignItems: "baseline", gap: 8, flexShrink: 0, "--i": 1 }}>
-              <span style={{ fontSize: "clamp(26px, 2.6vw, 32px)", fontWeight: 700, color: OF.text, letterSpacing: -1.4, lineHeight: 1 }}>
-                {streak.streak}
-              </span>
-              <span style={{ fontSize: 14, color: OF.soft, fontWeight: 500 }}>
-                day{streak.streak === 1 ? "" : "s"} in a row
-              </span>
-              {streak.longest > streak.streak && (
-                <span style={{ fontSize: 13, color: OF.faint, fontWeight: 500 }}>
-                  best {streak.longest}
-                </span>
-              )}
+            <div data-in="right" style={{ flexShrink: 0, "--i": 1 }}>
+              <StreakFlame days={streak.streak} best={streak.longest} />
             </div>
           )}
         </header>
