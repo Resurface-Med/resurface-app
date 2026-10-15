@@ -3,7 +3,8 @@ import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, 
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import { isReviewDue } from "../lib/sm2";
-import { reask } from "../lib/session";
+import { reask, reaskAt, shiftFrom, refreshSaved } from "../lib/session";
+import { useAuth } from "../lib/auth";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
@@ -202,8 +203,30 @@ function dockChip(active, disabled) {
   };
 }
 
-const SESSION_KEY = "pq_practice_session";
-function loadSaved() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+/*
+ * An unfinished session, per person.
+ *
+ * It was one key for the whole browser, so on a shared machine the next
+ * person to sign in was offered the last one's session — their questions and
+ * their answers. The old key is adopted only when every question in it is
+ * one of yours (your own questions' ids are unique to you); otherwise it is
+ * someone else's and is thrown away.
+ */
+const LEGACY_SESSION_KEY = "pq_practice_session";
+const sessionKey = userId => `pq_practice_session:${userId}`;
+function readJson(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
+function loadSaved(userId) {
+  if (!userId) return null;
+  const mine = readJson(sessionKey(userId));
+  if (mine) return mine;
+  const legacy = readJson(LEGACY_SESSION_KEY);
+  try { localStorage.removeItem(LEGACY_SESSION_KEY); } catch { /* storage off */ }
+  if (!legacy?.queue?.length) return null;
+  const ids = new Set(QUESTIONS.map(q => q.id));
+  if (!legacy.queue.every(q => ids.has(q.id))) return null;
+  try { localStorage.setItem(sessionKey(userId), JSON.stringify(legacy)); } catch { /* storage off */ }
+  return legacy;
+}
 
 /**
  * What an unfinished session was on, read back out of its own queue.
@@ -346,13 +369,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [results, setResults] = useState({});
   const [sC, setSC] = useState(0);
   const [sT, setST] = useState(0);
-  const [savedSession, setSavedSession] = useState(loadSaved);
+  const { user } = useAuth();
+  const SESSION_KEY = sessionKey(user?.id);
+  const [savedSession, setSavedSession] = useState(() => loadSaved(user?.id));
   const [sessionFilter, setSessionFilter] = useState(null);
 
   // Persist session whenever active state changes
   useEffect(() => {
     if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT }));
-  }, [queue, idx, sels, sC, sT]);
+  }, [queue, idx, sels, sC, sT, SESSION_KEY]);
 
   // Tell App whether we're mid-session (so nav block only fires then)
   useEffect(() => {
@@ -411,7 +436,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     : filter.year[0];
 
   function resumeSession() {
-    const s = savedSession;
+    /* Checked against what exists now: questions deleted since are dropped,
+       corrected ones come back corrected (see refreshSaved). */
+    const fresh = refreshSaved(savedSession, new Map(QUESTIONS.map(q => [q.id, q])), shuffleOptions);
+    if (!fresh) { discardSession(); return; }
+    const s = { ...savedSession, ...fresh };
     const restoredQueue = s.queue ?? [];
     const restoredSels  = s.sels ?? {};
     // Reconstruct results from saved selections so the navigator shows correct/wrong accurately
@@ -470,15 +499,20 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        another, and the one who finds it an interruption stops using it. Read
        as `=== true` rather than `!== false` so a filter from anywhere that
        predates the field lands on the default rather than against it. */
-    if (!correct && filter.retryWrong === true) {
-      setQueue(prev => reask(prev, idx, q));
-    }
     setResults(prev => ({ ...prev, [idx]: {
       id: q.id, q: q.q, cat: q.cat,
       correct,
       correctAnswer: q.opts[q.ans],
       yourAnswer: q.opts[i],
     }}));
+    if (!correct && filter.retryWrong === true) {
+      /* Answers already given past the insertion point — the list lets you
+         jump ahead — move with their questions. */
+      const at = reaskAt(queue, idx);
+      setQueue(prev => reask(prev, idx, q));
+      setSels(prev => shiftFrom(prev, at));
+      setResults(prev => shiftFrom(prev, at));
+    }
   }
 
   /* Finishing is the moment a blank becomes a wrong answer. Skipping through

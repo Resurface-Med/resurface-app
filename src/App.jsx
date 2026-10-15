@@ -25,9 +25,9 @@ class ErrorBoundary extends Component {
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
-import { themeStore, todayKey, nextStreak } from "./lib/storage";
+import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
-import { loadAll, remote, flushQueue, fetchIsAdmin } from "./lib/remote";
+import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner } from "./lib/remote";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs } from "./lib/prefs";
@@ -38,7 +38,7 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
-import { ConfirmHost } from "./ui/Confirm";
+import { ConfirmHost, confirm } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 
 /* How long the outgoing view is held behind the arriving one. Must outlast
@@ -85,6 +85,8 @@ export default function App() {
 
   const [view, setView] = useState(V.DASH);
   const [pendingView, setPendingView] = useState(null);
+  /* Generate has questions that leaving would lose (see GenerateMode). */
+  const [generateBusy, setGenerateBusy] = useState(false);
   const [practiceSessionActive, setPracticeSessionActive] = useState(false);
 
   // Server-first: these start empty and are filled from Postgres on sign-in.
@@ -181,13 +183,13 @@ export default function App() {
         // rows have landed.
         const [, d] = await Promise.all([
           loadDecks(),
-          (async () => { await flushQueue(); return loadAll(user.id); })(),
+          (async () => { setQueueOwner(user.id); await flushQueue(); return loadAll(user.id); })(),
         ]);
         if (cancelled) return;
         setPStats(d.pStats);
         setSrCards(d.srCards);
         setBookmarks(d.bookmarks);
-        setStreak(d.streak);
+        setStreak(liveStreak(d.streak));
         setActivity(d.activity);
         setDailyGoal(d.dailyGoal);
         setDisplayName(d.displayName || "");
@@ -538,10 +540,20 @@ export default function App() {
      inside the view, and a page held still would stop anything that mounts
      in it later — an expanded section, a deck's rows — from ever arriving. */
 
-  function handleNav(newView) {
+  async function handleNav(newView) {
     if (view === V.STUDY && newView !== V.STUDY && practiceSessionActive) {
       setPendingView(newView);
       return;
+    }
+    if (view === V.GENERATE && newView !== V.GENERATE && generateBusy) {
+      const leave = await confirm({
+        title: "Leave without saving?",
+        body: "The questions you have not added to a deck will be lost.",
+        action: "Leave",
+        cancel: "Stay",
+        danger: true,
+      });
+      if (!leave) return;
     }
     go(newView);
   }
@@ -816,6 +828,7 @@ export default function App() {
           )}
 
           {v === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
+            onBusyChange={setGenerateBusy}
             decks={decks} deckActions={deckActions}
             targetDeckId={generateInto}
             onTargetDeckChange={id => setGenerateInto(id)}

@@ -20,8 +20,20 @@ function writeQueue(q) {
   try { localStorage.setItem(QUEUE_KEY, JSON.stringify(q)); } catch {}
 }
 
+/*
+ * Whose writes these are.
+ *
+ * The queue lives in the browser, and a browser can be shared — a library
+ * PC, a friend's laptop. A write parked by one account and retried under the
+ * next is refused by RLS every time and sits there for good, or, for a write
+ * keyed only on a row id, lands as nobody's. So each op is stamped with the
+ * account that made it and only that account's are flushed.
+ */
+let owner = null;
+export function setQueueOwner(userId) { owner = userId ?? null; }
+
 function enqueue(op) {
-  writeQueue(append(readQueue(), op));
+  writeQueue(append(readQueue(), owner && !op.owner ? { ...op, owner } : op));
 }
 
 /**
@@ -168,9 +180,22 @@ function apply(op) {
  * made during the flush. The cost is a localStorage write per op, on a path
  * that runs when a network comes back, over a queue of at most a few hundred.
  */
-export async function flushQueue() {
-  const start = readQueue();
-  if (start.length === 0) return { flushed: 0, remaining: 0 };
+/*
+ * One flush at a time. It runs on sign-in, on coming back online and on the
+ * tab becoming visible, and those overlap; two flushes reading the same queue
+ * both replay every op in it, and a replayed "generated-add" inserts the
+ * questions twice. A second caller waits for the first instead.
+ */
+let flushing = null;
+export function flushQueue() {
+  if (!flushing) flushing = runFlush().finally(() => { flushing = null; });
+  return flushing;
+}
+
+async function runFlush() {
+  /* Ops from before stamping have no owner and are tried as before. */
+  const start = readQueue().filter(op => !op.owner || op.owner === owner);
+  if (start.length === 0) return { flushed: 0, remaining: readQueue().length };
 
   let flushed = 0;
   for (const op of start) {
@@ -190,18 +215,38 @@ export function queuedCount() {
   return readQueue().length;
 }
 
-/** One round-trip per table, on sign-in. Shapes match what App.jsx already holds. */
+/*
+ * Every row, not the first thousand.
+ *
+ * The API returns at most 1,000 rows per select however many match, without
+ * an error. At up to fifty questions a generation a student passes that in a
+ * few weeks, and from then on a reload silently loses their newest questions
+ * and the progress on them. So each table is read a page at a time, in a
+ * fixed order so the pages neither overlap nor skip, until a short page.
+ */
+export const PAGE = 1000;
+export async function selectAll(query, orderBy) {
+  const rows = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await query().order(orderBy).range(from, from + PAGE - 1);
+    if (error) return { data: null, error };
+    rows.push(...(data ?? []));
+    if (!data || data.length < PAGE) return { data: rows, error: null };
+  }
+}
+
+/** One read per table, on sign-in. Shapes match what App.jsx already holds. */
 export async function loadAll(userId) {
   const [practice, sr, bookmarks, activity, streak, profile, generated, edits] =
     await Promise.all([
-      supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId),
-      supabase.from("sr_cards").select("*").eq("user_id", userId),
-      supabase.from("bookmarks").select("question_id").eq("user_id", userId),
-      supabase.from("activity").select("day, count").eq("user_id", userId),
+      selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id"),
+      selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id"),
+      selectAll(() => supabase.from("bookmarks").select("question_id").eq("user_id", userId), "question_id"),
+      selectAll(() => supabase.from("activity").select("day, count").eq("user_id", userId), "day"),
       supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId),
-      supabase.from("question_edits").select("question_id, payload").eq("user_id", userId),
+      selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id"),
+      selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id"),
     ]);
   const decks = await loadUserDecks();
 
@@ -281,8 +326,8 @@ export async function loadAll(userId) {
  * list and a failed fetch look identical on screen, and one of them is a lie.
  */
 export async function loadUserDecks() {
-  const { data, error } = await supabase.from("decks")
-    .select("id, name, parent_id, position, share_code, created_at");
+  const { data, error } = await selectAll(() => supabase.from("decks")
+    .select("id, name, parent_id, position, share_code, created_at"), "id");
   if (error) throw error;
   return (data ?? []).map(r => ({
     id: r.id, name: r.name, parentId: r.parent_id, position: r.position,

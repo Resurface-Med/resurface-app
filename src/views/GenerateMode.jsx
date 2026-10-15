@@ -509,7 +509,7 @@ function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-
 
 // ── Main ────────────────────────────────────────────────────────────────────
 
-export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null }) {
+export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null, onBusyChange = null }) {
   const { user } = useAuth();
   const [file, setFile] = useState(null);
   const [pastedText, setPastedText] = useState("");
@@ -583,6 +583,9 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   // reply lands later and drops the user into a review screen they backed out
   // of. Held in a ref because aborting must not itself trigger a render.
   const abortRef = useRef(null);
+  /* Leaving mid-generation (after the warning) cancels the request rather
+     than letting it finish into a screen that is gone. */
+  useEffect(() => () => abortRef.current?.abort(), []);
   const [generated, setGenerated] = useState([]);
   const [kept, setKept] = useState(new Set());
   /* Which review rows have had their answer opened. The list itself stays blind. */
@@ -591,6 +594,27 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const fileRef = useRef();
 
   const [savedQs, setSavedQs] = useState(savedGenerated);
+
+  /*
+   * Work that leaving would throw away.
+   *
+   * Generated questions live only here until they are saved, and each batch
+   * is a request out of the day's shared five hundred. A tap on the nav, or
+   * closing the tab, while one was generating or waiting to be kept dropped it
+   * without a word — as did questions typed by hand and not yet added. App
+   * asks before navigating away; the browser asks before closing.
+   */
+  const busy = phase === "generating"
+    || (phase === "review" && generated.length > 0)
+    || (phase !== "done" && written.length > 0);
+  useEffect(() => {
+    onBusyChange?.(busy);
+    if (!busy) return;
+    const warn = e => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [busy, onBusyChange]);
+  useEffect(() => () => onBusyChange?.(false), [onBusyChange]);
 
   /* Both ways in — the picker and the drop target — go through here, so the
      guess cannot be wired to one and forgotten on the other. */
