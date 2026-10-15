@@ -65,6 +65,39 @@ function Check({ state }) {
   );
 }
 
+/**
+ * A deck's name, editable where it sits. Enter or clicking away saves, Esc
+ * puts it back; an empty or unchanged name saves nothing.
+ */
+function RenameField({ initial, onDone }) {
+  const [v, setV] = useState(initial);
+  const ref = useRef(null);
+  const done = useRef(false);
+  useLayoutEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);
+  function finish(save) {
+    if (done.current) return;
+    done.current = true;
+    const n = v.trim();
+    onDone(save && n && n !== initial ? n : null);
+  }
+  return (
+    <input
+      ref={ref}
+      className="topic-rename"
+      value={v}
+      maxLength={80}
+      aria-label="Deck name"
+      onChange={e => setV(e.target.value)}
+      onKeyDown={e => {
+        if (e.key === "Enter") { e.preventDefault(); finish(true); }
+        else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); finish(false); }
+      }}
+      onBlur={() => finish(true)}
+      onClick={e => e.stopPropagation()}
+    />
+  );
+}
+
 /** A row's own menu. Only your decks have one. An item marked `picker`
     swaps the menu for the Move to… list, anchored to the same ⋯. */
 function RowMenu({ node, items, renderPicker }) {
@@ -118,6 +151,10 @@ export default function DeckTree({
      Move to… can offer every deck; and the deck that part hangs from. */
   allForest = null,
   rootParentId = null,
+  /* The deck being renamed, edited in its own row; onRename(id, name) with
+     null for a cancel. */
+  renamingId = null,
+  onRename = null,
 }) {
   const q = query.trim().toLowerCase();
   const tree = useMemo(() => (q ? prune(forest, q) : forest), [forest, q]);
@@ -363,6 +400,12 @@ export default function DeckTree({
             )}
           </span>
 
+          {renamingId === n.id ? (
+            <div className="topic-hit is-renaming">
+              <Check state={st} />
+              <RenameField initial={n.name} onDone={name => onRename?.(n.id, name)} />
+            </div>
+          ) : (
           <button
             type="button"
             className="topic-hit"
@@ -379,6 +422,7 @@ export default function DeckTree({
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
               : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
           </button>
+          )}
           {menu ? <RowMenu node={n} items={menu} renderPicker={pickerFor(n)} /> : <span className="topic-menu-slot" aria-hidden="true" />}
         </div>
         {isOpen && !lifted && kids.length > 0 && (

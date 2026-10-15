@@ -258,7 +258,7 @@ export function useDeckDrag({ containerRef, flip, forest, open, setOpen, base, r
   function onRowPointerDown(e, id) {
     if (!latest.current.enabled || S.current) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;
-    if (e.target.closest(".topic-expand, .deck-menu")) return;
+    if (e.target.closest(".topic-expand, .deck-menu, input")) return;
     const touch = e.pointerType !== "mouse";
     const s = {
       phase: "pending", id, pointerId: e.pointerId, touch,

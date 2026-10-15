@@ -558,6 +558,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        the heading, not a row. */
     const forest = activeRoot ? activeRoot.children : fullForest;
     const scoped = scopedCount(filter);
+    /* A rename happens in the deck's own row when that row is on screen. The
+       form at the top is left for what has no row — on phones, the open
+       tab's own deck. */
+    const inlineRename = naming?.mode === "rename" && Boolean(findNode(forest, naming.deckId));
+    const renameProps = {
+      renamingId: inlineRename ? naming.deckId : null,
+      onRename: (id, name) => { if (name) deckActions.renameDeck(id, name); setNaming(null); },
+    };
 
     /* What a row's menu offers. Only your decks have one. */
     const rowMenu = _node => [
@@ -632,7 +640,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />
                   {creatingDeck ? (
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
-                  ) : naming ? (
+                  ) : naming && !inlineRename ? (
                     <DeckNameForm
                       initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
                       placeholder={naming.mode === "rename" ? "Name" : "Name the sub-deck"}
@@ -677,6 +685,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           onMove={(id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId)}
                           allForest={fullForest}
                           rootParentId={activeRoot ? activeRootId : null}
+                          {...renameProps}
                           allowEmpty
                         />
                       )}
@@ -811,7 +820,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           }}>
 
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
-              {!creatingDeck && !naming && (
+              {!creatingDeck && (!naming || inlineRename) && (
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
@@ -822,7 +831,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </span>
                 </div>
               )}
-              {naming && (
+              {naming && !inlineRename && (
                 <DeckNameForm
                   initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
                   placeholder={naming.mode === "rename" ? "Name" : `Name the sub-deck of ${decksById.get(naming.deckId)?.name ?? ""}`}
@@ -830,7 +839,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
                 />
               )}
-              {!creatingDeck && !naming && (
+              {!creatingDeck && (!naming || inlineRename) && (
                 <input
                   type="search"
                   value={topicQuery}
@@ -866,6 +875,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   allAvail={null}
                   rowMenu={rowMenu}
                   onMove={(id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId)}
+                  {...renameProps}
                   allowEmpty
                 />
               )}
