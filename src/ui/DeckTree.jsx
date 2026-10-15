@@ -111,7 +111,7 @@ export default function DeckTree({
   allLabel = "Everything", showAll = true, allAvail = null,
   rowMenu = null, allowEmpty = false,
   /* onMove(id, parentId, beforeId): drag, Alt+arrows, and the row menu's
-     Move up / Move down / Move to… all end here. Without it the tree is
+     Move to… all end here. Without it the tree is
      read-only. */
   onMove = null,
   /* The whole tree, when `forest` is only part of it (a tab, on phones), so
@@ -249,17 +249,13 @@ export default function DeckTree({
     if (moveNow(n.id, stepMove(forest, n.id, KEYS[e.key], rootParentId))) focusAfter.current = n.id;
   }
 
-  /* The menu: the caller's items, with the moves before the dangerous one. */
+  /* The menu: the caller's items, with Move to… before the dangerous one.
+     Move up / Move down were here too and were cut (2026-10-15): dragging
+     and Alt+arrows already do one step, and they were menu clutter. */
   function menuFor(n) {
     const items = rowMenu && n.mine ? rowMenu(n) : null;
     if (!items || !onMove) return items;
-    const up = stepMove(forest, n.id, "up", rootParentId);
-    const down = stepMove(forest, n.id, "down", rootParentId);
-    const moves = [
-      { label: "Move up", disabled: !up, onSelect: () => moveNow(n.id, up) },
-      { label: "Move down", disabled: !down, onSelect: () => moveNow(n.id, down) },
-      { label: "Move to…", picker: true },
-    ];
+    const moves = [{ label: "Move to…", picker: true }];
     const at = items.findIndex(it => it.danger);
     return at < 0 ? [...items, ...moves] : [...items.slice(0, at), ...moves, ...items.slice(at)];
   }
