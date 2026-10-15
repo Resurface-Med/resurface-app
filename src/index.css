@@ -8120,3 +8120,31 @@ html.is-deck-dragging * {
 @media (prefers-reduced-motion: reduce) {
   .intro-film, .intro-film__stage, .intro-film__end, .intro-film__cta { animation: none; }
 }
+
+/* The first-run button's sheen: a soft band of light crosses it every few
+   seconds, so the one thing to do on an empty dashboard catches the eye.
+   Light only — no glow, no bounce, no colour change. Still while hovered,
+   and off for anyone who has asked for less motion. */
+.cta-shimmer { position: relative; overflow: hidden; isolation: isolate; }
+.cta-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg,
+    transparent 30%,
+    rgba(53, 98, 245, 0.10) 44%,
+    rgba(53, 98, 245, 0.22) 50%,
+    rgba(53, 98, 245, 0.10) 56%,
+    transparent 70%);
+  transform: translateX(-120%);
+  animation: ctaSheen 4.2s cubic-bezier(0.4, 0, 0.2, 1) 1.2s infinite;
+  pointer-events: none;
+}
+@keyframes ctaSheen {
+  0%   { transform: translateX(-120%); }
+  32%  { transform: translateX(120%); }
+  100% { transform: translateX(120%); }
+}
+.cta-shimmer:hover::after { animation-play-state: paused; opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .cta-shimmer::after { animation: none; display: none; } }

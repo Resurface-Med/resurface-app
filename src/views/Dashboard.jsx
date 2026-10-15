@@ -152,7 +152,7 @@ export default function Dashboard({
             <button
               key={a.scope}
               onClick={() => (a.scope === "generate" ? setView?.(V.GENERATE) : onStudy?.(a.scope))}
-              className="btn-press"
+              className={`btn-press${empty && a.primary ? " cta-shimmer" : ""}`}
               data-in="pop"
               style={{ "--i": 2 + i, ...(a.primary ? {
                 background: "var(--c-field-object)", color: "var(--c-field-object-ink)", border: "none",
