@@ -190,7 +190,7 @@ export default function Dashboard({
                 <img src="/intro/poster-16x9.jpg" alt="" width="1280" height="720" />
                 <span className="dash-film__play">
                   <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor" /></svg>
-                  Watch · 39s
+                  Watch · 37s
                 </span>
               </button>
             </section>

@@ -4,10 +4,10 @@ import { createPortal } from "react-dom";
 /**
  * The launch film, as the first thing a new account sees.
  *
- * Rendered out of resurface-film, frames 228–1411 of the 1554: from the
+ * Rendered out of resurface-film, frames 228–1323 of the 1466: from the
  * wave rising out of the dark to the progress shot — not the opening count,
  * and not the "Sign up for free" end card, which is wrong for someone signed
- * in. 39 seconds, 16:9 for wide screens and 9:16 for tall ones. When it ends the one
+ * in. 36.5 seconds, 16:9 for wide screens and 9:16 for tall ones. When it ends the one
  * action the film has been leading up to takes its place.
  *
  * Muted, so browsers allow it to start on its own — the film has no sound.
