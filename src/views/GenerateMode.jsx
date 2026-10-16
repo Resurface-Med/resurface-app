@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { Fragment, useState, useRef, useEffect, useCallback } from "react";
 import { apiFetch } from "../lib/api";
 import JSZip from "jszip";
 import { h1, primaryBtn } from "../ui/theme";
@@ -564,7 +564,7 @@ function BatchWindow({ jobs, onCancel, onRetry, onContinue }) {
         ) : (
           <div className="genw-batch-acts">
             <button type="button" className="btn-press" style={primaryBtn} onClick={onRetry}>Try again</button>
-            {done > 0 && <button type="button" className="genw-cancel btn-press" onClick={onContinue}>Keep the {done} that worked</button>}
+            {done > 0 && <button type="button" className="genw-cancel btn-press" onClick={onContinue}>Review the {done} that worked</button>}
           </div>
         )}
       </div>
@@ -609,6 +609,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const batch = files.length > 1;
   /* A batch run: one row per lecture. */
   const [jobs, setJobs] = useState([]);
+  /* A batch under review: each lecture's name and how many it wrote. */
+  const [reviewJobs, setReviewJobs] = useState([]);
   const [pastedText, setPastedText] = useState("");
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
@@ -898,6 +900,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   setSaveError(null);
                   setSaving(true);
                   try {
+                    if (reviewJobs.length) { await saveBatch(keptList); return; }
                     const deckId = await resolveDeck();
                     const { rows, queued } = await withIds(keptList, deckId);
                     const merged = [...savedQs, ...rows];
@@ -919,7 +922,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
               <button
                 type="button"
                 className="btn-press gen-ghost"
-                onClick={() => { setPhase("setup"); setGenerated([]); setRevealed(new Set()); }}
+                onClick={() => { setPhase("setup"); setGenerated([]); setRevealed(new Set()); setReviewJobs([]); }}
               >
                 Start over
               </button>
@@ -931,8 +934,19 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           {generated.map((q, i) => {
             const isKept = kept.has(i);
             const isOpen = revealed.has(i);
+            /* A batch: the lecture's name before its first question, with how
+               many it wrote against how many were asked for. */
+            const job = reviewJobs.length && q._job !== undefined && (i === 0 || generated[i - 1]._job !== q._job)
+              ? reviewJobs[q._job] : null;
             return (
-              <li key={i} className={`gen-review-item${isKept ? "" : " is-out"}`}>
+              <Fragment key={i}>
+              {job && (
+                <li className="gen-review-group">
+                  <span className="gen-review-group-name">{job.name}</span>
+                  <span className="gen-review-group-n">{job.n < countNum ? `${job.n} of ${countNum}` : `${job.n}`}</span>
+                </li>
+              )}
+              <li className={`gen-review-item${isKept ? "" : " is-out"}`}>
                 <div className="gen-review-row">
                   <label className="gen-review-keep" htmlFor={`gen-keep-${i}`}>
                     <input
@@ -949,7 +963,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                     />
                   </label>
                   <span className="gen-review-body">
-                    <span className="gen-review-num" aria-hidden="true">{i + 1}</span>
+                    <span className="gen-review-num" aria-hidden="true">{q._job !== undefined ? i - generated.findIndex(x => x._job === q._job) + 1 : i + 1}</span>
                     <label htmlFor={`gen-keep-${i}`} className="gen-review-q">{q.q}</label>
                     <span className="gen-review-opts">
                       {q.opts.map((opt, oi) => (
@@ -980,6 +994,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   </span>
                 </div>
               </li>
+              </Fragment>
             );
           })}
         </ol>
@@ -1115,7 +1130,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   async function runJobs(list, parent) {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    let known = parent.known;
     const results = [...list];
     const update = (i, patch) => { results[i] = { ...results[i], ...patch }; setJobs([...results]); };
     let next = 0;
@@ -1136,13 +1150,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
             avoid: existing ? questionsInDeck(existing).map(q => q.q).filter(x => typeof x === "string") : [],
             signal: ctrl.signal,
           });
-          const made = await resolvePath(subParts, known);
-          known = made.known;
-          const { rows, queued } = await withIds(qs, made.id);
-          savedRef.current = [...savedRef.current, ...rows];
-          setSavedQs(savedRef.current);
-          onGeneratedChange?.(savedRef.current);
-          update(i, { status: "done", n: qs.length, ids: rows.map(r => r.id).filter(id => typeof id === "number"), queued });
+          /* Held, not saved: they go to review first, like a single lecture. */
+          update(i, { status: "done", n: qs.length, qs });
         } catch (e) {
           if (e?.name === "AbortError") { update(i, { status: "waiting" }); return; }
           update(i, { status: "failed", error: e?.message || "Something went wrong." });
@@ -1152,14 +1161,46 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     await Promise.all(Array.from({ length: Math.min(BATCH_PARALLEL, results.length) }, worker));
     abortRef.current = null;
     if (ctrl.signal.aborted) { setPhase("setup"); return; }
-    if (results.every(j => j.status === "done")) finishBatch(results, parent.id);
+    if (results.every(j => j.status === "done")) reviewBatch(results);
   }
-  function finishBatch(results, parentId) {
-    setJustSaved(results.flatMap(j => j.ids ?? []));
-    setSavedDeckId(parentId);
-    setSavedQueued(results.some(j => j.queued));
-    setFiles([]);
+  /* Into the ordinary review screen: one list, each question tagged with
+     its lecture, which is what the screen groups by and Save files by. */
+  function reviewBatch(results) {
+    const done = results.filter(j => j.status === "done" && j.qs?.length);
+    const list = done.flatMap((j, ji) => j.qs.map(q => ({ ...q, _job: ji })));
+    setReviewJobs(done.map(j => ({ name: j.name, n: j.qs.length })));
+    setGenerated(list);
+    setKept(new Set(list.map((_, i) => i)));
+    setRevealed(new Set());
     setJobs([]);
+    setPhase("review");
+  }
+  /* Saving a reviewed batch: each lecture's kept questions into its own
+     sub-deck, made in order now (one at a time, threading what has been
+     made so the parent is never made twice). A lecture with nothing kept
+     gets no deck. */
+  async function saveBatch(keptList) {
+    const parent = batchParent.current;
+    let known = decks;
+    const ids = [];
+    let queuedAny = false;
+    for (let ji = 0; ji < reviewJobs.length; ji++) {
+      const mine = keptList.filter(q => q._job === ji);
+      if (!mine.length) continue;
+      const made = await resolvePath([...parent.parts, reviewJobs[ji].name], known);
+      known = made.known;
+      const { rows, queued } = await withIds(mine, made.id);
+      queuedAny = queuedAny || queued;
+      savedRef.current = [...savedRef.current, ...rows];
+      setSavedQs(savedRef.current);
+      onGeneratedChange?.(savedRef.current);
+      ids.push(...rows.map(r => r.id).filter(id => typeof id === "number"));
+    }
+    setJustSaved(ids);
+    setSavedDeckId(parent.id);
+    setSavedQueued(queuedAny);
+    setFiles([]);
+    setReviewJobs([]);
     setPhase("done");
   }
   async function generateBatch() {
@@ -1343,7 +1384,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           jobs={jobs}
           onCancel={cancelGenerate}
           onRetry={retryFailed}
-          onContinue={() => finishBatch(jobs.filter(j => j.status === "done"), batchParent.current?.id ?? null)}
+          onContinue={() => reviewBatch(jobs)}
         />
       )}
 

@@ -8241,3 +8241,16 @@ html.is-deck-dragging * {
 .genw-job.is-waiting .genw-job-name { color: var(--c-muted); }
 .genw-batch-acts { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: 100%; margin-top: 20px; }
 .genw-batch-acts .genw-cancel { margin-top: 0; }
+
+/* A batch under review: the lecture's name over its questions, in the meta
+   caption style, with the count on the right. */
+.gen-review-group {
+  list-style: none;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  margin: 22px 0 6px; padding: 0 2px;
+  font-size: 13.5px; font-weight: 600; letter-spacing: -0.1px;
+  color: var(--c-sub);
+}
+.gen-review-group:first-child { margin-top: 0; }
+.gen-review-group-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gen-review-group-n { flex-shrink: 0; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
