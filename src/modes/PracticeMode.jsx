@@ -992,16 +992,25 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
             </div>
 
+            {/* A button, not a bar: sized to its word and on the right, the
+                way forward, as Generate's Continue is. What is selected is
+                information, so it sits beside it as text, not in the label. */}
             <div className={`setup-dock setup-dock--next${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
+              <p className="setup-next-sel">
+                {scoped === 0 ? "Nothing selected" : (
+                  <>
+                    <strong>{scoped} question{scoped === 1 ? "" : "s"}</strong>
+                    {topicLabel ? <span> from {topicLabel}</span> : null}
+                  </>
+                )}
+              </p>
               <button
                 className="btn-press"
                 disabled={scoped === 0}
                 onClick={() => setStep("options")}
-                style={{ ...primaryBtn, ...lg, width: "100%", opacity: scoped === 0 ? 0.5 : 1, cursor: scoped === 0 ? "not-allowed" : "pointer" }}
+                style={{ ...primaryBtn, ...lg, opacity: scoped === 0 ? 0.5 : 1, cursor: scoped === 0 ? "not-allowed" : "pointer" }}
               >
-                {scoped === 0
-                  ? "Nothing here — pick another topic"
-                  : `Next · ${scoped} question${scoped === 1 ? "" : "s"}${topicLabel ? ` · ${topicLabel}` : ""} →`}
+                Next <span aria-hidden="true">→</span>
               </button>
             </div>
             </>

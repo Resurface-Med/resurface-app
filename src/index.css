@@ -8280,3 +8280,20 @@ html.is-deck-dragging * {
 .setup-options .opt-check { padding: 10px 14px; }
 .setup-options .opt-check-label { font-size: 15px; }
 .setup-options .setup-count .gen-count-ends { font-size: 13.5px; }
+
+/* Practice's Next: selection on the left, the button on the right. */
+.setup-dock--next {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.setup-dock--next > .btn-press { flex: none; min-width: 168px; }
+.setup-next-sel {
+  margin: 0;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--c-sub);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.setup-next-sel strong { color: var(--c-text); font-weight: 600; }
