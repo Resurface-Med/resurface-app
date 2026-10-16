@@ -16,7 +16,7 @@
  * with the filter's notice for good. Vercel stamps every response with
  * x-vercel-id, and nothing else is kept — or trusted over the cache.
  */
-const CACHE = "resurface-shell-v1";
+const CACHE = "resurface-shell-v2";
 const SHELL = "/";
 const MAX_ENTRIES = 160;
 
@@ -60,7 +60,11 @@ async function asset(req) {
   const copy = await caches.match(req);
   if (copy) return copy;
   const res = await fetch(req);
-  if (fromVercel(res)) await keep(req, res.clone());
+  /* A file that no longer exists comes back as index.html with a 200 (the
+     deep-link rewrite). Never keep that under a /assets name: cache-first,
+     it would be served as that "script" forever. */
+  const html = (res.headers.get("content-type") || "").includes("text/html");
+  if (fromVercel(res) && !html) await keep(req, res.clone());
   return res;
 }
 

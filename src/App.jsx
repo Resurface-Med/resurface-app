@@ -44,6 +44,7 @@ import Dashboard from "./views/Dashboard";
 /* How long the outgoing view is held behind the arriving one. Must outlast
    `view-enter` in index.css — drop it early and the hole comes back. */
 const VIEW_SWAP_MS = 560;
+const RESUME_VIEW = "pq_resume_view";
 
 /* Kept as named loaders rather than inline, because navigation waits on
    them as well as `lazy` — see `go`. Calling one twice is free: an import
@@ -83,7 +84,15 @@ const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "
 export default function App() {
   const { user, loading: authLoading, configured, signOut, recovering } = useAuth();
 
-  const [view, setView] = useState(V.DASH);
+  /* Where a stale-chunk reload was headed (see `go`): that screen, not Home,
+     which is where a reload otherwise lands and read as being thrown out. */
+  const [view, setView] = useState(() => {
+    try {
+      const v = sessionStorage.getItem(RESUME_VIEW);
+      sessionStorage.removeItem(RESUME_VIEW);
+      return v && Object.values(V).includes(v) ? v : V.DASH;
+    } catch { return V.DASH; }
+  });
   const [pendingView, setPendingView] = useState(null);
   /* Generate has questions that leaving would lose (see GenerateMode). */
   const [generateBusy, setGenerateBusy] = useState(false);
@@ -394,7 +403,13 @@ export default function App() {
     const chunk = CHUNK[next];
     if (!chunk) { setView(next); return; }
     const mine = ++navToken.current;
-    const arrive = () => { if (navToken.current === mine) setView(next); };
+    /* If this load finds the tab out of date, `chunk` reloads the page;
+       this says where to come back to. Cleared once the screen is here. */
+    try { sessionStorage.setItem(RESUME_VIEW, next); } catch { /* storage refused */ }
+    const arrive = () => {
+      try { sessionStorage.removeItem(RESUME_VIEW); } catch { /* storage refused */ }
+      if (navToken.current === mine) setView(next);
+    };
     chunk().then(arrive, arrive);
   }
 
