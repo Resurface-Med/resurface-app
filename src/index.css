@@ -8464,3 +8464,40 @@ html.is-deck-dragging * {
     box-shadow: none;
   }
 }
+
+/* Pull-to-refresh (phones). A white disc with an accent arc that draws as
+   you pull (--arc 0→1), closes at the threshold, and spins while busy. */
+.ptr { display: none; }
+@media (max-width: 900px) {
+  html, body { overscroll-behavior-y: none; }   /* no second, native refresh */
+  .ptr {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    z-index: 700;
+    left: 50%;
+    top: var(--safe-t);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--c-card-solid);
+    box-shadow: 0 6px 18px rgba(15, 27, 61, 0.18);
+    transform: translate3d(-50%, -48px, 0);
+    opacity: 0;
+    pointer-events: none;
+    --arc: 0;
+  }
+  .ptr-arc {
+    stroke: var(--c-accent);
+    stroke-dasharray: calc(var(--arc) * 80) 100;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    opacity: calc(0.35 + var(--arc) * 0.65);
+  }
+  .ptr.is-busy svg { animation: ptrSpin 0.8s linear infinite; }
+  .ptr.is-busy .ptr-arc { stroke-dasharray: 60 100; opacity: 1; }
+}
+@keyframes ptrSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ptr.is-busy svg { animation-duration: 2s; }
+}

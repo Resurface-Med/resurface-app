@@ -38,6 +38,7 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
+import PullToRefresh from "./ui/PullToRefresh";
 import { ConfirmHost, confirm } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 
@@ -180,6 +181,37 @@ export default function App() {
     if (meta) meta.content = theme === 'dark' ? '#0b1220' : '#3562f5';
   }, [theme]);
 
+  /* Everything loadAll returns, onto the screen. Shared by sign-in and by
+     pull-to-refresh, so a refresh cannot miss something the first load set. */
+  function applySnapshot(d) {
+    setPStats(d.pStats);
+    setSrCards(d.srCards);
+    setBookmarks(d.bookmarks);
+    setStreak(liveStreak(d.streak));
+    setActivity(d.activity);
+    setDailyGoal(d.dailyGoal);
+    setDisplayName(d.displayName || "");
+    setNameChosen(d.nameChosen !== false);
+    setShowOnLeaderboard(d.showOnLeaderboard !== false);
+    setMarketingOptIn(d.marketingOptIn);
+    loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
+    // Before the questions, so the pool is only rebuilt with both in hand.
+    setQuestionEdits(d.questionEdits);
+    applyDecks(d.decks ?? []);
+    applyGenerated(d.generated, d.decks ?? []);
+  }
+
+  /* Pull-to-refresh on a phone: the same fetch, without the loading screen.
+     Writes still queued go first, so a refresh never shows them undone. A
+     failure leaves what is on screen alone. */
+  async function refreshData() {
+    if (!user?.id) return;
+    try {
+      await flushQueue();
+      applySnapshot(await loadAll(user.id));
+    } catch { /* offline, say: nothing is replaced */ }
+  }
+
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
   // user object — so a tab-focus token refresh doesn't remount the whole app
   // and wipe an in-progress practice session.
@@ -198,21 +230,7 @@ export default function App() {
           (async () => { setQueueOwner(user.id); await flushQueue(); return loadAll(user.id); })(),
         ]);
         if (cancelled) return;
-        setPStats(d.pStats);
-        setSrCards(d.srCards);
-        setBookmarks(d.bookmarks);
-        setStreak(liveStreak(d.streak));
-        setActivity(d.activity);
-        setDailyGoal(d.dailyGoal);
-        setDisplayName(d.displayName || "");
-        setNameChosen(d.nameChosen !== false);
-        setShowOnLeaderboard(d.showOnLeaderboard !== false);
-        setMarketingOptIn(d.marketingOptIn);
-        loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
-        // Before the questions, so the pool is only rebuilt with both in hand.
-        setQuestionEdits(d.questionEdits);
-        applyDecks(d.decks ?? []);
-        applyGenerated(d.generated, d.decks ?? []);
+        applySnapshot(d);
         setDataLoading(false);
       } catch (e) {
         if (cancelled) return;
@@ -734,6 +752,7 @@ export default function App() {
         }}
       />
     )}
+    <PullToRefresh onRefresh={refreshData} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
