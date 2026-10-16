@@ -18,7 +18,7 @@ import { visibleRows, projectGap, homeGap, sameSpot } from "../lib/deckOrder";
  * While dragging, the row lifts into a ghost that follows the pointer, a gap
  * the row's height opens where it would land, and every other row slides to
  * make room (FLIP, below). Open decks other than the dragged one's ancestors
- * fold away so far targets come closer; holding over a closed deck opens it;
+ * stay as they were; holding over a closed deck opens it;
  * the list scrolls when the pointer nears an edge.
  *
  * The dragged row is hidden, never unmounted: on touch, the finger's events
@@ -330,8 +330,12 @@ export function useDeckDrag({ containerRef, flip, forest, open, setOpen, base, r
     s.startDepth = home.depth;
     s.padLeft = parseFloat(getComputedStyle(s.row).paddingLeft) || 0;
     s.scroller = scrollParent(c);
-    /* Fold everything but the way down to the dragged deck. */
-    s.open = new Set(pathTo(f, s.id).slice(0, -1));
+    /* The tree stays as it was opened: what you could see before picking a
+       deck up is what you can drop it on. Folding everything here made a
+       sub-deck vanish the moment you went to move something into it. Only
+       the dragged deck's own children go, since it carries them. */
+    s.open = new Set([...o].filter(id => id !== s.id));
+    for (const id of pathTo(f, s.id).slice(0, -1)) s.open.add(id);
 
     s.ghost = makeGhost(s.row, r, s.grabX, s.grabY);
     placeGhost(s.ghost, s.x - s.grabX, s.y - s.grabY);

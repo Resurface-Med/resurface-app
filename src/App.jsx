@@ -797,7 +797,10 @@ export default function App() {
             onStudy={s => {
               setLaunchFilter({ deck: "All", cat: "All" });
               setStudyScope(s);
-              setAutoStart(true);
+              /* "Review N due" starts the review; "Practice" opens Study on
+                 the deck list. Dropping someone into questions from a word
+                 that sounds like a place was confusing. */
+              setAutoStart(s !== "all");
               go(V.STUDY);
             }} />}
 
