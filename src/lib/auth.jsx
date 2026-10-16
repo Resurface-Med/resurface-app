@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase, isConfigured } from "./supabase";
+import { mark, flag, tokenWasExpired } from "./loadTiming";
 
 const AuthContext = createContext(null);
 
@@ -18,7 +19,9 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!isConfigured) return;
 
+    flag("refreshed", tokenWasExpired());
     supabase.auth.getSession().then(({ data }) => {
+      mark("auth");
       setSession(data.session ?? null);
       setLoading(false);
     });

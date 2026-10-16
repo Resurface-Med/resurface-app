@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { timed } from "./loadTiming";
 import { GEN_ID_BASE } from "../data";
 import { append, dropOnce } from "./queue";
 
@@ -238,18 +239,22 @@ export async function selectAll(query, orderBy) {
 
 /** One read per table, on sign-in. Shapes match what App.jsx already holds. */
 export async function loadAll(userId) {
-  const [practice, sr, bookmarks, activity, streak, profile, generated, edits] =
+  /* Decks alongside the rest: they were fetched after all of it, a whole
+     extra round trip on every sign-in. */
+  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes] =
     await Promise.all([
-      selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id"),
-      selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id"),
-      selectAll(() => supabase.from("bookmarks").select("question_id").eq("user_id", userId), "question_id"),
-      selectAll(() => supabase.from("activity").select("day, count").eq("user_id", userId), "day"),
-      supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle(),
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id"),
-      selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id"),
+      timed("t_practice", selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id")),
+      timed("t_sr", selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id")),
+      timed("t_bookmarks", selectAll(() => supabase.from("bookmarks").select("question_id").eq("user_id", userId), "question_id")),
+      timed("t_activity", selectAll(() => supabase.from("activity").select("day, count").eq("user_id", userId), "day")),
+      timed("t_streak", supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle()),
+      timed("t_profile", supabase.from("profiles").select("*").eq("id", userId).maybeSingle()),
+      timed("t_generated", selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id")),
+      timed("t_edits", selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id")),
+      timed("t_decks", loadUserDecks().then(data => ({ data, error: null }), error => ({ data: null, error }))),
     ]);
-  const decks = await loadUserDecks();
+  if (deckRes.error) throw deckRes.error;
+  const decks = deckRes.data;
 
   /*
    * A failed query is not an empty table.

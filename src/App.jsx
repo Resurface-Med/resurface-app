@@ -39,6 +39,7 @@ import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import PullToRefresh from "./ui/PullToRefresh";
+import { mark, report } from "./lib/loadTiming";
 import { ConfirmHost, confirm } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 
@@ -227,9 +228,10 @@ export default function App() {
         // rows have landed.
         const [, d] = await Promise.all([
           loadDecks(),
-          (async () => { setQueueOwner(user.id); await flushQueue(); return loadAll(user.id); })(),
+          (async () => { setQueueOwner(user.id); await flushQueue(); mark("flush"); return loadAll(user.id); })(),
         ]);
         if (cancelled) return;
+        mark("data");
         applySnapshot(d);
         setDataLoading(false);
       } catch (e) {
@@ -245,6 +247,14 @@ export default function App() {
     })();
     return () => { cancelled = true; };
   }, [user?.id, recovering, reloadKey]);
+
+  /* Timings of this load (lib/loadTiming), sent once the first screen is
+     drawn — the frame after, so "shown" includes the paint. */
+  useEffect(() => {
+    if (!user?.id || dataLoading || loadError) return;
+    const id = requestAnimationFrame(() => requestAnimationFrame(report));
+    return () => cancelAnimationFrame(id);
+  }, [user?.id, dataLoading, loadError]);
 
   // ── Decks ─────────────────────────────────────────────────────────────
   // Optimistic like everything else. Creating waits for the id.
