@@ -749,6 +749,18 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         </div>
     );
 
+    /* Drawn by both layouts. It was only in the desktop one, so on a phone
+       Share set the deck and nothing appeared. */
+    const shareSheet = sharing && (
+      <ShareSheet
+        deck={sharing}
+        url={deckShareUrl(sharing)}
+        copied={shareCopied}
+        onCopy={copyShareLink}
+        onClose={() => { setSharing(null); setShareCopied(false); }}
+      />
+    );
+
     // ── Phones: one decision per screen ───────────────────────────
     if (isPhone) {
       return (
@@ -868,6 +880,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               ) : optionsPanel}
             </div>
           </div>
+          {shareSheet}
         </div>
       );
     }
@@ -1019,15 +1032,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             )}
           </div>
         </div>
-        {sharing && (
-          <ShareSheet
-            deck={sharing}
-            url={deckShareUrl(sharing)}
-            copied={shareCopied}
-            onCopy={copyShareLink}
-            onClose={() => { setSharing(null); setShareCopied(false); }}
-          />
-        )}
+        {shareSheet}
       </div>
     );
   }

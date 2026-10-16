@@ -73,6 +73,8 @@ export function Menu({ label, items, strong = false, align = "right" }) {
  * invisible.
  */
 export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
+    && window.matchMedia?.("(max-width: 900px)").matches;
   useEffect(() => {
     const onKey = e => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
@@ -117,6 +119,17 @@ export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
             ) : "Copy"}
           </button>
         </div>
+        {/* Phones have their own share menu (Messages, WhatsApp, …); offer
+            it where it exists. Cancelling it is not an error. */}
+        {canShare && (
+          <button
+            type="button"
+            className="shr-native btn-press"
+            onClick={() => navigator.share({ title: deck.name, text: `${deck.name} on Resurface`, url }).catch(() => {})}
+          >
+            Send…
+          </button>
+        )}
       </div>
     </div>,
     document.body,
