@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDrawerSwipe } from "../ui/useDrawerSwipe";
 import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 
@@ -25,6 +26,9 @@ function initials(displayName, email) {
 export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
+  const navRef = useRef(null);
+  const scrimRef = useRef(null);
+  useDrawerSwipe({ open, setOpen, navRef, scrimRef });
 
   // Escape closes it, and while it is open the page behind must not scroll.
   // Inline overflow:hidden alone makes iOS Safari drop the brand field in the
@@ -69,12 +73,13 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
       </button>
 
       <div
+        ref={scrimRef}
         className={`app-nav__scrim${open ? " is-open" : ""}`}
         onClick={() => setOpen(false)}
         aria-hidden="true"
       />
 
-      <aside id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
+      <aside ref={navRef} id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
         <div className="app-nav__brand">
           <img
             src="/logo-lockup.png"
