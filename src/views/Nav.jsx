@@ -126,7 +126,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
                     >
                       {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
                       <span className="app-nav__label">{item.label}</span>
-                      {review > 0 && <span className="app-nav__review">{review} to review</span>}
+                      {review > 0 && <span className="app-nav__review" title={`${review} to review`} aria-label={`${review} to review`}>{review > 99 ? "99+" : review}</span>}
                     </button>
                   );
                 })}

@@ -8332,3 +8332,54 @@ html.is-deck-dragging * {
           mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
   padding-bottom: 24px;
 }
+
+/* ─── Sidebar, 2026-10-16 ─────────────────────────────────────────
+   One even list, one rule (above Admin), and hairlines closing the brand
+   above and the account below. The selected row is the app's own pale
+   blue with the icon in the accent and the label at full weight; the gutter
+   tick went, it floated outside the row. The account is a plain row, not a
+   tinted pill holding two more circles. */
+.app-nav__item { color: var(--c-sub); }
+.app-nav__item.is-active { background: var(--c-surface3); }
+.app-nav__item.is-active::before { content: none; }
+.app-nav__review {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.app-nav__foot {
+  border-top: 1px solid var(--c-border);
+  padding: 10px 12px 12px;
+}
+.app-nav__account,
+.app-nav__account.is-active {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  gap: 4px;
+}
+.app-nav__profile {
+  padding: 8px 10px 8px 8px;
+  border-radius: var(--r-pill);
+  transition: background 0.15s ease;
+}
+.app-nav__profile:hover { background: var(--c-surface2); }
+.app-nav__account.is-active .app-nav__profile { background: var(--c-surface3); }
+.app-nav__avatar { width: 32px; height: 32px; }
+.app-nav__profile-name { font-size: 14.5px; }
+.app-nav__signout {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  color: var(--c-muted);
+}
+.app-nav__signout:hover { background: var(--c-surface2); color: var(--c-text); }
