@@ -912,8 +912,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         <div className="setup-sheet" style={{ background: "var(--c-card-solid)", flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <div className="setup-col" style={{
             ...band,
-            width: "min(100%, 820px)",
-            maxWidth: 820,
+            width: "min(100%, 1040px)",
+            maxWidth: 1040,
             marginLeft: "auto",
             marginRight: "auto",
             flex: 1,

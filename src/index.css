@@ -2421,7 +2421,7 @@ html.is-deck-dragging * {
 .setup-col {
   display: flex;
   flex-direction: column;
-  max-width: 820px;
+  max-width: 1040px;
 }
 /* Same caption as the phone list: the name on one line, "to review"
    and "questions" underneath it, sitting with the name rather than
