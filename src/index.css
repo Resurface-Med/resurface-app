@@ -8259,3 +8259,24 @@ html.is-deck-dragging * {
    long is a slider you cannot aim. */
 .setup-options-page { width: 100%; max-width: 560px; margin: 0 auto; }
 .setup-count .gen-count-head { align-items: baseline; }
+
+/* On their own page these are section headings, not the 12px captions they
+   were in the dock: the size and weight of "What are you revising?" one step
+   back, with room under each. */
+.setup-options { gap: 30px; }
+.setup-options .setup-opt-group { gap: 12px; }
+.setup-options .setup-dock-label {
+  font-size: clamp(17px, 1.7vw, 20px);
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+  color: var(--c-text);
+  padding-left: 0;
+}
+.setup-options .setup-count .gen-count-value { font-size: clamp(17px, 1.7vw, 20px); }
+/* …and the controls under them at body size, not the dock's 13px. The chips
+   size inline (dockChip), hence the !important. */
+.setup-options .setup-seg > button { font-size: 15px !important; padding: 10px 14px !important; }
+.setup-options .opt-check { padding: 10px 14px; }
+.setup-options .opt-check-label { font-size: 15px; }
+.setup-options .setup-count .gen-count-ends { font-size: 13.5px; }
