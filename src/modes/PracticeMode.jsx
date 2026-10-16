@@ -992,10 +992,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
             </div>
 
-            {/* A button, not a bar: sized to its word and on the right, the
-                way forward, as Generate's Continue is. What is selected is
-                information, so it sits beside it as text, not in the label. */}
+            {/* A floating action bar: what is selected, and the way on. The
+                band's blue on the white sheet, a capsule clear of the edges,
+                under the list rather than over it. A strip in the sheet's own
+                tints read as one more deck row cut off. */}
             <div className={`setup-dock setup-dock--next${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
+              <div className="setup-next-bar">
               <p className="setup-next-sel">
                 {scoped === 0 ? "Nothing selected" : (
                   <>
@@ -1005,13 +1007,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 )}
               </p>
               <button
-                className="btn-press"
                 disabled={scoped === 0}
                 onClick={() => setStep("options")}
-                style={{ ...primaryBtn, opacity: scoped === 0 ? 0.5 : 1, cursor: scoped === 0 ? "not-allowed" : "pointer" }}
+                className="btn-press setup-next-btn"
               >
                 Next <span aria-hidden="true">→</span>
               </button>
+              </div>
             </div>
             </>
             )}
