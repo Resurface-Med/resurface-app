@@ -98,7 +98,7 @@ export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
         </div>
         <p className="shr-sub">Anyone with the link can add <strong>{deck.name}</strong> to their own decks.</p>
 
-        <div className={`shr-row${copied ? " is-copied" : ""}`}>
+        <div className={`shr-row${copied ? " is-copied" : ""}${canShare ? " has-native" : ""}`}>
           <input
             readOnly
             value={url}
@@ -107,6 +107,18 @@ export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
             aria-label={`Link to ${deck.name}`}
             className="shr-link"
           />
+          {/* Phones have their own share menu (Messages, WhatsApp, …); where
+              it exists it is the main action and Copy is second. Cancelling
+              it is not an error. */}
+          {canShare && (
+            <button
+              type="button"
+              className="shr-native btn-press"
+              onClick={() => navigator.share({ title: deck.name, text: `${deck.name} on Resurface`, url }).catch(() => {})}
+            >
+              Send…
+            </button>
+          )}
           <button type="button" className="shr-copy btn-press" onClick={onCopy}>
             {copied ? (
               <>
@@ -119,17 +131,6 @@ export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
             ) : "Copy"}
           </button>
         </div>
-        {/* Phones have their own share menu (Messages, WhatsApp, …); offer
-            it where it exists. Cancelling it is not an error. */}
-        {canShare && (
-          <button
-            type="button"
-            className="shr-native btn-press"
-            onClick={() => navigator.share({ title: deck.name, text: `${deck.name} on Resurface`, url }).catch(() => {})}
-          >
-            Send…
-          </button>
-        )}
       </div>
     </div>,
     document.body,

@@ -8446,3 +8446,21 @@ html.is-deck-dragging * {
   .app-nav__scrim,
   .app-nav__scrim.is-open { background: transparent; }
 }
+
+/* With the phone's share menu available, Send is the main action (blue,
+   first) and Copy the secondary one under it. */
+@media (max-width: 900px) {
+  .shr-row.has-native .shr-native {
+    margin-top: 0;
+    background: var(--c-accent);
+    color: #fff;
+    border: none;
+    box-shadow: var(--c-cta-shadow);
+  }
+  .shr-row.has-native .shr-copy {
+    background: var(--c-surface2);
+    color: var(--c-text);
+    border: 1.5px solid var(--c-border);
+    box-shadow: none;
+  }
+}
