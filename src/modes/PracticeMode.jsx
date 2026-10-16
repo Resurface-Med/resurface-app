@@ -665,6 +665,78 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       : activeRoot ? activeRoot.name
       : null;
 
+    /* The session's settings: their own step on every screen size. On the
+       desktop they used to sit in a dock under the deck list, a third of the
+       screen spent on choices made once and rarely changed, in the way of
+       just browsing decks. Now the list has the page and "Next" leads here. */
+    const optionsPanel = (
+        <div className="setup-options">
+          <div className="setup-opt-group">
+            <span className="setup-dock-label">From</span>
+            <div className="setup-seg" role="radiogroup" aria-label="Question pool">
+              {SCOPES.map(s => {
+                const n = scopeCount(s.k);
+                const disabled = n === 0 && s.k !== "all";
+                const on = scope === s.k;
+                return (
+                  <button key={s.k} role="radio" aria-checked={on} disabled={disabled}
+                    className="btn-press" onClick={() => !disabled && setScope(s.k)}
+                    style={dockChip(on, disabled)}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="setup-opt-group">
+            <span className="setup-dock-label">How many</span>
+            <div className="setup-seg" role="radiogroup" aria-label="Session length">
+              {COUNT_OPTIONS.map(o => {
+                const disabled = o !== "All" && o > scoped;
+                const on = o === countOpt;
+                return (
+                  <button key={o} role="radio" aria-checked={on} disabled={disabled}
+                    className="btn-press" onClick={() => !disabled && setCountOpt(o)}
+                    style={dockChip(on, disabled)}>
+                    {o === "All" ? "All" : o}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="setup-opt-group">
+            <span className="setup-dock-label">Options</span>
+            <div className="setup-opt-checks">
+              <OptCheck
+                on={filter.unseenOnly}
+                onChange={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
+                label="Unseen only"
+                hint="Leave out questions you have already answered"
+              />
+              <OptCheck
+                on={filter.retryWrong === true}
+                onChange={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
+                label="Repeat wrong"
+                hint="Ask a question again later in the session if you get it wrong"
+              />
+            </div>
+          </div>
+
+          <button
+            className="btn-press setup-start"
+            disabled={willAsk === 0}
+            onClick={() => start()}
+            style={{ ...primaryBtn, ...lg, width: "100%", opacity: willAsk === 0 ? 0.5 : 1 }}
+          >
+            {willAsk === 0
+              ? "Nothing here — pick another topic"
+              : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"} →`}
+          </button>
+        </div>
+    );
+
     // ── Phones: one decision per screen ───────────────────────────
     if (isPhone) {
       return (
@@ -781,73 +853,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     </button>
                   </div>
                 </>
-              ) : (
-                <div className="setup-options">
-                  <div className="setup-opt-group">
-                    <span className="setup-dock-label">From</span>
-                    <div className="setup-seg" role="radiogroup" aria-label="Question pool">
-                      {SCOPES.map(s => {
-                        const n = scopeCount(s.k);
-                        const disabled = n === 0 && s.k !== "all";
-                        const on = scope === s.k;
-                        return (
-                          <button key={s.k} role="radio" aria-checked={on} disabled={disabled}
-                            className="btn-press" onClick={() => !disabled && setScope(s.k)}
-                            style={dockChip(on, disabled)}>
-                            {s.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="setup-opt-group">
-                    <span className="setup-dock-label">How many</span>
-                    <div className="setup-seg" role="radiogroup" aria-label="Session length">
-                      {COUNT_OPTIONS.map(o => {
-                        const disabled = o !== "All" && o > scoped;
-                        const on = o === countOpt;
-                        return (
-                          <button key={o} role="radio" aria-checked={on} disabled={disabled}
-                            className="btn-press" onClick={() => !disabled && setCountOpt(o)}
-                            style={dockChip(on, disabled)}>
-                            {o === "All" ? "All" : o}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="setup-opt-group">
-                    <span className="setup-dock-label">Options</span>
-                    <div className="setup-opt-checks">
-                      <OptCheck
-                        on={filter.unseenOnly}
-                        onChange={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
-                        label="Unseen only"
-                        hint="Leave out questions you have already answered"
-                      />
-                      <OptCheck
-                        on={filter.retryWrong === true}
-                        onChange={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
-                        label="Repeat wrong"
-                        hint="Ask a question again later in the session if you get it wrong"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    className="btn-press setup-start"
-                    disabled={willAsk === 0}
-                    onClick={() => start()}
-                    style={{ ...primaryBtn, ...lg, width: "100%", opacity: willAsk === 0 ? 0.5 : 1 }}
-                  >
-                    {willAsk === 0
-                      ? "Nothing here — pick another topic"
-                      : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"} →`}
-                  </button>
-                </div>
-              )}
+              ) : optionsPanel}
             </div>
           </div>
         </div>
@@ -859,14 +865,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
          gets height without a second screen or a tall settings stack. */
       <div className="setup-frame" style={{ display: "flex", flexDirection: "column", height: "var(--screen-h)" }}>
         <div className="page-band" style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 26px)", paddingBottom: "clamp(10px, 1.6vh, 16px)", flexShrink: 0 }}>
-          <div className="setup-title-row">
-            <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
-            <div className="setup-title-filters">
-              {!noQuestions && <YearSelect value={yearValue} onChange={setYear} />}
+          {step === "topic" ? (
+            <div className="setup-title-row">
+              <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
+              <div className="setup-title-filters">
+                {!noQuestions && <YearSelect value={yearValue} onChange={setYear} />}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <button type="button" className="btn-press setup-back" onClick={() => setStep("topic")}>
+                <span aria-hidden="true">←</span> {topicLabel ?? "All decks"}
+              </button>
+              <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: "10px 0 0", "--i": 0 }}>How much?</h1>
+            </>
+          )}
 
-          {savedSession && (
+          {savedSession && step === "topic" && (
             <div className="setup-resume" style={{ marginTop: 14 }}>
               <div className="setup-resume-body">
                 <p className="setup-resume-q">Continue this session?</p>
@@ -894,6 +909,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             paddingTop: "clamp(12px, 2vh, 18px)",
           }}>
 
+            {step === "options" ? (
+              <div className="setup-options-page" data-in="rise" style={{ "--i": 1 }}>
+                {optionsPanel}
+              </div>
+            ) : (
+            <>
             <div style={{ flexShrink: 0, marginBottom: 8 }}>
               {!blank && !creatingDeck && (!naming || inlineRename) && (
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
@@ -959,89 +980,20 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
             </div>
 
-            <div className={`setup-dock${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
-              <div className="setup-dock-row">
-                <div className="setup-dock-group">
-                  <span className="setup-dock-label">From</span>
-                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Question pool">
-                    {SCOPES.map(s => {
-                      const n = scopeCount(s.k);
-                      const disabled = n === 0 && s.k !== "all";
-                      const active = scope === s.k;
-                      return (
-                        <button
-                          key={s.k}
-                          role="radio"
-                          aria-checked={active}
-                          className="btn-press"
-                          disabled={disabled}
-                          onClick={() => !disabled && setScope(s.k)}
-                          style={dockChip(active, disabled)}
-                        >
-                          {s.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="setup-dock-group">
-                  <span className="setup-dock-label">How many</span>
-                  <div className="setup-seg setup-seg-dock" role="radiogroup" aria-label="Session length">
-                    {COUNT_OPTIONS.map(o => {
-                      const disabled = o !== "All" && o > scoped;
-                      const active = o === countOpt;
-                      return (
-                        <button
-                          key={o}
-                          role="radio"
-                          aria-checked={active}
-                          disabled={disabled}
-                          className="btn-press"
-                          style={dockChip(active, disabled)}
-                          onClick={() => !disabled && setCountOpt(o)}
-                        >
-                          {o === "All" ? "All" : o}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="setup-dock-group">
-                  <span className="setup-dock-label">Options</span>
-                  <div className="setup-opt-checks">
-                    <OptCheck
-                      on={filter.unseenOnly}
-                      onChange={() => setFilter(f => ({ ...f, unseenOnly: !f.unseenOnly }))}
-                      label="Unseen only"
-                      hint="Leave out questions you have already answered"
-                    />
-                    <OptCheck
-                      on={filter.retryWrong === true}
-                      onChange={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
-                      label="Repeat wrong"
-                      hint="Ask a question again later in the session if you get it wrong"
-                    />
-                  </div>
-                </div>
-              </div>
-
+            <div className={`setup-dock setup-dock--next${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
               <button
                 className="btn-press"
-                disabled={willAsk === 0}
-                onClick={() => start()}
-                style={{
-                  ...primaryBtn, ...lg, width: "100%",
-                  opacity: willAsk === 0 ? 0.5 : 1,
-                  cursor: willAsk === 0 ? "not-allowed" : "pointer",
-                }}
+                disabled={scoped === 0}
+                onClick={() => setStep("options")}
+                style={{ ...primaryBtn, ...lg, width: "100%", opacity: scoped === 0 ? 0.5 : 1, cursor: scoped === 0 ? "not-allowed" : "pointer" }}
               >
-                {willAsk === 0
-                  ? "Nothing left here — try another topic"
-                  : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"}${topicLabel ? ` · ${topicLabel}` : ""} →`}
+                {scoped === 0
+                  ? "Nothing here — pick another topic"
+                  : `Next · ${scoped} question${scoped === 1 ? "" : "s"}${topicLabel ? ` · ${topicLabel}` : ""} →`}
               </button>
             </div>
+            </>
+            )}
           </div>
         </div>
         {sharing && (
