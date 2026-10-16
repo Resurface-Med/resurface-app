@@ -11,6 +11,7 @@
  * compounding reasons it looks right here and oversized everywhere else,
  * which is what Jiggy reported.
  *
+ * (Made responsive to window height on 2026-10-16 — see below #root.)
  * Not replaced with a different number or made responsive: a second scale is
  * a second thing to design and test at, and the reason this went unnoticed
  * for months is that nobody was looking at the same pixels. If the type ever
@@ -62,6 +63,16 @@
 #root {
   zoom: var(--app-scale);
 }
+
+/* Shorter windows draw the app smaller (2026-10-16). Everything here was
+   sized on a tall MacBook screen, and on a 13-inch laptop's browser window
+   — about 800px tall — the same layout ran off the bottom: big band, list
+   cut short, the action bar crowding it. Desktop only, stepped by height,
+   since height is what ran out; the app's full-height layouts already
+   divide by --app-scale, so they still fill the window exactly. */
+@media (min-width: 901px) and (max-height: 880px) { :root { --app-scale: 0.92; } }
+@media (min-width: 901px) and (max-height: 780px) { :root { --app-scale: 0.86; } }
+@media (min-width: 901px) and (max-height: 700px) { :root { --app-scale: 0.8; } }
 
 /* Nothing may exceed the viewport width. A single overflowing child turns the
    whole page into a horizontal scroller, which on touch reads as the layout
