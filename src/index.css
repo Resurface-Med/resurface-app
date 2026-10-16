@@ -8383,3 +8383,45 @@ html.is-deck-dragging * {
   color: var(--c-muted);
 }
 .app-nav__signout:hover { background: var(--c-surface2); color: var(--c-text); }
+
+/* ─── Sidebar on the blue (desktop) ───────────────────────────────
+   No card: the navigation sits straight on the app's blue field, so the
+   screen is one blue frame — nav down the left, band across the top —
+   around the white sheet you work in. Selected is a white pill with the
+   accent in it, the same white-on-blue as Practice's Next bar. The phone's
+   drawer is untouched: it slides over content and needs its own surface. */
+@media (min-width: 901px) {
+  .app-nav {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    border-radius: 0;
+    margin-left: 6px;
+  }
+  .app-nav__brand { border-bottom-color: rgba(255, 255, 255, 0.16); }
+  .app-nav__brand .nav-logo-day { display: none; }
+  .app-nav__brand .nav-logo-night { display: block; }
+
+  .app-nav__item { color: rgba(255, 255, 255, 0.82); }
+  .app-nav__item:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  .app-nav__item.is-active {
+    background: #fff;
+    color: var(--c-accent);
+    box-shadow: 0 6px 18px -8px rgba(10, 30, 110, 0.45);
+  }
+  .app-nav__item.is-active .app-nav__icon { color: var(--c-accent); }
+  .app-nav__review { background: #fff; color: var(--c-accent); }
+  .app-nav__item.is-active .app-nav__review { background: var(--c-accent); color: #fff; }
+  .app-nav__group.is-ruled { border-top-color: rgba(255, 255, 255, 0.16); }
+
+  .app-nav__foot { border-top-color: rgba(255, 255, 255, 0.16); }
+  .app-nav__profile { color: #fff; }
+  .app-nav__profile:hover { background: rgba(255, 255, 255, 0.12); }
+  .app-nav__account.is-active .app-nav__profile { background: #fff; }
+  .app-nav__account.is-active .app-nav__profile-name { color: var(--c-accent); }
+  .app-nav__profile-name { color: #fff; }
+  .app-nav__avatar { background: #fff; color: var(--c-accent); }
+  .app-nav__account.is-active .app-nav__avatar { background: var(--c-accent); color: #fff; }
+  .app-nav__signout { color: rgba(255, 255, 255, 0.72); }
+  .app-nav__signout:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+}
