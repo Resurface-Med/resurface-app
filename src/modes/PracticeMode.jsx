@@ -15,7 +15,6 @@ import { confirm, confirmDelete } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
-const COUNT_OPTIONS = [10, 20, 50, "All"];
 
 function shortLabel(cat, deck) {
   return cat && deck && cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
@@ -689,20 +688,33 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             </div>
           </div>
 
-          <div className="setup-opt-group">
-            <span className="setup-dock-label">How many</span>
-            <div className="setup-seg" role="radiogroup" aria-label="Session length">
-              {COUNT_OPTIONS.map(o => {
-                const disabled = o !== "All" && o > scoped;
-                const on = o === countOpt;
-                return (
-                  <button key={o} role="radio" aria-checked={on} disabled={disabled}
-                    className="btn-press" onClick={() => !disabled && setCountOpt(o)}
-                    style={dockChip(on, disabled)}>
-                    {o === "All" ? "All" : o}
-                  </button>
-                );
-              })}
+          {/* A slider, as in Generate: one control for one number, with the
+              pool's size as the end of the track, so a short deck never
+              offers a length it cannot fill. The far end is "All", and stays
+              all when the pool changes under it. */}
+          <div className="gen-count setup-count">
+            <div className="gen-count-head">
+              <span className="setup-dock-label">How many</span>
+              <output className="gen-count-value" htmlFor="setup-count">
+                {scoped > 0 && willAsk === scoped && scoped > 1 ? `All ${scoped}` : willAsk}
+              </output>
+            </div>
+            <input
+              id="setup-count"
+              className="gen-count-slider"
+              type="range"
+              min={1}
+              max={Math.max(1, scoped)}
+              step={1}
+              value={Math.max(1, willAsk)}
+              disabled={scoped === 0}
+              onChange={e => { const v = Number(e.target.value); setCountOpt(v >= scoped ? "All" : v); }}
+              aria-label="How many questions"
+              aria-valuetext={`${willAsk} question${willAsk === 1 ? "" : "s"}`}
+            />
+            <div className="gen-count-ends" aria-hidden="true">
+              <span>1</span>
+              <span>{scoped}</span>
             </div>
           </div>
 

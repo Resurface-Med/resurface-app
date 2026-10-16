@@ -8254,3 +8254,8 @@ html.is-deck-dragging * {
 .gen-review-group:first-child { margin-top: 0; }
 .gen-review-group-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gen-review-group-n { flex-shrink: 0; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+
+/* "How much?" on a wide screen: a column, not the page — a slider a metre
+   long is a slider you cannot aim. */
+.setup-options-page { width: 100%; max-width: 560px; margin: 0 auto; }
+.setup-count .gen-count-head { align-items: baseline; }
