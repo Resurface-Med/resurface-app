@@ -391,8 +391,8 @@ export const NAV_GROUPS = [
     { k: V.GENERATE,    label: "Generate" },
   ],
   [
-    { k: V.PROGRESS,    label: "Progress" },
     { k: V.LEADERBOARD, label: "Leaderboard" },
+    { k: V.PROGRESS,    label: "Progress" },
   ],
 ];
 
