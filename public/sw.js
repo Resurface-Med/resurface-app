@@ -59,12 +59,17 @@ async function page(req) {
 async function asset(req) {
   const copy = await caches.match(req);
   if (copy) return copy;
-  const res = await fetch(req);
-  /* A file that no longer exists comes back as index.html with a 200 (the
-     deep-link rewrite). Never keep that under a /assets name: cache-first,
-     it would be served as that "script" forever. */
-  const html = (res.headers.get("content-type") || "").includes("text/html");
-  if (fromVercel(res) && !html) await keep(req, res.clone());
+  let res = await fetch(req);
+  /* A script that comes back as anything but a script — a 404, or an HTML
+     page from before /assets stopped being rewritten to index.html — may be
+     the browser's own HTTP cache replaying a bad answer it was told to keep
+     for a year (Rafil's blank screen, 2026-10-17). Ask once more, past that
+     cache, before giving up; and never keep a bad answer here. */
+  const bad = r => !r.ok || (r.headers.get("content-type") || "").includes("text/html");
+  if (bad(res)) {
+    try { res = await fetch(req.url, { cache: "reload", credentials: "same-origin" }); } catch { /* keep the first answer */ }
+  }
+  if (fromVercel(res) && !bad(res)) await keep(req, res.clone());
   return res;
 }
 

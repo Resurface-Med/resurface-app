@@ -2,6 +2,10 @@ import './index.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+
+/* Which build this is. Bumped on 2026-10-17 so the entry file got a new
+   name: browsers had cached an HTML page under the old one for a year. */
+window.__RESURFACE_BUILD = "2026-10-17.1";
 import { AuthProvider } from './lib/auth'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
