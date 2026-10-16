@@ -8438,3 +8438,11 @@ html.is-deck-dragging * {
   .shr-copy { width: 100%; padding: 14px 20px; font-size: 15.5px; }
   .shr-native { display: block; }
 }
+
+/* No tint behind the phone menu (2026-10-17): the page stays as it is and
+   the menu's own shadow separates it. The scrim is still there, invisible,
+   to catch the tap that closes it. */
+@media (max-width: 900px) {
+  .app-nav__scrim,
+  .app-nav__scrim.is-open { background: transparent; }
+}
