@@ -227,7 +227,9 @@ export default function App() {
     const position = nextPosition(decksRef.current, parentId);
     const row = await remote.createDeck(user.id, name, parentId, position);
     const d = { id: row.id, name, parentId, position, shareCode: row.share_code, createdAt: row.created_at };
-    applyDecks([...decks, d]);
+    /* decksRef, not the render's decks: a batch makes several decks between
+       renders, and building on the stale list dropped all but the last. */
+    applyDecks([...decksRef.current, d]);
     return d;
   }
   function renameDeck(id, name) {

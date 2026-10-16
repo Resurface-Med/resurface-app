@@ -58,6 +58,16 @@ const MIN_USEFUL_CHARS = 220;
  */
 const MAX_COUNT = 50;
 
+/*
+ * Lectures per batch. A week's teaching is six to ten lectures, so ten covers
+ * one in a go; at about half a minute a lecture, three at a time, that is two
+ * minutes of waiting, where twenty would be five. More than ten is a second
+ * batch. Each lecture is its own request — they share a free quota of 500 a
+ * day across everyone, and the server caps each person's day as well.
+ */
+const MAX_BATCH = 10;
+const BATCH_PARALLEL = 3;
+
 const band = {
   maxWidth: 1180,
   margin: "0 auto",
@@ -125,6 +135,19 @@ function suggestTopicName(name) {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 }
 
+
+/* A sub-deck's name, for a lecture in a batch. suggestTopicName refuses
+   one-word results — right for guessing a whole deck, where one word is
+   usually noise — but "Synapses" is a perfectly good lecture, and falling
+   back to the raw file name kept "Week 3 - " on the front of it. */
+function subDeckName(name) {
+  const guess = suggestTopicName(name);
+  if (guess) return guess;
+  const base = String(name).replace(/\.[a-z0-9]+$/i, "");
+  const longest = base.split(/\s+-\s+/).sort((a, b) => b.length - a.length)[0] || base;
+  const t = longest.replace(/[_]+/g, " ").trim() || base;
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
 
 // ── File extraction ─────────────────────────────────────────────────────────
 
@@ -481,6 +504,74 @@ function GeneratingWindow({ count, onCancel }) {
   );
 }
 
+/**
+ * The generating window, for a batch: the same scrim, window and drawing,
+ * with a line per lecture saying where it is. While anything is running it
+ * only offers Cancel; once all have finished, any that failed can be tried
+ * again, or left.
+ */
+function BatchWindow({ jobs, onCancel, onRetry, onContinue }) {
+  const done = jobs.filter(j => j.status === "done").length;
+  const failed = jobs.filter(j => j.status === "failed").length;
+  const running = jobs.some(j => j.status === "working" || j.status === "waiting");
+
+  useEffect(() => {
+    const onKey = e => { if (e.key === "Escape" && running) onCancel(); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onCancel, running]);
+
+  const state = j =>
+    j.status === "done" ? `${j.n} added`
+    : j.status === "working" ? "Writing…"
+    : j.status === "failed" ? "Didn’t work"
+    : "Waiting";
+
+  return (
+    <div className="genw-scrim">
+      <div className="genw genw-batch" role="dialog" aria-modal="true" aria-label="Writing questions">
+        {running && (
+          <svg className="genw-stage" viewBox="0 0 200 124" aria-hidden="true">
+            <circle className="genw-dot d1" cx="25" cy="45" r="3.5" />
+            <circle className="genw-dot d2" cx="25" cy="67" r="3.5" />
+            <circle className="genw-dot d3 is-answer" cx="25" cy="89" r="3.5" />
+            <circle className="genw-dot d4" cx="25" cy="111" r="3.5" />
+            <rect className="genw-ln l1" x="18" y="16" width="164" height="8" rx="4" />
+            <rect className="genw-ln l2" x="18" y="38" width="164" height="8" rx="4" />
+            <rect className="genw-ln l3" x="18" y="60" width="164" height="8" rx="4" />
+            <rect className="genw-ln l4" x="18" y="82" width="164" height="8" rx="4" />
+            <rect className="genw-ln l5" x="18" y="104" width="164" height="8" rx="4" />
+          </svg>
+        )}
+        <p className="genw-title">
+          {running ? `${done} of ${jobs.length} lectures done` : `${failed} of ${jobs.length} didn’t work`}
+        </p>
+        <ul className="genw-jobs" aria-live="polite">
+          {jobs.map((j, i) => (
+            <li key={i} className={`genw-job is-${j.status}`} title={j.error || undefined}>
+              <span className="genw-job-name">{j.name}</span>
+              <span className="genw-job-state">{state(j)}</span>
+            </li>
+          ))}
+        </ul>
+        {running ? (
+          <button type="button" className="genw-cancel btn-press" onClick={onCancel} autoFocus>Cancel</button>
+        ) : (
+          <div className="genw-batch-acts">
+            <button type="button" className="btn-press" style={primaryBtn} onClick={onRetry}>Try again</button>
+            {done > 0 && <button type="button" className="genw-cancel btn-press" onClick={onContinue}>Keep the {done} that worked</button>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* The sheet is white for lists of things (review, done) and the practice
    surface when it holds a card, so the card has something to sit on. */
 function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-card-solid)" }) {
@@ -510,7 +601,14 @@ function Shell({ title, sub, children, footer, maxWidth = 720, sheet = "var(--c-
 
 export default function GenerateMode({ savedGenerated = [], onGeneratedChange, decks = [], deckActions = null, targetDeckId = null, onTargetDeckChange = null, onOpenDeck = null, onBusyChange = null, onPractise = null }) {
   const { user } = useAuth();
-  const [file, setFile] = useState(null);
+  /* One file, or a batch of up to MAX_BATCH. One behaves exactly as it
+     always has (review, then save); two or more each become a sub-deck. */
+  const [files, setFiles] = useState([]);
+  const file = files[0] ?? null;
+  const setFile = f => setFiles(f ? [f] : []);
+  const batch = files.length > 1;
+  /* A batch run: one row per lecture. */
+  const [jobs, setJobs] = useState([]);
   const [pastedText, setPastedText] = useState("");
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
@@ -593,6 +691,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const fileRef = useRef();
 
   const [savedQs, setSavedQs] = useState(savedGenerated);
+  /* The saved list as of the last finished lecture: a batch appends to it as
+     each one lands, and three can land between renders. */
+  const savedRef = useRef(savedQs);
+  useEffect(() => { savedRef.current = savedQs; }, [savedQs]);
+  /* The deck a batch is going into, kept for retrying the ones that failed. */
+  const batchParent = useRef(null);
 
   /*
    * Work that leaving would throw away.
@@ -603,7 +707,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    * without a word — as did questions typed by hand and not yet added. App
    * asks before navigating away; the browser asks before closing.
    */
-  const busy = phase === "generating"
+  const busy = phase === "generating" || phase === "batch"
     || (phase === "review" && generated.length > 0)
     || (phase !== "done" && written.length > 0);
   useEffect(() => {
@@ -616,23 +720,40 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   useEffect(() => () => onBusyChange?.(false), [onBusyChange]);
 
   /* Both ways in — the picker and the drop target — go through here, so the
-     guess cannot be wired to one and forgotten on the other. */
-  function acceptFile(f) {
-    if (!f) return;
-    setFile(f);
+     guess cannot be wired to one and forgotten on the other. Adds to what
+     is already chosen, up to MAX_BATCH, skipping a file already in. */
+  function acceptFiles(list) {
+    const incoming = [...(list ?? [])].filter(Boolean);
+    if (!incoming.length) return;
     setPastedText("");
     setPasting(false);
-    /* The file names the deck, unless you have already named it yourself.
+    setError("");
+    const same = (a, b) => a.name === b.name && a.size === b.size;
+    const next = [...files];
+    for (const f of incoming) if (!next.some(g => same(f, g))) next.push(f);
+    if (next.length > MAX_BATCH) setError(`Up to ${MAX_BATCH} at a time. The first ${MAX_BATCH} are in; add the rest as a second batch.`);
+    const kept = next.slice(0, MAX_BATCH);
+    setFiles(kept);
+
+    /* One file names the deck, unless you have already named it yourself.
        Trailing "::" means you have chosen a parent and not yet said what goes
-       in it, so the file finishes the sentence. */
-    const guess = suggestTopicName(f.name);
-    if (!guess) return;
+       in it, so the file finishes the sentence. With several, the deck is the
+       one they all go inside, so a name taken from the first file is undone. */
+    const firstGuess = suggestTopicName(kept[0].name);
+    if (kept.length > 1) {
+      setDeckName(cur => (firstGuess && cur.trim() === firstGuess ? "" : cur.trim().endsWith("::" + firstGuess) ? cur.trim().slice(0, -firstGuess.length) : cur));
+      return;
+    }
+    if (!firstGuess) return;
     setDeckName(cur => {
       const t = cur.trim();
-      if (!t) return guess;
-      if (t.endsWith("::")) return t + guess;
+      if (!t) return firstGuess;
+      if (t.endsWith("::")) return t + firstGuess;
       return cur;
     });
+  }
+  function removeFile(i) {
+    setFiles(fs => fs.filter((_, j) => j !== i));
   }
 
   const cancelGenerate = useCallback(() => {
@@ -657,10 +778,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   async function resolveDeck() {
     const parts = deckName.split("::").map(x => x.trim()).filter(Boolean);
     if (!parts.length) throw new Error("Give the deck a name first.");
+    return (await resolvePath(parts, decks)).id;
+  }
+  /* Finds or makes each level of a path. Created ones are carried in `known`
+     and handed back, because the decks prop will not have updated between
+     awaits — a batch threads it through so a level made for one lecture is
+     found, not made again, by the next. */
+  async function resolvePath(parts, known) {
     let parentId = null;
-    /* Created ones are tracked here because the decks prop will not have
-       updated between the awaits in this loop. */
-    let known = decks;
     for (const name of parts) {
       const hit = known.find(d => (d.parentId ?? null) === parentId
         && d.name.trim().toLowerCase() === name.toLowerCase());
@@ -669,7 +794,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       known = [...known, { ...made, parentId }];
       parentId = made.id;
     }
-    return parentId;
+    return { id: parentId, known };
   }
   /**
    * Saves the kept questions, and says which of the two things happened.
@@ -976,6 +1101,99 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     }
   }
 
+  /*
+   * A batch: every lecture its own sub-deck inside the chosen one, written
+   * BATCH_PARALLEL at a time and saved as each finishes — no review step,
+   * because reviewing ten lectures of questions before keeping any would
+   * undo the point of a batch; any question can still be deleted after.
+   *
+   * The parent is found or made once, before anything runs, so three
+   * lectures finishing together cannot each make their own copy of it. A
+   * lecture's sub-deck is only made once its questions exist, so a failure
+   * or a cancel leaves no empty deck behind.
+   */
+  async function runJobs(list, parent) {
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    let known = parent.known;
+    const results = [...list];
+    const update = (i, patch) => { results[i] = { ...results[i], ...patch }; setJobs([...results]); };
+    let next = 0;
+    async function worker() {
+      while (next < results.length) {
+        const i = next++;
+        if (results[i].status === "done") continue;
+        if (ctrl.signal.aborted) return;
+        update(i, { status: "working", error: "" });
+        try {
+          const subParts = [...parent.parts, results[i].name];
+          const existing = existingDeckId(subParts.join("::"));
+          const qs = await generateQuestions({
+            file: results[i].file,
+            pastedText: "",
+            deckLabel: subParts.join(" › "),
+            count: countNum,
+            avoid: existing ? questionsInDeck(existing).map(q => q.q).filter(x => typeof x === "string") : [],
+            signal: ctrl.signal,
+          });
+          const made = await resolvePath(subParts, known);
+          known = made.known;
+          const { rows, queued } = await withIds(qs, made.id);
+          savedRef.current = [...savedRef.current, ...rows];
+          setSavedQs(savedRef.current);
+          onGeneratedChange?.(savedRef.current);
+          update(i, { status: "done", n: qs.length, ids: rows.map(r => r.id).filter(id => typeof id === "number"), queued });
+        } catch (e) {
+          if (e?.name === "AbortError") { update(i, { status: "waiting" }); return; }
+          update(i, { status: "failed", error: e?.message || "Something went wrong." });
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(BATCH_PARALLEL, results.length) }, worker));
+    abortRef.current = null;
+    if (ctrl.signal.aborted) { setPhase("setup"); return; }
+    if (results.every(j => j.status === "done")) finishBatch(results, parent.id);
+  }
+  function finishBatch(results, parentId) {
+    setJustSaved(results.flatMap(j => j.ids ?? []));
+    setSavedDeckId(parentId);
+    setSavedQueued(results.some(j => j.queued));
+    setFiles([]);
+    setJobs([]);
+    setPhase("done");
+  }
+  async function generateBatch() {
+    setError("");
+    const parts = deckName.split("::").map(x => x.trim()).filter(Boolean);
+    if (!parts.length) { setError("Give the deck a name first."); return; }
+    let parent;
+    try {
+      const r = await resolvePath(parts, decks);
+      parent = { id: r.id, known: r.known, parts };
+    } catch (e) {
+      setError(e?.message || "Could not make the deck. Try again.");
+      return;
+    }
+    batchParent.current = parent;
+    /* Sub-deck names from the files, made unique within the batch. */
+    const used = new Map();
+    const list = files.map(f => {
+      const base = subDeckName(f.name);
+      const k = base.toLowerCase();
+      const n = (used.get(k) ?? 0) + 1;
+      used.set(k, n);
+      return { file: f, name: n > 1 ? `${base} (${n})` : base, status: "waiting" };
+    });
+    setJobs(list);
+    setPhase("batch");
+    runJobs(list, parent);
+  }
+  function retryFailed() {
+    const list = jobs.map(j => (j.status === "failed" ? { ...j, status: "waiting", error: "" } : j));
+    setJobs(list);
+    runJobs(list, { ...batchParent.current, known: decks });
+  }
+
   /* The same two outcomes as the generated path, and the same rule: on a
      failure stay where the questions are. These were typed by hand, so losing
      them costs somebody their afternoon rather than their quota. */
@@ -1086,7 +1304,9 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
               when it silently did not there was nothing on screen to say
               so — which is exactly how the first attempt at this looked
               like the model ignoring instructions. */}
-          {existingCount > 0
+          {batch
+            ? <span className="gen-deck-note"> · each lecture gets its own sub-deck inside it</span>
+            : existingCount > 0
             ? <span className="gen-deck-note"> · avoiding the {existingCount} question{existingCount === 1 ? "" : "s"} already in it</span>
             : <span className="gen-deck-note"> · new deck, nothing to avoid</span>}
         </p>
@@ -1117,6 +1337,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     >
       {phase === "generating" && (
         <GeneratingWindow count={countNum} onCancel={cancelGenerate} />
+      )}
+      {phase === "batch" && (
+        <BatchWindow
+          jobs={jobs}
+          onCancel={cancelGenerate}
+          onRetry={retryFailed}
+          onContinue={() => finishBatch(jobs.filter(j => j.status === "done"), batchParent.current?.id ?? null)}
+        />
       )}
 
       <div className="gen-card anim-scale-in">
@@ -1158,10 +1386,20 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           {step === 0 && (
             <>
               <h2 className="gen-card-title">Upload an Anki deck, lecture or notes</h2>
-              {file ? (
-                <div className="gen-source is-file">
-                  <span className="gen-source-name" title={file.name}>{sourceLabel(file.name)}</span>
-                  <button type="button" className="gen-link" onClick={() => setFile(null)}>Remove</button>
+              {files.length > 0 ? (
+                <div className="gen-files">
+                  {files.map((f, i) => (
+                    <div key={`${f.name}:${f.size}`} className="gen-source is-file">
+                      <span className="gen-source-name" title={f.name}>{sourceLabel(f.name)}</span>
+                      <button type="button" className="gen-link" onClick={() => removeFile(i)}>Remove</button>
+                    </div>
+                  ))}
+                  {files.length < MAX_BATCH && (
+                    <button type="button" className="gen-link gen-source-alt" onClick={() => fileRef.current?.click()}>
+                      Add another lecture
+                    </button>
+                  )}
+                  {error && <p className="gen-error">{error}</p>}
                 </div>
               ) : pasting ? (
                 <div className="gen-source is-text">
@@ -1188,7 +1426,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   onClick={() => fileRef.current?.click()}
                   onDragOver={e => { e.preventDefault(); setOver(true); }}
                   onDragLeave={() => setOver(false)}
-                  onDrop={e => { e.preventDefault(); setOver(false); acceptFile(e.dataTransfer.files[0]); }}
+                  onDrop={e => { e.preventDefault(); setOver(false); acceptFiles(e.dataTransfer.files); }}
                 >
                   {/* The dashed edge is drawn rather than a CSS border, so
                       the dashes can be spaced. Sits under everything. */}
@@ -1210,7 +1448,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   </svg>
                   <span className="gen-source-text">
                     <span className="gen-source-lead">Drop a file here, or browse</span>
-                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF or image</span>
+                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF or image · up to {MAX_BATCH} at once</span>
                   </span>
                 </button>
               )}
@@ -1218,8 +1456,9 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                 ref={fileRef}
                 type="file"
                 accept=".pptx,.ppt,.pdf,.apkg,.jpg,.jpeg,.png,.webp"
+                multiple
                 style={{ display: "none" }}
-                onChange={e => acceptFile(e.target.files[0])}
+                onChange={e => { acceptFiles(e.target.files); e.target.value = ""; }}
               />
               {!file && !pasting && (
                 <button type="button" className="gen-link gen-source-alt" onClick={() => setPasting(true)}>
@@ -1253,7 +1492,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                     larger and bolder than the card title it sat under, which
                     is why it read as shouting. */}
                 <div className="gen-count-head">
-                  <h2 className="gen-card-title">How many questions</h2>
+                  <h2 className="gen-card-title">{batch ? "Questions per lecture" : "How many questions"}</h2>
                   <output className="gen-count-value" htmlFor="gen-count">{countNum}</output>
                 </div>
                 <input
@@ -1352,9 +1591,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
               className="btn-press gen-go"
               style={{ ...primaryBtn, opacity: canGenerate ? 1 : 0.45 }}
               disabled={!canGenerate}
-              onClick={generate}
+              onClick={batch ? generateBatch : generate}
             >
-              Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span>
+              {batch
+                ? <>Write {countNum} for each of {files.length} lectures <span aria-hidden="true">→</span></>
+                : <>Write {countNum} question{countNum !== 1 ? "s" : ""} <span aria-hidden="true">→</span></>}
             </button>
           )}
           {step === last && mode === "manual" && (
