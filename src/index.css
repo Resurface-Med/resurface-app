@@ -8334,7 +8334,7 @@ html.is-deck-dragging * {
 }
 
 /* ─── Sidebar, 2026-10-16 ─────────────────────────────────────────
-   One even list, one rule (above Admin), and hairlines closing the brand
+   Two groups split by space, one rule (above Admin), and hairlines closing the brand
    above and the account below. The selected row is the app's own pale
    blue with the icon in the accent and the label at full weight; the gutter
    tick went, it floated outside the row. The account is a plain row, not a
