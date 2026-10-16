@@ -8383,3 +8383,22 @@ html.is-deck-dragging * {
   color: var(--c-muted);
 }
 .app-nav__signout:hover { background: var(--c-surface2); color: var(--c-text); }
+
+/* ─── Sidebar shape (desktop, 2026-10-16) ─────────────────────────
+   Full height and flush to the left edge rather than a card floating on
+   the blue: white, square, closed off from the page by one hairline. The
+   phone's drawer is unchanged. */
+@media (min-width: 901px) {
+  .app-shell { gap: 0; }
+  .app-nav {
+    margin: 0;
+    top: 0;
+    height: var(--app-vh);
+    height: 100dvh;
+    border: 0;
+    border-right: 1px solid var(--c-border);
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--c-card-solid);
+  }
+}
