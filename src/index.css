@@ -8299,15 +8299,16 @@ html.is-deck-dragging * {
 }
 .setup-next-sel strong { color: var(--c-text); font-weight: 600; }
 
-/* The Next bar is pinned, and has to look it: the full width of the page,
-   not the column, lifted off the list by a shadow cast upward, so the decks
-   visibly pass under it. Drawn on a pseudo-element so the bar's contents
-   keep the column's edges. */
+/* The Next bar is pinned, and has to look it — by a change of surface,
+   not a shadow over the list: the page's own tint, a hairline, the full
+   width of the window. Drawn on a pseudo-element so the bar's contents keep
+   the column's edges. Kept thin; it is a footer, not a panel. */
 .setup-dock--next {
   position: relative;
   isolation: isolate;
   border-top: 0;
-  padding-top: 16px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 .setup-dock--next::before {
   content: "";
@@ -8315,8 +8316,7 @@ html.is-deck-dragging * {
   z-index: -1;
   top: 0; bottom: 0;
   left: calc(50% - 50vw); right: calc(50% - 50vw);
-  background: var(--c-card-solid);
+  background: var(--c-surface2);
   border-top: 1px solid var(--c-border);
-  box-shadow: 0 -12px 32px -6px rgba(15, 23, 42, 0.14);
 }
 .setup-sheet { overflow-x: clip; }

@@ -1008,7 +1008,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 className="btn-press"
                 disabled={scoped === 0}
                 onClick={() => setStep("options")}
-                style={{ ...primaryBtn, ...lg, opacity: scoped === 0 ? 0.5 : 1, cursor: scoped === 0 ? "not-allowed" : "pointer" }}
+                style={{ ...primaryBtn, opacity: scoped === 0 ? 0.5 : 1, cursor: scoped === 0 ? "not-allowed" : "pointer" }}
               >
                 Next <span aria-hidden="true">→</span>
               </button>
