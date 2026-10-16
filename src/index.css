@@ -8288,7 +8288,8 @@ html.is-deck-dragging * {
   justify-content: space-between;
   gap: 16px;
 }
-.setup-dock--next > .btn-press { flex: none; min-width: 168px; }
+/* Half the column: a bar you cannot miss, not one the width of the page. */
+.setup-dock--next > .btn-press { flex: 0 0 min(460px, 50%); justify-content: center; }
 .setup-next-sel {
   margin: 0;
   min-width: 0;
