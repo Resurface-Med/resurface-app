@@ -100,3 +100,41 @@ self.addEventListener("fetch", (event) => {
   else if (url.pathname.startsWith("/assets/")) event.respondWith(asset(req));
   else event.respondWith(other(req));
 });
+
+/* ── Reminders (2026-10-17, experimental) ────────────────────────────
+   A push from the backend: show it, and put the number of questions due
+   on the app's icon where the system allows. Tapping it opens Study in
+   the app's own window if one is open, a new one if not. */
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data && event.data.text() }; }
+  const title = data.title || "Resurface";
+  event.waitUntil((async () => {
+    if (typeof data.badge === "number" && self.navigator.setAppBadge) {
+      try { await self.navigator.setAppBadge(data.badge); } catch { /* not supported */ }
+    }
+    await self.registration.showNotification(title, {
+      body: data.body || "",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag: "resurface-reminder",
+      data: { url: data.url || "/" },
+    });
+  })());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const w of wins) {
+      if (new URL(w.url).origin === self.location.origin) {
+        await w.focus();
+        try { await w.navigate(url); } catch { /* navigation refused; focused is enough */ }
+        return;
+      }
+    }
+    await self.clients.openWindow(url);
+  })());
+});

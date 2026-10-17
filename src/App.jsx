@@ -91,6 +91,13 @@ export default function App() {
   /* Where a stale-chunk reload was headed (see `go`): that screen, not Home,
      which is where a reload otherwise lands and read as being thrown out. */
   const [view, setView] = useState(() => {
+    /* A reminder notification opens the app on Study (?view=study). */
+    try {
+      if (new URLSearchParams(window.location.search).get("view") === "study") {
+        window.history.replaceState(null, "", window.location.pathname);
+        return V.STUDY;
+      }
+    } catch { /* fall through */ }
     try {
       const v = sessionStorage.getItem(RESUME_VIEW);
       sessionStorage.removeItem(RESUME_VIEW);

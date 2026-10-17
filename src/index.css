@@ -8698,3 +8698,18 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .gen-done-actions { width: min(100%, 440px); }
 .gen-done-main, .gen-done-row > * { box-sizing: border-box; }
 .gen-done-main { width: 100% !important; max-width: none !important; }
+
+/* Profile › Reminders (experimental). */
+.rem-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0;
+  color: var(--c-muted);
+  vertical-align: middle;
+}
+.rem-time { max-width: 160px; }
+.rem-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.rem-note { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--c-sub); }

@@ -3,6 +3,7 @@ import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
+import Reminders from "../ui/Reminders";
 import { useAuth } from "../lib/auth";
 
 /**
@@ -270,6 +271,8 @@ export default function ProfileView({
               </button>
             </form>
           </section>
+
+          <Reminders />
 
           <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
             <h2 style={sectionH}>Preferences</h2>
