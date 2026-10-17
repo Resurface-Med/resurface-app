@@ -1286,7 +1286,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       {hasPlace && (batch || existingCount > 0) && (
         <p className="gen-deck-path">
           {batch ? "Each lecture becomes its own deck in here."
-            : `Adds to this deck and skips the ${existingCount} question${existingCount === 1 ? "" : "s"} already in it.`}
+            : `Already has ${existingCount} question${existingCount === 1 ? "" : "s"}. New ones won’t repeat ${existingCount === 1 ? "it" : "them"}.`}
         </p>
       )}
     </div>
