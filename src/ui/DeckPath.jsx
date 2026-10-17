@@ -147,7 +147,6 @@ export default function DeckPath({ decks, folderPath, onFolderPath, lectureName,
             )}
             {level.map(d => {
               const sub = (kids.get(d.id) ?? []).length;
-              const n = countFor?.(d.id) ?? 0;
               return (
                 /* A folder with decks inside opens on tap, the way iOS lists do,
                    so you see what is in it before choosing; one with none is
@@ -157,7 +156,6 @@ export default function DeckPath({ decks, folderPath, onFolderPath, lectureName,
                   <button type="button" className="dp2-opt" onClick={() => (sub ? into(d.id) : choose(pathOf(d.id)))}>
                     <span className="dp2-opt-icon"><FolderIcon /></span>
                     <span className="dp2-opt-name">{d.name}</span>
-                    <span className="dp2-opt-meta">{sub ? `${sub} inside` : n ? `${n} q` : ""}</span>
                     {sub > 0 && <span className="dp2-in"><Chevron /></span>}
                   </button>
                 </span>
