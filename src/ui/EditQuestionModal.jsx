@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { C, primaryBtn } from "./theme";
+import { primaryBtn } from "./theme";
 import { remote } from "../lib/remote";
 import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
 import { useAuth } from "../lib/auth";
@@ -7,18 +7,6 @@ import { applyQuestionEdit } from "../data";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
-const inputStyle = {
-  width: "100%", background: "var(--c-surface2)",
-  border: "1px solid var(--c-border)", borderRadius: "var(--r-card)",
-  padding: "8px 12px", color: "var(--c-text)", fontSize: 13,
-  fontFamily: "inherit", outline: "none", boxSizing: "border-box",
-  resize: "vertical",
-};
-
-const labelStyle = {
-  fontSize: 11, fontWeight: 600, color: "var(--c-muted)",
-  letterSpacing: -0.1, textTransform: "uppercase", marginBottom: 6, display: "block",
-};
 
 export default function EditQuestionModal({ q, onClose, onSave }) {
   const { user } = useAuth();
@@ -88,156 +76,106 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
   const canSave = question.trim() && opts.filter(o => o.trim()).length >= 2
     && opts[ans]?.trim();
 
+  /* Escape closes, as everywhere else. */
+  useEffect(() => {
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  /* Laid out like Manage questions (2026-10-17): the same panel, header and
+     close; sentence-case labels; the correct answer chosen by tapping its
+     letter and shown in green, as the manager shows it; Save and Cancel kept
+     in view at the bottom. */
   return (
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 1500,
-      background: "rgba(26, 47, 122, 0.55)", backdropFilter: "blur(4px)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 20,
-    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{
-        background: "var(--c-card-bg)",
-        border: "1px solid var(--c-border)",
-        borderRadius: "var(--r-panel)", padding: "28px 28px",
-        width: "100%", maxWidth: 640,
-        maxHeight: "calc(var(--app-vh) * 0.9)", overflowY: "auto",
-        boxShadow: "var(--c-card-shadow)",
-        display: "flex", flexDirection: "column", gap: 20,
-      }}>
-
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--c-text)", letterSpacing: -0.3 }}>Edit Question</div>
-          <button onClick={onClose} style={{
-            background: "none", border: "none", cursor: "pointer",
-            color: C.muted, fontSize: 20, lineHeight: 1, padding: "2px 6px",
-          }}>×</button>
-        </div>
-
-        {/* Question text */}
-        <div>
-          <label style={labelStyle}>Question</label>
-          <textarea
-            value={question} onChange={e => setQuestion(e.target.value)}
-            rows={3} style={inputStyle}
-          />
-        </div>
-
-        {/* Image — optional, and the reason histology and anatomy questions can
-            exist at all. Downscaled and re-encoded before it leaves the
-            browser, so what is stored is about fifty kilobytes rather than the
-            five megabytes a phone camera produces. */}
-        <div>
-          <label style={labelStyle}>Image (optional)</label>
-          {img && imgUrl && <img src={imgUrl} alt="" className="qedit-img" />}
-          <div className="qedit-img-row">
-            <label className="qedit-img-btn">
-              {imgBusy ? "Adding…" : img ? "Replace" : "Add an image"}
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                disabled={imgBusy}
-                onChange={e => handleImage(e.target.files?.[0])}
-              />
-            </label>
-            {img && !imgBusy && (
-              <button type="button" className="qedit-img-del" onClick={() => setImg(null)}>
-                Remove
-              </button>
-            )}
+    <div className="qm-scrim qe-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="qm qe" role="dialog" aria-modal="true" aria-label={isNew ? "New question" : "Edit question"}>
+        <header className="qm-head qe-head">
+          <div className="qm-title-row">
+            <div className="qm-titles">
+              <h2 className="qm-title">{isNew ? "New question" : "Edit question"}</h2>
+            </div>
+            <button type="button" className="qm-x btn-press" onClick={onClose} aria-label="Close">
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            </button>
           </div>
-          {imgError && <p className="qedit-img-error">{imgError}</p>}
-        </div>
+        </header>
 
-        {/* Options + correct answer */}
-        <div>
-          <label style={labelStyle}>Options — select the correct answer</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {opts.map((opt, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, cursor: "pointer" }}>
-                  <input
-                    type="radio" name="correct-ans" checked={ans === i}
-                    onChange={() => setAns(i)}
-                    style={{ accentColor: C.accent, width: 14, height: 14 }}
-                  />
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, fontFamily: "monospace",
-                    color: ans === i ? C.accent : C.muted,
-                    width: 16,
-                  }}>{LETTERS[i]}</span>
-                </label>
-                <input
-                  type="text" value={opt} onChange={e => setOpt(i, e.target.value)}
-                  style={{
-                    ...inputStyle, resize: "none",
-                    border: `1px solid ${ans === i ? C.accentBrd : "var(--c-border)"}`,
-                    background: ans === i ? "var(--c-accent-dim)" : "var(--c-surface2)",
-                  }}
-                />
-              </div>
-            ))}
+        <div className="qe-body">
+          <div className="qe-field">
+            <label className="qe-label" htmlFor="qe-q">Question</label>
+            <textarea id="qe-q" className="qe-input" value={question} onChange={e => setQuestion(e.target.value)} rows={3} />
+          </div>
+
+          {/* Image — optional, and the reason histology and anatomy questions can
+              exist at all. Downscaled and re-encoded before it leaves the
+              browser, so what is stored is about fifty kilobytes rather than the
+              five megabytes a phone camera produces. */}
+          <div className="qe-field">
+            <span className="qe-label">Image <span className="qe-optional">optional</span></span>
+            {img && imgUrl && <img src={imgUrl} alt="" className="qedit-img" />}
+            <div className="qedit-img-row">
+              <label className="qedit-img-btn">
+                {imgBusy ? "Adding…" : img ? "Replace" : "Add an image"}
+                <input type="file" accept="image/*" style={{ display: "none" }} disabled={imgBusy}
+                  onChange={e => handleImage(e.target.files?.[0])} />
+              </label>
+              {img && !imgBusy && (
+                <button type="button" className="qedit-img-del" onClick={() => setImg(null)}>Remove</button>
+              )}
+            </div>
+            {imgError && <p className="qedit-img-error">{imgError}</p>}
+          </div>
+
+          <div className="qe-field">
+            <span className="qe-label">Options</span>
+            <p className="qe-hint">Tap a letter to mark the correct answer.</p>
+            <ol className="qe-opts">
+              {opts.map((opt, i) => (
+                <li key={i} className={`qe-opt${ans === i ? " is-ans" : ""}`}>
+                  <button type="button" className="qe-letter btn-press" onClick={() => setAns(i)}
+                    aria-pressed={ans === i} aria-label={`Mark ${LETTERS[i]} as the correct answer`}>
+                    {ans === i
+                      ? <svg width="13" height="13" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 5 8.6l4.5-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      : LETTERS[i]}
+                  </button>
+                  <input type="text" className="qe-opt-input" value={opt} onChange={e => setOpt(i, e.target.value)}
+                    aria-label={`Option ${LETTERS[i]}`} />
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="qe-field">
+            <label className="qe-label" htmlFor="qe-exp">Explanation</label>
+            <textarea id="qe-exp" className="qe-input" value={exp} onChange={e => setExp(e.target.value)} rows={3} />
+          </div>
+
+          <div className="qe-field">
+            <span className="qe-label">Why each wrong answer is wrong</span>
+            <ol className="qe-opts">
+              {opts.map((_, i) => (
+                <li key={i} className="qe-why">
+                  <span className={`qe-why-letter${ans === i ? " is-ans" : ""}`}>{LETTERS[i]}</span>
+                  {ans === i ? (
+                    <span className="qe-why-correct">The correct answer</span>
+                  ) : (
+                    <input type="text" className="qe-opt-input" value={optExp[i]}
+                      onChange={e => setOptExpItem(i, e.target.value)} placeholder={`Why ${LETTERS[i]} is wrong`} />
+                  )}
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
 
-        {/* Explanation */}
-        <div>
-          <label style={labelStyle}>Explanation</label>
-          <textarea
-            value={exp} onChange={e => setExp(e.target.value)}
-            rows={3} style={inputStyle}
-          />
-        </div>
-
-        {/* Per-option explanations */}
-        <div>
-          <label style={labelStyle}>Why each wrong answer is wrong</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {opts.map((_, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{
-                  fontSize: 11, fontWeight: 700, fontFamily: "monospace",
-                  color: ans === i ? C.success : C.muted,
-                  flexShrink: 0, width: 16,
-                }}>{LETTERS[i]}</span>
-                {ans === i ? (
-                  <div style={{ ...inputStyle, color: C.muted, fontStyle: "italic", opacity: 0.6 }}>
-                    Correct answer — no explanation needed
-                  </div>
-                ) : (
-                  <input
-                    type="text" value={optExp[i]}
-                    onChange={e => setOptExpItem(i, e.target.value)}
-                    placeholder={`Why ${LETTERS[i]} is wrong...`}
-                    style={inputStyle}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: "flex", gap: 10 }}>
-          {/* "Save & Reload" described the mechanism rather than the result,
-              and it was never true for a question being written for the first
-              time. */}
-          <button
-            onClick={handleSave}
-            disabled={!canSave}
-            className="btn-press hover-lift"
-            style={{ ...primaryBtn, flex: 1, opacity: canSave ? 1 : 0.45 }}
-          >
+        <footer className="qe-foot">
+          <button type="button" className="qe-cancel btn-press" onClick={onClose}>Cancel</button>
+          <button type="button" className="btn-press" onClick={handleSave} disabled={!canSave}
+            style={{ ...primaryBtn, opacity: canSave ? 1 : 0.45 }}>
             {isNew ? "Add question" : "Save changes"}
           </button>
-          <button onClick={onClose} className="btn-press" style={{
-            padding: "11px 20px", borderRadius: "var(--r-pill)",
-            border: "1px solid var(--c-border)", background: "transparent",
-            color: C.muted, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
-          }}>Cancel</button>
-        </div>
-
+        </footer>
       </div>
     </div>
   );

@@ -8889,3 +8889,59 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 /* The undo pill sits above the manager. */
 .undo { z-index: 1400; }
+
+/* ─── The question editor, laid out like Manage questions ─────────
+   Same scrim, panel and header (.qm-*); a scrolling body; Save and Cancel
+   pinned at the bottom. The correct answer is green, as in the manager. */
+.qe-scrim { z-index: 1500; }
+.qe { width: min(680px, 100%); height: auto; max-height: min(90vh, 900px); }
+.qe-head { padding-bottom: 16px; }
+.qe-body { flex: 1; min-height: 0; overflow-y: auto; padding: 18px 24px 24px; display: flex; flex-direction: column; gap: 22px; overscroll-behavior: contain; }
+.qe-field { display: flex; flex-direction: column; gap: 8px; }
+.qe-label { font-size: 14px; font-weight: 600; color: var(--c-text); letter-spacing: -0.15px; }
+.qe-optional { margin-left: 6px; font-weight: 500; color: var(--c-muted); font-size: 13px; }
+.qe-hint { margin: -4px 0 2px; font-size: 13px; color: var(--c-muted); }
+.qe-input, .qe-opt-input {
+  width: 100%; box-sizing: border-box;
+  padding: 11px 14px;
+  font: inherit; font-size: 14.5px; line-height: 1.5; color: var(--c-text);
+  background: var(--c-surface2);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.qe-input { resize: vertical; min-height: 84px; }
+.qe-input:focus, .qe-opt-input:focus { border-color: var(--c-accent-brd); background: var(--c-card-solid); }
+.qe-opts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.qe-opt { display: flex; align-items: center; gap: 10px; }
+.qe-letter {
+  flex: none; width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-border-blu);
+  background: var(--c-card-solid);
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--c-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.qe-letter:hover { border-color: var(--c-success); color: var(--c-success); }
+.qe-opt.is-ans .qe-letter { background: var(--c-success); border-color: var(--c-success); color: #fff; transform: scale(1.04); }
+.qe-opt.is-ans .qe-opt-input { background: var(--c-success-dim); border-color: var(--c-success-brd); font-weight: 550; }
+.qe-why { display: flex; align-items: center; gap: 10px; }
+.qe-why-letter { flex: none; width: 32px; text-align: center; font-size: 13px; font-weight: 700; color: var(--c-muted); }
+.qe-why-letter.is-ans { color: var(--c-success); }
+.qe-why-correct { flex: 1; padding: 11px 14px; font-size: 14px; color: var(--c-muted); border-radius: 12px; border: 1.5px dashed var(--c-border); }
+.qe-foot {
+  flex: none;
+  display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-card-solid);
+}
+.qe-cancel { padding: 11px 20px; border-radius: 999px; border: 1px solid var(--c-border); background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--c-sub); cursor: pointer; }
+@media (max-width: 700px) {
+  .qe { max-height: none; }
+  .qe-body { padding: 16px; }
+  .qe-foot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
+}
