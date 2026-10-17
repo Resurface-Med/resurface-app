@@ -180,7 +180,7 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
   return (
     <Shell>
       <div style={{ fontSize: 15, fontWeight: 600, color: "var(--c-accent)", marginBottom: 14 }}>
-        {deck.copy_id ? "You already have this deck" : `${deck.owner_name} shared a deck with you`}
+        {deck.owner_name} shared a deck with you
       </div>
       <div style={{ fontSize: 25, color: C.text, fontWeight: 700, letterSpacing: -0.6, lineHeight: 1.2, overflowWrap: "anywhere" }}>
         {deck.name}
@@ -189,17 +189,18 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
           one that matters, and how it is filed is the recipient's problem
           once it is theirs. The sentence about it being a copy went for the
           same reason: true, but not what anyone is deciding on. */}
-      <div style={{ fontSize: 15, color: C.sub, marginTop: 8, fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ fontSize: 15, color: C.sub, lineHeight: 1.5, marginTop: 10, fontVariantNumeric: "tabular-nums", textWrap: "pretty" }}>
+        {/* One plain sentence on what will happen (Rafil, 2026-10-17). */}
         {deck.copy_id
-          ? (nothingNew ? "You’re up to date." : `${fresh} new question${plural(fresh)} since you added it`)
-          : nothingNew ? "You already have every question in it."
-          : `${deck.questions} question${plural(Number(deck.questions))}`}
+          ? (nothingNew
+            ? "You added this deck before and already have all of its questions."
+            : `You added this deck before. ${fresh} question${plural(fresh)} ${fresh === 1 ? "has" : "have"} been added to it since then.`)
+          : nothingNew
+          ? `All ${deck.questions} of these questions are already in your decks.`
+          : skip.length > 0
+          ? `${deck.questions} questions. ${skip.length} of them ${skip.length === 1 ? "is" : "are"} already in your decks, so ${skip.length === 1 ? "it won’t" : "they won’t"} be added again.`
+          : `${deck.questions} question${plural(Number(deck.questions))}.`}
       </div>
-      {!deck.copy_id && !nothingNew && skip.length > 0 && (
-        <div style={{ fontSize: 13.5, color: C.muted, marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
-          {skip.length} you already have will be left out
-        </div>
-      )}
       {error && (
         <div role="alert" style={{
           fontSize: 13.5, lineHeight: 1.45, color: "var(--c-danger)",
@@ -214,12 +215,12 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
           <button type="button" className="btn-press"
             onClick={() => (deck.copy_id ? onAdded(deck.copy_id) : onSkip())}
             style={{ ...primaryBtn, ...dialogBtn }}>
-            {deck.copy_id ? "Open it" : "Go to my decks"}
+            {deck.copy_id ? "Open deck" : "Go to my decks"}
           </button>
         ) : (
           <button type="button" className="btn-press" onClick={add} disabled={adding}
             style={{ ...primaryBtn, ...dialogBtn, ...(adding ? { opacity: 0.55 } : {}) }}>
-            {adding ? "Adding…" : deck.copy_id ? `Add the ${fresh} new` : "Add to my decks"}
+            {adding ? "Adding…" : deck.copy_id ? `Add the ${fresh} new question${plural(fresh)}` : "Add to my decks"}
           </button>
         )}
         {!nothingNew && (
