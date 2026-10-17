@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo } from "react";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
@@ -38,91 +38,8 @@ const SCOPES = [
   { k: "saved", label: "Saved" },
 ];
 
-/** Where the question came from — orthogonal to Due / Wrong / Saved. */
-const YEARS = [
-  { k: "Year 1", label: "Year 1" },
-  { k: "Year 2", label: "Year 2" },
-  { k: "Year 3", label: "Year 3" },
-  { k: "Year 4", label: "Year 4" },
-  { k: "Year 5", label: "Year 5" },
-  { k: "All",    label: "All years" },
-];
 
-/** Anchored menu — native <select> recenters on the chosen row on iOS and
- *  drifts into the status bar when you pick a lower option. */
-function SetupMenu({ value, onChange, options, ariaLabel, optionLabel }) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef(null);
-  const current = options.find(o => o.k === value) || options[0];
 
-  useEffect(() => {
-    if (!open) return;
-    function onDoc(e) {
-      if (!rootRef.current?.contains(e.target)) setOpen(false);
-    }
-    function onKey(e) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("pointerdown", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
-
-  return (
-    <div className={`setup-menu${open ? " is-open" : ""}`} ref={rootRef}>
-      <button
-        type="button"
-        className="setup-menu-trigger btn-press"
-        aria-label={ariaLabel}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen(v => !v)}
-      >
-        <span className="setup-menu-trigger-label">{current.label}</span>
-        <span className="setup-menu-chevron" aria-hidden="true" />
-      </button>
-      {open && (
-        <ul className="setup-menu-list" role="listbox" aria-label={ariaLabel}>
-          {options.map(o => {
-            const selected = o.k === value;
-            const label = optionLabel ? optionLabel(o) : o.label;
-            return (
-              <li key={o.k} role="presentation">
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  className={`setup-menu-option${selected ? " is-selected" : ""}`}
-                  onClick={() => {
-                    onChange(o.k);
-                    setOpen(false);
-                  }}
-                >
-                  <span className="setup-menu-check" aria-hidden="true">{selected ? "✓" : ""}</span>
-                  <span>{label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-function YearSelect({ value, onChange }) {
-  return (
-    <SetupMenu
-      value={value}
-      onChange={onChange}
-      options={YEARS}
-      ariaLabel="Year"
-    />
-  );
-}
 
 /** Compact chips for the setup dock — secondary choices, not a second page. */
 /**
@@ -438,19 +355,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setQueue(qs.map(shuffleOptions)); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
-  function setYear(next) {
-    setFilter(f => ({
-      ...f,
-      year: next === "All" ? ["All"] : [next],
-      // Narrower picks were under the old year — drop them so the tree is
-      // not left pointing at a deck that year does not have.
-      leaves: ["All"],
-    }));
-  }
-
-  const yearValue = filter.year?.includes("All") || !filter.year?.length
-    ? "All"
-    : filter.year[0];
 
   function resumeSession() {
     /* Checked against what exists now: questions deleted since are dropped,
@@ -769,9 +673,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {step === "topic" ? (
               <div className="setup-title-row">
                 <h1 style={{ ...h1, fontSize: 27, margin: 0 }}>Practice</h1>
-                <div className="setup-title-filters">
-                  {!noQuestions && <YearSelect value={yearValue} onChange={setYear} />}
-                </div>
               </div>
             ) : (
               <>
@@ -893,9 +794,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           {step === "topic" ? (
             <div className="setup-title-row">
               <h1 data-in="left" style={{ ...h1, fontSize: "clamp(26px, 3vw, 34px)", margin: 0, "--i": 0 }}>Practice</h1>
-              <div className="setup-title-filters">
-                {!noQuestions && <YearSelect value={yearValue} onChange={setYear} />}
-              </div>
             </div>
           ) : (
             <>
