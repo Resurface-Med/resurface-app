@@ -315,6 +315,15 @@ async function extractApkg(file) {
   return `Flashcards from an Anki deck, front — back. Write questions that test the same facts; the other cards' answers are the natural distractors.${note}\n\n${lines.join("\n")}`;
 }
 
+/* What a deck already holds, for the server to steer away from and filter
+   out: each stem with its correct answer, which is what shows which fact a
+   question tested — a rewording keeps the answer. */
+function alreadyIn(deckId) {
+  return questionsInDeck(deckId)
+    .filter(q => typeof q.q === "string" && q.q)
+    .map(q => ({ q: q.q, a: Array.isArray(q.opts) && typeof q.opts[q.ans] === "string" ? q.opts[q.ans] : "" }));
+}
+
 async function generateQuestions({ file, pastedText, deckLabel, count, avoid, signal }) {
   let userContent = [];
 
@@ -387,10 +396,10 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
     throw e;
   }
 
-  const { questions: parsed } = await res.json();
+  const { questions: parsed, removed } = await res.json();
   if (!Array.isArray(parsed)) throw new Error("The generator returned something unexpected. Try again.");
 
-  return parsed.map(q => ({
+  const out = parsed.map(q => ({
     gen: true,
     q: q.q,
     opts: q.opts,
@@ -398,6 +407,9 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
     exp: q.exp,
     optExp: q.optExp,
   }));
+  /* How many the server threw out for repeating the deck (lib/dedupe.js). */
+  out.removed = Number(removed) || 0;
+  return out;
 }
 
 const PAGES = [
@@ -611,6 +623,8 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [jobs, setJobs] = useState([]);
   /* A batch under review: each lecture's name and how many it wrote. */
   const [reviewJobs, setReviewJobs] = useState([]);
+  /* Questions the server left out for repeating the deck, said on review. */
+  const [repeatsRemoved, setRepeatsRemoved] = useState(0);
   const [pastedText, setPastedText] = useState("");
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
@@ -863,10 +877,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
      and the recent ones are the likely collisions. */
   function avoidStems() {
     const id = existingDeckId(deckName);
-    if (!id) return [];
-    return questionsInDeck(id)
-      .map(q => (typeof q.q === "string" ? q.q : ""))
-      .filter(Boolean);
+    return id ? alreadyIn(id) : [];
   }
   const deckLabel = deckName.split("::").map(x => x.trim()).filter(Boolean).join(" › ");
   const countNum = Math.max(1, Math.min(MAX_COUNT, parseInt(countRaw) || 0));
@@ -878,7 +889,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     return (
       <Shell
         title="Review"
-        sub={`Keeping ${keptList.length} of ${generated.length}. Untick any you don’t want.`}
+        sub={`Keeping ${keptList.length} of ${generated.length}. Untick any you don’t want.${repeatsRemoved ? ` ${repeatsRemoved} left out for repeating questions already in the deck.` : ""}`}
         footer={(
           <div className="gen-sticky">
             {saveError && (
@@ -1101,6 +1112,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         signal: ctrl.signal,
       });
       setGenerated(qs);
+      setRepeatsRemoved(qs.removed || 0);
       setKept(new Set(qs.map((_, i) => i)));
       setRevealed(new Set());
       setPhase("review");
@@ -1147,11 +1159,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
             pastedText: "",
             deckLabel: subParts.join(" › "),
             count: countNum,
-            avoid: existing ? questionsInDeck(existing).map(q => q.q).filter(x => typeof x === "string") : [],
+            avoid: existing ? alreadyIn(existing) : [],
             signal: ctrl.signal,
           });
           /* Held, not saved: they go to review first, like a single lecture. */
-          update(i, { status: "done", n: qs.length, qs });
+          update(i, { status: "done", n: qs.length, qs, removed: qs.removed || 0 });
         } catch (e) {
           if (e?.name === "AbortError") { update(i, { status: "waiting" }); return; }
           update(i, { status: "failed", error: e?.message || "Something went wrong." });
@@ -1169,6 +1181,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     const done = results.filter(j => j.status === "done" && j.qs?.length);
     const list = done.flatMap((j, ji) => j.qs.map(q => ({ ...q, _job: ji })));
     setReviewJobs(done.map(j => ({ name: j.name, n: j.qs.length })));
+    setRepeatsRemoved(done.reduce((t, j) => t + (j.removed || 0), 0));
     setGenerated(list);
     setKept(new Set(list.map((_, i) => i)));
     setRevealed(new Set());
