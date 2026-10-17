@@ -1282,11 +1282,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         batchCount={files.length}
         countFor={id => questionsInDeck(id).length}
       />
-      {hasPlace && (
+      {/* Only what the picture above cannot show. "A new deck for this
+          lecture." repeated it and read as noise (Rafil, 2026-10-17). */}
+      {hasPlace && (batch || existingCount > 0) && (
         <p className="gen-deck-path">
           {batch ? "Each lecture becomes its own deck in here."
-            : existingCount > 0 ? `Adding to this lecture’s deck, avoiding the ${existingCount} question${existingCount === 1 ? "" : "s"} already in it.`
-            : "A new deck for this lecture."}
+            : `Adds to this deck and skips the ${existingCount} question${existingCount === 1 ? "" : "s"} already in it.`}
         </p>
       )}
     </div>

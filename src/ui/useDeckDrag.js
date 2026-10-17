@@ -419,9 +419,13 @@ export function useDeckDrag({ containerRef, flip, forest, open, setOpen, base, r
       if (i < 0) return;
       const R = rows[i];
       const f_ = (y - hit.top) / Math.max(1, hit.bottom - hit.top);
-      const showsKids = R.isOpen && rows[i + 1]?.parentId === R.id;
-      if (showsKids) next = projectGap(rows, f_ < 0.5 ? i : i + 1, want, b, rp);
-      else if (f_ < 0.3) next = projectGap(rows, i, want, b, rp);
+      /* Every deck the same three zones: the top of a row is above it, the
+         middle is inside it, the bottom is below it. An open deck showing
+         its sub-decks used to have no middle — hovering it only ever meant
+         above or below, so putting something inside a deck that already
+         had one sub-deck meant aiming at the gap under it (Rafil,
+         2026-10-17). Inside appends, as it does for a closed deck. */
+      if (f_ < 0.3) next = projectGap(rows, i, want, b, rp);
       else if (f_ > 0.7) next = projectGap(rows, i + 1, want, b, rp);
       else into = R.id;
     }
