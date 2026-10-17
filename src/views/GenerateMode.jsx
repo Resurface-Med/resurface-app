@@ -1061,50 +1061,47 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           ? "They are on this device and will sync the moment you are back online. Don't generate them again."
           : "They are in Study now."}
       >
+        {/* One main action, full width; the other two under it as a quiet
+            pair of white buttons rather than blue link text beside it
+            (Rafil, 2026-10-17). */}
         <div className="gen-done-actions">
-          {/* Answer them now, while you want to. This used to file them
-              ("Added", then the deck list), and the people who generated and
-              never answered a question had all stopped right here. */}
           {justSaved.length > 0 && onPractise ? (
-            <>
-              <button type="button" className="btn-press" style={primaryBtn} onClick={() => { onTargetDeckChange?.(null); onPractise(justSaved); }}>
-                Practise {justSaved.length === 1 ? "it" : `these ${justSaved.length}`} now <span aria-hidden="true">→</span>
-              </button>
-              {savedDeckId && onOpenDeck && (
-                <button type="button" className="btn-press gen-text-btn" onClick={() => {
+            <button type="button" className="btn-press gen-done-main" style={primaryBtn} onClick={() => { onTargetDeckChange?.(null); onPractise(justSaved); }}>
+              Practise {justSaved.length === 1 ? "it" : `these ${justSaved.length}`} now <span aria-hidden="true">→</span>
+            </button>
+          ) : !(savedDeckId && onOpenDeck) ? (
+            <button type="button" className="btn-press gen-done-main" style={primaryBtn} onClick={() => window.location.reload()}>
+              Reload app
+            </button>
+          ) : null}
+          <div className="gen-done-row">
+            {savedDeckId && onOpenDeck && (
+              <button type="button" className={`btn-press ${justSaved.length > 0 && onPractise ? "gen-ghost gen-done-sec" : "gen-done-main"}`}
+                style={justSaved.length > 0 && onPractise ? undefined : primaryBtn}
+                onClick={() => {
+                  /* Study opens on the root tab holding this deck. */
                   const root = deckPath(savedDeckId, decksById)[0]?.id ?? savedDeckId;
                   onTargetDeckChange?.(null); onOpenDeck(root);
                 }}>
-                  Open {deckPath(savedDeckId, decksById)[0]?.name ?? "deck"}
-                </button>
-              )}
-            </>
-          ) : savedDeckId && onOpenDeck ? (
-            <button type="button" className="btn-press" style={primaryBtn} onClick={() => {
-              /* Study opens on the root tab holding this deck. */
-              const root = deckPath(savedDeckId, decksById)[0]?.id ?? savedDeckId;
-              onTargetDeckChange?.(null); onOpenDeck(root);
-            }}>
-              Open {deckPath(savedDeckId, decksById)[0]?.name ?? "deck"} <span aria-hidden="true">→</span>
+                <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 4.25a1 1 0 0 1 1-1h3.1l1.4 1.5h5.999a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H2.75a1 1 0 0 1-1-1v-8Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>
+                <span>Open {deckPath(savedDeckId, decksById)[0]?.name ?? "deck"}</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn-press gen-ghost gen-done-sec"
+              onClick={() => {
+                setPhase("setup");
+                setGenerated([]);
+                setRevealed(new Set());
+                setFile(null);
+                setPastedText("");
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+              <span>Generate more</span>
             </button>
-          ) : (
-            <button type="button" className="btn-press" style={primaryBtn} onClick={() => window.location.reload()}>
-              Reload app
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn-press gen-text-btn"
-            onClick={() => {
-              setPhase("setup");
-              setGenerated([]);
-              setRevealed(new Set());
-              setFile(null);
-              setPastedText("");
-            }}
-          >
-            Generate more
-          </button>
+          </div>
         </div>
       </Shell>
     );

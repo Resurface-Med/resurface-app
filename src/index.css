@@ -8700,3 +8700,27 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .gen-count-suggest.is-link { color: var(--c-accent); font-weight: 600; cursor: pointer; }
 .gen-count-suggest.is-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* The "Added" screen: one main action, full width, and a quiet pair under
+   it — centred as a single block. */
+.gen-done-actions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: min(100%, 400px);
+  margin: 8px auto 0;
+}
+.gen-done-main { width: 100%; justify-content: center; }
+.gen-done-row { display: flex; gap: 12px; }
+.gen-done-row > * { flex: 1 1 0; min-width: 0; }
+.gen-done-sec {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  color: var(--c-text);
+  white-space: nowrap;
+}
+.gen-done-sec span { overflow: hidden; text-overflow: ellipsis; }
+.gen-done-sec svg { flex: none; color: var(--c-muted); }
+.gen-done-sec:hover { border-color: var(--c-accent-brd); }
+.gen-done-actions { width: min(100%, 440px); }
+.gen-done-main, .gen-done-row > * { box-sizing: border-box; }
+.gen-done-main { width: 100% !important; max-width: none !important; }
