@@ -5,7 +5,7 @@ import { h1, primaryBtn } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
 import { chunk } from "../lib/chunk";
-import DeckDestination from "../ui/DeckDestination";
+import DeckPlacer from "../ui/DeckPlacer";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -643,14 +643,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    * the file is called lands inside it.
    */
   const [deckName, setDeckName] = useState("");
-  const [picking, setPicking] = useState(false);
-  /* Our own suggestion list rather than <datalist>. Chrome draws a dropdown
-     marker on any input with a `list` and will not reliably let it go —
-     ::-webkit-calendar-picker-indicator { display: none } is deployed and the
-     triangle is still there — and it sat beside a Browse button already
-     offering the same thing. Rendering the list ourselves also means it can
-     show what is in each deck. */
-  const [sugOpen, setSugOpen] = useState(false);
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -843,15 +835,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
 
   const decksById = indexDecks(decks);
   /* Decks in reading order, with depth, for the picker. */
-  /* What the picker offers as the new deck's name: whatever is already
-     pending, else the file's own name cleaned up. Naming needs no cleverness
-     — "2.1 Larynx, trachea, chest wall.pdf" is already the answer — and it is
-     visible and correctable, unlike a guess at which existing deck to use. */
-  /** "Week 1 - Renal::Upper Renal Tract" for a deck that already exists. */
-  function fullName(id) {
-    return deckPath(id, decksById).map(p => p.name).join("::");
-  }
-
   /**
    * The id of the typed deck if every level of it already exists, else null.
    *
@@ -1273,111 +1256,32 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   }
 
 
-  /*
-   * Two ways into one value.
-   *
-   * The field is the truth: a deck's name, with Anki's "::" to put one inside
-   * another. Typing it is the fast path once you know what your decks are
-   * called, and it is the only way to change a name the file chose for you —
-   * which is what was missing when this was a picker alone.
-   *
-   * Browse fills the same field by pointing instead of typing, for when you
-   * have forgotten what you called something, or have never used Anki and do
-   * not know that "::" means anything. Neither is a mode: whatever the picker
-   * chooses lands in the box as text, where it can still be edited.
-   */
-  /* What you have, narrowed by what you have typed. An exact match is
-     dropped: there is nothing to suggest when the box already says it. */
-  const suggestions = (() => {
-    const typed = deckName.trim().toLowerCase();
-    return decks
-      .map(d => ({ id: d.id, name: fullName(d.id), count: questionsInDeck(d.id).length }))
-      .filter(x => x.name.toLowerCase() !== typed && (!typed || x.name.toLowerCase().includes(typed)))
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .slice(0, 8);
-  })();
-
   /* Recomputed as the name is typed, so the note under the field tracks it. */
   const existingCount = (() => {
     const id = existingDeckId(deckName);
     return id ? questionsInDeck(id).length : 0;
   })();
 
+  /* Where it goes: the deck tree, with the material as a card that glides
+     into the deck you tap (ui/DeckPlacer). The "::" field, its suggestion
+     list and the Browse modal it replaced are gone; the value is still the
+     same "::" path underneath. */
   const placement = (
     <div className="gen-deck">
-      <label className="gen-field">
-        <span className="gen-field-label">Deck</span>
-        <span className="gen-deck-row">
-          <span className="gen-deck-field">
-            <input
-              type="text"
-              value={deckName}
-              onChange={e => { setDeckName(e.target.value); setSugOpen(true); }}
-              onFocus={() => setSugOpen(true)}
-              onBlur={() => setSugOpen(false)}
-              onKeyDown={e => { if (e.key === "Escape") setSugOpen(false); }}
-              placeholder="e.g. Week 1 - Renal::Upper Renal Tract"
-              className="gen-deck-input"
-              maxLength={200}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            {sugOpen && suggestions.length > 0 && (
-              <ul className="gen-sug">
-                {suggestions.map(sg => (
-                  <li key={sg.id}>
-                    {/* mousedown, not click: blur would close the list first */}
-                    <button
-                      type="button"
-                      className="gen-sug-row"
-                      onMouseDown={e => { e.preventDefault(); setDeckName(sg.name); setSugOpen(false); }}
-                    >
-                      <span className="gen-sug-name">{sg.name}</span>
-                      <span className="gen-sug-count">{sg.count === 0 ? "empty" : `${sg.count}`}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </span>
-          <button type="button" className="gen-deck-browse" onClick={() => setPicking(true)}>
-            Browse
-          </button>
-        </span>
-      </label>
-      <p className="gen-deck-hint">
-        Type <code>::</code> to put one deck inside another, or browse what you have.
-        Anything that doesn’t exist yet gets made.
-      </p>
-      {hasPlace && (
-        <p className="gen-deck-path">
-          Going into <strong>{deckLabel}</strong>
-          {/* Whether duplicate-avoidance is actually going to happen, said
-              before you spend a generation rather than discovered after.
-              It depends on the typed name matching a deck that exists, and
-              when it silently did not there was nothing on screen to say
-              so — which is exactly how the first attempt at this looked
-              like the model ignoring instructions. */}
-          {batch
-            ? <span className="gen-deck-note"> · each lecture gets its own sub-deck inside it</span>
-            : existingCount > 0
-            ? <span className="gen-deck-note"> · avoiding the {existingCount} question{existingCount === 1 ? "" : "s"} already in it</span>
-            : <span className="gen-deck-note"> · new deck, nothing to avoid</span>}
-        </p>
-      )}
-
-      <DeckDestination
-        open={picking}
-        onClose={() => setPicking(false)}
+      <DeckPlacer
         decks={decks}
+        value={deckName}
+        onChange={setDeckName}
         countFor={id => questionsInDeck(id).length}
-        chosenId={decks.find(d => fullName(d.id).toLowerCase() === deckName.trim().toLowerCase())?.id ?? null}
-        onChooseExisting={id => setDeckName(fullName(id))}
-        suggestedName={deckName.split("::").pop().trim() || (file ? suggestTopicName(file.name) : "")}
-        /* A new deck from the picker is not created there either — it becomes
-           text in the field like everything else, and is made when you
-           generate. */
-        onCreate={(name, parentId) => setDeckName(parentId ? `${fullName(parentId)}::${name}` : name)}
+        suggestedName={batch ? "" : file ? suggestTopicName(file.name) : ""}
+        cardTitle={mode === "manual" ? "Your questions"
+          : batch ? `${files.length} lectures`
+          : file ? file.name
+          : "Your notes"}
+        cardSub={batch ? "each becomes its own sub-deck"
+          : !hasPlace ? null
+          : existingCount > 0 ? `avoiding the ${existingCount} question${existingCount === 1 ? "" : "s"} already there`
+          : "a new deck"}
       />
     </div>
   );
@@ -1430,7 +1334,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           })}
         </nav>
 
-        {targetDeckId && decksById.get(targetDeckId) && (
+        {targetDeckId && decksById.get(targetDeckId) && step !== 1 && (
           <p className="gen-target">
             Adding to <strong>{decksById.get(targetDeckId).name}</strong>
           </p>
