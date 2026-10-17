@@ -32,9 +32,12 @@ const QUICK = [
    than a post-mortem: it has not been told the answer, and these ask it to
    teach the ground the question stands on. */
 const QUICK_UNANSWERED = [
+  /* First, and in place of "Teach me this topic" (Rafil, 2026-10-17): a
+     nudge towards the reasoning, not a lesson. The tutor has not been told
+     the answer at this point, so it cannot give it away. */
   {
-    label: "Teach me this topic",
-    message: "In 2–3 short sentences, explain the idea this question is about. Do not say which option is correct.",
+    label: "Give me a clue",
+    message: "Give me one clue, in a sentence or two, that points me towards the right line of reasoning. Do not name, rule out or hint at any particular option.",
   },
   {
     label: "What should I know here?",
@@ -125,8 +128,30 @@ function QuickPills({ sending, disabled, onPick, prompts = QUICK, promptKey }) {
   );
 }
 
+/*
+ * Each question's conversation, kept for as long as the app is open.
+ *
+ * It lived in this component's state, so closing the AI on a phone (which
+ * unmounts it) or moving to another question threw it away. Kept here by
+ * question, reopening the AI on a question brings its chat back, and going
+ * back and forth between questions shows each one's own (Rafil, 2026-10-17).
+ * A reply that arrives after you have moved on is filed under the question
+ * it answers rather than dropped.
+ */
+const threads = new Map();
+const threadOf = id => threads.get(id) ?? [];
+
 export default function ExplainChat({ q, picked, onClose, answered = true, closing = false }) {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessagesState] = useState(() => threadOf(q.id));
+  /* Every change to the thread on screen is also the thread kept. */
+  const shownId = useRef(q.id);
+  function setMessages(next) {
+    setMessagesState(prev => {
+      const value = typeof next === "function" ? next(prev) : next;
+      threads.set(shownId.current, value);
+      return value;
+    });
+  }
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -154,7 +179,8 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
 
   useEffect(() => {
     setUsed(loadUsed(q.id));
-    setMessages([]);
+    shownId.current = q.id;
+    setMessagesState(threadOf(q.id));
     setDraft("");
     setError("");
     setSending(false);
@@ -224,15 +250,20 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
       /* Quota is per question on the server. Record it against the question
          that was asked, even if they have already moved on. */
       saveUsed(askedFor, Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
-      if (!stillHere) return;
+      const reply = { id: `a-${Date.now()}`, role: "assistant", text: body.reply, rating: null };
+      if (!stillHere) {
+        /* Filed under the question it answers, for when you go back. */
+        threads.set(askedFor, [...threadOf(askedFor), reply]);
+        return;
+      }
 
       setUsed(Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
-      setMessages(prev => [
-        ...prev,
-        { id: `a-${Date.now()}`, role: "assistant", text: body.reply, rating: null },
-      ]);
+      setMessages(prev => [...prev, reply]);
     } catch (e) {
-      if (liveId.current !== askedFor) return;
+      if (liveId.current !== askedFor) {
+        threads.set(askedFor, threadOf(askedFor).filter(m => m.id !== userMsg.id));
+        return;
+      }
       setError(e.message);
       setMessages(prev => prev.filter(m => m.id !== userMsg.id));
       if (apiText === undefined) setDraft(label);
