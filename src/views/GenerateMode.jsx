@@ -10,6 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
+import CountField from "../ui/CountField";
 
 /**
  * Generate — turn lecture material into questions.
@@ -1453,7 +1454,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                     is why it read as shouting. */}
                 <div className="gen-count-head">
                   <h2 className="gen-card-title">{batch ? "Questions per lecture" : "How many questions"}</h2>
-                  <output className="gen-count-value" htmlFor="gen-count">{countNum}</output>
+                  <CountField value={countNum} max={MAX_COUNT} showMax={false} onCommit={v => setCountRaw(String(v))} />
                 </div>
                 <input
                   id="gen-count"

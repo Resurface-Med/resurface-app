@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useMemo } from "react";
+import CountField from "../ui/CountField";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS } from "../data";
@@ -179,37 +180,6 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-/* The slider's number, typed (2026-10-17): for "exactly 37" without nudging
-   the thumb. Typing is free; the number is kept to 1…max as it changes, and
-   a cleared box puts the last good number back when you leave it. */
-function CountField({ value, max, onCommit }) {
-  const [draft, setDraft] = useState(null);
-  const commit = raw => {
-    const n = Math.round(Number(raw));
-    if (raw === "" || !Number.isFinite(n)) return;
-    onCommit(Math.min(Math.max(1, n), Math.max(1, max)));
-  };
-  return (
-    <label className="setup-count-field">
-      <input
-        className="setup-count-input"
-        type="number"
-        inputMode="numeric"
-        min={1}
-        max={Math.max(1, max)}
-        disabled={max === 0}
-        value={draft ?? value}
-        onFocus={e => { setDraft(String(value)); e.target.select(); }}
-        onChange={e => { setDraft(e.target.value); commit(e.target.value); }}
-        onBlur={() => setDraft(null)}
-        onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }}
-        aria-label="Number of questions"
-      />
-      <span className="setup-count-of">of {max}</span>
-    </label>
-  );
-}
-
 export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
 
