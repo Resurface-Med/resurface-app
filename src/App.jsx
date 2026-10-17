@@ -39,6 +39,8 @@ import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import PullToRefresh from "./ui/PullToRefresh";
+import UndoToast from "./ui/UndoToast";
+import { offer as offerUndo } from "./lib/undo";
 import { mark, report } from "./lib/loadTiming";
 import { ConfirmHost, confirm } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
@@ -269,22 +271,45 @@ export default function App() {
     applyDecks([...decksRef.current, d]);
     return d;
   }
-  function renameDeck(id, name) {
-    applyDecks(decks.map(d => d.id === id ? { ...d, name } : d));
+  /* Each change below offers an undo (lib/undo, ui/UndoToast). `quiet`
+     is for changes nobody chose as such — naming a deck that was made a
+     moment ago, or throwing it away unnamed. */
+  function renameDeck(id, name, { quiet = false } = {}) {
+    const before = decksRef.current.find(d => d.id === id)?.name;
+    applyDecks(decksRef.current.map(d => d.id === id ? { ...d, name } : d));
     remote.updateDeck(id, { name });
+    if (!quiet && before != null && before !== name) {
+      offerUndo({ label: `Renamed to “${name}”`, undo: () => renameDeck(id, before, { quiet: true }) });
+    }
   }
   /* Deleting a deck deletes what is under it — its sub-decks and their
      questions — the way a deck does. The database cascades; the pool is
      pruned here so nothing lingers until the next load. */
-  function deleteDeck(id) {
+  /* Gone from the screen at once; gone from the server only when the undo
+     has passed, so undoing is putting the rows back, nothing more. */
+  function deleteDeck(id, { quiet = false } = {}) {
+    const all = decksRef.current;
     const gone = new Set();
-    (function collect(x) { gone.add(x); decks.filter(d => d.parentId === x).forEach(d => collect(d.id)); })(id);
-    const keptDecks = decks.filter(d => !gone.has(d.id));
+    (function collect(x) { gone.add(x); all.filter(d => d.parentId === x).forEach(d => collect(d.id)); })(id);
+    const name = all.find(d => d.id === id)?.name ?? "deck";
+    const removedDecks = all.filter(d => gone.has(d.id));
+    const removedRows = genRowsRef.current.filter(r => gone.has(r.deckId));
+    const keptDecks = all.filter(d => !gone.has(d.id));
     const keptRows = genRowsRef.current.filter(r => !gone.has(r.deckId));
     decksRef.current = keptDecks;
     setDecks(keptDecks);
     applyGenerated(keptRows, keptDecks);
-    remote.deleteDeck(id);
+    if (quiet) { remote.deleteDeck(id); return; }
+    offerUndo({
+      label: `Deleted “${name}”`,
+      commit: () => remote.deleteDeck(id),
+      undo: () => {
+        const back = [...decksRef.current, ...removedDecks];
+        decksRef.current = back;
+        setDecks(back);
+        applyGenerated([...genRowsRef.current, ...removedRows], back);
+      },
+    });
   }
   /* Copy bank topics into a deck: each becomes a sub-deck holding copies of
      the topic's questions — yours, with fresh ids, like an import. */
@@ -293,10 +318,29 @@ export default function App() {
      under it. Usually one write — see lib/deckOrder.js. Reads decksRef, not
      the render's decks, so two moves in quick succession build on each other. */
   function moveDeck(id, parentId = null, beforeId = null) {
-    const r = moveDeckTo(decksRef.current, id, parentId ?? null, beforeId ?? null);
+    const prev = decksRef.current;
+    const r = moveDeckTo(prev, id, parentId ?? null, beforeId ?? null);
     if (!r || r.changes.length === 0) return false;
     applyDecks(r.decks);
     for (const c of r.changes) remote.updateDeck(c.id, c.patch);
+    /* Undone by writing back what each changed row held before. */
+    const was = r.changes.map(c => {
+      const d = prev.find(x => x.id === c.id);
+      return { id: c.id, parentId: d?.parentId ?? null, position: d?.position ?? null };
+    });
+    const name = prev.find(d => d.id === id)?.name ?? "deck";
+    const into = parentId ? prev.find(d => d.id === parentId)?.name : null;
+    const movedParent = (prev.find(d => d.id === id)?.parentId ?? null) !== (parentId ?? null);
+    offerUndo({
+      label: movedParent ? `Moved “${name}” ${into ? `into “${into}”` : "to the top"}` : `Moved “${name}”`,
+      undo: () => {
+        applyDecks(decksRef.current.map(d => {
+          const w = was.find(x => x.id === d.id);
+          return w ? { ...d, parentId: w.parentId, position: w.position } : d;
+        }));
+        for (const w of was) remote.updateDeck(w.id, { parent_id: w.parentId, position: w.position });
+      },
+    });
     return true;
   }
   function deleteQuestion(qid) {
@@ -763,6 +807,7 @@ export default function App() {
       />
     )}
     <PullToRefresh onRefresh={refreshData} />
+    <UndoToast />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (

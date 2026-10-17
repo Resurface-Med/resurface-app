@@ -11,7 +11,7 @@ import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree from "../ui/DeckTree";
 import { DeckTabs, DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
-import { confirm, confirmDelete } from "../ui/Confirm";
+import { confirm } from "../ui/Confirm";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -276,8 +276,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setNaming({ mode: "rename", deckId: d.id, fresh: true });
   }
   function endNaming(id, name) {
-    if (name) deckActions.renameDeck(id, name);
-    else if (naming?.fresh) deckActions.deleteDeck(id);
+    const fresh = Boolean(naming?.fresh);
+    if (name) deckActions.renameDeck(id, name, { quiet: fresh });
+    else if (fresh) deckActions.deleteDeck(id, { quiet: true });
     setNaming(null);
   }
   async function createDeckNamed(name, parentId = null) {
@@ -567,9 +568,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
          it used to live and why fourteen shareable decks had been shared
          exactly zero times. */
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
-      { label: "Delete", danger: true, onSelect: async n => {
-        if (await confirmDelete(`“${n.name}”`, n.total)) deckActions.deleteDeck(n.id);
-      } },
+      /* No "are you sure": the undo that follows is the safety net. */
+      { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ];
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
     /* One topic names itself; several are counted. Spelling out four topic

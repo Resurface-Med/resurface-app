@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { deckShareUrl } from "../lib/decks";
 import DeckTree from "./DeckTree";
 import Popover, { MenuItems } from "./Popover";
-import { confirmDelete } from "./Confirm";
 
 /**
  * The tabs across the top of Study, and what a deck of yours can do.
@@ -138,7 +137,7 @@ export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
 }
 
 /** The two controls beside a deck's heading. */
-export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename, questionCount }) {
+export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename }) {
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
   /* Attempted, not required. A refused clipboard is not a failure here — the
@@ -158,13 +157,10 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename
     { label: "Generate from a lecture", onSelect: () => onGenerateInto(deck.id) },
     { label: "New sub-deck", onSelect: () => onNewSub(deck.id) },
   ];
-  const n = questionCount;
   const menuItems = [
     { label: "Rename", onSelect: () => onRename(deck.id) },
     { label: "Share", onSelect: share },
-    { label: "Delete", danger: true, onSelect: async () => {
-      if (await confirmDelete(`“${deck.name}”`, n)) actions.deleteDeck(deck.id);
-    } },
+    { label: "Delete", danger: true, onSelect: () => actions.deleteDeck(deck.id) },
   ];
   return (
     <span className="tg-controls">

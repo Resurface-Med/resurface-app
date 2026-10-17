@@ -8622,3 +8622,55 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .dp3-row.is-root .dp3-name { color: var(--c-muted); }
 .dp3-deck { padding-top: 3px; animation: dp2Drop 0.38s cubic-bezier(0.34, 1.35, 0.5, 1) both; }
 .dp3-deck .dp2-lecture { margin-top: 0; }
+
+/* ─── Undo (ui/UndoToast) ─────────────────────────────────────────
+   Practice's Next bar, smaller: the band's blue, white text, a white
+   button. Bottom-left of the page on a desktop (the Next bar has the
+   middle), above the bottom buttons on a phone. */
+.undo {
+  position: fixed;
+  z-index: 900;
+  left: calc(248px + 14px + clamp(8px, 1vw, 18px) + 20px);
+  bottom: 24px;
+  display: flex; align-items: center; gap: 14px;
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 6px 6px 6px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-lt) 100%);
+  color: #fff;
+  box-shadow: 0 12px 28px -10px rgba(53, 98, 245, 0.6);
+  font-size: 14.5px;
+}
+.undo.is-in  { animation: undoIn 0.32s cubic-bezier(0.34, 1.3, 0.5, 1) both; }
+.undo.is-out { animation: undoOut 0.2s ease both; }
+@keyframes undoIn  { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes undoOut { to { opacity: 0; transform: translateY(8px); } }
+.undo-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.undo-btn {
+  flex: none;
+  padding: 8px 16px;
+  border: 0; border-radius: 999px;
+  background: #fff; color: var(--c-accent);
+  font: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer;
+}
+.undo-btn:hover { background: #f3f6fe; }
+@media (max-width: 900px) {
+  .undo {
+    left: 50%;
+    bottom: calc(96px + var(--safe-b));
+    transform: translateX(-50%);
+  }
+  .undo.is-in  { animation-name: undoInPhone; }
+  .undo.is-out { animation-name: undoOutPhone; }
+}
+@keyframes undoInPhone  { from { opacity: 0; transform: translate(-50%, 14px) scale(0.96); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes undoOutPhone { to { opacity: 0; transform: translate(-50%, 8px); } }
+@media (prefers-reduced-motion: reduce) { .undo.is-in, .undo.is-out { animation-duration: 0.01s; } }
+/* Centred over the page, a step above the bottom so it stacks over
+   Practice's Next bar instead of running into it (it did at 1280px). */
+@media (min-width: 901px) {
+  .undo { left: calc(50% + 131px); bottom: 100px; transform: translateX(-50%); }
+  .undo.is-in  { animation-name: undoInPhone; }
+  .undo.is-out { animation-name: undoOutPhone; }
+}
