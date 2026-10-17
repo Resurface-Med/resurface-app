@@ -266,6 +266,20 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   }, [activeRootId]);
   function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
   const isPhone = useIsPhone();
+  /* A new deck is made at once, named "New deck", with its row put straight
+     into rename — as Finder does a new folder — rather than a separate field
+     above the list (Rafil, 2026-10-17). Cancelling, or leaving it blank,
+     takes it away again. */
+  async function newDeckInline(parentId = null) {
+    const d = await deckActions.createDeck("New deck", parentId);
+    if (!parentId && isPhone) setActiveRootId(d.id);
+    setNaming({ mode: "rename", deckId: d.id, fresh: true });
+  }
+  function endNaming(id, name) {
+    if (name) deckActions.renameDeck(id, name);
+    else if (naming?.fresh) deckActions.deleteDeck(id);
+    setNaming(null);
+  }
   async function createDeckNamed(name, parentId = null) {
     const d = await deckActions.createDeck(name, parentId);
     setCreatingDeck(false);
@@ -541,13 +555,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const inlineRename = naming?.mode === "rename" && Boolean(findNode(forest, naming.deckId));
     const renameProps = {
       renamingId: inlineRename ? naming.deckId : null,
-      onRename: (id, name) => { if (name) deckActions.renameDeck(id, name); setNaming(null); },
+      onRename: endNaming,
     };
 
     /* What a row's menu offers. Only your decks have one. */
     const rowMenu = _node => [
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
-      { label: "New sub-deck", onSelect: n => setNaming({ mode: "sub", deckId: n.id }) },
+      { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
       /* Share is here rather than only on a root deck's tab, which is where
          it used to live and why fourteen shareable decks had been shared
@@ -708,15 +722,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  {!blank && <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => setCreatingDeck(true)} />}
+                  {!blank && <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => newDeckInline(null)} />}
                   {creatingDeck ? (
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
                   ) : naming && !inlineRename ? (
                     <DeckNameForm
                       initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
                       placeholder={naming.mode === "rename" ? "Name" : "Name the sub-deck"}
-                      onCancel={() => setNaming(null)}
-                      onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
+                      onCancel={() => endNaming(naming.deckId, null)}
+                      onSubmit={n => { if (naming.mode === "rename") endNaming(naming.deckId, n); else createDeckNamed(n, naming.deckId); }}
                     />
                   ) : blank ? renderEmpty() : (
                     <>
@@ -844,7 +858,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
                     <>{scoped} question{scoped === 1 ? "" : "s"}</>
-                    <button type="button" className="gen-link" onClick={() => setCreatingDeck(true)}>
+                    <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>
                       ＋ New deck
                     </button>
                   </span>
@@ -854,8 +868,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <DeckNameForm
                   initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
                   placeholder={naming.mode === "rename" ? "Name" : `Name the sub-deck of ${decksById.get(naming.deckId)?.name ?? ""}`}
-                  onCancel={() => setNaming(null)}
-                  onSubmit={n => { if (naming.mode === "rename") { deckActions.renameDeck(naming.deckId, n); setNaming(null); } else createDeckNamed(n, naming.deckId); }}
+                  onCancel={() => endNaming(naming.deckId, null)}
+                  onSubmit={n => { if (naming.mode === "rename") endNaming(naming.deckId, n); else createDeckNamed(n, naming.deckId); }}
                 />
               )}
               {!blank && !creatingDeck && (!naming || inlineRename) && (

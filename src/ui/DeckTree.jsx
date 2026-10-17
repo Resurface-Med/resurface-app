@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
 import MoveToPicker from "./MoveToPicker";
@@ -199,6 +199,21 @@ export default function DeckTree({
     }
     return s;
   });
+
+  /* A deck being named — a new one included — is shown: every deck above
+     it opens, so the row with the field is on screen. */
+  useEffect(() => {
+    if (!renamingId) return;
+    const trail = [];
+    (function find(nodes, path) {
+      for (const n of nodes) {
+        if (n.id === renamingId) { trail.push(...path); return true; }
+        if (find(n.children, [...path, n.id])) return true;
+      }
+      return false;
+    })(forest, []);
+    if (trail.length) setOpen(prev => { const next = new Set(prev); trail.forEach(id => next.add(id)); return next; });
+  }, [renamingId, forest]);
   function toggleOpen(id) {
     setOpen(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   }
