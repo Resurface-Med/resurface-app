@@ -8674,3 +8674,29 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .undo.is-in  { animation-name: undoInPhone; }
   .undo.is-out { animation-name: undoOutPhone; }
 }
+
+/* The suggested count: a tick on the slider's track (under the thumb) and
+   a line under the ends that puts the slider back on it. */
+.gen-count-track { position: relative; }
+.gen-count-slider { position: relative; z-index: 1; }
+.gen-count-mark {
+  position: absolute;
+  z-index: 0;
+  /* The slider's thumb is 26px, so its centre runs from 13px to 100%-13px. */
+  left: calc(13px + (100% - 26px) * var(--at));
+  top: 8px;
+  width: 3px; height: 18px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--c-accent);
+  opacity: 0.45;
+  pointer-events: none;
+}
+.gen-count-suggest {
+  margin: 6px 2px 0;
+  padding: 0;
+  border: 0; background: none;
+  font: inherit; font-size: 13px; color: var(--c-muted); text-align: left;
+}
+.gen-count-suggest.is-link { color: var(--c-accent); font-weight: 600; cursor: pointer; }
+.gen-count-suggest.is-link:hover { text-decoration: underline; text-underline-offset: 3px; }
