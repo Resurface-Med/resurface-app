@@ -4,6 +4,7 @@ import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body 
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
 import Reminders from "../ui/Reminders";
+import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
 
 /**
@@ -61,6 +62,8 @@ export default function ProfileView({
 
   const [resetBusy, setResetBusy] = useState(false);
 
+  const [nameErr, setNameErr] = useState("");
+
   function flashPrefs() {
     setPrefSaved(true);
     setTimeout(() => setPrefSaved(false), 1400);
@@ -70,6 +73,8 @@ export default function ProfileView({
     e.preventDefault();
     const trimmed = name.trim().slice(0, 32);
     if (!trimmed) return;
+    /* The database refuses these too (migration 0012); this says so first. */
+    if (isInappropriate(trimmed)) { setNameErr(NAME_NOT_ALLOWED); return; }
     remote.profile(userId, { displayName: trimmed });
     onProfileChange?.({ displayName: trimmed });
     setName(trimmed);
@@ -202,7 +207,7 @@ export default function ProfileView({
                   <input
                     className="profile-input"
                     value={name}
-                    onChange={e => setName(e.target.value)}
+                    onChange={e => { setName(e.target.value); setNameErr(""); }}
                     maxLength={32}
                     placeholder="What shows on the leaderboard"
                     required
@@ -211,6 +216,7 @@ export default function ProfileView({
                     {nameSaved ? "Saved" : "Save"}
                   </button>
                 </div>
+                {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
               </form>
 
               <div>

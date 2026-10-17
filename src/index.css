@@ -8713,3 +8713,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .rem-time { max-width: 160px; }
 .rem-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .rem-note { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--c-sub); }
+
+/* A display name the filter refused (lib/nameFilter). */
+.name-err { margin: 8px 2px 0; font-size: 13.5px; line-height: 1.45; color: var(--c-danger); }

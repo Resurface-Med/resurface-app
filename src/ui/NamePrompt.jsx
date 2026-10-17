@@ -1,3 +1,4 @@
+import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useEffect, useRef, useState } from "react";
 
 /**
@@ -22,6 +23,7 @@ import { useEffect, useRef, useState } from "react";
 export default function NamePrompt({ suggestion, onSave, onSkip }) {
   const [name, setName] = useState(suggestion || "");
   const [busy, setBusy] = useState(false);
+  const [nameErr, setNameErr] = useState("");
   const ref = useRef(null);
 
   useEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);
@@ -35,6 +37,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
     e.preventDefault();
     const trimmed = name.trim();
     if (trimmed.length < 2) return;
+    if (isInappropriate(trimmed)) { setNameErr(NAME_NOT_ALLOWED); return; }
     setBusy(true);
     onSave(trimmed);
   }
@@ -51,12 +54,13 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
           ref={ref}
           className="np__field"
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => { setName(e.target.value); setNameErr(""); }}
           maxLength={32}
           aria-label="Your name"
           placeholder="Your name"
         />
 
+        {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
         <div className="np__row">
           <button type="submit" className="np__save btn-press" disabled={busy || name.trim().length < 2}>
             {busy ? "Saving…" : "That's me"}
