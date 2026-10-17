@@ -204,23 +204,30 @@ async function loadPdfjs() {
 async function extractPdf(file) {
   const pdfjs = await loadPdfjs();
   const buf = await file.arrayBuffer();
-  const doc = await pdfjs.getDocument({ data: buf }).promise;
-
-  let text = "";
-  for (let i = 1; i <= doc.numPages; i += 1) {
-    const page = await doc.getPage(i);
-    const content = await page.getTextContent();
-    const pageText = content.items
-      .map(it => it.str)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
-    if (pageText) text += `\n--- Slide ${i} ---\n${pageText}`;
-    page.cleanup();
+  /* Freed through the loading task: pdf.js 6 took destroy() off the
+     document, and calling it there threw "destroy is not a function" after
+     every page had been read — so every PDF failed at the last step from the
+     upgrade (c228c32, 2026-09-27) until this (2026-10-17). In a finally, so
+     a PDF that fails part-way is freed too. */
+  const task = pdfjs.getDocument({ data: buf });
+  try {
+    const doc = await task.promise;
+    let text = "";
+    for (let i = 1; i <= doc.numPages; i += 1) {
+      const page = await doc.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map(it => it.str)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (pageText) text += `\n--- Slide ${i} ---\n${pageText}`;
+      page.cleanup();
+    }
+    return text.trim();
+  } finally {
+    task.destroy().catch(() => {});
   }
-
-  doc.destroy();
-  return text.trim();
 }
 
 function fileToBase64(file) {

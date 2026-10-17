@@ -1,7 +1,7 @@
 /**
  * Undo for deck changes, offered for a moment and then gone.
  *
- * Every change shows a small pill — "Deleted “Renal” · Undo" — for a few
+ * Every change shows a small pill — "Deleted “Renal” · Undo" — for four
  * seconds (ui/UndoToast), and Cmd/Ctrl+Z undoes the latest ones. It replaced
  * "Delete this deck?" dialogs: a question before is worse than a way back
  * after, which is when you notice (2026-10-17).
@@ -15,7 +15,7 @@
  *          is already saved, is undone by reversing it, and stays undoable
  *          by keyboard for the last ten.
  */
-const SHOW_MS = 6000;
+const SHOW_MS = 4000;
 const KEEP = 10;
 
 let current = null;        // the entry on screen
