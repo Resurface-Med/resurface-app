@@ -12,6 +12,7 @@ import DeckTree from "../ui/DeckTree";
 import { DeckTabs, DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
+import QuestionManager from "../ui/QuestionManager";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -216,6 +217,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      opened by whichever row's menu asked — it used to live inside
      DeckControls, which only rendered for the active tab's root deck. */
   const [sharing, setSharing] = useState(null);
+  /* The deck whose questions are open in the manager (ui/QuestionManager). */
+  const [managing, setManaging] = useState(null);
   const [shareCopied, setShareCopied] = useState(false);
   async function copyShareLink() {
     if (!sharing) return;
@@ -561,6 +564,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* What a row's menu offers. Only your decks have one. */
     const rowMenu = _node => [
+      { label: "Manage questions", onSelect: n => setManaging(n.id) },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
@@ -669,6 +673,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* Drawn by both layouts. It was only in the desktop one, so on a phone
        Share set the deck and nothing appeared. */
+    const manager = managing && (
+      <QuestionManager deckId={managing} decks={decks} pStats={pStats} actions={deckActions} onClose={() => setManaging(null)} />
+    );
     const shareSheet = sharing && (
       <ShareSheet
         deck={sharing}
@@ -738,7 +745,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       {activeDeck && (
                         <div className="tg-editbar">
                           <span className="tg-editbar-meta">{activeRoot?.total ?? 0} question{(activeRoot?.total ?? 0) === 1 ? "" : "s"}</span>
-                          <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} questionCount={activeRoot?.total ?? 0}
+                          <DeckControls deck={activeDeck} node={activeRoot} actions={deckActions} onManage={id => setManaging(id)} questionCount={activeRoot?.total ?? 0}
                             onGenerateInto={onGenerateInto} onNewSub={id => setNaming({ mode: "sub", deckId: id })}
                             onRename={id => setNaming({ mode: "rename", deckId: id })} />
                         </div>
@@ -796,6 +803,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             </div>
           </div>
           {shareSheet}
+          {manager}
         </div>
       );
     }
@@ -945,6 +953,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           </div>
         </div>
         {shareSheet}
+        {manager}
       </div>
     );
   }

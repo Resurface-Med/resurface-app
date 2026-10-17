@@ -350,18 +350,41 @@ export default function App() {
     });
     return true;
   }
-  function deleteQuestion(qid) {
-    const rows = genRowsRef.current.filter(r => r.id !== qid);
-    applyGenerated(rows);
-    remote.removeGenerated(user.id, qid);
+  /* Questions, one or many (the question manager). Like decks: gone from the
+     screen at once, from the server once the undo has passed. */
+  function deleteQuestions(ids) {
+    const gone = new Set(ids);
+    const removed = genRowsRef.current.filter(r => gone.has(r.id));
+    if (!removed.length) return;
+    applyGenerated(genRowsRef.current.filter(r => !gone.has(r.id)));
+    offerUndo({
+      label: removed.length === 1 ? "Deleted a question" : `Deleted ${removed.length} questions`,
+      commit: () => removed.forEach(r => remote.removeGenerated(user.id, r.id)),
+      undo: () => applyGenerated([...genRowsRef.current, ...removed].sort((a, b) => a.id - b.id)),
+    });
   }
-  function moveQuestion(qid, deckId) {
-    const rows = genRowsRef.current.map(r => r.id === qid ? { ...r, deckId } : r);
+  /* Moves are saved at once and undone by moving each back. */
+  function moveQuestions(ids, deckId, { quiet = false } = {}) {
+    const moving = new Set(ids);
+    const was = new Map(genRowsRef.current.filter(r => moving.has(r.id)).map(r => [r.id, r.deckId]));
+    if (!was.size) return;
+    const rows = genRowsRef.current.map(r => (moving.has(r.id) ? { ...r, deckId } : r));
     applyGenerated(rows);
-    const q = rows.find(r => r.id === qid);
-    if (q) remote.moveGenerated(user.id, q, deckId);
+    for (const r of rows) if (moving.has(r.id)) remote.moveGenerated(user.id, r, deckId);
+    if (quiet) return;
+    const to = decksRef.current.find(d => d.id === deckId)?.name ?? "deck";
+    offerUndo({
+      label: was.size === 1 ? `Moved a question to “${to}”` : `Moved ${was.size} questions to “${to}”`,
+      undo: () => {
+        const back = genRowsRef.current.map(r => (was.has(r.id) ? { ...r, deckId: was.get(r.id) } : r));
+        applyGenerated(back);
+        for (const r of back) if (was.has(r.id)) remote.moveGenerated(user.id, r, r.deckId);
+      },
+    });
   }
-  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion };
+  const deleteQuestion = id => deleteQuestions([id]);
+  const moveQuestion = (id, deckId) => moveQuestions([id], deckId);
+  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion, deleteQuestions, moveQuestions };
 
   /* Straight into a session on these questions (see PracticeMode.startWith). */
   function practise(ids, limit = null) {

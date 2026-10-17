@@ -137,7 +137,7 @@ export function ShareSheet({ deck, url, copied, onCopy, onClose }) {
 }
 
 /** The two controls beside a deck's heading. */
-export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename }) {
+export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename, onManage }) {
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
   /* Attempted, not required. A refused clipboard is not a failure here — the
@@ -158,6 +158,7 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename
     { label: "New sub-deck", onSelect: () => onNewSub(deck.id) },
   ];
   const menuItems = [
+    ...(onManage ? [{ label: "Manage questions", onSelect: () => onManage(deck.id) }] : []),
     { label: "Rename", onSelect: () => onRename(deck.id) },
     { label: "Share", onSelect: share },
     { label: "Delete", danger: true, onSelect: () => actions.deleteDeck(deck.id) },
