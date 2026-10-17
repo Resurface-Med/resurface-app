@@ -184,7 +184,7 @@ export function DeckControls({ deck, actions, onGenerateInto, onNewSub, onRename
 }
 
 /** A name field for a new or renamed deck. */
-export function DeckNameForm({ onSubmit, onCancel, initial = "", placeholder = "Name the deck — “Week 3”, “Cardio”, “Keeps going wrong”" }) {
+export function DeckNameForm({ onSubmit, onCancel, initial = "", placeholder = "e.g. Week 3 – Renal" }) {
   const [name, setName] = useState(initial);
   const ref = useRef(null);
   useEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);

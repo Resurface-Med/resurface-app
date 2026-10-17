@@ -1263,12 +1263,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   }
 
 
-  /* Recomputed as the name is typed, so the note under the field tracks it. */
-  const existingCount = (() => {
-    const id = existingDeckId(deckName);
-    return id ? questionsInDeck(id).length : 0;
-  })();
-
   /* Where it goes, as one line: folder chips, then the lecture's own deck
      (ui/DeckPath). Under it, one line on what will happen to it. */
   const placement = (
@@ -1281,13 +1275,11 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         onLectureName={setLectureName}
         batchCount={files.length}
       />
-      {/* Only what the picture above cannot show. "A new deck for this
-          lecture." repeated it and read as noise (Rafil, 2026-10-17). */}
-      {hasPlace && (batch || existingCount > 0) && (
-        <p className="gen-deck-path">
-          {batch ? "Each lecture becomes its own deck in here."
-            : `Already has ${existingCount} question${existingCount === 1 ? "" : "s"}. New ones won’t repeat ${existingCount === 1 ? "it" : "them"}.`}
-        </p>
+      {/* Only what the picture above cannot show. A line about the deck
+          being new, then one about avoiding the questions already in it,
+          were both dropped as noise (Rafil, 2026-10-17). */}
+      {hasPlace && batch && (
+        <p className="gen-deck-path">Each lecture becomes its own deck in here.</p>
       )}
     </div>
   );
