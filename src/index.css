@@ -8945,3 +8945,26 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .qe-body { padding: 16px; }
   .qe-foot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* Practice's "How many": the number beside the slider is a box you can type
+   in, "20 of 64". It reads as the value it was until you touch it. */
+.setup-count-field { display: inline-flex; align-items: baseline; gap: 8px; flex: none; }
+.setup-count-input {
+  width: 2.6em; box-sizing: content-box;
+  padding: 6px 8px; margin: 0;
+  border: 1.5px solid transparent; border-radius: 10px;
+  background: var(--c-accent-dim);
+  font: inherit; font-size: clamp(17px, 1.7vw, 20px); font-weight: 650;
+  letter-spacing: -0.4px; line-height: 1;
+  color: var(--c-accent); text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield; appearance: textfield;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.setup-count-input::-webkit-outer-spin-button,
+.setup-count-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.setup-count-input:hover:not(:disabled) { border-color: var(--c-accent-brd); }
+.setup-count-input:focus { outline: none; border-color: var(--c-accent); box-shadow: 0 0 0 3px var(--c-accent-glow); }
+.setup-count-input:disabled { opacity: .5; }
+.setup-count-of { font-size: 15px; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .setup-count-input { font-size: 17px; } }
