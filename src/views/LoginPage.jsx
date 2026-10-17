@@ -24,6 +24,12 @@ const field = {
 };
 
 const RESEND_SECS = 60;
+/* University mail systems hold mail from new senders for a few minutes
+   (ARU's took 3, 2026-10-17). A resend in that window replaces the code
+   that is still on its way, so the old one fails when it lands — which is
+   how most university sign-ups were being lost. Longer wait, and say so. */
+const UNI = /\.(ac\.uk|edu)$/i;
+const resendSecsFor = email => (UNI.test(String(email).trim()) ? 120 : RESEND_SECS);
 
 export default function LoginPage() {
   const {
@@ -88,7 +94,7 @@ export default function LoginPage() {
         setEmail(trimmed);
         setStep("code");
         setCode("");
-        setResendIn(RESEND_SECS);
+        setResendIn(resendSecsFor(trimmed));
         setNotice("");
       } else if (mode === "signup") {
         /* No name is passed: handle_new_user falls back to the Google
@@ -101,7 +107,7 @@ export default function LoginPage() {
         if (!data.session) {
           setStep("code");
           setCode("");
-          setResendIn(RESEND_SECS);
+          setResendIn(resendSecsFor(trimmed));
           setNotice("");
         } else {
           setLeaving(true);
@@ -166,8 +172,8 @@ export default function LoginPage() {
         const { error: err } = await resetPassword(email);
         if (err) throw err;
       }
-      setResendIn(RESEND_SECS);
-      setNotice("Sent a new code.");
+      setResendIn(resendSecsFor(email));
+      setNotice("Sent a new code. Use the newest one; earlier codes stop working.");
       setCode("");
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -182,7 +188,9 @@ export default function LoginPage() {
     : "Welcome back";
 
   const sub = step === "code"
-    ? `We sent a 6-digit code to ${email}.`
+    ? (UNI.test(email)
+      ? `We sent a 6-digit code to ${email}. University email can take a few minutes to arrive, and sometimes lands in Junk.`
+      : `We sent a 6-digit code to ${email}.`)
     : mode === "reset"
         ? "We'll email you a code to set a new one."
       : "Your progress and generated questions follow you everywhere.";
