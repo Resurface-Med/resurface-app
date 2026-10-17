@@ -8584,3 +8584,15 @@ html.is-deck-dragging * {
 .dp2-new button { flex: none; width: 36px; border: 0; border-radius: 9px; background: var(--c-accent); color: #fff; font-size: 16px; cursor: pointer; }
 .dp2-new button:disabled { opacity: 0.35; cursor: default; }
 @media (prefers-reduced-motion: reduce) { .dp2-deck, .dp2-level { animation: none; } }
+/* Inside a folder: choosing it is the one solid action at the top. */
+.dp2-here-btn {
+  margin: 0 2px 6px;
+  padding: 10px 14px;
+  border: 0; border-radius: 10px;
+  background: var(--c-accent); color: #fff;
+  font: inherit; font-size: 14.5px; font-weight: 600; text-align: left;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer;
+}
+.dp2-here-btn:hover { background: var(--c-accent-lt); }
+.dp2-opt .dp2-in { width: auto; height: auto; margin-left: 2px; background: none; color: var(--c-muted); }

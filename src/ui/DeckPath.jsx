@@ -133,24 +133,27 @@ export default function DeckPath({ decks, folderPath, onFolderPath, lectureName,
                 <span className="dp2-opt-name">No folder</span>
               </button>
             ) : (
-              <button type="button" className={`dp2-opt${folderId === at ? " is-here" : ""}`} onClick={() => choose(pathOf(at))}>
-                <span className="dp2-opt-icon"><FolderIcon /></span>
-                <span className="dp2-opt-name">Use “{byId.get(at)?.name}”</span>
+              /* Choosing a folder you have opened is its own, plain action at
+                 the top — opening it is not choosing it. */
+              <button type="button" className="dp2-here-btn" onClick={() => choose(pathOf(at))}>
+                Put it in {byId.get(at)?.name}
               </button>
             )}
             {level.map(d => {
               const sub = (kids.get(d.id) ?? []).length;
               const n = countFor?.(d.id) ?? 0;
               return (
+                /* A folder with decks inside opens on tap, the way iOS lists do,
+                   so you see what is in it before choosing; one with none is
+                   chosen. Tapping Year 2 used to choose it outright, when what
+                   was wanted was a deck inside it (Rafil, 2026-10-17). */
                 <span key={d.id} className={`dp2-opt-row${folderId === d.id ? " is-here" : ""}`}>
-                  <button type="button" className="dp2-opt" onClick={() => choose(pathOf(d.id))}>
+                  <button type="button" className="dp2-opt" onClick={() => (sub ? into(d.id) : choose(pathOf(d.id)))}>
                     <span className="dp2-opt-icon"><FolderIcon /></span>
                     <span className="dp2-opt-name">{d.name}</span>
                     <span className="dp2-opt-meta">{sub ? `${sub} inside` : n ? `${n} q` : ""}</span>
+                    {sub > 0 && <span className="dp2-in"><Chevron /></span>}
                   </button>
-                  {sub > 0 && (
-                    <button type="button" className="dp2-in" onClick={() => into(d.id)} aria-label={`Look inside ${d.name}`}><Chevron /></button>
-                  )}
                 </span>
               );
             })}
