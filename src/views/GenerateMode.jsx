@@ -6,7 +6,6 @@ import Wave from "../ui/Wave";
 import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
 import { chunk } from "../lib/chunk";
 import DeckPath from "../ui/DeckPath";
-import { suggestFromSlides, suggestFromNotes } from "../lib/suggestCount";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -231,26 +230,6 @@ async function extractPdf(file) {
   }
 }
 
-/* A file's text, read once: when it is picked (for the suggested count)
-   and again when generating would otherwise mean reading it twice. A read
-   that fails is forgotten, so the next attempt tries afresh. */
-const readCache = new WeakMap();
-function readOnce(file, read) {
-  if (!readCache.has(file)) {
-    const p = read(file);
-    p.catch(() => readCache.delete(file));
-    readCache.set(file, p);
-  }
-  return readCache.get(file);
-}
-
-async function suggestFor(file) {
-  const ext = file.name.split(".").pop()?.toLowerCase();
-  if (ext === "pdf") return suggestFromSlides(await readOnce(file, extractPdf));
-  if (ext === "pptx" || ext === "ppt") return suggestFromSlides(await readOnce(file, extractPptx));
-  return null;
-}
-
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -368,13 +347,13 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
     }
 
     if (ext === "pptx" || ext === "ppt") {
-      const text = await readOnce(file, extractPptx);
+      const text = await extractPptx(file);
       userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (ext === "apkg") {
       const text = await extractApkg(file);
       userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (ext === "pdf") {
-      const text = await readOnce(file, extractPdf);
+      const text = await extractPdf(file);
 
       if (text.length >= MIN_USEFUL_CHARS) {
         userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
@@ -680,10 +659,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [folderPath, setFolderPath] = useState("");
   const [lectureName, setLectureName] = useState("");
   const [countRaw, setCountRaw] = useState("10");
-  /* The suggested count for this lecture, and whether you have moved the
-     slider yourself (then the suggestion only marks the track). */
-  const [fileSuggestion, setFileSuggestion] = useState(null);
-  const [countTouched, setCountTouched] = useState(false);
 
   const [phase, setPhase] = useState("setup");
   const [step, setStep] = useState(0);
@@ -901,23 +876,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const deckName = (batch ? [folderPath] : [folderPath, lectureName]).map(x => x.trim()).filter(Boolean).join("::");
   const deckLabel = deckName.split("::").map(x => x.trim()).filter(Boolean).join(" › ");
   const countNum = Math.max(1, Math.min(MAX_COUNT, parseInt(countRaw) || 0));
-  /* The suggestion: read off the lecture once it is picked (a batch keeps
-     one number for all, so none), or off pasted notes as they are typed. */
-  useEffect(() => {
-    setFileSuggestion(null);
-    setCountTouched(false);
-    if (!file || batch) return;
-    let live = true;
-    suggestFor(file).then(n => { if (live) setFileSuggestion(n); }, () => {});
-    return () => { live = false; };
-  }, [file, batch]);
-  const suggested = batch || mode === "manual" ? null
-    : file ? fileSuggestion
-    : suggestFromNotes(pastedText);
-  /* Until you move the slider, it sits on the suggestion. */
-  useEffect(() => {
-    if (suggested && !countTouched) setCountRaw(String(suggested));
-  }, [suggested, countTouched]);
   /* A single lecture needs its own deck's name; a batch needs a folder to
      put its lectures' decks in. */
   const hasPlace = batch ? Boolean(folderPath.trim()) : Boolean(lectureName.trim());
@@ -1497,7 +1455,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   <h2 className="gen-card-title">{batch ? "Questions per lecture" : "How many questions"}</h2>
                   <output className="gen-count-value" htmlFor="gen-count">{countNum}</output>
                 </div>
-                <div className="gen-count-track">
                 <input
                   id="gen-count"
                   className="gen-count-slider"
@@ -1506,28 +1463,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   max={MAX_COUNT}
                   step={1}
                   value={countNum}
-                  onChange={e => { setCountRaw(e.target.value); setCountTouched(true); }}
+                  onChange={e => setCountRaw(e.target.value)}
                   aria-label="How many questions"
                   aria-valuetext={`${countNum} question${countNum === 1 ? "" : "s"}`}
                 />
-                {suggested && (
-                  <span className="gen-count-mark" aria-hidden="true"
-                    style={{ "--at": (suggested - 1) / (MAX_COUNT - 1) }} />
-                )}
-                </div>
                 <div className="gen-count-ends" aria-hidden="true">
                   <span>1</span>
                   <span>{MAX_COUNT}</span>
                 </div>
-                {suggested && (
-                  countNum === suggested ? (
-                    <p className="gen-count-suggest">Suggested · about one per content slide</p>
-                  ) : (
-                    <button type="button" className="gen-count-suggest is-link" onClick={() => setCountRaw(String(suggested))}>
-                      Suggested {suggested} · about one per content slide
-                    </button>
-                  )
-                )}
               </div>
               {error && <p className="gen-error">{error}</p>}
             </>
