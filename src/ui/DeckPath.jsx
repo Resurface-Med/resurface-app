@@ -35,7 +35,7 @@ const Chevron = ({ left = false }) => (
   <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style={left ? { transform: "scaleX(-1)" } : undefined}><path d="M5.25 3 9 7l-3.75 4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
-export default function DeckPath({ decks, folderPath, onFolderPath, lectureName, onLectureName, batchCount = 0, countFor }) {
+export default function DeckPath({ decks, folderPath, onFolderPath, lectureName, onLectureName, batchCount = 0 }) {
   const byId = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   const kids = useMemo(() => {
     const m = new Map();

@@ -1280,7 +1280,6 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         lectureName={lectureName}
         onLectureName={setLectureName}
         batchCount={files.length}
-        countFor={id => questionsInDeck(id).length}
       />
       {/* Only what the picture above cannot show. "A new deck for this
           lecture." repeated it and read as noise (Rafil, 2026-10-17). */}
