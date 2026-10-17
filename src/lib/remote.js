@@ -520,10 +520,26 @@ export const remote = {
     const { error } = await supabase.rpc("delete_own_account");
     if (error) throw error;
   },
-  copyDeckByCode: async (code) => {
-    const { data, error } = await supabase.rpc("copy_deck_by_code", { code });
+  /* `skip`: ids of the shared deck's questions to leave out — ones the
+     recipient already has (see ReceiveDeck). */
+  copyDeckByCode: async (code, skip = []) => {
+    const { data, error } = await supabase.rpc("copy_deck_by_code", { code, skip });
     if (error) throw error;
     return data;
+  },
+  /* Bring an existing copy of a shared deck up to date: what is new in the
+     original goes into it. Returns how many were added. */
+  updateCopyByCode: async (code, skip = []) => {
+    const { data, error } = await supabase.rpc("update_copy_by_code", { code, skip });
+    if (error) throw error;
+    return data ?? 0;
+  },
+  /* A shared deck's questions (id, stem, correct answer), to check against
+     your own before adding it. */
+  sharedQuestions: async (code) => {
+    const { data, error } = await supabase.rpc("shared_questions", { code });
+    if (error) throw error;
+    return data ?? [];
   },
 
 };

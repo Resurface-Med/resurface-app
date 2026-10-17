@@ -1,6 +1,25 @@
 import { useEffect, useState } from "react";
 import { C, card, primaryBtn, btnGhost } from "../ui/theme";
 import { remote } from "../lib/remote";
+import { QUESTIONS } from "../data";
+import { shape, isRepeat } from "../lib/dedupe";
+
+/*
+ * What of a shared deck you already have (2026-10-17). A question counts as
+ * yours if it repeats one you hold — the same stem, or a reworded one with
+ * the same answer, by the rules generation uses (lib/dedupe). Those are left
+ * out of a new copy and out of an update to an old one, and the screen says
+ * how many.
+ */
+function alreadyHave(shared) {
+  const mine = QUESTIONS
+    .filter(q => typeof q.q === "string")
+    .map(q => shape(q.q, Array.isArray(q.opts) ? q.opts[q.ans] : ""));
+  return shared.filter(sq => {
+    const s = shape(sq.q, sq.a);
+    return mine.some(m => isRepeat(s, m));
+  }).map(sq => sq.id);
+}
 
 /**
  * What a share link opens.
@@ -61,6 +80,9 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
   const [state, setState] = useState("loading");   // loading | ready | missing | failed
   const [deck, setDeck] = useState(null);
   const [adding, setAdding] = useState(false);
+  /* Ids of the shared questions you already have, and how many it holds. */
+  const [skip, setSkip] = useState([]);
+  const [total, setTotal] = useState(0);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -69,6 +91,12 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
       try {
         const row = await remote.deckPreview(code);
         if (cancelled) return;
+        if (row && !row.mine) {
+          const shared = await remote.sharedQuestions(code).catch(() => []);
+          if (cancelled) return;
+          setTotal(shared.length);
+          setSkip(alreadyHave(shared));
+        }
         /* No row means the code is wrong, or the deck has been deleted since
            the link was sent. Both are the same thing to whoever is holding
            it, so they get the same sentence. */
@@ -86,7 +114,14 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
     setAdding(true);
     setError(null);
     try {
-      const id = await remote.copyDeckByCode(code);
+      /* Already have a copy: add what is new to it. Otherwise a new copy,
+         leaving out what you have. */
+      if (deck.copy_id) {
+        await remote.updateCopyByCode(code, skip);
+        await onAdded(deck.copy_id);
+        return;
+      }
+      const id = await remote.copyDeckByCode(code, skip);
       if (!id) throw new Error("That deck could not be copied.");
       await onAdded(id);
     } catch (e) {
@@ -135,10 +170,17 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
     );
   }
 
+  /* What is actually new to you: the deck's questions less the ones you
+     already have. When the check could not run, the deck's own count. */
+  const counted = total > 0;
+  const fresh = counted ? total - skip.length : Number(deck.questions) || 0;
+  const plural = n => (n === 1 ? "" : "s");
+  const nothingNew = counted && fresh === 0;
+
   return (
     <Shell>
       <div style={{ fontSize: 15, fontWeight: 600, color: "var(--c-accent)", marginBottom: 14 }}>
-        {deck.owner_name} shared a deck with you
+        {deck.copy_id ? "You already have this deck" : `${deck.owner_name} shared a deck with you`}
       </div>
       <div style={{ fontSize: 25, color: C.text, fontWeight: 700, letterSpacing: -0.6, lineHeight: 1.2, overflowWrap: "anywhere" }}>
         {deck.name}
@@ -148,8 +190,16 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
           once it is theirs. The sentence about it being a copy went for the
           same reason: true, but not what anyone is deciding on. */}
       <div style={{ fontSize: 15, color: C.sub, marginTop: 8, fontVariantNumeric: "tabular-nums" }}>
-        {deck.questions} question{deck.questions === 1 ? "" : "s"}
+        {deck.copy_id
+          ? (nothingNew ? "You’re up to date." : `${fresh} new question${plural(fresh)} since you added it`)
+          : nothingNew ? "You already have every question in it."
+          : `${deck.questions} question${plural(Number(deck.questions))}`}
       </div>
+      {!deck.copy_id && !nothingNew && skip.length > 0 && (
+        <div style={{ fontSize: 13.5, color: C.muted, marginTop: 4, fontVariantNumeric: "tabular-nums" }}>
+          {skip.length} you already have will be left out
+        </div>
+      )}
       {error && (
         <div role="alert" style={{
           fontSize: 13.5, lineHeight: 1.45, color: "var(--c-danger)",
@@ -160,14 +210,24 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
         </div>
       )}
       <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
-        <button type="button" className="btn-press" onClick={add} disabled={adding}
-          style={{ ...primaryBtn, ...dialogBtn, ...(adding ? { opacity: 0.55 } : {}) }}>
-          {adding ? "Adding…" : "Add to my decks"}
-        </button>
-        <button type="button" className="btn-press" onClick={onSkip} disabled={adding}
-          style={{ ...btnGhost, ...dialogBtn }}>
-          No thanks
-        </button>
+        {nothingNew ? (
+          <button type="button" className="btn-press"
+            onClick={() => (deck.copy_id ? onAdded(deck.copy_id) : onSkip())}
+            style={{ ...primaryBtn, ...dialogBtn }}>
+            {deck.copy_id ? "Open it" : "Go to my decks"}
+          </button>
+        ) : (
+          <button type="button" className="btn-press" onClick={add} disabled={adding}
+            style={{ ...primaryBtn, ...dialogBtn, ...(adding ? { opacity: 0.55 } : {}) }}>
+            {adding ? "Adding…" : deck.copy_id ? `Add the ${fresh} new` : "Add to my decks"}
+          </button>
+        )}
+        {!nothingNew && (
+          <button type="button" className="btn-press" onClick={onSkip} disabled={adding}
+            style={{ ...btnGhost, ...dialogBtn }}>
+            No thanks
+          </button>
+        )}
       </div>
     </Shell>
   );
