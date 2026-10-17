@@ -5,7 +5,7 @@ import { h1, primaryBtn } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
 import { chunk } from "../lib/chunk";
-import DeckPlacer from "../ui/DeckPlacer";
+import DeckPath from "../ui/DeckPath";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
@@ -642,7 +642,15 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
    * Arriving from a deck's ＋ Add prefills that deck and a "::", so whatever
    * the file is called lands inside it.
    */
-  const [deckName, setDeckName] = useState("");
+  /*
+   * Where the questions go: a folder (any deck, or none for the top level)
+   * and, inside it, the lecture's own deck. A lecture always gets its own
+   * deck — questions never sit loose in a folder (Rafil, 2026-10-17). A
+   * batch makes one per lecture inside the folder, so it has no name here.
+   * `deckName` is the "::" path the rest of Generate has always read.
+   */
+  const [folderPath, setFolderPath] = useState("");
+  const [lectureName, setLectureName] = useState("");
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
@@ -680,7 +688,13 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
      * It also means the deck exists, so its questions are sent as the list
      * to avoid. The trailing "::" was why that list was always empty.
      */
-    setDeckName(cur => (cur.trim() ? cur : deckPath(targetDeckId, indexDecks(decks)).map(p => p.name).join("::")));
+    /* A deck with sub-decks is a folder: the lecture goes inside it. One
+       without is a lecture's own deck: more questions go into it, avoiding
+       what it holds — "Generate into this" means this. */
+    const path = deckPath(targetDeckId, indexDecks(decks)).map(p => p.name);
+    const isFolder = decks.some(d => d.parentId === targetDeckId);
+    setFolderPath(cur => (cur ? cur : (isFolder ? path : path.slice(0, -1)).join("::")));
+    if (!isFolder) setLectureName(cur => cur || path[path.length - 1] || "");
   }, [targetDeckId, decks]);
   const [written, setWritten] = useState([]);
   const [writing, setWriting] = useState(false);
@@ -748,17 +762,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
        in it, so the file finishes the sentence. With several, the deck is the
        one they all go inside, so a name taken from the first file is undone. */
     const firstGuess = suggestTopicName(kept[0].name);
-    if (kept.length > 1) {
-      setDeckName(cur => (firstGuess && cur.trim() === firstGuess ? "" : cur.trim().endsWith("::" + firstGuess) ? cur.trim().slice(0, -firstGuess.length) : cur));
-      return;
-    }
-    if (!firstGuess) return;
-    setDeckName(cur => {
-      const t = cur.trim();
-      if (!t) return firstGuess;
-      if (t.endsWith("::")) return t + firstGuess;
-      return cur;
-    });
+    if (firstGuess) setLectureName(cur => cur || firstGuess);
   }
   function removeFile(i) {
     setFiles(fs => fs.filter((_, j) => j !== i));
@@ -862,9 +866,12 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     const id = existingDeckId(deckName);
     return id ? alreadyIn(id) : [];
   }
+  const deckName = (batch ? [folderPath] : [folderPath, lectureName]).map(x => x.trim()).filter(Boolean).join("::");
   const deckLabel = deckName.split("::").map(x => x.trim()).filter(Boolean).join(" › ");
   const countNum = Math.max(1, Math.min(MAX_COUNT, parseInt(countRaw) || 0));
-  const hasPlace = deckName.split("::").some(x => x.trim());
+  /* A single lecture needs its own deck's name; a batch needs a folder to
+     put its lectures' decks in. */
+  const hasPlace = batch ? Boolean(folderPath.trim()) : Boolean(lectureName.trim());
   const canGenerate = (file || pastedText.trim()) && hasPlace && countNum >= 1;
   // ── Review ────────────────────────────────────────────────────────────
   if (phase === "review") {
@@ -1262,27 +1269,26 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     return id ? questionsInDeck(id).length : 0;
   })();
 
-  /* Where it goes: the deck tree, with the material as a card that glides
-     into the deck you tap (ui/DeckPlacer). The "::" field, its suggestion
-     list and the Browse modal it replaced are gone; the value is still the
-     same "::" path underneath. */
+  /* Where it goes, as one line: folder chips, then the lecture's own deck
+     (ui/DeckPath). Under it, one line on what will happen to it. */
   const placement = (
     <div className="gen-deck">
-      <DeckPlacer
+      <DeckPath
         decks={decks}
-        value={deckName}
-        onChange={setDeckName}
+        folderPath={folderPath}
+        onFolderPath={setFolderPath}
+        lectureName={lectureName}
+        onLectureName={setLectureName}
+        batchCount={files.length}
         countFor={id => questionsInDeck(id).length}
-        suggestedName={batch ? "" : file ? suggestTopicName(file.name) : ""}
-        cardTitle={mode === "manual" ? "Your questions"
-          : batch ? `${files.length} lectures`
-          : file ? file.name
-          : "Your notes"}
-        cardSub={batch ? "each becomes its own sub-deck"
-          : !hasPlace ? null
-          : existingCount > 0 ? `avoiding the ${existingCount} question${existingCount === 1 ? "" : "s"} already there`
-          : "a new deck"}
       />
+      {hasPlace && (
+        <p className="gen-deck-path">
+          {batch ? "Each lecture becomes its own deck in here."
+            : existingCount > 0 ? `Adding to this lecture’s deck, avoiding the ${existingCount} question${existingCount === 1 ? "" : "s"} already in it.`
+            : "A new deck for this lecture."}
+        </p>
+      )}
     </div>
   );
 

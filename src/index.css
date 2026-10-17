@@ -8502,102 +8502,89 @@ html.is-deck-dragging * {
   .ptr.is-busy svg { animation-duration: 2s; }
 }
 
-/* ─── Generate: where it goes (ui/DeckPlacer) ─────────────────────
-   The material as a card, the deck tree under it, the path at the
-   bottom. Rows are the deck tree's: name 15px/600, count 13px muted; the
-   chosen one is the pale blue the rest of the app selects with. */
-.dp { display: flex; flex-direction: column; gap: 14px; }
-.dp-card {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px;
+
+/* ─── Generate: where it goes, as a path bar (ui/DeckPath) ─────────
+   Folder chips on a soft bar, the lecture's own deck as the one solid
+   accent chip at the end. Steps slide in as the path changes; the lecture
+   chip pops back in each time the folder does. */
+.dpath-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0;
+  padding: 9px 10px;
   background: var(--c-surface2);
   border: 1px solid var(--c-border);
-  border-radius: 14px;
-  color: var(--c-accent);
-  min-width: 0;
+  border-radius: 16px;
 }
-.dp-card-icon { flex: none; }
-.dp-card-text { display: flex; flex-direction: column; min-width: 0; }
-.dp-card-title {
-  font-size: 15px; font-weight: 600; color: var(--c-text); letter-spacing: -0.2px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.dpath-step { display: inline-flex; align-items: center; min-width: 0; animation: dpathIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) both; }
+.dpath-step--lecture { animation: dpathPop 0.42s cubic-bezier(0.34, 1.4, 0.5, 1) both; }
+.dpath-sep { color: var(--c-muted-dim); margin: 0 5px; font-size: 15px; }
+.dpath-home {
+  padding: 6px 8px; border: 0; background: none; border-radius: 8px;
+  font: inherit; font-size: 14px; font-weight: 600; color: var(--c-muted); cursor: pointer;
 }
-.dp-card-sub { font-size: 13px; color: var(--c-muted); margin-top: 1px; }
-.dp-ghost { box-shadow: 0 10px 24px rgba(20, 44, 130, 0.18); background: var(--c-card-solid); transform-origin: 0 0; }
+.dpath-home:hover { color: var(--c-text); }
+.dpath-chip, .dpath-more, .dpath-lecture {
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 260px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font: inherit; font-size: 14px; font-weight: 600; letter-spacing: -0.15px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+.dpath-chip {
+  background: var(--c-card-solid); color: var(--c-text);
+  border: 1px solid var(--c-border);
+  box-shadow: 0 1px 2px rgba(15, 27, 61, 0.05);
+}
+.dpath-chip svg { color: var(--c-muted); flex: none; }
+.dpath-chip:hover, .dpath-chip[aria-expanded="true"] { border-color: var(--c-accent-brd); }
+.dpath-chip.is-new { border-style: dashed; border-color: var(--c-accent-brd); }
+.dpath-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dpath-more {
+  padding: 6px 10px;
+  background: none; color: var(--c-accent);
+  border: 1px dashed var(--c-accent-brd);
+}
+.dpath-more:hover, .dpath-more[aria-expanded="true"] { background: var(--c-card-solid); }
+.dpath-lecture {
+  background: var(--c-accent); color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 6px 14px -6px rgba(53, 98, 245, 0.6);
+}
+.dpath-lecture:hover { transform: translateY(-1px); }
+.dpath-lecture svg { flex: none; }
+.dpath-pen { opacity: 0.7; }
+.dpath-lecture.is-empty { background: var(--c-card-solid); color: var(--c-accent); border: 1px dashed var(--c-accent); box-shadow: none; }
+.dpath-lecture-input { cursor: text; outline: none; min-width: 180px; color: #fff; }
+.dpath-lecture-input::selection { background: rgba(255, 255, 255, 0.35); }
+@keyframes dpathIn  { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+@keyframes dpathPop { 0% { opacity: 0; transform: scale(0.82); } 100% { opacity: 1; transform: none; } }
 
-.dp-tree {
-  max-height: min(320px, 42vh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  margin: 0 -6px;
-  padding: 0 6px;
+/* The menu off a chip: the decks at that level, a way out, a new folder. */
+.dpm-pop { width: 290px; padding: 6px; }
+.dpm-list { display: flex; flex-direction: column; max-height: 260px; overflow-y: auto; }
+.dpm-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 10px;
+  border: 0; background: none; border-radius: 9px;
+  font: inherit; font-size: 14.5px; color: var(--c-text); text-align: left; cursor: pointer;
 }
-.dp-list { list-style: none; margin: 0; padding: 0; }
-.dp-kids { padding-left: 22px; }
-.dp-pending { padding-left: 22px; }
-.dp-row {
-  display: flex; align-items: center; gap: 4px;
-  border-radius: 12px;
-  transition: background 0.18s ease;
+.dpm-item svg { color: var(--c-muted); flex: none; }
+.dpm-item:hover { background: var(--c-surface2); }
+.dpm-item.is-here { color: var(--c-accent); font-weight: 600; }
+.dpm-item.is-here svg { color: var(--c-accent); }
+.dpm-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dpm-meta { flex: none; font-size: 12.5px; color: var(--c-muted); }
+.dpm-out { color: var(--c-muted); font-size: 13.5px; }
+.dpm-new { display: flex; gap: 6px; margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--c-border); }
+.dpm-new input {
+  flex: 1; min-width: 0; padding: 8px 10px;
+  font: inherit; font-size: 14px;
+  background: var(--c-surface2); border: 1px solid var(--c-border); border-radius: 9px; color: var(--c-text);
 }
-.dp-row:hover { background: var(--c-surface2); }
-.dp-row.is-chosen { background: var(--c-surface3); }
-.dp-row.is-landed { animation: dpLand 0.7s cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes dpLand {
-  0%, 55% { background: var(--c-surface3); box-shadow: inset 0 0 0 1.5px var(--c-accent-brd); }
-  100%    { background: var(--c-surface3); box-shadow: inset 0 0 0 1.5px transparent; }
+.dpm-new input:focus { outline: none; border-color: var(--c-accent); }
+.dpm-new button {
+  flex: none; width: 36px; border: 0; border-radius: 9px;
+  background: var(--c-accent); color: #fff; font-size: 16px; cursor: pointer;
 }
-.dp-caret, .dp-caret-gap { flex: none; width: 30px; height: 30px; }
-.dp-caret {
-  display: grid; place-items: center;
-  border: 0; background: none; border-radius: 8px;
-  color: var(--c-muted); cursor: pointer;
-}
-.dp-caret svg { transition: transform 0.2s ease; }
-.dp-caret.is-open svg { transform: rotate(90deg); }
-.dp-caret:hover { color: var(--c-text); }
-.dp-pick {
-  flex: 1; min-width: 0;
-  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  padding: 10px 12px 10px 2px;
-  border: 0; background: none; font: inherit; text-align: left; cursor: pointer;
-}
-.dp-name {
-  font-size: 15px; font-weight: 600; color: var(--c-text); letter-spacing: -0.2px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.dp-row.is-chosen .dp-name { color: var(--c-accent); }
-.dp-count { flex: none; font-size: 13px; color: var(--c-muted); }
-.dp-row.is-new .dp-count { color: var(--c-accent); font-weight: 600; }
-.dp-add {
-  width: 100%;
-  padding: 9px 12px 9px 34px;
-  border: 0; background: none; font: inherit; text-align: left; cursor: pointer;
-  font-size: 14.5px; font-weight: 600; color: var(--c-accent);
-}
-.dp-add-plus { margin-right: 4px; }
-.dp-row.is-naming { padding: 4px 4px 4px 32px; background: none; }
-.dp-name-input {
-  flex: 1; min-width: 0;
-  padding: 9px 12px;
-  font: inherit; font-size: 15px; font-weight: 600; color: var(--c-text);
-  background: var(--c-card-solid);
-  border: 1.5px solid var(--c-accent);
-  border-radius: 10px;
-  outline: none;
-}
-
-.dp-path {
-  margin: 0;
-  min-height: 22px;
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0;
-  font-size: 14.5px; color: var(--c-text); font-weight: 600;
-}
-.dp-crumb { display: inline-flex; align-items: baseline; animation: dpCrumb 0.32s cubic-bezier(0.25, 1, 0.5, 1) both; animation-delay: calc(var(--i) * 45ms); }
-.dp-sep { color: var(--c-muted); font-weight: 500; margin: 0 7px; }
-.dp-crumb-name.is-new { color: var(--c-accent); }
-.dp-path-empty { color: var(--c-muted); font-weight: 500; }
-@keyframes dpCrumb { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) {
-  .dp-crumb, .dp-row.is-landed { animation: none; }
-}
+.dpm-new button:disabled { opacity: 0.35; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .dpath-step, .dpath-step--lecture { animation: none; } }
