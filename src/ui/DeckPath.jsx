@@ -27,6 +27,10 @@ const FolderIcon = () => (
 const DocIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.75h5.25L12.5 5v9.25H4V1.75Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><path d="M9 1.75V5.25h3.5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>
 );
+/* The joint between a level and the one it sits in. */
+const Elbow = () => (
+  <svg className="dp3-elbow" width="18" height="22" viewBox="0 0 18 22" aria-hidden="true"><path d="M4 0v9a5 5 0 0 0 5 5h8" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+);
 const Chevron = ({ left = false }) => (
   <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style={left ? { transform: "scaleX(-1)" } : undefined}><path d="M5.25 3 9 7l-3.75 4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
@@ -83,39 +87,41 @@ export default function DeckPath({ decks, folderPath, onFolderPath, lectureName,
 
   return (
     <div className="dp2">
-      <button type="button" className="dp2-folder" aria-expanded={open} onClick={openMenu}>
-        <span className="dp2-icon"><FolderIcon /></span>
-        <span className="dp2-folder-path">
-          {names.length ? shown.map((n, i) => (
-            <span key={`${i}:${n}`} className="dp2-crumb">
-              {i > 0 && <span className="dp2-sep" aria-hidden="true">›</span>}
-              <span className={i === shown.length - 1 ? "dp2-crumb-last" : "dp2-crumb-name"}>{n}</span>
-            </span>
-          )) : <span className="dp2-none">No folder</span>}
-        </span>
-        <span className="dp2-change">{names.length ? "Change" : "Choose"}</span>
-      </button>
-
-      <div key={`deck:${folderPath}`} className="dp2-deck">
-        <svg className="dp2-elbow" width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M3 0v13a6 6 0 0 0 6 6h11" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
-        {batchCount > 1 ? (
-          <span className="dp2-lecture is-batch"><DocIcon /><span className="dp2-lecture-name">{batchCount} lectures, a deck each</span></span>
-        ) : renaming ? (
-          <span className="dp2-lecture is-editing">
-            <DocIcon />
-            <input className="dp2-lecture-input" autoFocus defaultValue={lectureName}
-              onFocus={e => e.target.select()}
-              onBlur={e => { onLectureName(e.target.value.trim() || lectureName); setRenaming(false); }}
-              onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); if (e.key === "Escape") setRenaming(false); }}
-              maxLength={80} aria-label="Name of this lecture's deck" />
-          </span>
-        ) : (
-          <button type="button" className={`dp2-lecture${lectureName ? "" : " is-empty"}`} onClick={() => setRenaming(true)} title="Rename">
-            <DocIcon />
-            <span className="dp2-lecture-name">{lectureName || "Name this lecture’s deck"}</span>
-            <svg className="dp2-pen" width="13" height="13" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.6 2.1l2.3 2.3L4.2 10.1H1.9V7.8l5.7-5.7Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+      {/* The path as a hierarchy, top to bottom: each folder indented under
+          the one it is in, joined by an elbow, ending in the lecture's own
+          deck. On one line ("Year 2 › Week 1") it read as a file path and it
+          was not obvious what went inside what (Rafil, 2026-10-17). */}
+      <div className="dp3">
+        {(names.length ? shown : ["Your decks"]).map((n, i) => (
+          <button key={`${i}:${n}`} type="button" className={`dp3-row${names.length ? "" : " is-root"}`}
+            style={{ paddingLeft: i === 0 ? 6 : i * 24 - 10 }} aria-expanded={open} onClick={openMenu}>
+            {i > 0 && <Elbow />}
+            <span className="dp3-icon"><FolderIcon /></span>
+            <span className={`dp3-name${i === shown.length - 1 ? " is-last" : ""}`}>{n}</span>
+            {i === 0 && <span className="dp2-change">{names.length ? "Change" : "Choose a folder"}</span>}
           </button>
-        )}
+        ))}
+        <div key={`deck:${folderPath}`} className="dp3-row dp3-deck" style={{ paddingLeft: Math.max(1, shown.length) * 24 - 10 }}>
+          <Elbow />
+          {batchCount > 1 ? (
+            <span className="dp2-lecture is-batch"><DocIcon /><span className="dp2-lecture-name">{batchCount} lectures, a deck each</span></span>
+          ) : renaming ? (
+            <span className="dp2-lecture is-editing">
+              <DocIcon />
+              <input className="dp2-lecture-input" autoFocus defaultValue={lectureName}
+                onFocus={e => e.target.select()}
+                onBlur={e => { onLectureName(e.target.value.trim() || lectureName); setRenaming(false); }}
+                onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); if (e.key === "Escape") setRenaming(false); }}
+                maxLength={80} aria-label="Name of this lecture's deck" />
+            </span>
+          ) : (
+            <button type="button" className={`dp2-lecture${lectureName ? "" : " is-empty"}`} onClick={() => setRenaming(true)} title="Rename">
+              <DocIcon />
+              <span className="dp2-lecture-name">{lectureName || "Name this lecture’s deck"}</span>
+              <svg className="dp2-pen" width="13" height="13" viewBox="0 0 12 12" aria-hidden="true"><path d="M7.6 2.1l2.3 2.3L4.2 10.1H1.9V7.8l5.7-5.7Z" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>
+            </button>
+          )}
+        </div>
       </div>
 
       <Popover anchorRef={anchorRef} open={open} onClose={() => setOpen(false)} align="left" className="dp2-pop">

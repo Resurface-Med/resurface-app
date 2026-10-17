@@ -8596,3 +8596,29 @@ html.is-deck-dragging * {
 }
 .dp2-here-btn:hover { background: var(--c-accent-lt); }
 .dp2-opt .dp2-in { width: auto; height: auto; margin-left: 2px; background: none; color: var(--c-muted); }
+
+/* ─── Generate: the path as a hierarchy (ui/DeckPath) ─────────────
+   One box, one row per level, each indented under the one it is in with
+   an elbow, the lecture's deck last as the solid accent pill. */
+.dp3 {
+  display: flex; flex-direction: column;
+  padding: 8px 10px 10px;
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  border-radius: 14px;
+}
+.dp3-row {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 5px 6px;
+  border: 0; background: none; border-radius: 9px;
+  font: inherit; text-align: left;
+}
+button.dp3-row { cursor: pointer; }
+button.dp3-row:hover { background: var(--c-card-solid); }
+.dp3-elbow { flex: none; color: var(--c-muted-dim); margin-top: -12px; }
+.dp3-icon { flex: none; display: grid; color: var(--c-muted); }
+.dp3-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 500; color: var(--c-sub); }
+.dp3-name.is-last { color: var(--c-text); font-weight: 600; }
+.dp3-row.is-root .dp3-name { color: var(--c-muted); }
+.dp3-deck { padding-top: 3px; animation: dp2Drop 0.38s cubic-bezier(0.34, 1.35, 0.5, 1) both; }
+.dp3-deck .dp2-lecture { margin-top: 0; }
