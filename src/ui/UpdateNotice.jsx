@@ -17,9 +17,14 @@ import { useEffect, useState } from "react";
  */
 const EVERY = 10 * 60 * 1000;
 /* ?newversion on a preview build shows the notice straight away, to look
-   at. Read once, when this file loads, before anything tidies the address. */
-const PREVIEW = typeof __PREVIEW_TOOLS__ !== "undefined" && __PREVIEW_TOOLS__
-  && new URLSearchParams(window.location.search).has("newversion");
+   at. Remembered for the tab, because the address does not survive a
+   sign-in or the app's own reloads. */
+const PREVIEW = typeof __PREVIEW_TOOLS__ !== "undefined" && __PREVIEW_TOOLS__ && (() => {
+  try {
+    if (new URLSearchParams(window.location.search).has("newversion")) sessionStorage.setItem("newversion", "1");
+    return sessionStorage.getItem("newversion") === "1";
+  } catch { return new URLSearchParams(window.location.search).has("newversion"); }
+})();
 const scriptIn = html => html.match(/\/assets\/index-[\w-]+\.js/)?.[0] ?? null;
 
 export default function UpdateNotice({ hold = false }) {
