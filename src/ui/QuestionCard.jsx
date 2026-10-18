@@ -246,9 +246,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     >
       {!focusMode && (
       <div className="q-card-meta">
+        {/* A premade question says where it is from; your own say nothing.
+            Not yours to edit either, so no pencil — Report is under it. */}
+        {q.featured && <span className="q-src">Resurface · {q.path?.[0]?.name ?? "Shared deck"}</span>}
         <div className="q-card-tools">
           <span className="q-tool-extra">
-          <button
+          {!q.featured && <button
             type="button"
             onClick={() => setEditing(true)}
             title="Edit question"
@@ -259,7 +262,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
               <path d="M10.5 1.5L13.5 4.5L5 13H2V10L10.5 1.5Z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          </button>
+          </button>}
           <button
             type="button"
             onClick={handleCopy}
@@ -285,6 +288,9 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       </div>
       )}
 
+      {/* In a session (focus mode) the meta row above is not drawn, so the
+          source goes on a line of its own over the stem. */}
+      {focusMode && q.featured && <p className="q-src q-src--focus">Resurface · {q.path?.[0]?.name ?? "Shared deck"}</p>}
       <Highlighter
         as="p"
         text={q.q}

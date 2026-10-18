@@ -9,7 +9,7 @@ import { useAuth } from "../lib/auth";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
-import DeckTree from "../ui/DeckTree";
+import DeckTree, { prune } from "../ui/DeckTree";
 import { DeckTabs, DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
@@ -180,7 +180,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -233,6 +233,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
+  /* Yours and the featured ones, for drawing the list; decksById stays
+     yours alone, since everything that reads it renames, shares or deletes. */
+  const listDecks = useMemo(() => [...decks, ...featuredDecks], [decks, featuredDecks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
   useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
 
@@ -335,7 +338,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* Inside a tab, "All" means every leaf under the tab's root. */
   function effective(f) {
     if (!activeRootId || !(f.leaves?.includes("All") || !f.leaves?.length)) return f;
-    const forest = buildForest({ questions: QUESTIONS, decks, pStats, eligible: new Set(QUESTIONS.map(q => q.id)), rootId: activeRootId });
+    const forest = buildForest({ questions: QUESTIONS, decks: listDecks, pStats, eligible: new Set(QUESTIONS.map(q => q.id)), rootId: activeRootId });
     const leaves = forest[0] ? leavesUnder(forest[0]) : [];
     return { ...f, leaves: leaves.length ? leaves : ["nothing"] };
   }
@@ -525,7 +528,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const eligibleIds = inScope.map(x => x.id);
     const eligibleSet = new Set(eligibleIds);
     const dueSet = new Set(QUESTIONS.filter(x => isReviewDue(srCards[x.id])).map(x => x.id));
-    const fullForest = buildForest({ questions: QUESTIONS, decks, pStats, eligible: eligibleSet, due: dueSet });
+    const fullForest = buildForest({ questions: QUESTIONS, decks: listDecks, pStats, eligible: eligibleSet, due: dueSet });
     const roots = fullForest;
     const activeRoot = activeRootId ? findNode(fullForest, activeRootId) : null;
     /* Inside a tab, the tree is what is under the root — the tab itself is
@@ -563,8 +566,17 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       onRename: endNaming,
     };
 
-    /* What a row's menu offers. Only your decks have one. */
-    const rowMenu = _node => [
+    /* What a row's menu offers: your decks the lot, a featured deck's own
+       row only a way to hide it. */
+    /* Rows carry the id drawn at the top (a folder, perhaps); hiding is
+       keyed on the real deck. */
+    const hideFeatured = topId => {
+      if (activeRootId === topId) setActiveRootId(null);
+      const r = featured.find(x => (x.top ?? x.id) === topId);
+      if (r) onHideFeatured?.(r.id, true);
+    };
+    const featuredMenu = [{ label: "Hide from my decks", onSelect: n => hideFeatured(n.id) }];
+    const rowMenu = node => !node.mine ? (node.byline && onHideFeatured ? featuredMenu : null) : [
       { label: "Manage questions", onSelect: n => setManaging(n.id) },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
@@ -576,6 +588,52 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ];
+    const qNorm = topicQuery.trim().toLowerCase();
+    /* A featured deck you hid can be brought back. (An old copy of one is
+       swapped for it automatically — see App's switchToFeatured.) */
+    const hiddenFeatured = featured.filter(r => r.hidden);
+    const hiddenNotes = hiddenFeatured.length > 0 && !qNorm ? (
+      <>
+        {hiddenFeatured.map(r => (
+          <p key={r.id} className="feat-hidden">
+            {r.byline}’s {r.name} deck is hidden.{" "}
+            <button type="button" className="gen-link" onClick={() => onHideFeatured?.(r.id, false)}>Show it</button>
+          </p>
+        ))}
+      </>
+    ) : null;
+    /*
+     * The list: your decks, then the featured ones in a tree of their own.
+     *
+     * Two trees rather than one so that nothing about moving decks can reach
+     * a deck that is not yours — dragging, Alt+arrows and Move to… all work
+     * within the tree they start in. Choosing is shared: both read and write
+     * the same selection, and "Everything" (in whichever tree comes first)
+     * counts both. Inside a tab there is only that deck, so one tree.
+     */
+    const ownRoots = forest.filter(n => !n.featured);
+    const featRoots = activeRoot ? [] : forest.filter(n => n.featured);
+    const featMatch = !qNorm || prune(featRoots, qNorm).length > 0;
+    const allCount = forest.reduce((n, r) => n + r.avail, 0);
+    const deckList = ({ key, ...treeProps }) => (
+      <>
+        {(ownRoots.length > 0 || featRoots.length === 0) && (
+          <DeckTree key={key} {...treeProps} forest={activeRoot ? forest : ownRoots}
+            allAvail={activeRoot ? treeProps.allAvail : allCount}
+            quietNoMatch={featRoots.length > 0 && featMatch}
+            heading={featRoots.length > 0 ? "Your decks" : null} />
+        )}
+        {featRoots.length > 0 && featMatch && (
+          <div className={ownRoots.length ? "feat-tree" : undefined}>
+            <DeckTree key="featured" forest={featRoots} value={filter}
+              onChange={next => setFilter(f => ({ ...f, ...next }))}
+              query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
+              rowMenu={rowMenu} heading={ownRoots.length > 0 ? "Resurface decks" : null} />
+          </div>
+        )}
+        {hiddenNotes}
+      </>
+    );
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
     /* One topic names itself; several are counted. Spelling out four topic
        names would not fit the button this ends up on, and a list that gets
@@ -750,6 +808,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                             onRename={id => setNaming({ mode: "rename", deckId: id })} />
                         </div>
                       )}
+                      {activeRoot?.featured && (
+                        <div className="tg-editbar">
+                          <span className="tg-editbar-meta">{activeRoot.total} question{activeRoot.total === 1 ? "" : "s"} · by {activeRoot.byline}</span>
+                          <button type="button" className="gen-link" onClick={() => hideFeatured(activeRoot.id)}>Hide</button>
+                        </div>
+                      )}
                       <input
                         type="search"
                         value={topicQuery}
@@ -763,24 +827,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           Nothing here yet. Press <strong>＋ Add</strong> to turn a lecture into questions, or to make a sub-deck.
                         </div>
                       ) : (
-                        <DeckTree
-                          key={activeRootId ?? "all"}
-                          forest={forest}
-                          value={filter}
-                          onChange={next => setFilter(f => ({ ...f, ...next }))}
-                          query={topicQuery}
-                          allLabel="Everything"
-                          allAvail={null}
-                          rowMenu={rowMenu}
+                        deckList({
+                          key: activeRootId ?? "all",
+                          value: filter,
+                          onChange: next => setFilter(f => ({ ...f, ...next })),
+                          query: topicQuery,
+                          allLabel: "Everything",
+                          allAvail: null,
+                          rowMenu,
                           /* Inside a tab the tree is that deck's children, so
                              its top level is the tab's deck, and Move to…
                              needs the whole tree to reach the other tabs. */
-                          onMove={(id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId)}
-                          allForest={fullForest}
-                          rootParentId={activeRoot ? activeRootId : null}
-                          {...renameProps}
-                          allowEmpty
-                        />
+                          onMove: (id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId),
+                          allForest: fullForest.filter(n => !n.featured),
+                          rootParentId: activeRoot ? activeRootId : null,
+                          ...renameProps,
+                          allowEmpty: true,
+                        })
                       )}
                     </>
                   )}
@@ -908,19 +971,18 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               ) : (
                 <>
                 {noQuestions && renderEmpty()}
-                <DeckTree
-                  key="all"
-                  forest={forest}
-                  value={filter}
-                  onChange={next => setFilter(f => ({ ...f, ...next }))}
-                  query={topicQuery}
-                  allLabel="Everything"
-                  allAvail={null}
-                  rowMenu={rowMenu}
-                  onMove={(id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId)}
-                  {...renameProps}
-                  allowEmpty
-                />
+                {deckList({
+                  key: "all",
+                  value: filter,
+                  onChange: next => setFilter(f => ({ ...f, ...next })),
+                  query: topicQuery,
+                  allLabel: "Everything",
+                  allAvail: null,
+                  rowMenu,
+                  onMove: (id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId),
+                  ...renameProps,
+                  allowEmpty: true,
+                })}
                 </>
               )}
             </div>

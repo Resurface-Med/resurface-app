@@ -241,7 +241,7 @@ export async function selectAll(query, orderBy) {
 export async function loadAll(userId) {
   /* Decks alongside the rest: they were fetched after all of it, a whole
      extra round trip on every sign-in. */
-  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes] =
+  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured] =
     await Promise.all([
       timed("t_practice", selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id")),
       timed("t_sr", selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id")),
@@ -252,6 +252,7 @@ export async function loadAll(userId) {
       timed("t_generated", selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id")),
       timed("t_edits", selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id")),
       timed("t_decks", loadUserDecks().then(data => ({ data, error: null }), error => ({ data: null, error }))),
+      timed("t_featured", loadFeatured()),
     ]);
   if (deckRes.error) throw deckRes.error;
   const decks = deckRes.data;
@@ -323,6 +324,38 @@ export async function loadAll(userId) {
     generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true, deckId: r.deck_id, createdAt: r.created_at })),
     questionEdits,
     decks,
+    featured,
+  };
+}
+
+/**
+ * Featured decks: someone else's deck, read live by everyone (migration
+ * 0014). Not one of the tables the snapshot must have — if this fails, the
+ * app opens without them rather than refusing to open.
+ *
+ * Shapes:
+ *  roots: [{ id, top, name, byline, shareCode, hidden, copyId }] — copyId
+ *         is your own copy of it from before, if you have one.
+ *  decks: rows like loadUserDecks's, with `featured` and their root.
+ *  questions: rows like `generated`'s, minus `gen` — they are not yours to
+ *         edit, so the card offers Report instead.
+ */
+export async function loadFeatured() {
+  const { data, error } = await supabase.rpc("featured_content");
+  if (error || !data) return { roots: [], decks: [], questions: [] };
+  const names = new Map((data.decks ?? []).map(d => [d.id, d.name]));
+  /* `top` is what heads the list — a folder the deck is shown in, or the deck
+     itself — and carries the byline; `id` is the real deck. */
+  const roots = (data.roots ?? []).map(r => ({ ...r, top: r.top ?? r.id, name: names.get(r.top ?? r.id) ?? "" }));
+  const byTop = new Map(roots.map((r, i) => [r.top, { byline: r.byline, at: i }]));
+  return {
+    roots,
+    decks: (data.decks ?? []).map(d => ({
+      id: d.id, name: d.name, parentId: d.parentId,
+      position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
+      featured: true, root: d.root, byline: d.parentId ? null : byTop.get(d.id)?.byline ?? null,
+    })),
+    questions: (data.questions ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), featured: true, deckId: r.deckId })),
   };
 }
 
@@ -519,6 +552,20 @@ export const remote = {
   deleteOwnAccount: async () => {
     const { error } = await supabase.rpc("delete_own_account");
     if (error) throw error;
+  },
+  /* A featured deck, off or back on your Study list. */
+  hideFeatured: async (deckId, hide) => {
+    const { error } = hide
+      ? await supabase.from("featured_hidden").upsert({ deck_id: deckId })
+      : await supabase.from("featured_hidden").delete().eq("deck_id", deckId);
+    if (error) throw error;
+  },
+  /* Your old copy of a featured deck, swapped for the live one: progress on
+     its questions moves across, what you added yourself stays. */
+  switchToFeatured: async (copyId) => {
+    const { data, error } = await supabase.rpc("switch_to_featured", { copy: copyId });
+    if (error) throw error;
+    return data ?? 0;
   },
   /* `skip`: ids of the shared deck's questions to leave out — ones the
      recipient already has (see ReceiveDeck). */
