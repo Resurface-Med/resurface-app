@@ -693,7 +693,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <p className="feat-soon__body">
                     Year 2 is the only year with a ready-made deck at the moment. We’re working
                     on decks for the other years. In the meantime, you can make questions from
-                    your own lecture slides, PDFs or notes.
+                    your own Anki decks, lecture slides, PDFs, notes or text files.
                   </p>
                 </div>
                 {onGenerateInto && (
