@@ -638,9 +638,26 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         {featRoots.length > 0 && featMatch && (
           <div className={ownRoots.length ? "feat-tree" : undefined}>
             {ownRoots.length > 0 && <h3 className="deck-section-h">Resurface decks</h3>}
-            {/* Only one year is covered so far; said where the decks are, so
-                nobody in another year thinks the app is not for them. */}
-            {!qNorm && <p className="feat-soon">Only Year 2 so far. Decks for the other years are coming soon.</p>}
+            {/* Only one year is covered so far. Said where the decks are, with
+                the way round it, so nobody in another year thinks the app is
+                not for them (2026-10-18). */}
+            {!qNorm && (
+              <section className="feat-soon" aria-label="Other years">
+                <img src="/icon-192.png" alt="" aria-hidden="true" className="feat-soon__mark" width="44" height="44" />
+                <div className="feat-soon__text">
+                  <h3 className="feat-soon__title">Other years are on the way</h3>
+                  <p className="feat-soon__body">
+                    Only Year 2 is ready so far. Until your year arrives, you can turn your own
+                    lecture slides, PDFs or notes into questions.
+                  </p>
+                </div>
+                {onGenerateInto && (
+                  <button type="button" className="feat-soon__go btn-press" onClick={() => onGenerateInto(null)}>
+                    Make my own questions <span aria-hidden="true">→</span>
+                  </button>
+                )}
+              </section>
+            )}
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
