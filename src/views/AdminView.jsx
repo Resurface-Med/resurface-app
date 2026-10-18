@@ -22,13 +22,16 @@ import { confirm } from "../ui/Confirm";
  * this page ends at telling you what is true.
  */
 
+/* Each section says what it is in one plain sentence under its title
+   (2026-10-18): the page was a set of bare numbers you had to already know
+   the meaning of. */
 const SECTIONS = [
-  { k: "overview", label: "Overview" },
-  { k: "people", label: "People" },
-  { k: "generating", label: "Generating" },
-  { k: "tokens", label: "Tokens" },
-  { k: "mail", label: "Mail" },
-  { k: "flags", label: "Flags" },
+  { k: "overview", label: "Overview", title: "This week", desc: "The last 7 days, compared with the 7 days before." },
+  { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
+  { k: "generating", label: "Generating", title: "Questions generated", desc: "How many questions the AI wrote each day over the last 30 days." },
+  { k: "tokens", label: "AI usage", title: "AI usage", desc: "How much of the AI model each feature uses, in tokens." },
+  { k: "mail", label: "Mailing list", title: "Mailing list", desc: "People who agreed to receive news and study emails." },
+  { k: "flags", label: "Reported", title: "Reported questions", desc: "Questions students have flagged as wrong or unclear." },
 ];
 
 /* The same keys FlagQuestion writes, read back as the words the student
@@ -60,6 +63,21 @@ function Empty({ children }) {
   return <p className="adm-empty">{children}</p>;
 }
 
+/* A figure and what it is: the number large, the words under it at a size
+   you can read. Used for every summary on the page. */
+function Stats({ items }) {
+  return (
+    <dl className="adm-stats">
+      {items.map(([value, label]) => (
+        <div key={label} className="adm-stat">
+          <dd className="adm-stat__value">{value}</dd>
+          <dt className="adm-stat__label">{label}</dt>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 /* ── Overview ──────────────────────────────────────────────────────
    Cards for the figures worth a glance, one chart big enough to read
    underneath, and the newest accounts beside it.
@@ -69,12 +87,12 @@ function Empty({ children }) {
    it is distinct-in-window — a person studying every day is one, not seven.
    Answers is the sum of what everybody did. */
 const METRICS = {
-  accounts:  { label: "Accounts", unit: "new" },
-  active:    { label: "Active", unit: "people" },
-  answers:   { label: "Answers", unit: "answered" },
-  generated: { label: "Generated", unit: "questions" },
-  flags:     { label: "Flags", unit: "reports" },
-  decks:     { label: "Decks", unit: "made" },
+  accounts:  { label: "New accounts", short: "Accounts", unit: "new" },
+  active:    { label: "Active people", short: "Active", unit: "people" },
+  answers:   { label: "Questions answered", short: "Answered", unit: "answered" },
+  generated: { label: "Questions generated", short: "Generated", unit: "questions" },
+  flags:     { label: "Reports", short: "Reports", unit: "reports" },
+  decks:     { label: "Decks made", short: "Decks", unit: "made" },
 };
 /* The four on the cards. The rest are a click away on the chart below —
    a card each would be a wall of numbers, which is what this replaced. */
@@ -82,10 +100,10 @@ const HEADLINE = ["accounts", "active", "answers", "generated"];
 
 function Delta({ now, before }) {
   const d = Number(now) - Number(before);
-  if (d === 0) return <span className="adm-card__delta adm-dim">no change on last week</span>;
+  if (d === 0) return <span className="adm-card__delta adm-dim">Same as the week before</span>;
   return (
     <span className={`adm-card__delta ${d > 0 ? "adm-up" : "adm-down"}`}>
-      {d > 0 ? `+${d}` : d} on last week
+      {d > 0 ? `${Number(d).toLocaleString("en-GB")} more` : `${Number(-d).toLocaleString("en-GB")} fewer`} than the week before
     </span>
   );
 }
@@ -144,7 +162,7 @@ function Overview() {
               <span className="adm-card__spark">
                 <Spark points={series.get(k)} tone="accent" plain />
               </span>
-              <span className="adm-card__total">{Number(r.total).toLocaleString("en-GB")} all time</span>
+              <span className="adm-card__total">{Number(r.total).toLocaleString("en-GB")} in total</span>
             </button>
           );
         })}
@@ -153,13 +171,13 @@ function Overview() {
       <div className="adm-grid">
         <section className="adm-panel">
           <div className="adm-panel__head">
-            <h2 className="adm-panel__title">{chosen.label} · last 30 days</h2>
+            <h3 className="adm-panel__title">{chosen.label}, last 30 days</h3>
             <div className="adm-seg" role="tablist" aria-label="Metric">
               {Object.keys(METRICS).map(k => (
                 <button key={k} type="button" role="tab" aria-selected={metric === k}
                   className={`adm-seg__btn${metric === k ? " is-on" : ""}`}
                   onClick={() => setMetric(k)}>
-                  {METRICS[k].label}
+                  {METRICS[k].short}
                 </button>
               ))}
             </div>
@@ -171,7 +189,7 @@ function Overview() {
 
         <aside className="adm-panel">
           <div className="adm-panel__head">
-            <h2 className="adm-panel__title">Newest accounts</h2>
+            <h3 className="adm-panel__title">Newest accounts</h3>
           </div>
           {newest.length === 0 ? <Empty>&nbsp;</Empty> : (
             <ul className="adm-list">
@@ -180,7 +198,7 @@ function Overview() {
                   <span className="adm-list__who">
                     <span className="adm-list__name">{p.display_name || p.email}</span>
                     <span className="adm-list__meta">
-                      {Number(p.answered) > 0 ? `${p.answered} answered` : "not started"}
+                      {Number(p.answered) > 0 ? `${p.answered} questions answered` : "Hasn’t answered any yet"}
                     </span>
                   </span>
                   <span className="adm-list__when">{dmy(p.joined)}</span>
@@ -261,31 +279,34 @@ function People() {
 
   return (
     <section className="adm-panel">
-      <div className="adm-strip">
-        <span><strong>{rows.length}</strong> accounts</span>
-        <span><strong>{studied}</strong> have ever studied</span>
-        <span><strong>{thisWeek}</strong> studied this week</span>
-        <span><strong>{rows.filter(p => p.is_admin).length}</strong> admins</span>
-        <span className="adm-strip__sort">
-          sorted by{" "}
-          {[["recent", "last seen"], ["answers", "answers"], ["joined", "joined"]].map(([k, l]) => (
-            <button key={k} type="button"
-              className={`adm-sort${sort === k ? " is-on" : ""}`}
+      <Stats items={[
+        [rows.length, "Accounts"],
+        [studied, "Have answered a question"],
+        [thisWeek, "Studied this week"],
+        [rows.filter(p => p.is_admin).length, "Admins"],
+      ]} />
+
+      <div className="adm-toolbar">
+        <span className="adm-toolbar__label">Sort by</span>
+        <div className="adm-seg" role="group" aria-label="Sort by">
+          {[["recent", "Last seen"], ["answers", "Questions answered"], ["joined", "Date joined"]].map(([k, l]) => (
+            <button key={k} type="button" aria-pressed={sort === k}
+              className={`adm-seg__btn${sort === k ? " is-on" : ""}`}
               onClick={() => setSort(k)}>{l}</button>
           ))}
-        </span>
+        </div>
       </div>
 
       <table className="adm-table adm-people">
         <thead>
           <tr>
-            <th>Who</th>
+            <th>Person</th>
             <th>Joined</th>
             <th>Last seen</th>
-            <th className="adm-num">Answers</th>
-            <th className="adm-num">Gen</th>
-            <th className="adm-trend-head">last 30 days</th>
-            <th>&nbsp;</th>
+            <th className="adm-num">Answered</th>
+            <th className="adm-num">Generated</th>
+            <th className="adm-trend-head">Last 30 days</th>
+            <th><span className="sr-only">Admin</span></th>
           </tr>
         </thead>
         <tbody>
@@ -293,13 +314,13 @@ function People() {
             <tr key={p.user_id}>
               <th scope="row">
                 <span className="adm-name">
-                  {p.display_name || "—"}
+                  {p.display_name || <span className="adm-dim">No name yet</span>}
                   {p.is_admin && <span className="adm-badge">admin</span>}
                 </span>
                 <span className="adm-email">{p.email}</span>
               </th>
               <td className="adm-dim">{dmy(p.joined)}</td>
-              <td className={p.last_active ? "" : "adm-dim"}>{p.last_active ? dmy(p.last_active) : "never"}</td>
+              <td className={p.last_active ? "" : "adm-dim"}>{p.last_active ? dmy(p.last_active) : "Never"}</td>
               <td className="adm-num">{p.answered}</td>
               <td className="adm-num">{p.generated}</td>
               <td className="adm-trend">
@@ -312,7 +333,7 @@ function People() {
               </td>
               <td>
                 <button type="button" className="gen-link" disabled={busy === p.user_id} onClick={() => toggle(p)}>
-                  {busy === p.user_id ? "…" : p.is_admin ? "Remove" : "Make admin"}
+                  {busy === p.user_id ? "…" : p.is_admin ? "Remove admin" : "Make admin"}
                 </button>
               </td>
             </tr>
@@ -359,17 +380,17 @@ function Generating() {
 
   return (
     <section className="adm-panel">
-      <div className="adm-strip">
-        <span><strong>{total}</strong> questions in 30 days</span>
-        <span><strong>{points[points.length - 1]}</strong> today</span>
-        <span><strong>{busiest}</strong> on the busiest day</span>
-        <span><strong>{people}</strong> at most in one day</span>
-      </div>
-      <InlineChart points={points} days={days} label="Questions generated" unit="questions" />
+      <Stats items={[
+        [total.toLocaleString("en-GB"), "Questions in 30 days"],
+        [points[points.length - 1].toLocaleString("en-GB"), "Today"],
+        [busiest.toLocaleString("en-GB"), "On the busiest day"],
+        [people, "Most people in one day"],
+      ]} />
+      <InlineChart points={points} days={days} label="Questions generated per day" unit="questions" />
       <p className="adm-note">
-        Questions, not requests. The free tier limits requests and each one returns
-        several questions, so this shows the shape of usage rather than how close the
-        quota is — counting requests would have to happen in the backend.
+        This counts questions, not requests to the AI. Each request writes several
+        questions, so it shows how much is being made rather than how close we are to
+        the daily request limit.
       </p>
     </section>
   );
@@ -410,7 +431,7 @@ function InlineChart({ points, days, label, unit, tone = "accent" }) {
    Split by what asked for it: generating a lecture's worth of questions
    and a one-line tutor reply are not the same animal, and input tokens are
    most of the bill for the first because the lecture goes up every time. */
-const KINDS = { generate: "Generating", explain: "Resurface AI" };
+const KINDS = { generate: "Generating questions", explain: "Resurface AI (explanations)" };
 const thousands = n => Number(n).toLocaleString("en-GB");
 
 function Tokens() {
@@ -447,22 +468,22 @@ function Tokens() {
 
   return (
     <section className="adm-panel">
-      <div className="adm-strip">
-        <span><strong>{thousands(sum("tokens_today"))}</strong> today</span>
-        <span><strong>{thousands(sum("tokens_7d"))}</strong> this week</span>
-        <span><strong>{thousands(sum("tokens_all"))}</strong> all time</span>
-        <span><strong>{thousands(sum("calls_all"))}</strong> calls</span>
-      </div>
+      <Stats items={[
+        [thousands(sum("tokens_today")), "Tokens today"],
+        [thousands(sum("tokens_7d")), "Tokens in the last 7 days"],
+        [thousands(sum("tokens_all")), "Tokens in total"],
+        [thousands(sum("calls_all")), "Requests to the AI in total"],
+      ]} />
 
-      <table className="adm-table adm-table--tight">
+      <table className="adm-table adm-tokens">
         <thead>
           <tr>
-            <th>&nbsp;</th>
-            <th className="adm-num">today</th>
-            <th className="adm-num">7 days</th>
-            <th className="adm-num">all time</th>
-            <th className="adm-num">calls</th>
-            <th className="adm-trend-head">last 30 days</th>
+            <th>Feature</th>
+            <th className="adm-num">Today</th>
+            <th className="adm-num">Last 7 days</th>
+            <th className="adm-num">In total</th>
+            <th className="adm-num">Requests</th>
+            <th className="adm-trend-head">Last 30 days</th>
           </tr>
         </thead>
         <tbody>
@@ -488,9 +509,8 @@ function Tokens() {
       </table>
 
       <p className="adm-note">
-        Tokens as the provider reports them, recorded per call by the backend. Counts
-        only calls that reached the model: a request refused by the rate limiter never
-        gets here, and neither does one that failed.
+        Tokens are what the AI provider counts and charges by. Only requests that reached
+        the AI are counted; ones turned away by the rate limit, or that failed, are not.
       </p>
     </section>
   );
@@ -516,11 +536,14 @@ function Mail() {
 
   return (
     <section className="adm-panel">
-      <div className="adm-mail-head">
-        <span>{rows.length} {rows.length === 1 ? "person has" : "people have"} opted in.</span>
-        <button type="button" className="gen-link" onClick={copy}>{copied ? "Copied" : "Copy all"}</button>
+      <div className="adm-toolbar">
+        <span className="adm-toolbar__count"><strong>{rows.length}</strong> {rows.length === 1 ? "person has" : "people have"} agreed</span>
+        <button type="button" className="adm-action btn-press" onClick={copy}>{copied ? "Copied" : "Copy all emails"}</button>
       </div>
-      <table className="adm-table">
+      <table className="adm-table adm-mail">
+        <thead>
+          <tr><th>Name</th><th>Email</th><th>Joined</th></tr>
+        </thead>
         <tbody>
           {rows.map(r => (
             <tr key={r.email}>
@@ -556,10 +579,10 @@ function FlagRow({ row, index, onCleared }) {
   return (
     <li className="flagq" data-in="rise" style={{ "--i": index }}>
       <div className="flagq__head">
-        <span className="flagq__count">{row.flags}×</span>
+        <span className="flagq__count">{row.flags} {Number(row.flags) === 1 ? "report" : "reports"}</span>
         <span className="flagq__reasons">{(row.reasons ?? []).map(r => REASONS[r] ?? r).join(" · ")}</span>
         <button type="button" className="gen-link flagq__clear" onClick={clear} disabled={busy}>
-          {busy ? "Clearing…" : "Clear"}
+          {busy ? "Clearing…" : "Mark as dealt with"}
         </button>
       </div>
       <p className="flagq__stem">
@@ -577,7 +600,7 @@ function Flags() {
   const [{ rows, error }, setState] = useSection(fetchFlags);
   if (error) return <Empty>{error}</Empty>;
   if (!rows) return <Empty>&nbsp;</Empty>;
-  if (rows.length === 0) return <Empty>Nothing flagged. This fills up when someone reports a question.</Empty>;
+  if (rows.length === 0) return <Empty>Nothing reported. Questions show up here when a student reports one.</Empty>;
   return (
     <ul className="flagq-list adm-panel">
       {rows.map((r, i) => (
@@ -605,6 +628,7 @@ export default function AdminView() {
   const [section, setSection] = useState("overview");
   const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
   const Panel = PANELS[section];
+  const meta = SECTIONS.find(s => s.k === section);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -617,10 +641,10 @@ export default function AdminView() {
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div style={{ ...band, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
-          <div className="tg-tabs" role="tablist" aria-label="Admin sections">
+          <div className="adm-tabs" role="tablist" aria-label="Admin sections">
             {SECTIONS.map(s => (
               <button key={s.k} type="button" role="tab" aria-selected={section === s.k}
-                className={`tg-tab${section === s.k ? " is-active" : ""}`}
+                className={`adm-tab${section === s.k ? " is-on" : ""}`}
                 onClick={() => setSection(s.k)}>
                 {s.label}
               </button>
@@ -629,6 +653,10 @@ export default function AdminView() {
 
           {/* Keyed so a section fetches when you open it and not before. */}
           <div className="adm-body" key={section}>
+            <header className="adm-head">
+              <h2 className="adm-head__title">{meta.title}</h2>
+              <p className="adm-head__desc">{meta.desc}</p>
+            </header>
             <Panel />
           </div>
         </div>

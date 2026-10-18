@@ -9169,3 +9169,151 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .quiz-shell { transition: padding-right 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
   .quiz-shell.is-labs { padding-right: 440px; }
 }
+
+/* ─── Admin, made legible (2026-10-18) ──────────────────────────────
+   The page was 12–13px grey labels, figures run together in a line of
+   text, pale pills for tabs and a box around everything. Now: underline
+   tabs; a title and one sentence at the top of each section; figures large
+   with their meaning under them at reading size; tables at body size with
+   whole words for headings; and sections laid on the sheet, not boxed. */
+.adm-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--c-border);
+}
+.adm-tab {
+  position: relative;
+  padding: 12px 16px 14px;
+  border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 15.5px; font-weight: 600; letter-spacing: -0.2px;
+  color: var(--c-muted);
+  transition: color 0.15s ease;
+}
+.adm-tab:hover { color: var(--c-text); }
+.adm-tab.is-on { color: var(--c-accent); }
+.adm-tab.is-on::after {
+  content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px;
+  border-radius: 3px 3px 0 0; background: var(--c-accent);
+}
+
+.adm-body { margin-top: clamp(24px, 3.4vh, 34px); }
+.adm-head { margin-bottom: 22px; }
+.adm-head__title { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.5px; color: var(--c-text); }
+.adm-head__desc { margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: var(--c-sub); }
+
+/* Sections sit on the sheet; only the overview's cards and chart keep an
+   outline, because those are things you pick between. */
+.adm-body > .adm-panel,
+.adm-body > .flagq-list.adm-panel { border: 0; box-shadow: none; padding: 0; background: none; }
+
+.adm-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px 28px; margin: 0 0 30px;
+}
+.adm-stat { display: flex; flex-direction: column-reverse; gap: 4px; margin: 0; }
+.adm-stat__value {
+  margin: 0; font-size: 32px; font-weight: 650; letter-spacing: -1px; line-height: 1.1;
+  color: var(--c-text); font-variant-numeric: tabular-nums;
+}
+.adm-stat__label { font-size: 14.5px; font-weight: 500; color: var(--c-sub); line-height: 1.35; }
+
+.adm-toolbar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px;
+  margin: 0 0 14px;
+}
+.adm-toolbar__label { font-size: 14.5px; font-weight: 600; color: var(--c-sub); }
+.adm-toolbar__count { font-size: 15.5px; color: var(--c-sub); }
+.adm-toolbar__count strong { color: var(--c-text); font-weight: 650; }
+.adm-action {
+  margin-left: auto;
+  padding: 10px 18px; border: 0; border-radius: 999px;
+  background: var(--c-accent); color: #fff;
+  font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer;
+}
+
+/* The two segmented choosers (sort, chart metric): a light track with the
+   chosen one raised in white — clear which is on, without accent fills. */
+.adm-seg {
+  display: inline-flex; flex-wrap: wrap; gap: 2px; margin-left: 0;
+  padding: 3px; border-radius: 12px; background: var(--c-surface3);
+}
+.adm-seg__btn {
+  padding: 7px 12px; border-radius: 9px;
+  font-size: 14px; font-weight: 500; color: var(--c-sub);
+}
+.adm-seg__btn:hover { background: none; color: var(--c-text); }
+.adm-seg__btn.is-on { background: var(--c-card-solid); color: var(--c-text); font-weight: 600; box-shadow: 0 1px 3px rgba(15, 27, 61, 0.12); }
+
+/* Tables at body size. */
+.adm-table { font-size: 15px; }
+.adm-table th, .adm-table td { padding: 14px 16px 14px 0; vertical-align: middle; }
+.adm-table thead th {
+  padding-top: 8px; padding-bottom: 10px;
+  font-size: 13.5px; font-weight: 600; letter-spacing: 0; color: var(--c-sub);
+}
+.adm-table .adm-num { text-align: right; padding-right: 24px; }
+.adm-name { font-size: 15.5px; }
+.adm-email, .adm-email-cell { font-size: 14px; }
+.adm-badge { font-size: 11.5px; }
+.adm-tokens { margin-top: 4px; }
+.adm-tokens tbody th { font-size: 15px; }
+.adm-note { margin-top: 18px; max-width: 46em; font-size: 14px; line-height: 1.55; color: var(--c-muted); }
+.adm-empty { font-size: 15.5px; color: var(--c-sub); }
+
+/* Overview cards: bigger words, the same numbers. */
+.adm-cards { gap: 14px; margin-bottom: 18px; }
+.adm-card { padding: 18px 18px 14px; gap: 4px; }
+.adm-card__label { font-size: 14.5px; font-weight: 600; letter-spacing: 0; color: var(--c-sub); }
+.adm-card__value { font-size: 34px; }
+.adm-card__delta { font-size: 13.5px; }
+.adm-card__total { font-size: 13.5px; }
+.adm-grid .adm-panel { padding: clamp(18px, 2vw, 24px); }
+.adm-panel__head { margin-bottom: 16px; align-items: center; }
+.adm-panel__title { font-size: 17px; font-weight: 650; letter-spacing: -0.3px; }
+.adm-panel__head .adm-seg { margin-left: auto; }
+.adm-list li { font-size: 15px; padding: 12px 0; }
+.adm-list__meta, .adm-list__when { font-size: 13.5px; }
+
+/* Charts. */
+.chart-inline__label { font-size: 15px; }
+.chart-inline__foot { font-size: 13.5px; }
+.chart-inline__bars { height: 200px; }
+
+/* Reported questions: rows on the sheet, not tinted cards. */
+.flagq-list { gap: 0; }
+.flagq { background: none; border-radius: 0; padding: 20px 0; border-bottom: 1px solid var(--c-border); }
+.flagq:first-child { padding-top: 4px; }
+.flagq__count { font-size: 14px; color: var(--c-danger); }
+.flagq__reasons { font-size: 14.5px; color: var(--c-sub); }
+.flagq__stem { font-size: 16.5px; font-weight: 500; }
+.flagq__where { font-size: 14px; }
+.flagq__notes { font-size: 15px; }
+
+@media (max-width: 900px) {
+  .adm-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .adm-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 12px; }
+  .adm-tab { flex: none; padding: 12px 12px 14px; font-size: 15px; }
+  .adm-stat__value { font-size: 28px; }
+  .adm-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 16px; }
+  .adm-card__value { font-size: 28px; }
+}
+/* Phones: the tables keep the columns you act on and drop the rest, so
+   nothing runs off the side. People keeps who, last seen, answered and the
+   admin button; AI usage keeps feature and the three token counts; the
+   mailing list keeps name and email. */
+@media (max-width: 640px) {
+  .adm-people th:nth-child(2), .adm-people td:nth-child(2),
+  .adm-people th:nth-child(5), .adm-people td:nth-child(5),
+  .adm-people th:nth-child(6), .adm-people td:nth-child(6),
+  .adm-tokens th:nth-child(5), .adm-tokens td:nth-child(5),
+  .adm-tokens th:nth-child(6), .adm-tokens td:nth-child(6),
+  .adm-mail th:nth-child(3), .adm-mail td:nth-child(3) { display: none; }
+  .adm-table th, .adm-table td { padding-right: 10px; }
+  .adm-table .adm-num { padding-right: 12px; }
+  .adm-email, .adm-email-cell { word-break: break-all; }
+  .adm-table td:last-child, .adm-table th:last-child { padding-right: 0; }
+  .adm-people tbody td:last-child, .adm-people thead th:last-child { width: auto; }
+  .adm-people .gen-link { font-size: 13.5px; text-align: right; }
+}
