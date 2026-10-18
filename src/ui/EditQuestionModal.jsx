@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { primaryBtn } from "./theme";
 import { remote } from "../lib/remote";
 import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
@@ -54,48 +54,99 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
      one is identical to correcting one, which is why this is the same form. */
   const isNew = q.id === undefined || q.id === null;
 
-  function handleSave() {
-    const updated = {
-      q: question.trim(),
-      opts: opts.map(o => o.trim()),
-      ans,
-      exp: exp.trim(),
-      optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
-      img: img ?? null,
-    };
-    /* Both halves of recording a correction: the pool the app reads from, and
-       the table it is reloaded from. It used to be only the table, so every
-       correction was discarded on the next load. */
-    if (!isNew) {
-      applyQuestionEdit(q.id, updated);
-      if (user) remote.questionEdit(user.id, q.id, updated);
-    }
-    onSave({ ...q, ...updated });
-  }
-
+  const current = () => ({
+    q: question.trim(),
+    opts: opts.map(o => o.trim()),
+    ans,
+    exp: exp.trim(),
+    optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
+    img: img ?? null,
+  });
   const canSave = question.trim() && opts.filter(o => o.trim()).length >= 2
     && opts[ans]?.trim();
 
-  /* Escape closes, as everywhere else. */
+  /* Both halves of recording a correction: the pool the app reads from, and
+     the table it is reloaded from. It used to be only the table, so every
+     correction was discarded on the next load. */
+  function record(updated) {
+    applyQuestionEdit(q.id, updated);
+    if (user) remote.questionEdit(user.id, q.id, updated);
+  }
+
+  /*
+   * An existing question saves as you type, as Anki's editor does
+   * (2026-10-18) — most of the people using this came from Anki, where
+   * there is no Save button to forget. A pause of half a second, then the
+   * write; closing writes whatever is still waiting. A state that would
+   * break the question (no stem, a blank correct answer, fewer than two
+   * options) is not saved, and the header says so until it is fixed.
+   *
+   * A new question is different: there is nothing to save into until it
+   * exists, so it keeps its "Add question" button.
+   */
+  const [status, setStatus] = useState("idle");      // idle | saved | invalid
+  const savedOnce = useRef(false);
+  const pending = useRef(null);
+  const first = useRef(true);
   useEffect(() => {
-    const onKey = e => { if (e.key === "Escape") onClose(); };
+    if (isNew) return;
+    if (first.current) { first.current = false; return; }     // opening is not an edit
+    if (!canSave) { clearTimeout(pending.current); pending.current = null; setStatus("invalid"); return; }
+    clearTimeout(pending.current);
+    pending.current = setTimeout(() => {
+      pending.current = null;
+      record(current());
+      savedOnce.current = true;
+      setStatus("saved");
+    }, 500);
+    return () => clearTimeout(pending.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [question, opts, ans, exp, optExp, img]);
+
+  /* Closing: anything still waiting is written now, and the caller is handed
+     the question as it stands so the screen behind shows the change. */
+  function close() {
+    if (isNew) { onClose(); return; }
+    if (pending.current && canSave) {
+      clearTimeout(pending.current);
+      pending.current = null;
+      record(current());
+      savedOnce.current = true;
+    }
+    if (savedOnce.current) onSave({ ...q, ...current() });
+    else onClose();
+  }
+  function handleAdd() { onSave({ ...q, ...current() }); }
+
+  /* Escape closes, as everywhere else. */
+  const closeRef = useRef(close);
+  useEffect(() => { closeRef.current = close; });
+  useEffect(() => {
+    const onKey = e => { if (e.key === "Escape") closeRef.current(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   /* Laid out like Manage questions (2026-10-17): the same panel, header and
      close; sentence-case labels; the correct answer chosen by tapping its
-     letter and shown in green, as the manager shows it; Save and Cancel kept
-     in view at the bottom. */
+     letter and shown in green, as the manager shows it. No Save button on an
+     existing question — it saves as you type (above). */
   return (
-    <div className="qm-scrim qe-scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="qm-scrim qe-scrim" onMouseDown={e => { if (e.target === e.currentTarget) close(); }}>
       <div className="qm qe" role="dialog" aria-modal="true" aria-label={isNew ? "New question" : "Edit question"}>
         <header className="qm-head qe-head">
           <div className="qm-title-row">
             <div className="qm-titles">
               <h2 className="qm-title">{isNew ? "New question" : "Edit question"}</h2>
+              {!isNew && (
+                <p className={`qm-sub qe-status${status === "invalid" ? " is-invalid" : ""}`} aria-live="polite">
+                  {status === "invalid"
+                    ? "Not saved: a question needs its wording, at least two options and a correct answer that isn’t blank."
+                    : status === "saved" ? "Saved" : "Changes save as you type."}
+                </p>
+              )}
             </div>
-            <button type="button" className="qm-x btn-press" onClick={onClose} aria-label="Close">
+            <button type="button" className="qm-x btn-press" onClick={close} aria-label="Close">
               <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
             </button>
           </div>
@@ -169,13 +220,15 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
           </div>
         </div>
 
-        <footer className="qe-foot">
-          <button type="button" className="qe-cancel btn-press" onClick={onClose}>Cancel</button>
-          <button type="button" className="btn-press" onClick={handleSave} disabled={!canSave}
-            style={{ ...primaryBtn, opacity: canSave ? 1 : 0.45 }}>
-            {isNew ? "Add question" : "Save changes"}
-          </button>
-        </footer>
+        {isNew && (
+          <footer className="qe-foot">
+            <button type="button" className="qe-cancel btn-press" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn-press" onClick={handleAdd} disabled={!canSave}
+              style={{ ...primaryBtn, opacity: canSave ? 1 : 0.45 }}>
+              Add question
+            </button>
+          </footer>
+        )}
       </div>
     </div>
   );

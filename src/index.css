@@ -9071,3 +9071,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @media (prefers-reduced-motion: reduce) {
   .setup-dock--next, .setup-next-dock { transition-duration: 0.01s; }
 }
+
+/* The editor's save state, under its title: "Changes save as you type." →
+   "Saved", or why it is not saving. */
+.qe-status { transition: color 0.2s ease; }
+.qe-status.is-invalid { color: var(--c-danger); }
