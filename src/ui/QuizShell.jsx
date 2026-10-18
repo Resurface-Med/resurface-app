@@ -11,6 +11,7 @@ import ExplainChat from "./ExplainChat";
 import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
+import LabValues, { BeakerIcon } from "./LabValues";
 
 /**
  * Full-screen study mode: no sidebar until you ask for the question list.
@@ -55,6 +56,8 @@ export default function QuizShell({
      reachable before an answer as well as after — a typo in the stem is
      usually the thing you notice first. */
   const [editing, setEditing] = useState(false);
+  /* Lab values, slid in from the right (ui/LabValues). */
+  const [labsOpen, setLabsOpen] = useState(false);
 
   /* Declared above the effects, because the Escape handler below closes the
      rail and a const arrow referenced before its declaration is a temporal
@@ -181,7 +184,8 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+      <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
       <header className="quiz-shell__header">
         <button
           type="button"
@@ -204,6 +208,17 @@ export default function QuizShell({
           <span className="quiz-shell__count">
             {position}/{total}
           </span>
+
+          <button
+            type="button"
+            className={`quiz-shell__tool btn-press${labsOpen ? " is-on" : ""}`}
+            onClick={() => setLabsOpen(o => !o)}
+            title="Lab values"
+            aria-label="Lab values"
+            aria-expanded={labsOpen}
+          >
+            <BeakerIcon size={17} />
+          </button>
 
           {/* Premade (featured) questions are not yours to edit. */}
           {!q?.featured && <button
