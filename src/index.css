@@ -9471,3 +9471,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .feat-soon__go { margin-right: 0; }
   .feat-soon__text { padding-right: 24px; }
 }
+/* Folded: one quiet line that opens the card again. */
+.feat-soon-line {
+  display: inline-flex; align-items: center; gap: 10px;
+  margin: 2px 0 14px; padding: 8px 14px 8px 8px;
+  border: 1.5px solid var(--c-border); border-radius: 999px; background: var(--c-card-solid);
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--c-sub); cursor: pointer;
+}
+.feat-soon-line:first-child { margin-top: 12px; }
+.feat-soon-line img { border-radius: 6px; }
+.feat-soon-line:hover { color: var(--c-text); border-color: var(--c-accent-brd); }
+.feat-soon-chev { color: var(--c-muted); }

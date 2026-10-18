@@ -239,13 +239,16 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* What is replacing the tree, if anything: a name field (new sub-deck or
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
-  /* "Other years are on the way", once hidden, stays hidden on this device. */
+  /* "Other years are on the way" folds to one line and opens again; which
+     way it was left is kept on this device. */
   const [soonHidden, setSoonHidden] = useState(() => {
     try { return localStorage.getItem("other-years-hidden") === "1"; } catch { return false; }
   });
-  function hideSoon() {
-    setSoonHidden(true);
-    try { localStorage.setItem("other-years-hidden", "1"); } catch { /* hidden until reload */ }
+  function toggleSoon() {
+    setSoonHidden(h => {
+      try { localStorage.setItem("other-years-hidden", h ? "0" : "1"); } catch { /* until reload */ }
+      return !h;
+    });
   }
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   /* Yours and the featured ones, for drawing the list; decksById stays
@@ -649,10 +652,16 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {/* Only one year is covered so far. Said where the decks are, with
                 the way round it, so nobody in another year thinks the app is
                 not for them (2026-10-18). */}
-            {!qNorm && !soonHidden && (
+            {!qNorm && (soonHidden ? (
+              <button type="button" className="feat-soon-line btn-press" onClick={toggleSoon} aria-expanded="false">
+                <img src="/icon-192.png" alt="" aria-hidden="true" width="22" height="22" />
+                <span>Other years are on the way</span>
+                <svg className="feat-soon-chev" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              </button>
+            ) : (
               <section className="feat-soon" aria-label="Other years">
-                <button type="button" className="feat-soon__x" onClick={hideSoon} aria-label="Hide this message">
-                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+                <button type="button" className="feat-soon__x" onClick={toggleSoon} aria-expanded="true" aria-label="Fold this message away">
+                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
                 <img src="/icon-192.png" alt="" aria-hidden="true" className="feat-soon__mark" width="44" height="44" />
                 <div className="feat-soon__text">
@@ -668,7 +677,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </button>
                 )}
               </section>
-            )}
+            ))}
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
