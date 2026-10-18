@@ -239,7 +239,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* What is replacing the tree, if anything: a name field (new sub-deck or
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
-  /* "Decks for other years are coming" folds to one line and opens again; which
+  /* "We’re working on decks for other years" folds to one line and opens again; which
      way it was left is kept on this device. */
   const [soonHidden, setSoonHidden] = useState(() => {
     try { return localStorage.getItem("other-years-hidden") === "1"; } catch { return false; }
@@ -679,7 +679,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {!qNorm && <div className="feat-soon-wrap" ref={soonWrap}>{soonHidden ? (
               <button type="button" className="feat-soon-line btn-press" onClick={toggleSoon} aria-expanded="false">
                 <img src="/icon-192.png" alt="" aria-hidden="true" width="22" height="22" />
-                <span>Decks for other years are coming</span>
+                <span>We’re working on decks for other years</span>
                 <svg className="feat-soon-chev" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
             ) : (
@@ -689,11 +689,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 </button>
                 <img src="/icon-192.png" alt="" aria-hidden="true" className="feat-soon__mark" width="44" height="44" />
                 <div className="feat-soon__text">
-                  <h3 className="feat-soon__title">Decks for other years are coming</h3>
+                  <h3 className="feat-soon__title">We’re working on decks for other years</h3>
                   <p className="feat-soon__body">
-                    Year 2 is the only year with a ready-made deck at the moment. Until decks
-                    for the other years are added, you can make questions from your own lecture
-                    slides, PDFs or notes.
+                    Year 2 is the only year with a ready-made deck at the moment. We’re working
+                    on decks for the other years. In the meantime, you can make questions from
+                    your own lecture slides, PDFs or notes.
                   </p>
                 </div>
                 {onGenerateInto && (
