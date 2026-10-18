@@ -9216,3 +9216,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .lb-avatar { width: 30px; height: 30px; font-size: 11.5px; }
   .lb-avatar-x { opacity: 1; }
 }
+
+/* Profile: more room between the things on it (2026-10-18). Each setting
+   is its own block, separated by space rather than rules; the photo, being
+   the largest, gets a little more under it. */
+.profile-stack { gap: 30px; margin-top: 26px; }
+.profile-field { gap: 10px; }
+.profile-field:has(.profile-photo-row) { padding-bottom: 6px; }
+.profile-section { padding-bottom: clamp(32px, 4.6vh, 44px); }
