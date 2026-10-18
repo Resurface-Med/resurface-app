@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDrawerSwipe } from "../ui/useDrawerSwipe";
 import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
+import Avatar from "../ui/Avatar";
 
 const ICONS = {
   [V.DASH]: House,
@@ -12,18 +13,7 @@ const ICONS = {
   [V.ADMIN]: Flag,
 };
 
-function initials(displayName, email) {
-  const n = String(displayName || "").trim();
-  if (n) {
-    const parts = n.split(/\s+/).filter(Boolean);
-    const a = parts[0]?.[0] || "";
-    const b = parts[1]?.[0] || "";
-    return (a + b || n.slice(0, 2)).toUpperCase();
-  }
-  return String(email || "?").slice(0, 1).toUpperCase();
-}
-
-export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut, isAdmin = false }) {
+export function Sidebar({ view, setView, dueCount, email, displayName, avatar = null, onSignOut, isAdmin = false }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
   const navRef = useRef(null);
@@ -149,9 +139,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, onSignOut
               title="Profile"
               aria-current={activeProfile ? "page" : undefined}
             >
-              <span className="app-nav__avatar">
-                {initials(displayName, email)}
-              </span>
+              <Avatar className="app-nav__avatar" src={avatar} name={displayName} fallback={email} />
               <span className="app-nav__profile-text">
                 <span className="app-nav__profile-name">
                   {displayName?.trim() || "Profile"}

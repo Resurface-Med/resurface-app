@@ -311,6 +311,8 @@ export async function loadAll(userId) {
       : { streak: 0, longest: 0, lastDate: null },
     dailyGoal: profile.data?.daily_goal ?? 20,
     displayName: profile.data?.display_name ?? "",
+    /* Profile photo version (lib/avatar): null, 0, or an upload's number. */
+    avatarV: profile.data?.avatar_v ?? null,
     /* False only while the name is still the one made up from their email —
        the single question the welcome prompt exists to ask. */
     nameChosen: profile.data?.name_chosen !== false,

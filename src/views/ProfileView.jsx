@@ -6,6 +6,8 @@ import { remote } from "../lib/remote";
 import Reminders from "../ui/Reminders";
 import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
+import Avatar from "../ui/Avatar";
+import { avatarSrc, ownAvatar, uploadAvatar, removeAvatar } from "../lib/avatar";
 
 /**
  * Account surface — identity, study prefs, sign-in, danger zone.
@@ -19,17 +21,6 @@ const band = {
   width: "100%",
 };
 
-function initials(displayName, email) {
-  const n = String(displayName || "").trim();
-  if (n) {
-    const parts = n.split(/\s+/).filter(Boolean);
-    const a = parts[0]?.[0] || "";
-    const b = parts[1]?.[0] || "";
-    return (a + b || n.slice(0, 2)).toUpperCase();
-  }
-  return String(email || "?").slice(0, 1).toUpperCase();
-}
-
 function authProviders(user) {
   const fromIdentities = (user?.identities || []).map(i => i.provider).filter(Boolean);
   if (fromIdentities.length) return [...new Set(fromIdentities)];
@@ -42,8 +33,19 @@ function authProviders(user) {
 export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal,
   onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
+  avatarV = null, onAvatarChange,
 }) {
   const { user, updatePassword, signOut } = useAuth();
+  /* Profile photo (lib/avatar). Chosen here; shrunk on the device first. */
+  const photo = avatarSrc(userId, ownAvatar(avatarV));
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoErr, setPhotoErr] = useState("");
+  async function photoAction(fn) {
+    setPhotoErr(""); setPhotoBusy(true);
+    try { onAvatarChange?.(await fn()); }
+    catch (e) { setPhotoErr(e.message); }
+    finally { setPhotoBusy(false); }
+  }
   const providers = authProviders(user);
   const canChangePassword = providers.includes("email");
   const [name, setName] = useState(displayName || "");
@@ -180,9 +182,7 @@ export default function ProfileView({
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <div className="profile-identity" data-in="left" style={{ "--i": 0 }}>
-          <span className="profile-avatar" aria-hidden="true">
-            {initials(displayName, email)}
-          </span>
+          <Avatar className="profile-avatar" src={photo} name={displayName} fallback={email} />
           <div className="profile-identity__text">
             <h1 style={{ ...h1, margin: 0 }}>
               {displayName?.trim() || "Profile"}
@@ -201,6 +201,25 @@ export default function ProfileView({
             <p style={{ ...meta, marginTop: 4 }}>How you appear on Resurface.</p>
 
             <div className="profile-stack">
+              <div className="profile-field">
+                <span className="profile-label">Photo</span>
+                <div className="profile-photo-row">
+                  <Avatar className="profile-photo" src={photo} name={displayName} fallback={email} />
+                  <label className={`btn-press profile-photo-btn${photoBusy ? " is-busy" : ""}`}>
+                    {photoBusy ? "Uploading…" : photo ? "Change photo" : "Add a photo"}
+                    <input type="file" accept="image/*" hidden disabled={photoBusy}
+                      onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) photoAction(() => uploadAvatar(userId, f)); }} />
+                  </label>
+                  {photo && (
+                    <button type="button" className="gen-link profile-photo-remove" disabled={photoBusy}
+                      onClick={() => photoAction(async () => { await removeAvatar(userId); return 0; })}>
+                      Remove
+                    </button>
+                  )}
+                </div>
+                {photoErr && <p className="name-err" role="alert">{photoErr}</p>}
+              </div>
+
               <form onSubmit={saveName} className="profile-field">
                 <span className="profile-label">Display name</span>
                 <div className="profile-name-row">

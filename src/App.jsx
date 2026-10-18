@@ -45,6 +45,7 @@ import { offer as offerUndo } from "./lib/undo";
 import { mark, report } from "./lib/loadTiming";
 import { ConfirmHost, confirm } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
+import { avatarSrc, ownAvatar } from "./lib/avatar";
 
 /* How long the outgoing view is held behind the arriving one. Must outlast
    `view-enter` in index.css — drop it early and the hole comes back. */
@@ -123,6 +124,7 @@ export default function App() {
   const [nameChosen, setNameChosen] = useState(true);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [avatarV, setAvatarV] = useState(null);
   const [generated, setGenerated] = useState([]);
   /* Your decks, as rows; the tree is built where it is shown. */
   const [decks, setDecks] = useState([]);
@@ -230,6 +232,7 @@ export default function App() {
     setActivity(d.activity);
     setDailyGoal(d.dailyGoal);
     setDisplayName(d.displayName || "");
+    setAvatarV(d.avatarV ?? null);
     setNameChosen(d.nameChosen !== false);
     setShowOnLeaderboard(d.showOnLeaderboard !== false);
     setMarketingOptIn(d.marketingOptIn);
@@ -795,6 +798,7 @@ export default function App() {
     view, setView: handleNav, dueCount, isAdmin,
     email: user?.email,
     displayName,
+    avatar: avatarSrc(user?.id, ownAvatar(avatarV)),
     onSignOut: signOut,
   };
 
@@ -1022,6 +1026,8 @@ export default function App() {
               userId={user.id}
               email={user.email}
               displayName={displayName}
+              avatarV={avatarV}
+              onAvatarChange={setAvatarV}
               showOnLeaderboard={showOnLeaderboard}
               marketingOptIn={marketingOptIn}
               dailyGoal={dailyGoal}
