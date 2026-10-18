@@ -9432,3 +9432,5 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .profile-field { gap: 10px; }
 .profile-field:has(.profile-photo-row) { padding-bottom: 6px; }
 .profile-section { padding-bottom: clamp(32px, 4.6vh, 44px); }
+.feat-soon { margin: -4px 2px 12px; font-size: 13.5px; line-height: 1.5; color: var(--c-muted); }
+.feat-soon:first-child { margin: 12px 2px 14px; }

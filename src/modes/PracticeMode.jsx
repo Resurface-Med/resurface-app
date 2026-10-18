@@ -637,10 +637,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         )}
         {featRoots.length > 0 && featMatch && (
           <div className={ownRoots.length ? "feat-tree" : undefined}>
+            {ownRoots.length > 0 && <h3 className="deck-section-h">Resurface decks</h3>}
+            {/* Only one year is covered so far; said where the decks are, so
+                nobody in another year thinks the app is not for them. */}
+            {!qNorm && <p className="feat-soon">Only Year 2 so far. Decks for the other years are coming soon.</p>}
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
-              rowMenu={rowMenu} heading={ownRoots.length > 0 ? "Resurface decks" : null} />
+              rowMenu={rowMenu} />
           </div>
         )}
         {hiddenNotes}
