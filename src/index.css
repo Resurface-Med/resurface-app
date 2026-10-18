@@ -9489,3 +9489,42 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .feat-soon-wrap > .feat-soon, .feat-soon-wrap > .feat-soon-line { margin: 0; }
 .feat-soon-wrap > .feat-soon { transform-origin: 50% 0; }
 .feat-soon-wrap > .feat-soon-line { transform-origin: 0 50%; }
+
+/* ─── Sidebar: glass (Rafil, 2026-10-18) ──────────────────────────────
+   On a wide screen the sidebar floats on the blue as a pane of frosted
+   glass rather than a white card, so the blue shows through it and around
+   it and the page is not a slab of white down one side. White type, the
+   white mark of the logo, and the page you are on as a solid white pill —
+   the one opaque thing in it, which is what makes it easy to find.
+   Phones keep the drawer as it was: it opens over the white sheet, where
+   glass would have nothing to show. */
+@media (min-width: 901px) {
+  .app-nav {
+    background: rgba(255, 255, 255, 0.13);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    box-shadow: 0 24px 48px -28px rgba(10, 20, 60, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+            backdrop-filter: blur(20px) saturate(140%);
+  }
+  .app-nav__brand { border-bottom-color: rgba(255, 255, 255, 0.18); }
+  .app-nav__brand .nav-logo-day { display: none; }
+  .app-nav__brand .nav-logo-night { display: block; }
+  .app-nav__item { color: rgba(255, 255, 255, 0.84); }
+  .app-nav__item .app-nav__icon { color: rgba(255, 255, 255, 0.84); }
+  .app-nav__item:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  .app-nav__item:hover .app-nav__icon { color: #fff; }
+  .app-nav__item.is-active {
+    background: #fff; color: #0f1b3d;   /* fixed ink: the pill is white in night mode too */
+    box-shadow: 0 10px 22px -14px rgba(10, 20, 60, 0.6);
+  }
+  .app-nav__item.is-active .app-nav__icon { color: #3562f5; }
+  .app-nav__group.is-ruled { border-color: rgba(255, 255, 255, 0.18); }
+  .app-nav__foot { border-top-color: rgba(255, 255, 255, 0.18); }
+  .app-nav__profile-name { color: #fff; }
+  .app-nav__profile:hover { background: rgba(255, 255, 255, 0.12); }
+  .app-nav__account.is-active .app-nav__profile { background: #fff; }
+  .app-nav__account.is-active .app-nav__profile-name { color: #0f1b3d; }
+  .app-nav__signout { color: rgba(255, 255, 255, 0.7); }
+  .app-nav__signout:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  .app-nav__avatar:not(.has-photo) { background: #fff; color: var(--c-accent); }
+}
