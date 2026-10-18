@@ -40,6 +40,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
+import UpdateNotice from "./ui/UpdateNotice";
 import { offer as offerUndo } from "./lib/undo";
 import { mark, report } from "./lib/loadTiming";
 import { ConfirmHost, confirm } from "./ui/Confirm";
@@ -838,6 +839,7 @@ export default function App() {
     )}
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
+    <UpdateNotice hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (

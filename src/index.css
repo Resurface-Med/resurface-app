@@ -8968,3 +8968,55 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .setup-count-input:disabled { opacity: .5; }
 .setup-count-of { font-size: 15px; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .setup-count-input { font-size: 17px; } }
+
+/* "A new version of Resurface is ready." Over the blue band at the top of
+   the page, so white: the opposite of the undo pill, which is blue on the
+   white sheet at the bottom, and never in its way. */
+.update-note {
+  position: fixed; z-index: 1300;
+  top: 16px; left: calc(50% + (248px + 14px) / 2);
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px;
+  max-width: calc(100vw - 32px);
+  padding: 6px 6px 6px 18px;
+  border-radius: 999px;
+  background: var(--c-card-solid); color: var(--c-text);
+  box-shadow: 0 14px 34px -12px rgba(15, 27, 61, 0.45);
+  font-size: 14.5px; font-weight: 500;
+  animation: updateIn 0.36s cubic-bezier(0.34, 1.3, 0.5, 1) both;
+}
+@keyframes updateIn { from { opacity: 0; transform: translate(-50%, -12px) scale(0.96); } to { opacity: 1; transform: translateX(-50%); } }
+.update-note-text { min-width: 0; }
+.update-note-btn {
+  flex: none; padding: 8px 16px;
+  border: 0; border-radius: 999px;
+  background: var(--c-accent); color: #fff;
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.update-note-x {
+  flex: none; display: grid; place-items: center;
+  width: 32px; height: 32px; margin-left: -4px;
+  border: 0; border-radius: 999px; background: none;
+  color: var(--c-muted); cursor: pointer;
+}
+.update-note-x:hover { color: var(--c-text); background: var(--c-surface3); }
+/* On a phone the top is the menu button and the band; the bottom, above the
+   tab bar, is where the undo pill already lives — and, on the white sheet,
+   in its blue, since white on white does not stand out. */
+@media (max-width: 900px) {
+  .update-note {
+    top: auto; bottom: calc(96px + var(--safe-b, 0px));
+    left: 16px; right: 16px; transform: none;
+    max-width: none; font-size: 14px; padding-left: 16px; gap: 8px;
+    animation-name: updateInPhone;
+    background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-lt) 100%);
+    color: #fff;
+    box-shadow: 0 12px 28px -10px rgba(53, 98, 245, 0.6);
+  }
+  .update-note-text { flex: 1; }
+  .update-note-btn { background: #fff; color: var(--c-accent); }
+  .update-note-x { color: rgba(255, 255, 255, 0.8); }
+  .update-note-x:hover { color: #fff; background: rgba(255, 255, 255, 0.16); }
+}
+@keyframes updateInPhone { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .update-note { animation-duration: 0.01s; } }
