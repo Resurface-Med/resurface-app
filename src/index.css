@@ -9365,12 +9365,15 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .adm-allow__n strong { font-size: 38px; }
 }
 
-/* Admin without the bold (Rafil, 2026-10-18): figures at regular weight,
-   titles and labels at medium. Size and colour carry the hierarchy. */
+/* Admin, lighter than it was (Rafil, 2026-10-18): headline figures and
+   titles at semibold — between the original bold and an all-regular pass
+   that read too thin. Table numbers, labels and names at medium. */
 .adm-body :is(.adm-stat__value, .adm-card__value, .adm-allow__n strong, .adm-toolbar__count strong,
-  .adm-num, .adm-strip strong, .flagq__count) { font-weight: 400; }
+  .adm-num, .adm-strip strong, .flagq__count) { font-weight: 600; }
+.adm-body .adm-num { font-weight: 500; }
 .adm-body :is(.adm-head__title, .adm-panel__title, .adm-stat__label, .adm-card__label, .adm-allow__label,
   .adm-toolbar__label, .adm-table thead th, .adm-table tbody th, .adm-name, .adm-list__name,
   .adm-shares .adm-name, .adm-deck, .adm-kind.is-copied, .adm-kind.is-switched, .adm-badge,
   .chart-inline__label, .flagq__stem, .adm-share-list__who strong, .adm-seg__btn.is-on) { font-weight: 500; }
 .adm-tab, .adm-tab.is-on { font-weight: 500; }
+.adm-body :is(.adm-head__title, .adm-panel__title) { font-weight: 600; }
