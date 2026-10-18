@@ -146,6 +146,8 @@ export default function DeckTree({
   /* When another tree sits beside this one (featured decks), its matches
      count too, so this one does not say "no deck matches" over them. */
   quietNoMatch = false,
+  /* A section heading over the rows ("Your decks"), under Everything. */
+  heading = null,
   /* onMove(id, parentId, beforeId): drag, Alt+arrows, and the row menu's
      Move to… all end here. Without it the tree is
      read-only. */
@@ -468,6 +470,7 @@ export default function DeckTree({
           <span className="topic-all__count">{totalAvail}</span>
         </button>
       )}
+      {heading && tree.length > 0 && <h3 className="deck-section-h">{heading}</h3>}
       {q && tree.length === 0 && !quietNoMatch && (
         <p style={{ padding: "20px 4px", fontSize: 14.5, color: C.muted }}>No deck matches “{query.trim()}”.</p>
       )}

@@ -205,7 +205,8 @@ export default function QuizShell({
             {position}/{total}
           </span>
 
-          <button
+          {/* Premade (featured) questions are not yours to edit. */}
+          {!q?.featured && <button
             type="button"
             className="quiz-shell__tool btn-press"
             onClick={() => setEditing(true)}
@@ -219,7 +220,7 @@ export default function QuizShell({
                 strokeLinecap="round" strokeLinejoin="round"
               />
             </svg>
-          </button>
+          </button>}
         </div>
       </header>
 

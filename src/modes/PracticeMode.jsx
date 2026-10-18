@@ -659,14 +659,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         {(ownRoots.length > 0 || featRoots.length === 0) && (
           <DeckTree key={key} {...treeProps} forest={activeRoot ? forest : ownRoots}
             allAvail={activeRoot ? treeProps.allAvail : allCount}
-            quietNoMatch={featRoots.length > 0 && featMatch} />
+            quietNoMatch={featRoots.length > 0 && featMatch}
+            heading={featRoots.length > 0 ? "Your decks" : null} />
         )}
         {featRoots.length > 0 && featMatch && (
           <div className={ownRoots.length ? "feat-tree" : undefined}>
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
-              rowMenu={rowMenu} />
+              rowMenu={rowMenu} heading={ownRoots.length > 0 ? "Resurface decks" : null} />
           </div>
         )}
         {hiddenNotes}
