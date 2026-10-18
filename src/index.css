@@ -9482,3 +9482,10 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .feat-soon-line img { border-radius: 6px; }
 .feat-soon-line:hover { color: var(--c-text); border-color: var(--c-accent-brd); }
 .feat-soon-chev { color: var(--c-muted); }
+/* The fold's box: owns the spacing, so its height (what animates) is the
+   whole of it, and clips while it moves. */
+.feat-soon-wrap { display: flow-root; margin: 2px 0 16px; overflow: hidden; padding: 2px; margin-left: -2px; margin-right: -2px; }
+.feat-soon-wrap:first-child { margin-top: 12px; }
+.feat-soon-wrap > .feat-soon, .feat-soon-wrap > .feat-soon-line { margin: 0; }
+.feat-soon-wrap > .feat-soon { transform-origin: 50% 0; }
+.feat-soon-wrap > .feat-soon-line { transform-origin: 0 50%; }

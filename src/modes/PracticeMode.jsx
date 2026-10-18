@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useMemo } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import CountField from "../ui/CountField";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
@@ -245,11 +245,35 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     try { return localStorage.getItem("other-years-hidden") === "1"; } catch { return false; }
   });
   function toggleSoon() {
+    soonFrom.current = soonWrap.current?.offsetHeight ?? null;
     setSoonHidden(h => {
       try { localStorage.setItem("other-years-hidden", h ? "0" : "1"); } catch { /* until reload */ }
       return !h;
     });
   }
+  /* The fold, animated (2026-10-18): the space it takes eases between the
+     two heights with a little overshoot, and whichever form arrives — the
+     card opening, the pill folding — springs in from slightly smaller. */
+  const soonWrap = useRef(null);
+  const soonFrom = useRef(null);
+  useLayoutEffect(() => {
+    const wrap = soonWrap.current, from = soonFrom.current;
+    soonFrom.current = null;
+    if (!wrap || from == null || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const to = wrap.offsetHeight;
+    const spring = "cubic-bezier(0.34, 1.32, 0.5, 1)";
+    /* Opening overshoots a touch; folding settles without dipping below
+       the pill, which would clip its edge — the pill itself does the bounce. */
+    wrap.animate([{ height: `${from}px` }, { height: `${to}px` }],
+      { duration: 460, easing: soonHidden ? "cubic-bezier(0.22, 1, 0.36, 1)" : spring });
+    const el = wrap.firstElementChild;
+    el?.animate(
+      soonHidden
+        ? [{ opacity: 0, transform: "scale(0.82)" }, { opacity: 1, transform: "scale(1)" }]
+        : [{ opacity: 0, transform: "scale(0.94) translateY(-6px)" }, { opacity: 1, transform: "none" }],
+      { duration: soonHidden ? 420 : 480, easing: spring },
+    );
+  }, [soonHidden]);
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   /* Yours and the featured ones, for drawing the list; decksById stays
      yours alone, since everything that reads it renames, shares or deletes. */
@@ -652,7 +676,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {/* Only one year is covered so far. Said where the decks are, with
                 the way round it, so nobody in another year thinks the app is
                 not for them (2026-10-18). */}
-            {!qNorm && (soonHidden ? (
+            {!qNorm && <div className="feat-soon-wrap" ref={soonWrap}>{soonHidden ? (
               <button type="button" className="feat-soon-line btn-press" onClick={toggleSoon} aria-expanded="false">
                 <img src="/icon-192.png" alt="" aria-hidden="true" width="22" height="22" />
                 <span>Other years are on the way</span>
@@ -677,7 +701,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </button>
                 )}
               </section>
-            ))}
+            )}</div>}
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
