@@ -7,7 +7,7 @@ import Reminders from "../ui/Reminders";
 import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
 import Avatar from "../ui/Avatar";
-import { avatarSrc, ownAvatar, uploadAvatar, removeAvatar, restoreGooglePhoto } from "../lib/avatar";
+import { avatarSrc, ownAvatar, uploadAvatar, removeAvatar } from "../lib/avatar";
 
 /**
  * Account surface — identity, study prefs, sign-in, danger zone.
@@ -37,8 +37,7 @@ export default function ProfileView({
 }) {
   const { user, updatePassword, signOut } = useAuth();
   /* Profile photo (lib/avatar). Chosen here; shrunk on the device first. */
-  const photo = avatarSrc(userId, ownAvatar(user, avatarV));
-  const googlePhoto = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  const photo = avatarSrc(userId, ownAvatar(avatarV));
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoErr, setPhotoErr] = useState("");
   async function photoAction(fn) {
@@ -211,12 +210,6 @@ export default function ProfileView({
                     <input type="file" accept="image/*" hidden disabled={photoBusy}
                       onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) photoAction(() => uploadAvatar(userId, f)); }} />
                   </label>
-                  {avatarV > 0 && googlePhoto && (
-                    <button type="button" className="gen-link" disabled={photoBusy}
-                      onClick={() => photoAction(async () => { await restoreGooglePhoto(userId); return null; })}>
-                      Use my Google photo
-                    </button>
-                  )}
                   {photo && (
                     <button type="button" className="gen-link profile-photo-remove" disabled={photoBusy}
                       onClick={() => photoAction(async () => { await removeAvatar(userId); return 0; })}>

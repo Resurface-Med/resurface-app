@@ -798,7 +798,7 @@ export default function App() {
     view, setView: handleNav, dueCount, isAdmin,
     email: user?.email,
     displayName,
-    avatar: avatarSrc(user?.id, ownAvatar(user, avatarV)),
+    avatar: avatarSrc(user?.id, ownAvatar(avatarV)),
     onSignOut: signOut,
   };
 

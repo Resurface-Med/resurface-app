@@ -6,12 +6,13 @@ import { supabase, SUPABASE_URL } from "./supabase";
  * The photo is never in the database. It is shrunk on the device to a 256px
  * square WebP (about 10 KB) and kept in the public `avatars` bucket at the
  * person's id, served from Storage's CDN. The database keeps one number,
- * profiles.avatar_v: null means "their Google photo, if any", 0 means none,
- * and anything above is the version of their upload — part of the address,
- * so a browser can keep the image for good and fetch again only on a change.
+ * profiles.avatar_v: above zero is the version of their upload — part of the
+ * address, so a browser can keep the image for good and fetch again only on
+ * a change — and anything else means initials. Only photos uploaded here are
+ * used; a Google account's photo is not (Rafil, 2026-10-18, migration 0018).
  *
  * What the app passes around is an `avatar` string, as the leaderboard
- * returns it: "v<n>" for an upload, a Google photo's address, or null.
+ * returns it: "v<n>" for an upload, or null.
  */
 const BUCKET = "avatars";
 const EDGE = 256;
@@ -24,12 +25,9 @@ export function avatarSrc(userId, avatar) {
   return avatar;
 }
 
-/** Your own: from your profile row and, for Google accounts, your sign-in. */
-export function ownAvatar(user, avatarV) {
-  if (avatarV > 0) return `v${avatarV}`;
-  if (avatarV === 0) return null;
-  const meta = user?.user_metadata ?? {};
-  return meta.avatar_url || meta.picture || null;
+/** Your own, from your profile row. */
+export function ownAvatar(avatarV) {
+  return avatarV > 0 ? `v${avatarV}` : null;
 }
 
 /* The middle square of the picture, at EDGE pixels. A face is nearly always
@@ -62,18 +60,11 @@ export async function uploadAvatar(userId, file) {
   return v;
 }
 
-/** No photo at all — not even Google's. */
+/** Back to initials. */
 export async function removeAvatar(userId) {
   await supabase.storage.from(BUCKET).remove([userId]).catch(() => {});
   const { error } = await supabase.from("profiles").update({ avatar_v: 0 }).eq("id", userId);
   if (error) throw new Error("Couldn’t remove your photo. Try again.");
-}
-
-/** Back to the Google photo (for Google accounts). */
-export async function restoreGooglePhoto(userId) {
-  await supabase.storage.from(BUCKET).remove([userId]).catch(() => {});
-  const { error } = await supabase.from("profiles").update({ avatar_v: null }).eq("id", userId);
-  if (error) throw new Error("Couldn’t change your photo. Try again.");
 }
 
 /** Admin: take someone's photo down. */
