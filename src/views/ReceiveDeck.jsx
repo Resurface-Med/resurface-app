@@ -92,6 +92,8 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
         const row = await remote.deckPreview(code);
         if (cancelled) return;
         if (row && !row.mine) {
+          /* For Admin's sharing log: this person opened this link. */
+          remote.logShareOpen(code).catch(() => {});
           const shared = await remote.sharedQuestions(code).catch(() => []);
           if (cancelled) return;
           setTotal(shared.length);

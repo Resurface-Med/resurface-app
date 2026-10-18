@@ -5,7 +5,7 @@ import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
-  fetchAiCallsDaily, fetchAiQuota,
+  fetchAiCallsDaily, fetchAiQuota, fetchShareLog,
 } from "../lib/remote";
 import { Spark, ChartPanel, BigChart } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
@@ -29,6 +29,7 @@ import { confirm } from "../ui/Confirm";
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "Today’s use of the AI first, then the last 7 days compared with the 7 before." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
+  { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "generating", label: "Generating", title: "Questions generated", desc: "How many questions the AI wrote each day over the last 30 days." },
   { k: "tokens", label: "AI usage", title: "AI usage", desc: "How much of the AI model each feature uses, in tokens." },
   { k: "mail", label: "Mailing list", title: "Mailing list", desc: "People who agreed to receive news and study emails." },
@@ -389,6 +390,112 @@ function People() {
   );
 }
 
+/* ── Sharing ───────────────────────────────────────────────────────
+   The audit log (migration 0020). "From" is whoever owns the deck whose
+   link was used — so a deck passed on from someone's copy shows as from
+   them, not from its first author. Adds made before the log existed are
+   rebuilt from the decks themselves; opens and updates start 18 Oct. */
+const SHARE_KINDS = {
+  copied:   { label: "Added", what: n => `Added the deck${n != null ? ` · ${Number(n).toLocaleString("en-GB")} questions` : ""}` },
+  opened:   { label: "Opened", what: () => "Opened the link" },
+  updated:  { label: "Updated", what: n => `Got ${Number(n ?? 0).toLocaleString("en-GB")} new question${Number(n) === 1 ? "" : "s"}` },
+  switched: { label: "Switched", what: n => `Moved to the live deck · ${Number(n ?? 0).toLocaleString("en-GB")} questions` },
+};
+const whoOf = (name, email) => name || email || "Deleted account";
+const when = iso => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+function Sharing() {
+  const load = useCallback(() => fetchShareLog(500), []);
+  const [{ rows, error }] = useSection(load);
+  const [kind, setKind] = useState("all");
+
+  if (error) return <Empty>{error}</Empty>;
+  if (!rows) return <Empty>&nbsp;</Empty>;
+  if (rows.length === 0) return <Empty>No decks have been shared yet.</Empty>;
+
+  const adds = rows.filter(r => r.kind === "copied");
+  const weekAgo = Date.now() - 7 * 864e5;
+  const opensWeek = rows.filter(r => r.kind === "opened" && new Date(r.at) > weekAgo).length;
+  const reached = new Set(adds.map(r => r.to_email)).size;
+  const byDeck = new Map();
+  for (const r of adds) byDeck.set(`${r.deck_name}|${r.from_email}`, (byDeck.get(`${r.deck_name}|${r.from_email}`) ?? 0) + 1);
+  const top = [...byDeck.entries()].sort((a, b) => b[1] - a[1])[0];
+  const shown = kind === "all" ? rows : rows.filter(r => r.kind === kind);
+
+  return (
+    <section className="adm-panel">
+      <Stats items={[
+        [adds.length, "Decks added from a link"],
+        [reached, "People who added someone’s deck"],
+        [opensWeek, "Links opened in the last 7 days"],
+        [top ? `${top[1]}×` : "–", top ? `Most added: ${top[0].split("|")[0]}` : "Most added deck"],
+      ]} />
+
+      <div className="adm-toolbar">
+        <span className="adm-toolbar__label">Show</span>
+        <div className="adm-seg" role="group" aria-label="Show">
+          {[["all", "Everything"], ["copied", "Added"], ["opened", "Opened"], ["updated", "Updated"], ["switched", "Switched"]].map(([k, l]) => (
+            <button key={k} type="button" aria-pressed={kind === k}
+              className={`adm-seg__btn${kind === k ? " is-on" : ""}`} onClick={() => setKind(k)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {shown.length === 0 ? <Empty>Nothing of that kind yet.</Empty> : (
+        <table className="adm-table adm-shares">
+          <thead>
+            <tr><th>When</th><th>From</th><th>To</th><th>Deck</th><th>What happened</th></tr>
+          </thead>
+          <tbody>
+            {shown.map((r, i) => (
+              <tr key={i}>
+                <td className="adm-dim adm-when">{when(r.at)}</td>
+                <td>
+                  <span className="adm-name">{whoOf(r.from_name, r.from_email)}</span>
+                  {r.from_name && <span className="adm-email">{r.from_email}</span>}
+                </td>
+                <td>
+                  <span className="adm-name">{whoOf(r.to_name, r.to_email)}</span>
+                  {r.to_name && <span className="adm-email">{r.to_email}</span>}
+                </td>
+                <td className="adm-deck">{r.deck_name || "—"}</td>
+                <td>
+                  <span className={`adm-kind is-${r.kind}`}>{(SHARE_KINDS[r.kind]?.what ?? (() => r.kind))(r.questions)}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {/* Phones: the same log as two-line entries — a five-column table
+          broke names mid-word at that width. */}
+      {shown.length > 0 && (
+        <ul className="adm-share-list">
+          {shown.map((r, i) => (
+            <li key={i}>
+              <p className="adm-share-list__who">
+                <strong>{whoOf(r.from_name, r.from_email)}</strong>
+                <span aria-label="to"> → </span>
+                <strong>{whoOf(r.to_name, r.to_email)}</strong>
+                {r.deck_name && <span className="adm-share-list__deck"> · {r.deck_name}</span>}
+              </p>
+              <p className="adm-share-list__what">
+                <span className={`adm-kind is-${r.kind}`}>{(SHARE_KINDS[r.kind]?.what ?? (() => r.kind))(r.questions)}</span>
+                <span className="adm-dim"> · {when(r.at)}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="adm-note">
+        “From” is whoever owns the deck whose link was used, so a deck passed on from
+        someone’s copy shows as from them. Adds before 18 October were rebuilt from the
+        decks themselves; opened links and updates are recorded from 18 October.
+      </p>
+    </section>
+  );
+}
+
 /* ── Generating ────────────────────────────────────────────────────
    Questions per day, not requests. The free tier caps requests and one
    request returns several questions, so read this as the shape of usage
@@ -663,6 +770,7 @@ function Flags() {
 const PANELS = {
   overview: Overview,
   people: People,
+  sharing: Sharing,
   generating: Generating,
   tokens: Tokens,
   mail: Mail,

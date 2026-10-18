@@ -426,6 +426,13 @@ export async function fetchTokenTotals() {
   return data ?? [];
 }
 
+/* Who sent whose deck to whom, newest first (migration 0020). */
+export async function fetchShareLog(lim = 300) {
+  const { data, error } = await supabase.rpc("admin_share_log", { lim });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 /* Requests to the AI per UK day, by feature (migration 0019). */
 export async function fetchAiCallsDaily(days = 30) {
   const { data, error } = await supabase.rpc("admin_ai_calls_daily", { days });
@@ -579,6 +586,12 @@ export const remote = {
     const { data, error } = await supabase.rpc("switch_to_featured", { copy: copyId });
     if (error) throw error;
     return data ?? 0;
+  },
+  /* Admin's sharing log (migration 0020): an opened link. Once an hour per
+     person and deck, decided in the database. */
+  logShareOpen: async (code) => {
+    const { error } = await supabase.rpc("log_share_open", { code });
+    if (error) throw error;
   },
   /* `skip`: ids of the shared deck's questions to leave out — ones the
      recipient already has (see ReceiveDeck). */
