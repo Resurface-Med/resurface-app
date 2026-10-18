@@ -9524,4 +9524,24 @@ button.dp3-row:hover { background: var(--c-card-solid); }
     background: var(--c-accent);
   }
   .app-nav__item.is-active:hover { background: var(--c-surface2); }
+
+  /* The page's left edge follows the same wave, so the blue between the two
+     is an even ribbon rather than a gap that widens and narrows. The page
+     tucks 26px under the sidebar so the ribbon stays narrow; the strip mask
+     is the sidebar's curve moved across by that and the ribbon's width, in
+     the same 1000-unit height (both are the window's height). Not during a
+     practice session, when the sidebar steps aside. */
+  .app-shell:not(.is-session) { gap: 0; }
+  .app-nav { z-index: 5; }
+  /* The wave reaches up to ~43px into the page at its widest, so every
+     page's band (each inlines the same side padding) gets 28px more on the
+     left, keeping text clear of the curve. */
+  .app-shell:not(.is-session) .app-main [style*="clamp(20px, 3vw, 40px)"] {
+    padding-left: calc(clamp(20px, 3vw, 40px) + 28px) !important;
+  }
+  .app-shell:not(.is-session) > .app-content {
+    margin-left: -26px;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2060%201000%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M23.4%200%20C43.4%20170%2043.4%20340%2020.5%20500%20C0.5%20660%200.5%20820%2023.4%201000%20L60%201000%20L60%200%20Z%27%20fill%3D%27black%27/%3E%3C/svg%3E") 0 0 / 60px 100% no-repeat, linear-gradient(#000, #000) 60px 0 / calc(100% - 60px) 100% no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2060%201000%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M23.4%200%20C43.4%20170%2043.4%20340%2020.5%20500%20C0.5%20660%200.5%20820%2023.4%201000%20L60%201000%20L60%200%20Z%27%20fill%3D%27black%27/%3E%3C/svg%3E") 0 0 / 60px 100% no-repeat, linear-gradient(#000, #000) 60px 0 / calc(100% - 60px) 100% no-repeat;
+  }
 }
