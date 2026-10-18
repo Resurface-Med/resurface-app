@@ -861,7 +861,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   )}
                   {/* Sticky, because the topic list is longer than a phone and
                       the way out should not be at the bottom of a scroll. */}
-                  <div className={`setup-next-dock${noQuestions ? " is-hidden" : ""}`}>
+                  <div className={`setup-next-dock${noQuestions ? " is-hidden" : ""}${nothingChosen ? " is-away" : ""}`} aria-hidden={nothingChosen || undefined}>
                     <button
                       className="btn-press"
                       disabled={scoped === 0}
@@ -1003,7 +1003,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 band's blue on the white sheet, a capsule clear of the edges,
                 under the list rather than over it. A strip in the sheet's own
                 tints read as one more deck row cut off. */}
-            <div className={`setup-dock setup-dock--next${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
+            <div className={`setup-dock setup-dock--next${noQuestions ? " is-hidden" : ""}${nothingChosen ? " is-away" : ""}`} aria-hidden={nothingChosen || undefined} data-in="rise" style={{ "--i": 3 }}>
               <div className="setup-next-bar">
               <p className="setup-next-sel">
                 {scoped === 0 ? (nothingChosen ? "Choose what to revise" : "Nothing in these decks") : (

@@ -9053,3 +9053,21 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 @keyframes updateInPhone { from { opacity: 0; transform: translateY(12px) scale(0.97); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .update-note { animation-duration: 0.01s; } }
+
+/* Practice's Next pill stays out of the way until a deck is ticked
+   (2026-10-18): browsing the list gets the whole height, and the pill rises
+   in with the first tick and folds away when the last one goes. Collapsed
+   rather than display:none so it can animate both ways. */
+.setup-dock--next, .setup-next-dock {
+  max-height: 140px;
+  transition: max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1), padding 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.2s ease, transform 0.32s cubic-bezier(0.34, 1.3, 0.5, 1);
+}
+.setup-dock--next.is-away, .setup-next-dock.is-away {
+  max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0;
+  opacity: 0; transform: translateY(24px);
+  overflow: hidden; pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-dock--next, .setup-next-dock { transition-duration: 0.01s; }
+}
