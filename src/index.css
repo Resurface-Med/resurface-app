@@ -9169,3 +9169,50 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .quiz-shell { transition: padding-right 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
   .quiz-shell.is-labs { padding-right: 440px; }
 }
+
+/* ─── Profile photos (ui/Avatar, lib/avatar) ─────────────────────────
+   One round object everywhere: the photo filling it, or the initials it
+   always had. */
+.avatar { overflow: hidden; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar.has-photo { background: var(--c-surface3); }
+
+.profile-photo-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+.profile-photo {
+  flex: none; width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-accent); color: #fff; font-size: 17px; font-weight: 700;
+}
+.profile-photo-btn {
+  display: inline-flex; align-items: center;
+  padding: 9px 16px; border-radius: 999px;
+  background: var(--c-surface3); color: var(--c-text);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.profile-photo-btn:hover { background: var(--c-surface2); }
+.profile-photo-btn.is-busy { opacity: 0.6; cursor: default; }
+.profile-photo-remove { color: var(--c-sub); }
+
+/* The leaderboard: a small photo before each name. */
+.lb-row { align-items: center; }
+.lb-who { position: relative; flex: none; }
+.lb-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-surface3); color: var(--c-sub);
+  font-size: 12.5px; font-weight: 700; letter-spacing: -0.2px;
+}
+.lb-row.is-me .lb-avatar:not(.has-photo) { background: var(--c-accent); color: #fff; }
+.lb-avatar-x {
+  position: absolute; top: -4px; right: -6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: grid; place-items: center; padding: 0;
+  border: 0; background: var(--c-danger); color: #fff;
+  font-size: 13px; line-height: 1; cursor: pointer;
+  opacity: 0; transition: opacity 0.15s ease;
+}
+.lb-row:hover .lb-avatar-x, .lb-avatar-x:focus-visible { opacity: 1; }
+@media (max-width: 640px) {
+  .lb-avatar { width: 30px; height: 30px; font-size: 11.5px; }
+  .lb-avatar-x { opacity: 1; }
+}

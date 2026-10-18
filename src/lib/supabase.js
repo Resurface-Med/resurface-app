@@ -16,6 +16,8 @@ const url = import.meta.env.VITE_SUPABASE_URL || DEFAULT_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
 
 export const isConfigured = Boolean(url && anonKey);
+/* For building public Storage addresses (profile photos, lib/avatar). */
+export const SUPABASE_URL = url;
 
 export const supabase = isConfigured
   ? createClient(url, anonKey, {
