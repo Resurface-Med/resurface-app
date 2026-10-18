@@ -180,7 +180,7 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, onSwitchToFeatured = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -232,16 +232,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* What is replacing the tree, if anything: a name field (new sub-deck or
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
-  const [switching, setSwitching] = useState(null);
-  const [switchError, setSwitchError] = useState(null);
-  const [keptCopies, setKeptCopies] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("featured-kept") ?? "[]"); } catch { return []; }
-  });
-  function keepCopy(id) {
-    const next = [...keptCopies, id];
-    setKeptCopies(next);
-    try { localStorage.setItem("featured-kept", JSON.stringify(next)); } catch { /* this device only */ }
-  }
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   /* Yours and the featured ones, for drawing the list; decksById stays
      yours alone, since everything that reads it renames, shares or deletes. */
@@ -599,37 +589,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ];
     const qNorm = topicQuery.trim().toLowerCase();
-    /* People who copied a featured deck before it was featured have it
-       twice. Offer the swap, once per deck; "Keep my copy" is remembered on
-       this device. And a hidden one can be brought back. */
-    const copies = featured.filter(r => !r.hidden && r.copyId && decksById.has(r.copyId) && !keptCopies.includes(r.id));
+    /* A featured deck you hid can be brought back. (An old copy of one is
+       swapped for it automatically — see App's switchToFeatured.) */
     const hiddenFeatured = featured.filter(r => r.hidden);
-    const copyNotes = copies.length > 0 && !qNorm ? (
-      <>
-        {copies.map(r => {
-          const name = featuredDecks.find(d => d.id === r.id)?.name ?? "this deck";
-          return (
-            <div key={r.id} className="feat-note">
-              <p className="feat-note-text">
-                You have your own copy of {name} from before. {r.byline}’s deck is now here for everyone and stays up to date when {r.byline} changes it. Switch to it and your progress comes with you; anything you added to your copy yourself stays where it is.
-              </p>
-              {switchError === r.id && <p className="feat-note-err">That didn’t work. Check your connection and try again.</p>}
-              <div className="feat-note-acts">
-                <button type="button" className="feat-note-go btn-press" disabled={switching === r.id}
-                  onClick={async () => {
-                    setSwitching(r.id); setSwitchError(null);
-                    try { await onSwitchToFeatured?.(r.copyId); } catch { setSwitchError(r.id); }
-                    setSwitching(null);
-                  }}>
-                  {switching === r.id ? "Switching…" : `Switch to ${r.byline}’s deck`}
-                </button>
-                <button type="button" className="feat-note-keep" onClick={() => keepCopy(r.id)}>Keep my copy</button>
-              </div>
-            </div>
-          );
-        })}
-      </>
-    ) : null;
     const hiddenNotes = hiddenFeatured.length > 0 && !qNorm ? (
       <>
         {hiddenFeatured.map(r => (
@@ -655,7 +617,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const allCount = forest.reduce((n, r) => n + r.avail, 0);
     const deckList = ({ key, ...treeProps }) => (
       <>
-        {copyNotes}
         {(ownRoots.length > 0 || featRoots.length === 0) && (
           <DeckTree key={key} {...treeProps} forest={activeRoot ? forest : ownRoots}
             allAvail={activeRoot ? treeProps.allAvail : allCount}

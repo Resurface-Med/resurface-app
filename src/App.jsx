@@ -182,10 +182,7 @@ export default function App() {
     applyFeatured({ ...f, roots: f.roots.map(r => (r.id === id ? { ...r, hidden: hide } : r)) });
     remote.hideFeatured(id, hide).catch(() => {});
   }
-  async function switchToFeatured(copyId) {
-    await remote.switchToFeatured(copyId);
-    await refreshData();
-  }
+
   function applyDecks(deckRows) {
     decksRef.current = deckRows;
     setDecks(deckRows);
@@ -268,6 +265,31 @@ export default function App() {
     setShareCode(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shareCode, dataLoading, featured]);
+
+  /* Copies of a featured deck are replaced by it, without asking (Rafil,
+     2026-10-18). People who were sent Jacob's deck before it was featured
+     had a copy that stopped following him; on their first load of this
+     version the copy goes and the live deck takes its place. Progress on
+     those questions moves across, and questions they added to the copy
+     themselves stay (switch_to_featured, migration 0014). Once per copy per
+     load; a failure leaves the copy alone and tries again next time. A
+     hidden featured deck is left be — they would lose the copy and see
+     nothing. */
+  const switchedRef = useRef(new Set());
+  useEffect(() => {
+    if (dataLoading) return;
+    const todo = featured.roots.filter(r => r.copyId && !r.hidden && !switchedRef.current.has(r.copyId));
+    if (!todo.length) return;
+    todo.forEach(r => switchedRef.current.add(r.copyId));
+    (async () => {
+      let moved = false;
+      for (const r of todo) {
+        try { if (await remote.switchToFeatured(r.copyId)) moved = true; } catch { /* next load */ }
+      }
+      if (moved) await refreshData();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [featured, dataLoading]);
 
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
   // user object — so a tab-focus token refresh doesn't remount the whole app
@@ -977,7 +999,7 @@ export default function App() {
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
             decks={decks} deckActions={deckActions}
             featured={featured.roots} featuredDecks={featuredDecks}
-            onHideFeatured={hideFeatured} onSwitchToFeatured={switchToFeatured}
+            onHideFeatured={hideFeatured}
             openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
             autoStart={autoStart} onAutoStartConsumed={() => setAutoStart(false)}
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
