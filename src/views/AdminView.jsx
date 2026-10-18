@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { h1 } from "../ui/theme";
+import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
@@ -787,7 +787,7 @@ export default function AdminView() {
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Admin</h1>
-        <p className="lb-you">Only you and the other admins can see this.</p>
+        <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2 }}>Only you and the other admins can see this.</p>
       </div>
 
       <Wave from="transparent" to="var(--c-card-solid)" />
