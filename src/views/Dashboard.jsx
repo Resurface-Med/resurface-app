@@ -89,7 +89,9 @@ export default function Dashboard({
      film and all — from every new account (2026-10-18). Those can be
      practised from here too, so Practice sits beside the first step. */
   const ownCount = QUESTIONS.filter(q => !q.featured).length;
-  const empty = ownCount === 0 || previewFirstRun;
+  /* …and only until they have answered something: one answer and Home goes
+     back to showing their progress, Jacob's deck or not. */
+  const empty = (ownCount === 0 && totalT === 0) || previewFirstRun;
 
   /* The film plays once, by itself, the first time an empty account lands
      here; after that it is the poster below, to watch again. Seen is saved
