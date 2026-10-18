@@ -180,6 +180,11 @@ function describeSession(s) {
  * for this same screen with a different WHERE clause. They are now scopes,
  * picked here, so the nav describes the task rather than the implementation.
  */
+/* "Nothing chosen": a leaf id no deck has, so it matches no question and
+   ticks no box. Not [] — an empty list has always meant everything. */
+const NONE = ["none"];
+const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] === "none");
+
 export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
 
@@ -195,7 +200,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     return pool.length;
   }
   /* Arriving from Progress carries a subject and topic by name; the leaves
-     those name are looked up once. Everything else starts on All. */
+     those name are looked up once. Everything else starts with nothing
+     chosen (2026-10-18): the list is for picking, and starting on every deck
+     ticked meant unticking most of them first. */
   const [filter, setFilter] = useState(() => {
     if (launchFilter?.leaves) return { ...defaultFilter, year: ["Year 1"], leaves: launchFilter.leaves };
     if (launchFilter?.deck && launchFilter.deck !== "All") {
@@ -204,7 +211,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         .map(q => q.leaf))];
       return { ...defaultFilter, year: ["Year 1"], leaves: leaves.length ? leaves : ["All"] };
     }
-    return { ...defaultFilter, year: ["Year 1"] };
+    return { ...defaultFilter, year: ["Year 1"], leaves: NONE };
   });
   const [countOpt, setCountOpt] = useState(20);
   const [topicQuery, setTopicQuery] = useState("");
@@ -264,10 +271,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     if (!autoStart) return;
     onAutoStartConsumed?.();
     if (autoStart.ids) startWith(autoStart.ids, autoStart.limit);
-    else start();
+    else start({ ...filter, leaves: ["All"] });   // "Start studying": everything
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    setFilter(f => ({ ...f, leaves: ["All"] }));
+    setFilter(f => ({ ...f, leaves: NONE }));
     setNaming(null);
     setTopicQuery("");
   }, [activeRootId]);
@@ -535,6 +542,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        the heading, not a row. */
     const forest = activeRoot ? activeRoot.children : fullForest;
     const scoped = scopedCount(filter);
+    /* Nothing ticked yet (the default), as opposed to ticked decks that
+       happen to hold nothing for this scope. The heading counts what there
+       is to choose from until something is chosen. */
+    const nothingChosen = isNone(filter.leaves);
+    const poolSize = scopedCount({ ...filter, leaves: ["All"] });
 
     /* An account with nothing to practise. This screen used to give it the
        whole machine anyway — a search box with nothing to search, a dashed
@@ -723,7 +735,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             style={{ ...primaryBtn, ...lg, width: "100%", opacity: willAsk === 0 ? 0.5 : 1 }}
           >
             {willAsk === 0
-              ? "Nothing here — pick another topic"
+              ? "Nothing here — go back and pick another deck"
               : `Start · ${willAsk} question${willAsk === 1 ? "" : "s"} →`}
           </button>
         </div>
@@ -857,7 +869,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       style={{ ...primaryBtn, ...lg, width: "100%", opacity: scoped === 0 ? 0.5 : 1 }}
                     >
                       {scoped === 0
-                        ? "Nothing here — pick another topic"
+                        ? nothingChosen ? "Choose what to revise" : "Nothing here — pick another deck"
                         : `Next · ${scoped} question${scoped === 1 ? "" : "s"} →`}
                     </button>
                   </div>
@@ -928,7 +940,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    <>{scoped} question{scoped === 1 ? "" : "s"}</>
+                    <>{nothingChosen ? poolSize : scoped} question{(nothingChosen ? poolSize : scoped) === 1 ? "" : "s"}</>
                     <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>
                       ＋ New deck
                     </button>
@@ -994,7 +1006,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <div className={`setup-dock setup-dock--next${noQuestions ? " is-hidden" : ""}`} data-in="rise" style={{ "--i": 3 }}>
               <div className="setup-next-bar">
               <p className="setup-next-sel">
-                {scoped === 0 ? "Nothing selected" : (
+                {scoped === 0 ? (nothingChosen ? "Choose what to revise" : "Nothing in these decks") : (
                   <>
                     <strong>{scoped} question{scoped === 1 ? "" : "s"}</strong>
                     {topicLabel ? <span> from {topicLabel}</span> : null}

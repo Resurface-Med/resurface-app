@@ -223,9 +223,12 @@ export default function DeckTree({
     setOpen(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   }
 
+  /* Unticking the last deck leaves nothing chosen, not everything — the
+     list starts empty and Everything is its own box (2026-10-18). "none" is
+     the empty marker, never a deck (see PracticeMode's NONE). */
   function emit(next) {
-    if (!next || next.size === 0) onChange({ leaves: ["All"] });
-    else onChange({ leaves: [...next] });
+    const ids = [...(next ?? [])].filter(id => id !== "none");
+    onChange({ leaves: ids.length ? ids : ["none"] });
   }
   function pickAll() { onChange({ leaves: ["All"] }); }
 
