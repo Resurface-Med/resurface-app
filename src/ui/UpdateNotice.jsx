@@ -16,14 +16,11 @@ import { useEffect, useState } from "react";
  * Dismissed, it stays away until the next deploy.
  */
 const EVERY = 10 * 60 * 1000;
-/* ?newversion on a preview build shows the notice straight away, to look
-   at. Remembered for the tab, because the address does not survive a
-   sign-in or the app's own reloads. */
+/* Preview builds show the notice from the start, to look at, until its ×
+   is pressed (remembered on this device). Never in production. */
+const PREVIEW_KEY = "update-notice-preview-closed";
 const PREVIEW = typeof __PREVIEW_TOOLS__ !== "undefined" && __PREVIEW_TOOLS__ && (() => {
-  try {
-    if (new URLSearchParams(window.location.search).has("newversion")) sessionStorage.setItem("newversion", "1");
-    return sessionStorage.getItem("newversion") === "1";
-  } catch { return new URLSearchParams(window.location.search).has("newversion"); }
+  try { return localStorage.getItem(PREVIEW_KEY) !== "1"; } catch { return true; }
 })();
 const scriptIn = html => html.match(/\/assets\/index-[\w-]+\.js/)?.[0] ?? null;
 
@@ -58,7 +55,10 @@ export default function UpdateNotice({ hold = false }) {
     <div className="update-note" role="status" aria-live="polite">
       <span className="update-note-text">A new version of Resurface is ready.</span>
       <button type="button" className="update-note-btn btn-press" onClick={() => window.location.reload()}>Refresh</button>
-      <button type="button" className="update-note-x" onClick={() => setDismissed(ready)} aria-label="Not now">
+      <button type="button" className="update-note-x" onClick={() => {
+        setDismissed(ready);
+        if (ready === "preview") { try { localStorage.setItem(PREVIEW_KEY, "1"); } catch { /* shows again next load */ } }
+      }} aria-label="Not now">
         <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
       </button>
     </div>
