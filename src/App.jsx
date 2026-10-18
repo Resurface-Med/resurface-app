@@ -161,7 +161,7 @@ export default function App() {
     const byId = indexDecks(deckRows);
     const decorated = rows.map(r => decorateUserQuestion(r, byId));
     const f = featuredRef.current;
-    const hidden = new Set(f.roots.filter(r => r.hidden).map(r => r.id));
+    const hidden = new Set(f.roots.filter(r => r.hidden).map(r => r.top ?? r.id));
     const fById = indexDecks(f.decks);
     const shared = f.questions
       .map(r => decorateUserQuestion(r, fById))
@@ -263,7 +263,7 @@ export default function App() {
     const r = featured.roots.find(x => x.shareCode === shareCode);
     if (!r) return;
     if (r.hidden) hideFeatured(r.id, false);
-    setOpenDeckId(r.id);
+    setOpenDeckId(r.top ?? r.id);
     setView(V.STUDY);
     setShareCode(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps

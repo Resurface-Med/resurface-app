@@ -578,7 +578,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* What a row's menu offers: your decks the lot, a featured deck's own
        row only a way to hide it. */
-    const hideFeatured = id => { if (activeRootId === id) setActiveRootId(null); onHideFeatured?.(id, true); };
+    /* Rows carry the id drawn at the top (a folder, perhaps); hiding is
+       keyed on the real deck. */
+    const hideFeatured = topId => {
+      if (activeRootId === topId) setActiveRootId(null);
+      const r = featured.find(x => (x.top ?? x.id) === topId);
+      if (r) onHideFeatured?.(r.id, true);
+    };
     const featuredMenu = [{ label: "Hide from my decks", onSelect: n => hideFeatured(n.id) }];
     const rowMenu = node => !node.mine ? (node.byline && onHideFeatured ? featuredMenu : null) : [
       { label: "Manage questions", onSelect: n => setManaging(n.id) },

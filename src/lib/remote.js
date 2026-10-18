@@ -334,8 +334,8 @@ export async function loadAll(userId) {
  * app opens without them rather than refusing to open.
  *
  * Shapes:
- *  roots: [{ id, byline, shareCode, hidden, copyId }] — copyId is your own
- *         copy of it from before, if you have one.
+ *  roots: [{ id, top, name, byline, shareCode, hidden, copyId }] — copyId
+ *         is your own copy of it from before, if you have one.
  *  decks: rows like loadUserDecks's, with `featured` and their root.
  *  questions: rows like `generated`'s, minus `gen` — they are not yours to
  *         edit, so the card offers Report instead.
@@ -344,13 +344,16 @@ export async function loadFeatured() {
   const { data, error } = await supabase.rpc("featured_content");
   if (error || !data) return { roots: [], decks: [], questions: [] };
   const names = new Map((data.decks ?? []).map(d => [d.id, d.name]));
-  const roots = (data.roots ?? []).map(r => ({ ...r, name: names.get(r.id) ?? "" }));
-  const byline = new Map(roots.map(r => [r.id, r.byline]));
+  /* `top` is what heads the list — a folder the deck is shown in, or the deck
+     itself — and carries the byline; `id` is the real deck. */
+  const roots = (data.roots ?? []).map(r => ({ ...r, top: r.top ?? r.id, name: names.get(r.top ?? r.id) ?? "" }));
+  const byTop = new Map(roots.map((r, i) => [r.top, { byline: r.byline, at: i }]));
   return {
     roots,
     decks: (data.decks ?? []).map(d => ({
-      id: d.id, name: d.name, parentId: d.parentId, position: d.parentId ? d.position : -1e9 + (roots.findIndex(r => r.id === d.id)),
-      featured: true, root: d.root, byline: d.parentId ? null : byline.get(d.id) ?? null,
+      id: d.id, name: d.name, parentId: d.parentId,
+      position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
+      featured: true, root: d.root, byline: d.parentId ? null : byTop.get(d.id)?.byline ?? null,
     })),
     questions: (data.questions ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), featured: true, deckId: r.deckId })),
   };
