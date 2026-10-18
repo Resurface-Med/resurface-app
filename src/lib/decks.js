@@ -51,7 +51,11 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
   function ensureDeck(d) {
     if (nodes.has(d.id)) return nodes.get(d.id);
     const parent = d.parentId && byId.has(d.parentId) ? ensureDeck(byId.get(d.parentId)) : null;
-    return node(d.id, d.name, parent, true);
+    /* A featured deck (someone else's, read live) is drawn like yours but
+       is not yours: no menu of yours, no dragging, and its byline. */
+    const n = node(d.id, d.name, parent, !d.featured);
+    if (d.featured) { n.featured = true; n.byline = d.byline ?? null; }
+    return n;
   }
   for (const d of sorted) ensureDeck(d);
 

@@ -8968,3 +8968,35 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .setup-count-input:disabled { opacity: .5; }
 .setup-count-of { font-size: 15px; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .setup-count-input { font-size: 17px; } }
+
+/* A featured deck's byline, inside its name: "Renal  by Jacob". */
+.topic-by {
+  margin-left: 8px;
+  font-size: 13px; font-weight: 500; letter-spacing: -0.1px;
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+
+/* Featured decks: their own tree under yours, the note offering to swap an
+   old copy for the live deck, and the line for one you hid. */
+.feat-tree { margin-top: 14px; }
+.feat-note {
+  margin: 0 0 14px; padding: 14px 16px;
+  border-radius: var(--r-card, 14px);
+  background: var(--c-accent-dim);
+}
+.feat-note-text { margin: 0; font-size: 14px; line-height: 1.5; color: var(--c-text); }
+.feat-note-err { margin: 8px 0 0; font-size: 13.5px; color: var(--c-danger); }
+.feat-note-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 12px; }
+.feat-note-go {
+  border: 0; border-radius: 999px; padding: 9px 16px;
+  background: var(--c-accent); color: #fff;
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.feat-note-go:disabled { opacity: .6; cursor: default; }
+.feat-note-keep {
+  border: 0; background: none; padding: 4px 0;
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--c-sub); cursor: pointer;
+}
+.feat-note-keep:hover { color: var(--c-text); }
+.feat-hidden { margin: 16px 2px 0; font-size: 13.5px; color: var(--c-muted); }

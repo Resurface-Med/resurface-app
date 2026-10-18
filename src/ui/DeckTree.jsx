@@ -131,7 +131,7 @@ function RowMenu({ node, items, renderPicker }) {
 }
 
 /** Prune to rows matching the query, keeping the ancestors above a match. */
-function prune(nodes, q) {
+export function prune(nodes, q) {
   return nodes.flatMap(n => {
     if (n.name.toLowerCase().includes(q)) return [n];
     const kids = prune(n.children, q);
@@ -143,6 +143,9 @@ export default function DeckTree({
   forest, value, onChange, query = "",
   allLabel = "Everything", showAll = true, allAvail = null,
   rowMenu = null, allowEmpty = false,
+  /* When another tree sits beside this one (featured decks), its matches
+     count too, so this one does not say "no deck matches" over them. */
+  quietNoMatch = false,
   /* onMove(id, parentId, beforeId): drag, Alt+arrows, and the row menu's
      Move to… all end here. Without it the tree is
      read-only. */
@@ -296,7 +299,7 @@ export default function DeckTree({
 
   const KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowRight: "in", ArrowLeft: "out" };
   function onRowKey(e, n) {
-    if (!canMove || !e.altKey || !KEYS[e.key]) return;
+    if (!canMove || !n.mine || !e.altKey || !KEYS[e.key]) return;
     e.preventDefault();
     if (moveNow(n.id, stepMove(forest, n.id, KEYS[e.key], rootParentId))) focusAfter.current = n.id;
   }
@@ -305,8 +308,9 @@ export default function DeckTree({
      Move up / Move down were here too and were cut (2026-10-15): dragging
      and Alt+arrows already do one step, and they were menu clutter. */
   function menuFor(n) {
-    const items = rowMenu && n.mine ? rowMenu(n) : null;
-    if (!items || !onMove) return items;
+    /* Your decks, and a featured deck's own row (to hide it). */
+    const items = rowMenu && (n.mine || n.byline) ? rowMenu(n) : null;
+    if (!items || !onMove || !n.mine) return items;
     const moves = [{ label: "Move to…", picker: true }];
     const at = items.findIndex(it => it.danger);
     return at < 0 ? [...items, ...moves] : [...items.slice(0, at), ...moves, ...items.slice(at)];
@@ -432,7 +436,7 @@ export default function DeckTree({
             onKeyDown={e => onRowKey(e, n)}
           >
             <Check state={st} />
-            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
+            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}{n.byline && <span className="topic-by">by {n.byline}</span>}</span>
             {depth === 0
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
               : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
@@ -464,7 +468,7 @@ export default function DeckTree({
           <span className="topic-all__count">{totalAvail}</span>
         </button>
       )}
-      {q && tree.length === 0 && (
+      {q && tree.length === 0 && !quietNoMatch && (
         <p style={{ padding: "20px 4px", fontSize: 14.5, color: C.muted }}>No deck matches “{query.trim()}”.</p>
       )}
       {/* A deck holding its own questions has nothing under it to choose

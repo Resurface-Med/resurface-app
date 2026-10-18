@@ -148,12 +148,43 @@ export default function App() {
      of and arrived as "Unfiled" — until a reload, which is what made it
      look like the questions had not saved. */
   const decksRef = useRef([]);
+  /* Featured decks (lib/remote loadFeatured): someone else's, read live.
+     Kept apart from `decks` — that list is yours, and is what Generate files
+     into and Move offers — but their questions join the one pool. A hidden
+     one is left out of both. */
+  const [featured, setFeatured] = useState({ roots: [], decks: [], questions: [] });
+  const featuredRef = useRef(featured);
+  const hiddenRoots = new Set(featured.roots.filter(r => r.hidden).map(r => r.id));
+  const featuredDecks = featured.decks.filter(d => !hiddenRoots.has(d.root));
   function applyGenerated(rows, deckRows = decksRef.current) {
     genRowsRef.current = rows;
     const byId = indexDecks(deckRows);
     const decorated = rows.map(r => decorateUserQuestion(r, byId));
-    setUserQuestions(decorated);
+    const f = featuredRef.current;
+    const hidden = new Set(f.roots.filter(r => r.hidden).map(r => r.id));
+    const fById = indexDecks(f.decks);
+    const shared = f.questions
+      .map(r => decorateUserQuestion(r, fById))
+      .filter(q => q.rootId !== "orphan" && !hidden.has(q.rootId));
+    setUserQuestions([...decorated, ...shared]);
     setGenerated(decorated);
+  }
+  /* Progress reads every deck you practise from, featured ones included. */
+  const progressDecks = useMemo(() => [...decks, ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
+  function applyFeatured(next) {
+    const f = next ?? { roots: [], decks: [], questions: [] };
+    featuredRef.current = f;
+    setFeatured(f);
+    applyGenerated(genRowsRef.current);
+  }
+  function hideFeatured(id, hide) {
+    const f = featuredRef.current;
+    applyFeatured({ ...f, roots: f.roots.map(r => (r.id === id ? { ...r, hidden: hide } : r)) });
+    remote.hideFeatured(id, hide).catch(() => {});
+  }
+  async function switchToFeatured(copyId) {
+    await remote.switchToFeatured(copyId);
+    await refreshData();
   }
   function applyDecks(deckRows) {
     decksRef.current = deckRows;
@@ -207,6 +238,8 @@ export default function App() {
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
+    featuredRef.current = d.featured ?? featuredRef.current;
+    setFeatured(featuredRef.current);
     applyDecks(d.decks ?? []);
     applyGenerated(d.generated, d.decks ?? []);
   }
@@ -221,6 +254,20 @@ export default function App() {
       applySnapshot(await loadAll(user.id));
     } catch { /* offline, say: nothing is replaced */ }
   }
+
+  /* A link to a featured deck has nothing to add: it is already on
+     everyone's list. Straight to it, instead of a copy that would stop
+     following it. */
+  useEffect(() => {
+    if (!shareCode || dataLoading) return;
+    const r = featured.roots.find(x => x.shareCode === shareCode);
+    if (!r) return;
+    if (r.hidden) hideFeatured(r.id, false);
+    setOpenDeckId(r.id);
+    setView(V.STUDY);
+    setShareCode(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shareCode, dataLoading, featured]);
 
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
   // user object — so a tab-focus token refresh doesn't remount the whole app
@@ -793,6 +840,7 @@ export default function App() {
      question, and the nav behind it is noise until they have. After the data
      load, so adding a deck can apply straight into the pool rather than
      racing it. */
+  if (shareCode && featured.roots.some(r => r.shareCode === shareCode)) return null;
   if (shareCode) {
     return (
       <ReceiveDeck
@@ -928,12 +976,14 @@ export default function App() {
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
             decks={decks} deckActions={deckActions}
+            featured={featured.roots} featuredDecks={featuredDecks}
+            onHideFeatured={hideFeatured} onSwitchToFeatured={switchToFeatured}
             openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
             autoStart={autoStart} onAutoStartConsumed={() => setAutoStart(false)}
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
-          {v === V.PROGRESS && <ProgressView pStats={pStats} decks={decks} setView={go}
+          {v === V.PROGRESS && <ProgressView pStats={pStats} decks={progressDecks} setView={go}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
