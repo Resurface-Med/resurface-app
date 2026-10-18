@@ -218,7 +218,6 @@ export default function ProfileView({
                   )}
                 </div>
                 {photoErr && <p className="name-err" role="alert">{photoErr}</p>}
-                <p style={{ ...meta, marginTop: 8 }}>Shows beside your name on the leaderboard.</p>
               </div>
 
               <form onSubmit={saveName} className="profile-field">
