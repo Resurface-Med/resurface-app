@@ -239,6 +239,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* What is replacing the tree, if anything: a name field (new sub-deck or
      rename, with the deck id it is for). */
   const [naming, setNaming] = useState(null);      // { mode: "rename" | "sub", deckId }
+  /* "Other years are on the way", once hidden, stays hidden on this device. */
+  const [soonHidden, setSoonHidden] = useState(() => {
+    try { return localStorage.getItem("other-years-hidden") === "1"; } catch { return false; }
+  });
+  function hideSoon() {
+    setSoonHidden(true);
+    try { localStorage.setItem("other-years-hidden", "1"); } catch { /* hidden until reload */ }
+  }
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   /* Yours and the featured ones, for drawing the list; decksById stays
      yours alone, since everything that reads it renames, shares or deletes. */
@@ -641,8 +649,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             {/* Only one year is covered so far. Said where the decks are, with
                 the way round it, so nobody in another year thinks the app is
                 not for them (2026-10-18). */}
-            {!qNorm && (
+            {!qNorm && !soonHidden && (
               <section className="feat-soon" aria-label="Other years">
+                <button type="button" className="feat-soon__x" onClick={hideSoon} aria-label="Hide this message">
+                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+                </button>
                 <img src="/icon-192.png" alt="" aria-hidden="true" className="feat-soon__mark" width="44" height="44" />
                 <div className="feat-soon__text">
                   <h3 className="feat-soon__title">Other years are on the way</h3>

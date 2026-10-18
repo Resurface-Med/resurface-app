@@ -9459,3 +9459,15 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .feat-soon__text { flex-basis: calc(100% - 52px); }
   .feat-soon__go { width: 100%; justify-content: center; }
 }
+.feat-soon { position: relative; }
+.feat-soon__x {
+  position: absolute; top: 8px; right: 8px;
+  width: 30px; height: 30px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 50%; background: none; color: var(--c-muted); cursor: pointer;
+}
+.feat-soon__x:hover { color: var(--c-text); background: var(--c-surface3); }
+.feat-soon__go { margin-right: 26px; }
+@media (max-width: 640px) {
+  .feat-soon__go { margin-right: 0; }
+  .feat-soon__text { padding-right: 24px; }
+}
