@@ -11,6 +11,7 @@ import { remote } from "../lib/remote";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import CountField from "../ui/CountField";
+import { extractText } from "../lib/textFile";
 
 /**
  * Generate — turn lecture material into questions.
@@ -338,7 +339,8 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
   if (file) {
     const ext = file.name.split(".").pop().toLowerCase();
 
-    const isDoc = ext === "pptx" || ext === "ppt" || ext === "pdf" || ext === "apkg";
+    const isText = ext === "txt" || ext === "md" || ext === "text";
+    const isDoc = ext === "pptx" || ext === "ppt" || ext === "pdf" || ext === "apkg" || isText;
 
     if (isDoc && file.size > MAX_READ_BYTES) {
       throw new Error(`That file is ${(file.size / 1024 / 1024).toFixed(0)}MB, which is more than the browser can open. Split it and try again.`);
@@ -349,6 +351,9 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
 
     if (ext === "pptx" || ext === "ppt") {
       const text = await extractPptx(file);
+      userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
+    } else if (isText) {
+      const text = await extractText(file);
       userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (ext === "apkg") {
       const text = await extractApkg(file);
@@ -1409,14 +1414,14 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   </svg>
                   <span className="gen-source-text">
                     <span className="gen-source-lead">Drop a file here, or browse</span>
-                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF or image · up to {MAX_BATCH} at once</span>
+                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF, text file or image · up to {MAX_BATCH} at once</span>
                   </span>
                 </button>
               )}
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pptx,.ppt,.pdf,.apkg,.jpg,.jpeg,.png,.webp"
+                accept=".pptx,.ppt,.pdf,.apkg,.txt,.md,.jpg,.jpeg,.png,.webp"
                 multiple
                 style={{ display: "none" }}
                 onChange={e => { acceptFiles(e.target.files); e.target.value = ""; }}
