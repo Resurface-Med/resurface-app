@@ -426,6 +426,19 @@ export async function fetchTokenTotals() {
   return data ?? [];
 }
 
+/* Requests to the AI per UK day, by feature (migration 0019). */
+export async function fetchAiCallsDaily(days = 30) {
+  const { data, error } = await supabase.rpc("admin_ai_calls_daily", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+/* Today's use of the free tier's 500-a-day allowance, since it last reset. */
+export async function fetchAiQuota() {
+  const { data, error } = await supabase.rpc("admin_ai_quota");
+  if (error) throw new Error(error.message);
+  return (Array.isArray(data) ? data[0] : data) ?? null;
+}
+
 export async function fetchTokensDaily(days = 14) {
   const { data, error } = await supabase.rpc("admin_tokens_daily", { days });
   if (error) throw new Error(error.message);

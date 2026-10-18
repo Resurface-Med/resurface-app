@@ -5,6 +5,7 @@ import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
+  fetchAiCallsDaily, fetchAiQuota,
 } from "../lib/remote";
 import { Spark, ChartPanel, BigChart } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
@@ -26,7 +27,7 @@ import { confirm } from "../ui/Confirm";
    (2026-10-18): the page was a set of bare numbers you had to already know
    the meaning of. */
 const SECTIONS = [
-  { k: "overview", label: "Overview", title: "This week", desc: "The last 7 days, compared with the 7 days before." },
+  { k: "overview", label: "Overview", title: "Overview", desc: "Today’s use of the AI first, then the last 7 days compared with the 7 before." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "generating", label: "Generating", title: "Questions generated", desc: "How many questions the AI wrote each day over the last 30 days." },
   { k: "tokens", label: "AI usage", title: "AI usage", desc: "How much of the AI model each feature uses, in tokens." },
@@ -108,6 +109,49 @@ function Delta({ now, before }) {
   );
 }
 
+/* ── The headline: requests to the generator ──────────────────────
+   Rafil's main number (2026-10-18): how many times the AI was asked to
+   write questions today, with the last 30 days beside it, and how much of
+   the free tier's daily allowance is spent. That allowance (500 requests
+   for the model) is shared with Resurface AI and resets at midnight
+   Pacific time — 8am here — so it is counted from then, not from midnight. */
+const DAILY_LIMIT = 500;
+function AiCalls() {
+  const loadDaily = useCallback(() => fetchAiCallsDaily(30), []);
+  const [daily] = useSection(loadDaily);
+  const [quota] = useSection(fetchAiQuota);
+  if (daily.error) return null;
+  const rows = daily.rows ?? [];
+  const gen = rows.map(r => Number(r.generate));
+  const today = gen[gen.length - 1] ?? 0;
+  const yesterday = gen[gen.length - 2] ?? 0;
+  const used = Number(quota.rows?.used ?? 0);
+  const pct = Math.min(100, (used / DAILY_LIMIT) * 100);
+  const resets = quota.rows?.resets_at
+    ? new Date(quota.rows.resets_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" })
+    : "8:00";
+  return (
+    <section className="adm-hero">
+      <div className="adm-hero__main">
+        <span className="adm-hero__label">Requests to generate questions today</span>
+        <span className="adm-hero__value">{rows.length ? today.toLocaleString("en-GB") : "–"}</span>
+        <span className="adm-hero__sub">{yesterday.toLocaleString("en-GB")} yesterday</span>
+      </div>
+      <div className="adm-hero__chart">
+        {rows.length > 0 && <InlineChart points={gen} days={rows.map(r => r.day)} label="Requests per day, last 30 days" unit="requests" />}
+      </div>
+      <div className="adm-hero__quota">
+        <span className="adm-hero__label">Daily AI allowance</span>
+        <span className="adm-hero__quota-n"><strong>{used.toLocaleString("en-GB")}</strong> of {DAILY_LIMIT} used</span>
+        <span className="adm-meter" aria-hidden="true"><span style={{ width: `${pct}%` }} className={pct >= 80 ? "is-high" : ""} /></span>
+        <span className="adm-hero__sub">
+          {Number(quota.rows?.generate ?? 0)} generating, {Number(quota.rows?.explain ?? 0)} Resurface AI. Resets at {resets}.
+        </span>
+      </div>
+    </section>
+  );
+}
+
 function Overview() {
   const [totals] = useSection(fetchOverview);
   const loadDaily = useCallback(() => fetchOverviewDaily(30), []);
@@ -144,6 +188,7 @@ function Overview() {
 
   return (
     <>
+      <AiCalls />
       <div className="adm-cards">
         {HEADLINE.map(k => {
           const r = row(k);

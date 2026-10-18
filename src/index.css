@@ -9317,3 +9317,33 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .adm-people tbody td:last-child, .adm-people thead th:last-child { width: auto; }
   .adm-people .gen-link { font-size: 13.5px; text-align: right; }
 }
+
+/* Admin's headline: generating requests today, the 30 days behind it, and
+   the daily allowance as a meter. */
+.adm-hero {
+  display: grid; grid-template-columns: minmax(200px, 0.9fr) minmax(0, 2fr) minmax(220px, 1fr);
+  gap: 28px; align-items: start;
+  margin: 0 0 22px; padding: clamp(20px, 2.2vw, 28px);
+  border: 1.5px solid var(--c-border); border-radius: var(--r-card, 18px);
+  background: var(--c-card-solid);
+}
+.adm-hero__main, .adm-hero__quota { display: flex; flex-direction: column; gap: 6px; }
+.adm-hero__label { font-size: 14.5px; font-weight: 600; color: var(--c-sub); line-height: 1.35; }
+.adm-hero__value { font-size: 56px; font-weight: 650; letter-spacing: -2px; line-height: 1; color: var(--c-accent); font-variant-numeric: tabular-nums; }
+.adm-hero__sub { font-size: 14px; color: var(--c-muted); line-height: 1.45; }
+.adm-hero__chart .chart-inline__bars { height: 110px; }
+.adm-hero__chart .chart-inline__label { font-size: 13.5px; color: var(--c-sub); font-weight: 600; }
+.adm-hero__quota-n { font-size: 16px; color: var(--c-sub); }
+.adm-hero__quota-n strong { font-size: 24px; font-weight: 650; color: var(--c-text); letter-spacing: -0.5px; }
+.adm-meter { display: block; height: 8px; border-radius: 999px; background: var(--c-surface3); overflow: hidden; margin: 2px 0 2px; }
+.adm-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--c-accent); }
+.adm-meter > span.is-high { background: var(--c-danger); }
+@media (max-width: 1000px) {
+  .adm-hero { grid-template-columns: 1fr 1fr; }
+  .adm-hero__chart { grid-column: 1 / -1; grid-row: 2; }
+}
+@media (max-width: 640px) {
+  .adm-hero { grid-template-columns: 1fr; gap: 22px; }
+  .adm-hero__chart { grid-row: auto; }
+  .adm-hero__value { font-size: 48px; }
+}
