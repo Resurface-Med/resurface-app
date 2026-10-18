@@ -84,7 +84,12 @@ export default function Dashboard({
   /* ?firstrun on a preview build: this screen as a brand-new account sees
      it, film and all, without making one. Nothing is saved. */
   const previewFirstRun = __PREVIEW_TOOLS__ && new URLSearchParams(window.location.search).has("firstrun");
-  const empty = total === 0 || previewFirstRun;
+  /* "New" means none of your own yet. Featured decks (Year 2 by Jacob) give
+     everyone questions from the first minute, which had hidden this screen —
+     film and all — from every new account (2026-10-18). Those can be
+     practised from here too, so Practice sits beside the first step. */
+  const ownCount = QUESTIONS.filter(q => !q.featured).length;
+  const empty = ownCount === 0 || previewFirstRun;
 
   /* The film plays once, by itself, the first time an empty account lands
      here; after that it is the poster below, to watch again. Seen is saved
@@ -94,7 +99,10 @@ export default function Dashboard({
   function closeFilm() { setFilmOpen(false); if (!previewFirstRun) setPref("introSeen", true); }
 
   const actions = empty
-    ? [{ scope: "generate", label: "Turn your content into questions", primary: true }]
+    ? [
+        { scope: "generate", label: "Turn your content into questions", primary: true },
+        ...(total > 0 ? [{ scope: "all", label: "Practice", primary: false }] : []),
+      ]
     : dueCount > 0
     ? [
         { scope: "due", label: `Review ${dueCount} due`, primary: true },
