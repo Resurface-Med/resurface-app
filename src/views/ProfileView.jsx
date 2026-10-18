@@ -197,6 +197,39 @@ export default function ProfileView({
         <div className="profile-sheet" style={{ ...band, maxWidth: 560, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
 
           <section className="profile-section" data-in="rise" style={{ "--i": 1 }}>
+            <h2 style={sectionH}>Preferences</h2>
+            <p style={{ ...meta, marginTop: 4 }}>How Resurface looks on this device.</p>
+
+            <div className="profile-stack">
+              <div>
+                <span className="profile-label">Appearance</span>
+                <div className="profile-chips" role="radiogroup" aria-label="Appearance">
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={theme !== "dark"}
+                    className="btn-press"
+                    onClick={() => onThemeChange?.("light")}
+                    style={theme !== "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                  >
+                    Day
+                  </button>
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={theme === "dark"}
+                    className="btn-press"
+                    onClick={() => onThemeChange?.("dark")}
+                    style={theme === "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                  >
+                    Night
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="profile-section" data-in="rise" style={{ "--i": 2 }}>
             <h2 style={sectionH}>Account</h2>
             <p style={{ ...meta, marginTop: 4 }}>How you appear on Resurface.</p>
 
@@ -275,7 +308,7 @@ export default function ProfileView({
             </div>
           </section>
 
-          <section className="profile-section" data-in="rise" style={{ "--i": 2 }}>
+          <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
             <h2 style={sectionH}>Study</h2>
             <p style={{ ...meta, marginTop: 4 }}>Your daily target.</p>
 
@@ -299,38 +332,6 @@ export default function ProfileView({
 
           <Reminders />
 
-          <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
-            <h2 style={sectionH}>Preferences</h2>
-            <p style={{ ...meta, marginTop: 4 }}>How Resurface looks on this device.</p>
-
-            <div className="profile-stack">
-              <div>
-                <span className="profile-label">Appearance</span>
-                <div className="profile-chips" role="radiogroup" aria-label="Appearance">
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={theme !== "dark"}
-                    className="btn-press"
-                    onClick={() => onThemeChange?.("light")}
-                    style={theme !== "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                  >
-                    Day
-                  </button>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={theme === "dark"}
-                    className="btn-press"
-                    onClick={() => onThemeChange?.("dark")}
-                    style={theme === "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                  >
-                    Night
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <section className="profile-section" data-in="rise" style={{ "--i": 4 }}>
             <h2 style={sectionH}>Sign-in</h2>
