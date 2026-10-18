@@ -433,13 +433,8 @@ export async function fetchShareLog(lim = 300) {
   return data ?? [];
 }
 
-/* Requests to the AI per UK day, by feature (migration 0019). */
-export async function fetchAiCallsDaily(days = 30) {
-  const { data, error } = await supabase.rpc("admin_ai_calls_daily", { days });
-  if (error) throw new Error(error.message);
-  return data ?? [];
-}
-/* Today's use of the free tier's 500-a-day allowance, since it last reset. */
+/* Today's use of the free tier's 500-a-day allowances (one per API key:
+   generating, and Resurface AI), since they last reset. Migration 0019. */
 export async function fetchAiQuota() {
   const { data, error } = await supabase.rpc("admin_ai_quota");
   if (error) throw new Error(error.message);

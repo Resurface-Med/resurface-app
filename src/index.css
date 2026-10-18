@@ -9318,35 +9318,10 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .adm-people .gen-link { font-size: 13.5px; text-align: right; }
 }
 
-/* Admin's headline: generating requests today, the 30 days behind it, and
-   the daily allowance as a meter. */
-.adm-hero {
-  display: grid; grid-template-columns: minmax(200px, 0.9fr) minmax(0, 2fr) minmax(220px, 1fr);
-  gap: 28px; align-items: start;
-  margin: 0 0 22px; padding: clamp(20px, 2.2vw, 28px);
-  border: 1.5px solid var(--c-border); border-radius: var(--r-card, 18px);
-  background: var(--c-card-solid);
-}
-.adm-hero__main, .adm-hero__quota { display: flex; flex-direction: column; gap: 6px; }
-.adm-hero__label { font-size: 14.5px; font-weight: 600; color: var(--c-sub); line-height: 1.35; }
-.adm-hero__value { font-size: 56px; font-weight: 650; letter-spacing: -2px; line-height: 1; color: var(--c-accent); font-variant-numeric: tabular-nums; }
-.adm-hero__sub { font-size: 14px; color: var(--c-muted); line-height: 1.45; }
-.adm-hero__chart .chart-inline__bars { height: 110px; }
-.adm-hero__chart .chart-inline__label { font-size: 13.5px; color: var(--c-sub); font-weight: 600; }
-.adm-hero__quota-n { font-size: 16px; color: var(--c-sub); }
-.adm-hero__quota-n strong { font-size: 24px; font-weight: 650; color: var(--c-text); letter-spacing: -0.5px; }
+/* A meter: how much of something is used. */
 .adm-meter { display: block; height: 8px; border-radius: 999px; background: var(--c-surface3); overflow: hidden; margin: 2px 0 2px; }
 .adm-meter > span { display: block; height: 100%; border-radius: inherit; background: var(--c-accent); }
 .adm-meter > span.is-high { background: var(--c-danger); }
-@media (max-width: 1000px) {
-  .adm-hero { grid-template-columns: 1fr 1fr; }
-  .adm-hero__chart { grid-column: 1 / -1; grid-row: 2; }
-}
-@media (max-width: 640px) {
-  .adm-hero { grid-template-columns: 1fr; gap: 22px; }
-  .adm-hero__chart { grid-row: auto; }
-  .adm-hero__value { font-size: 48px; }
-}
 
 /* Admin › Sharing: the audit log. */
 .adm-shares .adm-name { display: block; font-weight: 600; color: var(--c-text); }
@@ -9368,3 +9343,24 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .adm-share-list__who strong { color: var(--c-text); font-weight: 600; }
 .adm-share-list__deck { color: var(--c-text); }
 .adm-share-list__what { margin-top: 3px !important; font-size: 14px; }
+
+/* Admin's headline: the two daily AI allowances, side by side. */
+.adm-allowances {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+  margin: 0 0 22px;
+}
+.adm-allow {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: clamp(20px, 2.2vw, 26px);
+  border: 1.5px solid var(--c-border); border-radius: var(--r-card, 18px);
+  background: var(--c-card-solid);
+}
+.adm-allow__label { font-size: 15px; font-weight: 600; color: var(--c-sub); }
+.adm-allow__n { font-size: 17px; color: var(--c-sub); }
+.adm-allow__n strong { font-size: 44px; font-weight: 650; letter-spacing: -1.5px; color: var(--c-text); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.adm-allow .adm-meter { height: 10px; margin: 4px 0 2px; }
+.adm-allow__sub { font-size: 14px; color: var(--c-muted); }
+@media (max-width: 640px) {
+  .adm-allowances { grid-template-columns: 1fr; }
+  .adm-allow__n strong { font-size: 38px; }
+}
