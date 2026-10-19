@@ -9768,3 +9768,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @media (min-width: 901px) {
   .dash-welcome { max-width: 1040px; }
 }
+/* …and a step smaller again now that it is wide. */
+@media (min-width: 901px) {
+  .dash-letter__title { font-size: 25px; letter-spacing: -0.6px; margin-bottom: 12px; }
+  .dash-letter .ann-rich { font-size: 15.5px; line-height: 1.65; }
+  .dash-letter .ann-rich p { margin-bottom: 10px; }
+  .dash-letter .ann-rich > p:first-child { font-size: 1.12em; }
+  .dash-letter .ann-rich ol { padding-left: 46px; margin-bottom: 12px; }
+  .dash-letter .ann-rich ol::before { width: 32px; height: 32px; font-size: 14.5px; }
+  .dash-letter__sig { font-size: 30px; }
+  .dash-letter__film { font-size: 15px; }
+}
