@@ -9740,3 +9740,27 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .dash-letter .ann-rich p { margin-bottom: 14px; }
   .dash-letter__film { font-size: 16px; }
 }
+
+/* The welcome note as a letter (2026-10-19). */
+.dash-letter__from {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 14px;
+  font-size: 14.5px; font-weight: 500; color: var(--c-sub);
+}
+.dash-letter__avatar {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--c-accent); color: #fff; font-size: 14px; font-weight: 600;
+}
+.dash-letter .ann-rich > p:first-child { font-size: 1.18em; color: var(--c-text); font-weight: 500; }
+.dash-letter .ann-rich ol {
+  list-style: none; margin: 4px 0 16px; padding: 0 0 0 52px; position: relative;
+}
+.dash-letter .ann-rich ol li { margin: 0; color: var(--c-text); }
+.dash-letter .ann-rich ol::before {
+  content: attr(start); position: absolute; left: 0; top: -2px;
+  width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--c-accent-dim); color: var(--c-accent); font-size: 16px; font-weight: 600;
+}
+.dash-letter__sig {
+  margin: 6px 0 0; font-family: "Caveat", cursive; font-size: 34px; font-weight: 600;
+  line-height: 1; color: var(--c-accent);
+}

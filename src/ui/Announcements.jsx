@@ -43,6 +43,11 @@ export function Rich({ text }) {
         if (lines.every(l => /^\s*[-•]\s+/.test(l))) {
           return <ul key={i}>{lines.map((l, j) => <li key={j}><Inline text={l.replace(/^\s*[-•]\s+/, "")} /></li>)}</ul>;
         }
+        /* "1. …" — a numbered point, kept as a list so it can be styled as one. */
+        const num = lines[0].match(/^\s*(\d+)[.)]\s+/);
+        if (num && lines.length === 1) {
+          return <ol key={i} start={Number(num[1])}><li><Inline text={lines[0].replace(/^\s*\d+[.)]\s+/, "")} /></li></ol>;
+        }
         return <p key={i}>{lines.map((l, j) => <span key={j}>{j > 0 && <br />}<Inline text={l} /></span>)}</p>;
       })}
     </div>

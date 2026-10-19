@@ -200,8 +200,28 @@ export default function Dashboard({
                ways to start as buttons in it, and the film beside it. */
             <div className="dash-welcome" data-in="rise" style={{ "--i": 5 }}>
               <article className="dash-letter">
-                <h2 className="dash-letter__title">{welcome.title}</h2>
-                <Rich text={welcome.body} />
+                {/* Read as a letter: who it is from, a larger opening line,
+                    the numbered points as steps, and the closing name as a
+                    signature (a short last line on its own). */}
+                {(() => {
+                  const blocks = String(welcome.body || "").trim().split(/\n{2,}/);
+                  const last = blocks[blocks.length - 1]?.trim() ?? "";
+                  const sig = blocks.length > 1 && last.length <= 24 && !/[.!?:]$/.test(last) ? last : null;
+                  const text = sig ? blocks.slice(0, -1).join("\n\n") : welcome.body;
+                  return (
+                    <>
+                      {sig && (
+                        <p className="dash-letter__from">
+                          <span className="dash-letter__avatar" aria-hidden="true">{sig[0]}</span>
+                          A note from {sig}
+                        </p>
+                      )}
+                      <h2 className="dash-letter__title">{welcome.title}</h2>
+                      <Rich text={text} />
+                      {sig && <p className="dash-letter__sig">{sig}</p>}
+                    </>
+                  );
+                })()}
                 <button type="button" className="dash-letter__film" onClick={() => setFilmOpen(true)}>
                   <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor" /></svg>
                   Watch how it works (37 seconds)
