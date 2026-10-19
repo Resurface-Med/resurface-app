@@ -28,7 +28,8 @@ import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
-  fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement } from "./lib/remote";
+  fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
+  adminSetAnnouncementPublished } from "./lib/remote";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
@@ -818,7 +819,8 @@ export default function App() {
      have, than when your account was made, so a new account is not greeted
      by a backlog. */
   const annSince = annSeenAt ?? user?.created_at ?? null;
-  const unreadAnnouncements = announcements.filter(a => !annSince || a.created_at > annSince).length;
+  /* Drafts never count; a post is new from when it was published. */
+  const unreadAnnouncements = announcements.filter(a => a.published_at && (!annSince || a.published_at > annSince)).length;
   function openAnnouncements() {
     setAnnNewSince(annSince ?? "");   // "" — never looked: everything is new
     handleNav(V.NEWS);
@@ -834,6 +836,11 @@ export default function App() {
     setAnnouncements(list);
     setAnnSeenAt(new Date().toISOString());
     if (user?.id) markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
+  }
+  async function publishAnnouncement(id, publish) {
+    await adminSetAnnouncementPublished(id, publish);
+    setAnnouncements(await fetchAnnouncements());
+    if (publish && user?.id) markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
   }
   async function deleteAnnouncement(id) {
     await adminDeleteAnnouncement(id);
@@ -1070,7 +1077,7 @@ export default function App() {
           {v === V.ADMIN && <AdminView />}
 
           {v === V.NEWS && <AnnouncementsView items={announcements} newSince={annNewSince}
-            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} />}
+            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} />}
 
           {v === V.PROFILE && (
             <ProfileView

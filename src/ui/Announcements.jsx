@@ -49,17 +49,25 @@ export function Rich({ text }) {
   );
 }
 
-function Post({ a, isNew, lead = false, onDelete }) {
+function Post({ a, isNew, lead = false, onDelete, onPublish }) {
+  const draft = !a.published_at && a.id !== "draft";
   return (
-    <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}`}>
+    <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}${draft ? " is-draft" : ""}`}>
+      {draft && (
+        <div className="ann-draftbar">
+          <span>Draft · only admins can see this</span>
+          {onPublish && <button type="button" className="ann-draftbar__go btn-press" onClick={() => onPublish(a)}>Publish to everyone</button>}
+        </div>
+      )}
       {a.image_url && <img className="ann-post__img" src={a.image_url} alt="" loading="lazy" />}
       <div className="ann-post__text">
         {/* Plain text, not pills (Rafil, 2026-10-19): "New · News · 19 October". */}
         <p className="ann-post__meta">
           {isNew && <span className="ann-new">New</span>}
           {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
-          <span>{when(a.created_at)}</span>
-          {onDelete && <button type="button" className="ann-post__del" onClick={() => onDelete(a)}>Delete</button>}
+          <span>{when(a.published_at || a.created_at)}</span>
+          {onPublish && a.published_at && <button type="button" className="ann-post__unpub" onClick={() => onPublish(a, false)}>Unpublish</button>}
+          {onDelete && <button type="button" className={`ann-post__del${onPublish && a.published_at ? " is-after" : ""}`} onClick={() => onDelete(a)}>Delete</button>}
         </p>
         <h2 className="ann-post__title">{a.title}</h2>
         {a.body && <Rich text={a.body} />}
@@ -97,7 +105,7 @@ function Composer({ onPost }) {
     setBusy(true); setErr("");
     try {
       await onPost({ title: title.trim(), body: body.trim(), tag, image });
-      setTitle(""); setBody(""); setImage(null); setOpen(false);
+      setTitle(""); setBody(""); setImage(null); setOpen(false);   // saved as a draft; publish it from the post
     } catch { setErr("Couldn’t post that. Check your connection and try again."); }
     finally { setBusy(false); }
   }
@@ -130,7 +138,7 @@ function Composer({ onPost }) {
         <div className="ann-compose__acts">
           <button type="button" className="ann-compose__cancel" onClick={() => setOpen(false)}>Cancel</button>
           <button type="button" className="ann-compose__go btn-press" disabled={busy || imgBusy || !title.trim()} onClick={post}>
-            {busy ? "Posting…" : "Post to everyone"}
+            {busy ? "Saving…" : "Save as draft"}
           </button>
         </div>
       </div>
@@ -142,12 +150,17 @@ function Composer({ onPost }) {
   );
 }
 
-export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onDelete }) {
+export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onDelete, onPublish }) {
   async function remove(a) {
     if (!await confirm({ title: "Delete this announcement?", body: `“${a.title}” disappears for everyone.`, action: "Delete", danger: true })) return;
     try { await onDelete(a.id); } catch { /* stays; try again */ }
   }
-  const isNew = a => newSince != null && a.created_at > newSince;
+  async function publish(a, on = true) {
+    if (on && !await confirm({ title: "Publish this to everyone?", body: `“${a.title}” appears for every student, with a badge on What’s new.`, action: "Publish" })) return;
+    if (!on && !await confirm({ title: "Unpublish this?", body: "It goes back to being a draft only admins can see.", action: "Unpublish" })) return;
+    try { await onPublish(a.id, on); } catch { /* stays as it was */ }
+  }
+  const isNew = a => newSince != null && !!a.published_at && a.published_at > newSince;
   const [lead, ...rest] = items;
   return (
     <div className="ann-feed">
@@ -156,12 +169,12 @@ export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false,
         <p className="ann-empty">Nothing yet. Updates and news about Resurface will appear here.</p>
       ) : (
         <>
-          <Post a={lead} lead isNew={isNew(lead)} onDelete={isAdmin ? remove : null} />
+          <Post a={lead} lead isNew={isNew(lead)} onDelete={isAdmin ? remove : null} onPublish={isAdmin && onPublish ? publish : null} />
           {rest.length > 0 && (
             <>
               <h3 className="ann-earlier">Earlier</h3>
               <div className="ann-rest">
-                {rest.map(a => <Post key={a.id} a={a} isNew={isNew(a)} onDelete={isAdmin ? remove : null} />)}
+                {rest.map(a => <Post key={a.id} a={a} isNew={isNew(a)} onDelete={isAdmin ? remove : null} onPublish={isAdmin && onPublish ? publish : null} />)}
               </div>
             </>
           )}

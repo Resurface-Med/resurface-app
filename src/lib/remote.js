@@ -436,7 +436,8 @@ export async function fetchTokenTotals() {
    them, admins post and remove them. */
 export async function fetchAnnouncements() {
   const { data, error } = await supabase.from("announcements")
-    .select("id, created_at, title, body, tag, image_url").order("created_at", { ascending: false }).limit(50);
+    .select("id, created_at, published_at, title, body, tag, image_url")
+    .order("published_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(50);
   if (error) throw new Error(error.message);
   return data ?? [];
 }
@@ -446,7 +447,12 @@ export async function markAnnouncementsSeen(userId) {
   return at;
 }
 export async function adminPostAnnouncement({ title, body, tag = null, image = null }) {
-  const { error } = await supabase.rpc("admin_post_announcement", { p_title: title, p_body: body, p_tag: tag, p_image: image });
+  const { error } = await supabase.rpc("admin_post_announcement", { p_title: title, p_body: body, p_tag: tag, p_image: image, p_publish: false });
+  if (error) throw new Error(error.message);
+}
+/* Drafts (migration 0024): published_at null until an admin publishes. */
+export async function adminSetAnnouncementPublished(id, publish) {
+  const { error } = await supabase.rpc("admin_set_announcement_published", { p_id: id, p_publish: publish });
   if (error) throw new Error(error.message);
 }
 export async function adminDeleteAnnouncement(id) {
