@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import StreakFlame from "../ui/StreakFlame";
 import { h1, OF, C } from "../ui/theme";
 import Wave from "../ui/Wave";
-import { fetchLeaderboardWeek, fetchIsAdmin } from "../lib/remote";
+import { fetchLeaderboardWeek } from "../lib/remote";
 import Avatar from "../ui/Avatar";
-import { avatarSrc, adminRemoveAvatar } from "../lib/avatar";
+import { avatarSrc } from "../lib/avatar";
 
 /**
  * Cohort leaderboard — questions answered in the last 7 days.
@@ -45,15 +45,6 @@ export function FounderGem() {
 export default function LeaderboardView({ userId }) {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
-  /* Admins can take a photo down from here, where the photos are seen. */
-  const [isAdmin, setIsAdmin] = useState(false);
-  useEffect(() => { fetchIsAdmin().then(setIsAdmin, () => {}); }, []);
-  async function takeDown(id) {
-    try {
-      await adminRemoveAvatar(id);
-      setRows(rs => rs.map(r => (r.user_id === id ? { ...r, avatar: null } : r)));
-    } catch { /* leave it; try again */ }
-  }
 
   useEffect(() => {
     let cancelled = false;
@@ -111,10 +102,6 @@ export default function LeaderboardView({ userId }) {
                     <span className="lb-rank">#{r.rank}</span>
                     <span className="lb-who">
                       <Avatar className="lb-avatar" src={avatarSrc(r.user_id, r.avatar)} name={r.display_name} />
-                      {isAdmin && r.avatar && !mine && (
-                        <button type="button" className="lb-avatar-x" onClick={() => takeDown(r.user_id)}
-                          title="Remove this photo" aria-label={`Remove ${r.display_name}’s photo`}>×</button>
-                      )}
                     </span>
                     <span className="lb-name">
                       <span className="lb-name-text">{r.display_name}</span>

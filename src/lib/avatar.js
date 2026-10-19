@@ -66,9 +66,3 @@ export async function removeAvatar(userId) {
   const { error } = await supabase.from("profiles").update({ avatar_v: 0 }).eq("id", userId);
   if (error) throw new Error("Couldn’t remove your photo. Try again.");
 }
-
-/** Admin: take someone's photo down. */
-export async function adminRemoveAvatar(userId) {
-  const { error } = await supabase.rpc("admin_remove_avatar", { uid: userId });
-  if (error) throw new Error("Couldn’t remove that photo.");
-}
