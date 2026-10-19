@@ -29,7 +29,6 @@ import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement } from "./lib/remote";
-import Announcements from "./ui/Announcements";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
@@ -65,6 +64,7 @@ const CHUNK = {
   [V.PROFILE]:     chunk(() => import("./views/ProfileView")),
   [V.GENERATE]:    chunk(() => import("./views/GenerateMode")),
   [V.ADMIN]:       chunk(() => import("./views/AdminView")),
+  [V.NEWS]:        chunk(() => import("./views/AnnouncementsView")),
 };
 const StudyMode       = lazy(CHUNK[V.STUDY]);
 const ProgressView    = lazy(CHUNK[V.PROGRESS]);
@@ -72,6 +72,7 @@ const LeaderboardView = lazy(CHUNK[V.LEADERBOARD]);
 const ProfileView     = lazy(CHUNK[V.PROFILE]);
 const GenerateMode    = lazy(CHUNK[V.GENERATE]);
 const AdminView       = lazy(CHUNK[V.ADMIN]);
+const AnnouncementsView = lazy(CHUNK[V.NEWS]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -132,7 +133,6 @@ export default function App() {
      — while the panel is open — what counted as new when you opened it. */
   const [announcements, setAnnouncements] = useState([]);
   const [annSeenAt, setAnnSeenAt] = useState(null);
-  const [annOpen, setAnnOpen] = useState(false);
   const [annNewSince, setAnnNewSince] = useState(null);
   const [generated, setGenerated] = useState([]);
   /* Your decks, as rows; the tree is built where it is shown. */
@@ -821,15 +821,15 @@ export default function App() {
   const unreadAnnouncements = announcements.filter(a => !annSince || a.created_at > annSince).length;
   function openAnnouncements() {
     setAnnNewSince(annSince ?? "");   // "" — never looked: everything is new
-    setAnnOpen(true);
+    handleNav(V.NEWS);
     if (unreadAnnouncements > 0 && user?.id) {
       setAnnSeenAt(new Date().toISOString());
       markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
     }
     fetchAnnouncements().then(setAnnouncements, () => {});
   }
-  async function postAnnouncement(title, body) {
-    await adminPostAnnouncement(title, body);
+  async function postAnnouncement(post) {
+    await adminPostAnnouncement(post);
     const list = await fetchAnnouncements();
     setAnnouncements(list);
     setAnnSeenAt(new Date().toISOString());
@@ -961,8 +961,6 @@ export default function App() {
     )}
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
-    <Announcements open={annOpen} onClose={() => setAnnOpen(false)} items={announcements} newSince={annNewSince}
-      isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} />
     <UpdateNotice hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
@@ -1070,6 +1068,9 @@ export default function App() {
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
           {v === V.ADMIN && <AdminView />}
+
+          {v === V.NEWS && <AnnouncementsView items={announcements} newSince={annNewSince}
+            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} />}
 
           {v === V.PROFILE && (
             <ProfileView

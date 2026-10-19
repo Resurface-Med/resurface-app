@@ -1,133 +1,170 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { confirm } from "./Confirm";
+import { downscale } from "../lib/questionImage";
+import { supabase, SUPABASE_URL } from "../lib/supabase";
 
 /**
- * Announcements (2026-10-19, migration 0022).
+ * What's new (2026-10-19, migrations 0022–0023).
  *
- * News from Resurface, slid in from the right — the same sheet as Lab
- * values. Opened from the bell (AnnouncementsBell), whose badge counts the
- * ones newer than when you last looked; opening marks them seen, but the
- * ones that were new keep their "New" for as long as the panel is open.
- * Admins write and remove them here too.
+ * News from Resurface, on a page of its own reached from the sidebar. Each
+ * post has a title, text, and optionally a label and a cover image; the
+ * newest is shown large at the top. Text takes a little formatting —
+ * **bold**, lines starting "- " as a list, blank lines between paragraphs,
+ * and web addresses as links — so a post can be laid out without an editor.
+ * Admins write them here, with a preview of exactly how the post will look.
  */
-export const BellIcon = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-  </svg>
-);
-
-export function AnnouncementsBell({ unread = 0, onOpen, className = "" }) {
-  return (
-    <button type="button" className={`ann-bell btn-press ${className}`} onClick={onOpen}
-      aria-label={unread ? `Announcements, ${unread} new` : "Announcements"} title="Announcements">
-      <BellIcon />
-      {unread > 0 && <span className="ann-bell__badge" aria-hidden="true">{unread > 9 ? "9+" : unread}</span>}
-    </button>
-  );
-}
+export const TAGS = {
+  feature: "New feature",
+  update: "Update",
+  fix: "Fix",
+  news: "News",
+};
 
 const when = iso => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-/* Plain text, with line breaks kept and web addresses made into links. */
-function Body({ text }) {
-  const parts = String(text || "").split(/(https?:\/\/[^\s)]+)/g);
+/* **bold** and links inside one line. */
+function Inline({ text }) {
+  const parts = String(text).split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
+  return parts.map((p, i) => {
+    if (/^\*\*[^*]+\*\*$/.test(p)) return <strong key={i}>{p.slice(2, -2)}</strong>;
+    if (/^https?:\/\//.test(p)) return <a key={i} href={p} target="_blank" rel="noopener noreferrer">{p.replace(/^https?:\/\//, "")}</a>;
+    return <span key={i}>{p}</span>;
+  });
+}
+
+/* Paragraphs from blank lines; consecutive "- " lines as a list. */
+export function Rich({ text }) {
+  const blocks = String(text || "").replace(/\r\n?/g, "\n").split(/\n{2,}/).map(b => b.trim()).filter(Boolean);
   return (
-    <p className="ann-item__body">
-      {parts.map((p, i) => (/^https?:\/\//.test(p)
-        ? <a key={i} href={p} target="_blank" rel="noopener noreferrer">{p.replace(/^https?:\/\//, "")}</a>
-        : <span key={i}>{p}</span>))}
-    </p>
+    <div className="ann-rich">
+      {blocks.map((b, i) => {
+        const lines = b.split("\n");
+        if (lines.every(l => /^\s*[-•]\s+/.test(l))) {
+          return <ul key={i}>{lines.map((l, j) => <li key={j}><Inline text={l.replace(/^\s*[-•]\s+/, "")} /></li>)}</ul>;
+        }
+        return <p key={i}>{lines.map((l, j) => <span key={j}>{j > 0 && <br />}<Inline text={l} /></span>)}</p>;
+      })}
+    </div>
   );
 }
 
-export default function Announcements({ open, onClose, items = [], newSince = null, isAdmin = false, onPost, onDelete }) {
-  const [mounted, setMounted] = useState(open);
-  const [shown, setShown] = useState(false);
+function Post({ a, isNew, lead = false, onDelete }) {
+  return (
+    <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}`}>
+      {a.image_url && <img className="ann-post__img" src={a.image_url} alt="" loading="lazy" />}
+      <div className="ann-post__text">
+        <p className="ann-post__meta">
+          {a.tag && <span className={`ann-tag is-${a.tag}`}>{TAGS[a.tag]}</span>}
+          {isNew && <span className="ann-new">New</span>}
+          <span>{when(a.created_at)}</span>
+          {onDelete && <button type="button" className="ann-post__del" onClick={() => onDelete(a)}>Delete</button>}
+        </p>
+        <h2 className="ann-post__title">{a.title}</h2>
+        {a.body && <Rich text={a.body} />}
+      </div>
+    </article>
+  );
+}
+
+async function uploadCover(file) {
+  const blob = await downscale(file);
+  const ext = blob.type === "image/webp" ? "webp" : "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("announcements").upload(path, blob, { contentType: blob.type, cacheControl: "31536000" });
+  if (error) throw new Error("Couldn’t upload that image.");
+  return `${SUPABASE_URL}/storage/v1/object/public/announcements/${path}`;
+}
+
+function Composer({ onPost }) {
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [tag, setTag] = useState("feature");
+  const [image, setImage] = useState(null);
+  const [imgBusy, setImgBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  useEffect(() => {
-    if (open) {
-      setMounted(true);
-      const r = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)));
-      return () => cancelAnimationFrame(r);
-    }
-    setShown(false);
-    const t = setTimeout(() => setMounted(false), 320);
-    return () => clearTimeout(t);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = e => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  async function post(e) {
-    e.preventDefault();
+  async function pick(file) {
+    if (!file) return;
+    setErr(""); setImgBusy(true);
+    try { setImage(await uploadCover(file)); } catch (e) { setErr(e.message); } finally { setImgBusy(false); }
+  }
+  async function post() {
     if (!title.trim()) return;
     setBusy(true); setErr("");
-    try { await onPost(title.trim(), body.trim()); setTitle(""); setBody(""); }
-    catch { setErr("Couldn’t post that. Check your connection and try again."); }
+    try {
+      await onPost({ title: title.trim(), body: body.trim(), tag, image });
+      setTitle(""); setBody(""); setImage(null); setOpen(false);
+    } catch { setErr("Couldn’t post that. Check your connection and try again."); }
     finally { setBusy(false); }
   }
+
+  if (!open) {
+    return <button type="button" className="ann-start btn-press" onClick={() => setOpen(true)}>Write an announcement</button>;
+  }
+  const draft = { id: "draft", created_at: new Date().toISOString(), title: title || "Your title", body, tag, image_url: image };
+  return (
+    <section className="ann-compose">
+      <div className="ann-compose__form">
+        <p className="ann-compose__label">Label</p>
+        <div className="ann-compose__tags" role="radiogroup" aria-label="Label">
+          {Object.entries(TAGS).map(([k, l]) => (
+            <button key={k} type="button" role="radio" aria-checked={tag === k}
+              className={`ann-tag-pick${tag === k ? " is-on" : ""}`} onClick={() => setTag(k)}>{l}</button>
+          ))}
+        </div>
+        <input value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="Title" aria-label="Title" />
+        <textarea value={body} onChange={e => setBody(e.target.value)} maxLength={4000} rows={7} aria-label="Text"
+          placeholder={"What’s new. A blank line starts a new paragraph.\n- Lines starting with a dash become a list\n**Two stars** around words make them bold."} />
+        <div className="ann-compose__img">
+          <label className="ann-compose__imgbtn btn-press">
+            {imgBusy ? "Adding…" : image ? "Change cover image" : "Add a cover image"}
+            <input type="file" accept="image/*" hidden disabled={imgBusy} onChange={e => { pick(e.target.files?.[0]); e.target.value = ""; }} />
+          </label>
+          {image && <button type="button" className="ann-compose__imgdel" onClick={() => setImage(null)}>Remove image</button>}
+        </div>
+        {err && <p className="ann-compose__err">{err}</p>}
+        <div className="ann-compose__acts">
+          <button type="button" className="ann-compose__cancel" onClick={() => setOpen(false)}>Cancel</button>
+          <button type="button" className="ann-compose__go btn-press" disabled={busy || imgBusy || !title.trim()} onClick={post}>
+            {busy ? "Posting…" : "Post to everyone"}
+          </button>
+        </div>
+      </div>
+      <div className="ann-compose__preview" aria-label="Preview">
+        <p className="ann-compose__label">Preview</p>
+        <Post a={draft} isNew lead />
+      </div>
+    </section>
+  );
+}
+
+export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onDelete }) {
   async function remove(a) {
     if (!await confirm({ title: "Delete this announcement?", body: `“${a.title}” disappears for everyone.`, action: "Delete", danger: true })) return;
     try { await onDelete(a.id); } catch { /* stays; try again */ }
   }
-
-  if (!mounted) return null;
+  const isNew = a => newSince != null && a.created_at > newSince;
+  const [lead, ...rest] = items;
   return (
-    <>
-      <div className={`ann-scrim${shown ? " is-open" : ""}`} onClick={onClose} aria-hidden="true" />
-      <aside className={`labs ann${shown ? " is-open" : ""}`} aria-label="Announcements" aria-hidden={!open}>
-        <header className="labs-head">
-          <h2 className="labs-title"><BellIcon size={20} /> Announcements</h2>
-          <button type="button" className="labs-x btn-press" onClick={onClose} aria-label="Close announcements">
-            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
-          </button>
-        </header>
-
-        <div className="labs-body ann-body">
-          {isAdmin && (
-            <form className="ann-compose" onSubmit={post}>
-              <p className="ann-compose__label">Post an announcement</p>
-              <input value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="Title" aria-label="Title" />
-              <textarea value={body} onChange={e => setBody(e.target.value)} maxLength={4000} rows={4} placeholder="What’s new" aria-label="Announcement" />
-              {err && <p className="ann-compose__err">{err}</p>}
-              <div className="ann-compose__acts">
-                <span className="ann-compose__hint">Everyone sees this, with a badge on the bell.</span>
-                <button type="submit" className="ann-compose__go btn-press" disabled={busy || !title.trim()}>{busy ? "Posting…" : "Post"}</button>
+    <div className="ann-feed">
+      {isAdmin && <Composer onPost={onPost} />}
+      {!lead ? (
+        <p className="ann-empty">Nothing yet. Updates and news about Resurface will appear here.</p>
+      ) : (
+        <>
+          <Post a={lead} lead isNew={isNew(lead)} onDelete={isAdmin ? remove : null} />
+          {rest.length > 0 && (
+            <>
+              <h3 className="ann-earlier">Earlier</h3>
+              <div className="ann-rest">
+                {rest.map(a => <Post key={a.id} a={a} isNew={isNew(a)} onDelete={isAdmin ? remove : null} />)}
               </div>
-            </form>
+            </>
           )}
-
-          {items.length === 0 ? (
-            <p className="ann-empty">No announcements yet. News about Resurface will appear here.</p>
-          ) : (
-            <ol className="ann-list">
-              {items.map(a => {
-                const isNew = newSince != null && a.created_at > newSince;
-                return (
-                  <li key={a.id} className={`ann-item${isNew ? " is-new" : ""}`}>
-                    <p className="ann-item__meta">
-                      {isNew && <span className="ann-item__new">New</span>}
-                      <span>{when(a.created_at)}</span>
-                      {isAdmin && <button type="button" className="ann-item__del" onClick={() => remove(a)}>Delete</button>}
-                    </p>
-                    <h3 className="ann-item__title">{a.title}</h3>
-                    {a.body && <Body text={a.body} />}
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </div>
-      </aside>
-    </>
+        </>
+      )}
+    </div>
   );
 }

@@ -41,7 +41,7 @@ export const C = {
  * STUDY, chosen on its setup screen. Subjects and Stats merge into PROGRESS,
  * which also rescues Subjects: nothing linked to it, so it was unreachable.
  */
-export const V = { DASH:"dash", STUDY:"study", PROGRESS:"progress", LEADERBOARD:"leaderboard", GENERATE:"generate", PROFILE:"profile", ADMIN:"admin" };
+export const V = { DASH:"dash", STUDY:"study", PROGRESS:"progress", LEADERBOARD:"leaderboard", GENERATE:"generate", PROFILE:"profile", ADMIN:"admin", NEWS:"news" };
 
 
 /** What STUDY draws from. Set before opening it. */
@@ -392,7 +392,7 @@ export const NAV_GROUPS = [
   ],
   [
     { k: V.LEADERBOARD, label: "Leaderboard" },
-    { k: V.PROGRESS,    label: "Progress" },
+    { k: V.NEWS,        label: "What’s new" },
   ],
 ];
 

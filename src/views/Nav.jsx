@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useDrawerSwipe } from "../ui/useDrawerSwipe";
-import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, ChartColumn, Flag, House, LogOut, Megaphone, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 import Avatar from "../ui/Avatar";
-import { AnnouncementsBell } from "../ui/Announcements";
 
 const ICONS = {
   [V.DASH]: House,
@@ -12,6 +11,7 @@ const ICONS = {
   [V.PROGRESS]: ChartColumn,
   [V.LEADERBOARD]: Trophy,
   [V.ADMIN]: Flag,
+  [V.NEWS]: Megaphone,
 };
 
 export function Sidebar({ view, setView, dueCount, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
@@ -60,10 +60,9 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
         <span className="app-nav__burger-line" />
         <span className="app-nav__burger-line" />
         <span className="app-nav__burger-line" />
-        {dueCount > 0 && <span className="app-nav__burger-dot">{dueCount}</span>}
+        {dueCount > 0 ? <span className="app-nav__burger-dot">{dueCount}</span>
+          : unreadAnnouncements > 0 ? <span className="app-nav__burger-dot is-news" aria-label="New announcements" /> : null}
       </button>
-      {/* Phones: the bell beside the menu button, top right. */}
-      {onOpenAnnouncements && <AnnouncementsBell className="ann-bell--fab" unread={unreadAnnouncements} onOpen={onOpenAnnouncements} />}
 
       <div
         ref={scrimRef}
@@ -90,7 +89,6 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
             className="nav-logo nav-logo-night app-nav__logo"
           />
           {/* Wide screens: the bell sits in the brand row, right of the logo. */}
-          {onOpenAnnouncements && <AnnouncementsBell className="ann-bell--nav" unread={unreadAnnouncements} onOpen={onOpenAnnouncements} />}
           <button
             type="button"
             className="app-nav__close btn-press"
@@ -114,18 +112,20 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
                   const active = view === item.k;
                   const Icon = ICONS[item.k];
                   const review = item.k === V.STUDY ? dueCount : 0;
+                  const fresh = item.k === V.NEWS ? unreadAnnouncements : 0;
 
                   return (
                     <button
                       key={item.k}
                       type="button"
-                      onClick={() => go(item.k)}
+                      onClick={() => (item.k === V.NEWS && onOpenAnnouncements ? (onOpenAnnouncements(), setOpen(false)) : go(item.k))}
                       className={`btn-press app-nav__item${active ? " is-active" : ""}`}
                       aria-current={active ? "page" : undefined}
                       title={item.label}
                     >
                       {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
                       <span className="app-nav__label">{item.label}</span>
+                      {fresh > 0 && <span className="app-nav__review app-nav__fresh" title={`${fresh} new`} aria-label={`${fresh} new`}>{fresh > 9 ? "9+" : fresh}</span>}
                       {review > 0 && <span className="app-nav__review" title={`${review} to review`} aria-label={`${review} to review`}>{review > 99 ? "99+" : review}</span>}
                     </button>
                   );
