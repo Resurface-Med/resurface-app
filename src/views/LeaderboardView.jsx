@@ -108,7 +108,10 @@ export default function LeaderboardView({ userId }) {
                     {r.display_name}
                     {r.user_id === FOUNDER_ID ? <FounderGem /> : null}
                   </span>
-                  <span className="lb-step__count">{r.week_count}</span>
+                  <span className="lb-step__stats">
+                    <span className="lb-step__count">{r.week_count}</span>
+                    {r.streak > 0 ? <StreakFlame days={r.streak} size={15} small /> : null}
+                  </span>
                   <span className="lb-step__block"><span className="lb-step__place">{[2, 1, 3][slot]}</span></span>
                 </div>
               ))}
