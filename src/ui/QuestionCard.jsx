@@ -88,12 +88,6 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-/* A quiet mark that this is a Resurface question, not one of your own
-   (Rafil, 2026-10-19: no logo — Resurface AI has that — and no path). */
-function SourceTag({ focus = false }) {
-  return <span className={`q-src${focus ? " q-src--focus" : ""}`}>Resurface</span>;
-}
-
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {
   const answered = sel !== null || timedOut;
 
@@ -255,7 +249,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       <div className="q-card-meta">
         {/* A premade question says where it is from; your own say nothing.
             Not yours to edit either, so no pencil — Report is under it. */}
-        {q.featured && <SourceTag q={q} />}
         <div className="q-card-tools">
           <span className="q-tool-extra">
           {canEdit(q) && <button
@@ -297,7 +290,6 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
       {/* In a session (focus mode) the meta row above is not drawn, so the
           source goes on a line of its own over the stem. */}
-      {focusMode && q.featured && <SourceTag q={q} focus />}
       <Highlighter
         as="p"
         text={q.q}
