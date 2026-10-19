@@ -29,7 +29,7 @@ import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
-  adminSetAnnouncementPublished } from "./lib/remote";
+  adminSetAnnouncementPublished, adminUpdateAnnouncement } from "./lib/remote";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
@@ -837,6 +837,10 @@ export default function App() {
     setAnnSeenAt(new Date().toISOString());
     if (user?.id) markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
   }
+  async function updateAnnouncement(id, post) {
+    await adminUpdateAnnouncement(id, post);
+    setAnnouncements(await fetchAnnouncements());
+  }
   async function publishAnnouncement(id, publish) {
     await adminSetAnnouncementPublished(id, publish);
     setAnnouncements(await fetchAnnouncements());
@@ -1077,7 +1081,7 @@ export default function App() {
           {v === V.ADMIN && <AdminView />}
 
           {v === V.NEWS && <AnnouncementsView items={announcements} newSince={annNewSince}
-            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} />}
+            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} />}
 
           {v === V.PROFILE && (
             <ProfileView

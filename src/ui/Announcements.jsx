@@ -49,13 +49,13 @@ export function Rich({ text }) {
   );
 }
 
-function Post({ a, isNew, lead = false, onDelete, onPublish }) {
+function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit }) {
   const draft = !a.published_at && a.id !== "draft";
   return (
     <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}${draft ? " is-draft" : ""}`}>
       {draft && (
         <div className="ann-draftbar">
-          <span>Draft · only admins can see this</span>
+          <span>Draft</span>
           {onPublish && <button type="button" className="ann-draftbar__go btn-press" onClick={() => onPublish(a)}>Publish to everyone</button>}
         </div>
       )}
@@ -66,8 +66,13 @@ function Post({ a, isNew, lead = false, onDelete, onPublish }) {
           {isNew && <span className="ann-new">New</span>}
           {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
           <span>{when(a.published_at || a.created_at)}</span>
-          {onPublish && a.published_at && <button type="button" className="ann-post__unpub" onClick={() => onPublish(a, false)}>Unpublish</button>}
-          {onDelete && <button type="button" className={`ann-post__del${onPublish && a.published_at ? " is-after" : ""}`} onClick={() => onDelete(a)}>Delete</button>}
+          {(onEdit || onDelete) && (
+            <span className="ann-post__acts">
+              {onEdit && <button type="button" className="ann-post__act" onClick={() => onEdit(a)}>Edit</button>}
+              {onPublish && a.published_at && <button type="button" className="ann-post__act" onClick={() => onPublish(a, false)}>Unpublish</button>}
+              {onDelete && <button type="button" className="ann-post__act is-danger" onClick={() => onDelete(a)}>Delete</button>}
+            </span>
+          )}
         </p>
         <h2 className="ann-post__title">{a.title}</h2>
         {a.body && <Rich text={a.body} />}
@@ -85,12 +90,12 @@ async function uploadCover(file) {
   return `${SUPABASE_URL}/storage/v1/object/public/announcements/${path}`;
 }
 
-function Composer({ onPost }) {
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [tag, setTag] = useState("feature");
-  const [image, setImage] = useState(null);
+/* Writing a post, or editing one (`initial`), with a live preview beside it. */
+function Composer({ initial = null, onSave, onCancel }) {
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [body, setBody] = useState(initial?.body ?? "");
+  const [tag, setTag] = useState(initial?.tag ?? "feature");
+  const [image, setImage] = useState(initial?.image_url ?? null);
   const [imgBusy, setImgBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -100,24 +105,19 @@ function Composer({ onPost }) {
     setErr(""); setImgBusy(true);
     try { setImage(await uploadCover(file)); } catch (e) { setErr(e.message); } finally { setImgBusy(false); }
   }
-  async function post() {
+  async function save() {
     if (!title.trim()) return;
     setBusy(true); setErr("");
-    try {
-      await onPost({ title: title.trim(), body: body.trim(), tag, image });
-      setTitle(""); setBody(""); setImage(null); setOpen(false);   // saved as a draft; publish it from the post
-    } catch { setErr("Couldn’t post that. Check your connection and try again."); }
-    finally { setBusy(false); }
+    try { await onSave({ title: title.trim(), body: body.trim(), tag, image }); }
+    catch { setErr("Couldn’t save that. Check your connection and try again."); setBusy(false); }
   }
 
-  if (!open) {
-    return <button type="button" className="ann-start btn-press" onClick={() => setOpen(true)}>Write an announcement</button>;
-  }
-  const draft = { id: "draft", created_at: new Date().toISOString(), title: title || "Your title", body, tag, image_url: image };
+  const preview = { id: "draft", created_at: initial?.created_at ?? new Date().toISOString(), published_at: initial?.published_at,
+    title: title || "Your title", body, tag, image_url: image };
   return (
     <section className="ann-compose">
       <div className="ann-compose__form">
-        <p className="ann-compose__label">Label</p>
+        <p className="ann-compose__label">{initial ? "Edit announcement" : "New announcement"}</p>
         <div className="ann-compose__tags" role="radiogroup" aria-label="Label">
           {Object.entries(TAGS).map(([k, l]) => (
             <button key={k} type="button" role="radio" aria-checked={tag === k}
@@ -125,7 +125,7 @@ function Composer({ onPost }) {
           ))}
         </div>
         <input value={title} onChange={e => setTitle(e.target.value)} maxLength={120} placeholder="Title" aria-label="Title" />
-        <textarea value={body} onChange={e => setBody(e.target.value)} maxLength={4000} rows={7} aria-label="Text"
+        <textarea value={body} onChange={e => setBody(e.target.value)} maxLength={4000} rows={9} aria-label="Text"
           placeholder={"What’s new. A blank line starts a new paragraph.\n- Lines starting with a dash become a list\n**Two stars** around words make them bold."} />
         <div className="ann-compose__img">
           <label className="ann-compose__imgbtn btn-press">
@@ -136,21 +136,25 @@ function Composer({ onPost }) {
         </div>
         {err && <p className="ann-compose__err">{err}</p>}
         <div className="ann-compose__acts">
-          <button type="button" className="ann-compose__cancel" onClick={() => setOpen(false)}>Cancel</button>
-          <button type="button" className="ann-compose__go btn-press" disabled={busy || imgBusy || !title.trim()} onClick={post}>
-            {busy ? "Saving…" : "Save as draft"}
+          <button type="button" className="ann-compose__cancel" onClick={onCancel}>Cancel</button>
+          <button type="button" className="ann-compose__go btn-press" disabled={busy || imgBusy || !title.trim()} onClick={save}>
+            {busy ? "Saving…" : initial ? "Save changes" : "Save as draft"}
           </button>
         </div>
       </div>
       <div className="ann-compose__preview" aria-label="Preview">
         <p className="ann-compose__label">Preview</p>
-        <Post a={draft} isNew lead />
+        <Post a={preview} lead />
       </div>
     </section>
   );
 }
 
-export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onDelete, onPublish }) {
+/* `composing` (and onComposeDone) come from the page, whose band holds the
+   New announcement button. An edit opens in the post's own place. */
+export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onUpdate, onDelete, onPublish,
+  composing = false, onComposeDone }) {
+  const [editing, setEditing] = useState(null);
   async function remove(a) {
     if (!await confirm({ title: "Delete this announcement?", body: `“${a.title}” disappears for everyone.`, action: "Delete", danger: true })) return;
     try { await onDelete(a.id); } catch { /* stays; try again */ }
@@ -161,21 +165,26 @@ export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false,
     try { await onPublish(a.id, on); } catch { /* stays as it was */ }
   }
   const isNew = a => newSince != null && !!a.published_at && a.published_at > newSince;
+  const admin = isAdmin ? { onDelete: remove, onPublish: onPublish ? publish : null, onEdit: onUpdate ? a => setEditing(a.id) : null } : {};
+  const render = (a, lead) => (editing === a.id
+    ? <Composer key={a.id} initial={a} onCancel={() => setEditing(null)}
+        onSave={async post => { await onUpdate(a.id, post); setEditing(null); }} />
+    : <Post key={a.id} a={a} lead={lead} isNew={isNew(a)} {...admin} />);
   const [lead, ...rest] = items;
   return (
     <div className="ann-feed">
-      {isAdmin && <Composer onPost={onPost} />}
+      {isAdmin && composing && (
+        <Composer onCancel={onComposeDone} onSave={async post => { await onPost(post); onComposeDone?.(); }} />
+      )}
       {!lead ? (
-        <p className="ann-empty">Nothing yet. Updates and news about Resurface will appear here.</p>
+        !composing && <p className="ann-empty">Nothing yet. Updates and news about Resurface will appear here.</p>
       ) : (
         <>
-          <Post a={lead} lead isNew={isNew(lead)} onDelete={isAdmin ? remove : null} onPublish={isAdmin && onPublish ? publish : null} />
+          {render(lead, true)}
           {rest.length > 0 && (
             <>
               <h3 className="ann-earlier">Earlier</h3>
-              <div className="ann-rest">
-                {rest.map(a => <Post key={a.id} a={a} isNew={isNew(a)} onDelete={isAdmin ? remove : null} onPublish={isAdmin && onPublish ? publish : null} />)}
-              </div>
+              <div className="ann-rest">{rest.map(a => render(a, false))}</div>
             </>
           )}
         </>

@@ -450,6 +450,10 @@ export async function adminPostAnnouncement({ title, body, tag = null, image = n
   const { error } = await supabase.rpc("admin_post_announcement", { p_title: title, p_body: body, p_tag: tag, p_image: image, p_publish: false });
   if (error) throw new Error(error.message);
 }
+export async function adminUpdateAnnouncement(id, { title, body, tag = null, image = null }) {
+  const { error } = await supabase.rpc("admin_update_announcement", { p_id: id, p_title: title, p_body: body, p_tag: tag, p_image: image });
+  if (error) throw new Error(error.message);
+}
 /* Drafts (migration 0024): published_at null until an admin publishes. */
 export async function adminSetAnnouncementPublished(id, publish) {
   const { error } = await supabase.rpc("admin_set_announcement_published", { p_id: id, p_publish: publish });

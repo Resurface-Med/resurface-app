@@ -9682,3 +9682,16 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-draftbar__go { padding: 8px 16px; border: 0; border-radius: 999px; background: var(--c-accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .ann-post__unpub { margin-left: auto; border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-sub); cursor: pointer; }
 .ann-post__del.is-after { margin-left: 14px; }
+/* What's new: the admin's button on the band, opposite the title; post
+   actions grouped at the end of the date line. */
+.ann-band { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.ann-new-btn {
+  flex: none; padding: 11px 20px; border: 0; border-radius: 999px;
+  background: #fff; color: var(--c-accent); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 10px 24px -14px rgba(10, 20, 60, 0.6);
+}
+.ann-post__meta > span.ann-post__acts::before { content: none; }
+.ann-post__acts { margin-left: auto; display: inline-flex; gap: 16px; }
+.ann-post__act { border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-sub); cursor: pointer; }
+.ann-post__act:hover { color: var(--c-text); }
+.ann-post__act.is-danger { color: var(--c-danger); }
