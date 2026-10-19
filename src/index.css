@@ -9732,3 +9732,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .dash-letter__film:hover { text-decoration: underline; text-underline-offset: 3px; }
 .ann-post__acts { flex-wrap: wrap; justify-content: flex-end; }
+/* The welcome note, a step larger on laptops. */
+@media (min-width: 901px) {
+  .dash-welcome { max-width: 760px; }
+  .dash-letter__title { font-size: 30px; letter-spacing: -0.8px; margin-bottom: 16px; }
+  .dash-letter .ann-rich { font-size: 17.5px; line-height: 1.7; }
+  .dash-letter .ann-rich p { margin-bottom: 14px; }
+  .dash-letter__film { font-size: 16px; }
+}
