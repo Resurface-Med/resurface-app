@@ -9847,3 +9847,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .lb-step.is-silver .lb-step__block { height: 68px; }
   .lb-step.is-bronze .lb-step__block { height: 52px; }
 }
+
+/* Study on a phone: the heading desktop has, in place of the deck pills. */
+.setup-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 12px; }
+.setup-head__meta { display: flex; align-items: baseline; gap: 14px; font-size: 13px; color: var(--c-muted); font-variant-numeric: tabular-nums; }

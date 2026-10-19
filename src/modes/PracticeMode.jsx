@@ -10,7 +10,7 @@ import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree, { prune } from "../ui/DeckTree";
-import { DeckTabs, DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
+import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import QuestionManager from "../ui/QuestionManager";
@@ -314,7 +314,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setNaming(null);
     setTopicQuery("");
   }, [activeRootId]);
-  function selectRoot(id) { setCreatingDeck(false); setActiveRootId(id); }
   const isPhone = useIsPhone();
   /* A new deck is made at once, named "New deck", with its row put straight
      into rename — as Finder does a new folder — rather than a separate field
@@ -572,7 +571,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const eligibleSet = new Set(eligibleIds);
     const dueSet = new Set(QUESTIONS.filter(x => isReviewDue(srCards[x.id])).map(x => x.id));
     const fullForest = buildForest({ questions: QUESTIONS, decks: listDecks, pStats, eligible: eligibleSet, due: dueSet });
-    const roots = fullForest;
     const activeRoot = activeRootId ? findNode(fullForest, activeRootId) : null;
     /* Inside a tab, the tree is what is under the root — the tab itself is
        the heading, not a row. */
@@ -874,7 +872,17 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
               {step === "topic" ? (
                 <>
-                  {!blank && <DeckTabs roots={roots} activeId={activeRootId} onSelect={selectRoot} onNew={() => newDeckInline(null)} />}
+                  {/* The same heading as desktop, not a row of deck pills:
+                      the tree below already lists every deck. */}
+                  {!blank && !creatingDeck && (!naming || inlineRename) && (
+                    <div className="setup-head">
+                      <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
+                      <span className="setup-head__meta">
+                        <span>{nothingChosen ? poolSize : scoped} question{(nothingChosen ? poolSize : scoped) === 1 ? "" : "s"}</span>
+                        <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>＋ New deck</button>
+                      </span>
+                    </div>
+                  )}
                   {creatingDeck ? (
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
                   ) : naming && !inlineRename ? (
