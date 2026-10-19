@@ -9659,3 +9659,15 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 /* Phones: a dot on the menu button for unread announcements. */
 .app-nav__burger-dot.is-news { min-width: 10px; width: 10px; height: 10px; padding: 0; top: 2px; right: 2px; }
+/* Posts, lighter (Rafil, 2026-10-19): no pills — the label and New are
+   words in the date line, separated by dots — and less weight throughout. */
+.ann-post__meta { gap: 0; }
+.ann-post__del { margin-left: auto; }
+.ann-post__meta > span + span::before { content: "·"; margin: 0 8px; color: var(--c-muted-dim); }
+.ann-tag, .ann-tag.is-feature, .ann-tag.is-update, .ann-tag.is-fix, .ann-tag.is-news {
+  padding: 0; border-radius: 0; background: none; color: var(--c-sub); font-size: 13.5px; font-weight: 500;
+}
+.ann-new { padding: 0; border-radius: 0; background: none; color: var(--c-accent); font-size: 13.5px; font-weight: 600; }
+.ann-post__title { font-weight: 600; }
+.ann-rich strong { font-weight: 500; color: var(--c-text); }
+.ann-tag-pick { border-radius: 10px; }

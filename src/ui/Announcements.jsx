@@ -22,11 +22,12 @@ export const TAGS = {
 
 const when = iso => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-/* **bold** and links inside one line. */
+/* **bold**, web addresses and email addresses inside one line. */
 function Inline({ text }) {
-  const parts = String(text).split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
+  const parts = String(text).split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+|[\w.+-]+@[\w-]+\.[\w.]*\w)/g);
   return parts.map((p, i) => {
     if (/^\*\*[^*]+\*\*$/.test(p)) return <strong key={i}>{p.slice(2, -2)}</strong>;
+    if (/^[\w.+-]+@[\w-]+\.[\w.]*\w$/.test(p)) return <a key={i} href={`mailto:${p}`}>{p}</a>;
     if (/^https?:\/\//.test(p)) return <a key={i} href={p} target="_blank" rel="noopener noreferrer">{p.replace(/^https?:\/\//, "")}</a>;
     return <span key={i}>{p}</span>;
   });
@@ -53,9 +54,10 @@ function Post({ a, isNew, lead = false, onDelete }) {
     <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}`}>
       {a.image_url && <img className="ann-post__img" src={a.image_url} alt="" loading="lazy" />}
       <div className="ann-post__text">
+        {/* Plain text, not pills (Rafil, 2026-10-19): "New · News · 19 October". */}
         <p className="ann-post__meta">
-          {a.tag && <span className={`ann-tag is-${a.tag}`}>{TAGS[a.tag]}</span>}
           {isNew && <span className="ann-new">New</span>}
+          {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
           <span>{when(a.created_at)}</span>
           {onDelete && <button type="button" className="ann-post__del" onClick={() => onDelete(a)}>Delete</button>}
         </p>
