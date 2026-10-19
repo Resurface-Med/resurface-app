@@ -200,7 +200,7 @@ export default function Dashboard({
                ways to start as buttons in it, and the film beside it. */
             <div className="dash-welcome" data-in="rise" style={{ "--i": 5 }}>
               <article className="dash-letter">
-                {/* Read as a letter: who it is from, a larger opening line,
+                {/* Read as a letter: a larger opening line,
                     the numbered points as steps, and the closing name as a
                     signature (a short last line on its own). */}
                 {(() => {
@@ -210,12 +210,6 @@ export default function Dashboard({
                   const text = sig ? blocks.slice(0, -1).join("\n\n") : welcome.body;
                   return (
                     <>
-                      {sig && (
-                        <p className="dash-letter__from">
-                          <span className="dash-letter__avatar" aria-hidden="true">{sig[0]}</span>
-                          A note from {sig}
-                        </p>
-                      )}
                       <h2 className="dash-letter__title">{welcome.title}</h2>
                       <Rich text={text} />
                       {sig && <p className="dash-letter__sig">{sig}</p>}
