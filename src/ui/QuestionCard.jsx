@@ -91,7 +91,7 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
 /* A quiet mark that this is a Resurface question, not one of your own
    (Rafil, 2026-10-19: no logo — Resurface AI has that — and no path). */
 function SourceTag({ focus = false }) {
-  return <span className={`q-src${focus ? " q-src--focus" : ""}`}>Resurface question</span>;
+  return <span className={`q-src${focus ? " q-src--focus" : ""}`}>Resurface</span>;
 }
 
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {

@@ -9802,3 +9802,4 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 [data-theme="dark"] .q-src__topic::before { background: rgba(255, 255, 255, 0.18); }
 .q-src.q-src--focus { display: flex; margin: 0 0 12px; padding: 0; }
 .q-src { font-size: 13px; font-weight: 600; color: var(--c-accent); letter-spacing: -0.1px; }
+.q-src { font-size: 13px; font-weight: 500; color: var(--c-muted); letter-spacing: -0.1px; }
