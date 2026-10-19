@@ -60,6 +60,9 @@ export default function LeaderboardView({ userId }) {
   }, []);
 
 
+  const podium = (rows ?? []).filter(r => r.week_count > 0 && r.rank <= 3).slice(0, 3);
+  const rest = (rows ?? []).slice(podium.length);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
@@ -93,9 +96,28 @@ export default function LeaderboardView({ userId }) {
             </p>
           )}
 
-          {rows && rows.length > 0 && (
+          {/* The top three on a podium: second, first, third, left to right,
+              first the tallest; gold, silver and bronze. Only people who
+              answered something this week stand on it. */}
+          {rows && podium.length > 0 && (
+            <div className="lb-podium" data-in="rise" style={{ "--i": 1 }}>
+              {[podium[1], podium[0], podium[2]].map((r, slot) => r && (
+                <div key={r.user_id} className={`lb-step is-${["silver", "gold", "bronze"][slot]}${r.user_id === userId ? " is-me" : ""}`}>
+                  <Avatar className="lb-step__avatar" src={avatarSrc(r.user_id, r.avatar)} name={r.display_name} />
+                  <span className="lb-step__name">
+                    {r.display_name}
+                    {r.user_id === FOUNDER_ID ? <FounderGem /> : null}
+                  </span>
+                  <span className="lb-step__count">{r.week_count}</span>
+                  <span className="lb-step__block"><span className="lb-step__place">{[2, 1, 3][slot]}</span></span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {rows && rest.length > 0 && (
             <ol className="lb-list">
-              {rows.map((r, i) => {
+              {rest.map((r, i) => {
                 const mine = r.user_id === userId;
                 return (
                   <li key={r.user_id} className={`lb-row${mine ? " is-me" : ""}`} data-in="rise" style={{ "--i": 2 + Math.min(i, 12) }}>

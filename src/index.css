@@ -9802,3 +9802,47 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
   background: var(--c-accent-dim); color: var(--c-accent); font-size: 14.5px; font-weight: 600;
 }
+
+/* ─── Leaderboard podium ─────────────────────────────────────────── */
+.lb-podium {
+  --gold: #e8b100; --gold-lt: #fff3c4;
+  --silver: #9aa6bd; --silver-lt: #eef1f6;
+  --bronze: #c7783d; --bronze-lt: #fbe7d8;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end;
+  gap: clamp(10px, 2vw, 22px); margin: 8px 0 30px;
+}
+.lb-step { display: flex; flex-direction: column; align-items: center; min-width: 0; text-align: center; }
+.lb-step__avatar {
+  width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--c-surface3); color: var(--c-sub); font-size: 20px; font-weight: 700;
+  box-shadow: 0 0 0 3px var(--c-card-solid), 0 0 0 6px var(--ring);
+}
+.lb-step.is-gold .lb-step__avatar { width: 80px; height: 80px; font-size: 24px; }
+.lb-step__name {
+  margin-top: 12px; max-width: 100%; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 15.5px; font-weight: 600; color: var(--c-text); letter-spacing: -0.3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.lb-step__count { margin-top: 2px; font-size: 14px; color: var(--c-sub); font-variant-numeric: tabular-nums; }
+.lb-step__block {
+  margin-top: 12px; width: 100%; display: grid; place-items: start center; padding-top: 12px;
+  border-radius: 16px 16px 6px 6px; background: linear-gradient(180deg, var(--ring-lt), transparent 130%);
+  border-top: 3px solid var(--ring);
+}
+.lb-step__place { font-size: 26px; font-weight: 700; color: var(--ring); letter-spacing: -0.5px; }
+.lb-step.is-gold { --ring: var(--gold); --ring-lt: var(--gold-lt); }
+.lb-step.is-silver { --ring: var(--silver); --ring-lt: var(--silver-lt); }
+.lb-step.is-bronze { --ring: var(--bronze); --ring-lt: var(--bronze-lt); }
+.lb-step.is-gold .lb-step__block { height: 112px; }
+.lb-step.is-silver .lb-step__block { height: 82px; }
+.lb-step.is-bronze .lb-step__block { height: 62px; }
+.lb-step.is-me .lb-step__name { color: var(--c-accent); }
+[data-theme="dark"] .lb-podium { --gold-lt: rgba(232,177,0,.18); --silver-lt: rgba(154,166,189,.16); --bronze-lt: rgba(199,120,61,.18); }
+@media (max-width: 640px) {
+  .lb-step__avatar { width: 52px; height: 52px; font-size: 17px; }
+  .lb-step.is-gold .lb-step__avatar { width: 64px; height: 64px; }
+  .lb-step__name { font-size: 14px; }
+  .lb-step.is-gold .lb-step__block { height: 92px; }
+  .lb-step.is-silver .lb-step__block { height: 68px; }
+  .lb-step.is-bronze .lb-step__block { height: 52px; }
+}
