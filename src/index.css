@@ -9793,3 +9793,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .q-src.q-src--focus { display: flex; margin: 0 0 12px; padding: 0; }
 .q-src { font-size: 13px; font-weight: 600; color: var(--c-accent); letter-spacing: -0.1px; }
 .q-src { font-size: 13px; font-weight: 500; color: var(--c-muted); letter-spacing: -0.1px; }
+/* Numbered points in What's new posts: the same steps as the Home letter,
+   inside the text column rather than hanging out past its edge. */
+.ann-rich ol { list-style: none; margin: 4px 0 14px; padding: 0 0 0 46px; position: relative; }
+.ann-rich ol li { margin: 0; }
+.ann-rich ol::before {
+  content: attr(start); position: absolute; left: 0; top: -1px;
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--c-accent-dim); color: var(--c-accent); font-size: 14.5px; font-weight: 600;
+}
