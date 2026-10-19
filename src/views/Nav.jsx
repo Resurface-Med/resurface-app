@@ -3,6 +3,7 @@ import { useDrawerSwipe } from "../ui/useDrawerSwipe";
 import { BookOpen, ChartColumn, Flag, House, LogOut, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 import Avatar from "../ui/Avatar";
+import { AnnouncementsBell } from "../ui/Announcements";
 
 const ICONS = {
   [V.DASH]: House,
@@ -13,7 +14,7 @@ const ICONS = {
   [V.ADMIN]: Flag,
 };
 
-export function Sidebar({ view, setView, dueCount, email, displayName, avatar = null, onSignOut, isAdmin = false }) {
+export function Sidebar({ view, setView, dueCount, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
   const navRef = useRef(null);
@@ -61,6 +62,8 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
         <span className="app-nav__burger-line" />
         {dueCount > 0 && <span className="app-nav__burger-dot">{dueCount}</span>}
       </button>
+      {/* Phones: the bell beside the menu button, top right. */}
+      {onOpenAnnouncements && <AnnouncementsBell className="ann-bell--fab" unread={unreadAnnouncements} onOpen={onOpenAnnouncements} />}
 
       <div
         ref={scrimRef}
@@ -86,6 +89,8 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
             height="190"
             className="nav-logo nav-logo-night app-nav__logo"
           />
+          {/* Wide screens: the bell sits in the brand row, right of the logo. */}
+          {onOpenAnnouncements && <AnnouncementsBell className="ann-bell--nav" unread={unreadAnnouncements} onOpen={onOpenAnnouncements} />}
           <button
             type="button"
             className="app-nav__close btn-press"

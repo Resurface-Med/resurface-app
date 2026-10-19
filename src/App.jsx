@@ -27,7 +27,9 @@ import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
-import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured } from "./lib/remote";
+import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
+  fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement } from "./lib/remote";
+import Announcements from "./ui/Announcements";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
@@ -126,6 +128,12 @@ export default function App() {
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [avatarV, setAvatarV] = useState(null);
+  /* Announcements (ui/Announcements): the list, when you last looked, and
+     — while the panel is open — what counted as new when you opened it. */
+  const [announcements, setAnnouncements] = useState([]);
+  const [annSeenAt, setAnnSeenAt] = useState(null);
+  const [annOpen, setAnnOpen] = useState(false);
+  const [annNewSince, setAnnNewSince] = useState(null);
   const [generated, setGenerated] = useState([]);
   /* Your decks, as rows; the tree is built where it is shown. */
   const [decks, setDecks] = useState([]);
@@ -243,6 +251,8 @@ export default function App() {
     setDailyGoal(d.dailyGoal);
     setDisplayName(d.displayName || "");
     setAvatarV(d.avatarV ?? null);
+    setAnnouncements(d.announcements ?? []);
+    setAnnSeenAt(d.announcementsSeenAt ?? null);
     setNameChosen(d.nameChosen !== false);
     setShowOnLeaderboard(d.showOnLeaderboard !== false);
     setMarketingOptIn(d.marketingOptIn);
@@ -804,11 +814,39 @@ export default function App() {
     return () => clearTimeout(t);
   }, [practiceSessionActive]);
 
+  /* New means newer than when you last opened the panel — or, if you never
+     have, than when your account was made, so a new account is not greeted
+     by a backlog. */
+  const annSince = annSeenAt ?? user?.created_at ?? null;
+  const unreadAnnouncements = announcements.filter(a => !annSince || a.created_at > annSince).length;
+  function openAnnouncements() {
+    setAnnNewSince(annSince ?? "");   // "" — never looked: everything is new
+    setAnnOpen(true);
+    if (unreadAnnouncements > 0 && user?.id) {
+      setAnnSeenAt(new Date().toISOString());
+      markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
+    }
+    fetchAnnouncements().then(setAnnouncements, () => {});
+  }
+  async function postAnnouncement(title, body) {
+    await adminPostAnnouncement(title, body);
+    const list = await fetchAnnouncements();
+    setAnnouncements(list);
+    setAnnSeenAt(new Date().toISOString());
+    if (user?.id) markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
+  }
+  async function deleteAnnouncement(id) {
+    await adminDeleteAnnouncement(id);
+    setAnnouncements(list => list.filter(a => a.id !== id));
+  }
+
   const nav = {
     view, setView: handleNav, dueCount, isAdmin,
     email: user?.email,
     displayName,
     avatar: avatarSrc(user?.id, ownAvatar(avatarV)),
+    unreadAnnouncements,
+    onOpenAnnouncements: openAnnouncements,
     onSignOut: signOut,
   };
 
@@ -923,6 +961,8 @@ export default function App() {
     )}
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
+    <Announcements open={annOpen} onClose={() => setAnnOpen(false)} items={announcements} newSince={annNewSince}
+      isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} />
     <UpdateNotice hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />

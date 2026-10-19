@@ -9515,3 +9515,69 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .adm-danger-link { color: var(--c-danger) !important; }
 .flagq__acts { margin-left: auto; display: inline-flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
 @media (max-width: 640px) { .feat-admin__fields { grid-template-columns: 1fr; } .feat-admin { padding: 16px; } }
+
+/* ─── Announcements (ui/Announcements) ─────────────────────────────── */
+.ann-bell {
+  position: relative; flex: none;
+  width: 36px; height: 36px; display: grid; place-items: center; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; color: var(--c-sub); cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ann-bell:hover { background: var(--c-surface2); color: var(--c-text); }
+.ann-bell__badge {
+  position: absolute; top: 2px; right: 1px;
+  min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box;
+  display: grid; place-items: center;
+  border-radius: 999px; background: var(--c-accent); color: #fff;
+  border: 2px solid var(--c-card-solid);
+  font-size: 10px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  animation: annPop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1) both;
+}
+@keyframes annPop { from { transform: scale(0.4); opacity: 0; } to { transform: none; opacity: 1; } }
+.ann-bell--nav { margin-left: auto; margin-right: -6px; }
+.ann-bell--fab { display: none; }
+@media (max-width: 900px) {
+  .ann-bell--nav { display: none; }
+  .ann-bell--fab {
+    display: grid; position: fixed; z-index: 500;
+    top: calc(var(--safe-t, 0px) + 14px); right: 12px; width: 44px; height: 44px;
+    background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 0 10px 24px rgba(15, 27, 61, 0.15);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    color: var(--c-on-field);
+  }
+  .ann-bell--fab:hover { background: rgba(255, 255, 255, 0.22); color: var(--c-on-field); }
+  .ann-bell--fab .ann-bell__badge { top: -3px; right: -3px; background: #fff; color: var(--c-accent); border: 0; }
+  .app-shell.is-session .ann-bell--fab, body.is-nav-open .ann-bell--fab { display: none; }
+}
+
+.ann-scrim { position: fixed; inset: 0; z-index: 1190; background: rgba(15, 27, 61, 0); transition: background 0.3s ease; }
+.ann-scrim.is-open { background: rgba(15, 27, 61, 0.28); }
+.labs.ann { z-index: 1200; }
+.ann-body { padding-top: 8px; }
+.ann-empty { margin: 28px 0; font-size: 15px; line-height: 1.55; color: var(--c-sub); }
+.ann-list { list-style: none; margin: 0; padding: 0; }
+.ann-item { padding: 20px 0; border-bottom: 1px solid var(--c-border); }
+.ann-item:last-child { border-bottom: 0; }
+.ann-item__meta { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 13.5px; color: var(--c-muted); }
+.ann-item__new {
+  padding: 2px 8px; border-radius: 999px; background: var(--c-accent); color: #fff;
+  font-size: 11.5px; font-weight: 600;
+}
+.ann-item__del { margin-left: auto; border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-danger); cursor: pointer; }
+.ann-item__title { margin: 6px 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.3px; color: var(--c-text); line-height: 1.35; }
+.ann-item__body { margin: 6px 0 0; font-size: 15px; line-height: 1.6; color: var(--c-sub); white-space: pre-line; overflow-wrap: anywhere; }
+.ann-item__body a { color: var(--c-accent); font-weight: 500; }
+
+.ann-compose { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 10px; padding: 16px; border-radius: 16px; background: var(--c-surface2); }
+.ann-compose__label { margin: 0 0 2px; font-size: 14px; font-weight: 600; color: var(--c-text); }
+.ann-compose input, .ann-compose textarea {
+  width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid transparent; border-radius: 12px;
+  background: var(--c-card-solid); color: var(--c-text); font: inherit; font-size: 15px; outline: none; resize: vertical;
+}
+.ann-compose input:focus, .ann-compose textarea:focus { border-color: var(--c-accent-brd); }
+.ann-compose__err { margin: 0; font-size: 13.5px; color: var(--c-danger); }
+.ann-compose__acts { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ann-compose__hint { font-size: 13px; color: var(--c-muted); }
+.ann-compose__go { flex: none; padding: 9px 20px; border: 0; border-radius: 999px; background: var(--c-accent); color: #fff; font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; }
+.ann-compose__go:disabled { opacity: 0.45; cursor: default; }

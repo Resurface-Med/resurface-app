@@ -241,7 +241,7 @@ export async function selectAll(query, orderBy) {
 export async function loadAll(userId) {
   /* Decks alongside the rest: they were fetched after all of it, a whole
      extra round trip on every sign-in. */
-  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured] =
+  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured, announcements] =
     await Promise.all([
       timed("t_practice", selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id")),
       timed("t_sr", selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id")),
@@ -253,6 +253,7 @@ export async function loadAll(userId) {
       timed("t_edits", selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id")),
       timed("t_decks", loadUserDecks().then(data => ({ data, error: null }), error => ({ data: null, error }))),
       timed("t_featured", loadFeatured()),
+      fetchAnnouncements().catch(() => []),
     ]);
   if (deckRes.error) throw deckRes.error;
   const decks = deckRes.data;
@@ -313,6 +314,9 @@ export async function loadAll(userId) {
     displayName: profile.data?.display_name ?? "",
     /* Profile photo version (lib/avatar): null, 0, or an upload's number. */
     avatarV: profile.data?.avatar_v ?? null,
+    /* Announcements (migration 0022): the list, and when you last looked. */
+    announcements,
+    announcementsSeenAt: profile.data?.announcements_seen_at ?? null,
     /* False only while the name is still the one made up from their email —
        the single question the welcome prompt exists to ask. */
     nameChosen: profile.data?.name_chosen !== false,
@@ -426,6 +430,28 @@ export async function fetchTokenTotals() {
   const { data, error } = await supabase.rpc("admin_tokens_totals");
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+/* Announcements — migration 0022. The newest 50; anyone signed in reads
+   them, admins post and remove them. */
+export async function fetchAnnouncements() {
+  const { data, error } = await supabase.from("announcements")
+    .select("id, created_at, title, body").order("created_at", { ascending: false }).limit(50);
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+export async function markAnnouncementsSeen(userId) {
+  const at = new Date().toISOString();
+  await supabase.from("profiles").update({ announcements_seen_at: at }).eq("id", userId);
+  return at;
+}
+export async function adminPostAnnouncement(title, body) {
+  const { error } = await supabase.rpc("admin_post_announcement", { p_title: title, p_body: body });
+  if (error) throw new Error(error.message);
+}
+export async function adminDeleteAnnouncement(id) {
+  const { error } = await supabase.rpc("admin_delete_announcement", { p_id: id });
+  if (error) throw new Error(error.message);
 }
 
 /* Admin control of the Resurface (featured) decks — migration 0021. Ids
