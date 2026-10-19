@@ -9764,3 +9764,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   margin: 6px 0 0; font-family: "Caveat", cursive; font-size: 34px; font-weight: 600;
   line-height: 1; color: var(--c-accent);
 }
+/* The welcome note uses the width of the sheet on laptops. */
+@media (min-width: 901px) {
+  .dash-welcome { max-width: 1040px; }
+}
