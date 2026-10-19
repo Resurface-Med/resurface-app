@@ -9779,3 +9779,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .dash-letter__sig { font-size: 30px; }
   .dash-letter__film { font-size: 15px; }
 }
+/* More air between the parts of the welcome note. */
+@media (min-width: 901px) {
+  .dash-letter__title { margin-bottom: 22px; }
+  .dash-letter .ann-rich { line-height: 1.75; }
+  .dash-letter .ann-rich p { margin-bottom: 18px; }
+  .dash-letter .ann-rich > p:first-child { margin-bottom: 20px; }
+  .dash-letter .ann-rich ol { margin: 8px 0 18px; }
+  .dash-letter .ann-rich ol + ol { margin-top: 0; }
+  .dash-letter__sig { margin-top: 18px; }
+  .dash-letter__film { margin-top: 26px; }
+}
