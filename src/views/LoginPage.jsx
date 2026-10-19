@@ -2,6 +2,15 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { C, OF } from "../ui/theme";
 import { useAuth } from "../lib/auth";
 
+/* Offline, Supabase says "Failed to fetch", which reads as a fault. */
+function friendly(err) {
+  const msg = err?.message || "";
+  if (navigator.onLine === false || err instanceof TypeError || /failed to fetch|network|load failed/i.test(msg)) {
+    return "You’re offline. Signing in needs a connection.";
+  }
+  return msg || "Something went wrong.";
+}
+
 // Two panels: the blue field carries the brand, the white sheet carries the
 // form. Same split the landing page uses, so arriving here from the marketing
 // site doesn't feel like a different product. Below 900px the brand panel is
@@ -120,7 +129,7 @@ export default function LoginPage() {
         return;
       }
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      setError(friendly(err));
     } finally {
       setBusy(false);
     }
@@ -155,7 +164,7 @@ export default function LoginPage() {
       // App swaps in NewPasswordPage as soon as `recovering` is set, so there
       // is nothing further to do here.
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      setError(friendly(err));
     } finally {
       setBusy(false);
     }
@@ -176,7 +185,7 @@ export default function LoginPage() {
       setNotice("Sent a new code. Use the newest one; earlier codes stop working.");
       setCode("");
     } catch (err) {
-      setError(err.message || "Something went wrong.");
+      setError(friendly(err));
     } finally {
       setBusy(false);
     }

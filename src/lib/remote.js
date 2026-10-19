@@ -42,7 +42,37 @@ function enqueue(op) {
  * the UI has already updated optimistically, and a study session should never
  * block on a round-trip.
  */
+/*
+ * Every write this page has made, newest last (2026-10-19, offline). A load
+ * from the server that was in flight when a write went out may not include
+ * it; App lays these back over what came back (lib/overlay). In memory only —
+ * across a reload the queue and the device's copy cover it.
+ */
+const recent = [];
+const RECENT_MAX = 2000;
+/* Told of every write, so the device's copy can be saved after it. */
+const writeSubs = new Set();
+export function onWrite(fn) { writeSubs.add(fn); return () => writeSubs.delete(fn); }
+
+function remember(op) {
+  writeSubs.forEach(fn => { try { fn(op); } catch { /* a listener's problem */ } });
+  recent.push(op);
+  if (recent.length > RECENT_MAX) recent.splice(0, recent.length - RECENT_MAX);
+}
+
+/**
+ * Writes the server may not have: everything still queued for this account,
+ * and everything sent since `since` (ms). Oldest first.
+ */
+export function pendingOps(since = Infinity) {
+  const queued = readQueue().filter(op => !op.owner || op.owner === owner);
+  const sent = recent.filter(op => (op.at ?? 0) >= since);
+  return [...queued, ...sent].sort((a, b) => (a.at ?? 0) - (b.at ?? 0));
+}
+
 async function send(op) {
+  op = { ...op, at: Date.now() };
+  remember(op);
   try {
     const { error } = await apply(op);
     if (error) throw error;
@@ -161,6 +191,12 @@ function apply(op) {
         payload: op.payload,
         ...(op.deckId !== undefined ? { deck_id: op.deckId } : {}),
       }).eq("user_id", op.userId).eq("id", op.id);
+    case "ann-seen":
+      return supabase.from("profiles").update({ announcements_seen_at: op.seenAt }).eq("id", op.userId);
+    case "featured-hide":
+      return op.hide
+        ? supabase.from("featured_hidden").upsert({ deck_id: op.deckId })
+        : supabase.from("featured_hidden").delete().eq("deck_id", op.deckId);
     default:
       return Promise.resolve({ error: new Error(`unknown op ${op.kind}`) });
   }
@@ -441,9 +477,11 @@ export async function fetchAnnouncements() {
   if (error) throw new Error(error.message);
   return data ?? [];
 }
+/* Queued like an answer, so reading What's new offline still clears the
+   badge once the connection is back. */
 export async function markAnnouncementsSeen(userId) {
   const at = new Date().toISOString();
-  await supabase.from("profiles").update({ announcements_seen_at: at }).eq("id", userId);
+  await send({ kind: "ann-seen", userId, seenAt: at });
   return at;
 }
 export async function adminPostAnnouncement({ title, body, tag = null, image = null }) {
@@ -588,7 +626,7 @@ export const remote = {
       if (error) throw error;
       return (data ?? []).map(r => GEN_ID_BASE + Number(r.id));
     } catch {
-      enqueue({ kind: "generated-add", rows });
+      enqueue({ kind: "generated-add", rows, at: Date.now() });
       return null;
     }
   },
@@ -642,12 +680,8 @@ export const remote = {
     if (error) throw error;
   },
   /* A featured deck, off or back on your Study list. */
-  hideFeatured: async (deckId, hide) => {
-    const { error } = hide
-      ? await supabase.from("featured_hidden").upsert({ deck_id: deckId })
-      : await supabase.from("featured_hidden").delete().eq("deck_id", deckId);
-    if (error) throw error;
-  },
+  /* Queued like an answer, so hiding one offline sticks. */
+  hideFeatured: (deckId, hide) => send({ kind: "featured-hide", deckId, hide }),
   /* Your old copy of a featured deck, swapped for the live one: progress on
      its questions moves across, what you added yourself stays. */
   switchToFeatured: async (copyId) => {

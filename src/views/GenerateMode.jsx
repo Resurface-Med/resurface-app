@@ -1,4 +1,5 @@
 import { Fragment, useState, useRef, useEffect, useCallback } from "react";
+import { useOnline } from "../lib/online";
 import { apiFetch } from "../lib/api";
 import JSZip from "jszip";
 import { h1, primaryBtn } from "../ui/theme";
@@ -667,6 +668,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [countRaw, setCountRaw] = useState("10");
 
   const [phase, setPhase] = useState("setup");
+  const online = useOnline();
   const [step, setStep] = useState(0);
   const [dir, setDir] = useState(1);
   /* Pasting is the second way in and hidden until asked for. Two boxes on
@@ -1313,6 +1315,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
         />
       )}
 
+      {/* Writing questions happens on the server. Offline, the start page
+          says so instead of letting a file be dropped and then failing;
+          anything already under way is left alone. */}
+      {!online && phase === "setup" ? (
+        <div className="gen-card anim-scale-in">
+          <div className="needs-net">
+            <p className="needs-net__title">You’re offline</p>
+            <p>Generating questions needs a connection. Everything you already have works offline.</p>
+          </div>
+        </div>
+      ) : (
       <div className="gen-card anim-scale-in">
         {/* The steps, as a path: Lecture › Topic › Questions. Every page
             is open — the path is navigation, not a record of what is done.
@@ -1577,16 +1590,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
           )}
         </div>
       </div>
+      )}
 
       {/* The other way in, as a sentence under the card rather than a third
           box on it: it is not another kind of source, it is having none. */}
-      <p className="gen-aside">
+      {(online || phase !== "setup") && <p className="gen-aside">
         {mode === "ai" ? (
           <>Or <button type="button" className="gen-link" onClick={() => { setMode("manual"); turnTo(1); }}>write your own questions</button> from scratch.</>
         ) : (
           <>Or <button type="button" className="gen-link" onClick={() => { setMode("ai"); turnTo(0); }}>generate them from a lecture</button> instead.</>
         )}
-      </p>
+      </p>}
 
       {writing && (
         <EditQuestionModal

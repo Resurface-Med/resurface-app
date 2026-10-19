@@ -23,17 +23,23 @@ class ErrorBoundary extends Component {
   }
 }
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
-import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data";
+import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
-  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome } from "./lib/remote";
+  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite } from "./lib/remote";
+import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
+import { overlayOps } from "./lib/overlay";
+import { setOnline, useOnline, probe } from "./lib/online";
+import { SUPABASE_URL } from "./lib/supabase";
+import { keepImagesOffline } from "./lib/questionImage";
+import OfflineBar, { NeedsConnection } from "./ui/OfflineBar";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
-import { loadPrefs } from "./lib/prefs";
+import { loadPrefs, getPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
 import ReceiveDeck from "./views/ReceiveDeck";
 import LoginPage from "./views/LoginPage";
@@ -76,6 +82,17 @@ const AdminView       = lazy(CHUNK[V.ADMIN]);
 const AnnouncementsView = lazy(CHUNK[V.NEWS]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
+
+/* How long a load from the server may take before the app treats itself as
+   offline: shorter when there is a copy on screen to carry on from, longer
+   for a first sign-in, where the only alternative is the retry screen. */
+const LOAD_TIMEOUT = 15000;
+const FIRST_LOAD_TIMEOUT = 30000;
+function withTimeout(p, ms) {
+  let t;
+  return Promise.race([p, new Promise((_, reject) => { t = setTimeout(() => reject(new Error("timeout")), ms); })])
+    .finally(() => clearTimeout(t));
+}
 
 function isGoogleUser(user) {
   const providers = user?.app_metadata?.providers;
@@ -270,11 +287,31 @@ export default function App() {
      Writes still queued go first, so a refresh never shows them undone. A
      failure leaves what is on screen alone. */
   async function refreshData() {
-    if (!user?.id) return;
+    if (!user?.id) return false;
     try {
-      await flushQueue();
-      applySnapshot(await loadAll(user.id));
-    } catch { /* offline, say: nothing is replaced */ }
+      applySnapshot(await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT));
+      sourceRef.current = "server";
+      setOnline(true);
+      setLoadError(null);
+      setDataLoading(false);
+      return true;
+    } catch {
+      /* Offline, say: nothing is replaced. */
+      if (typeof navigator !== "undefined" && navigator.onLine === false) setOnline(false);
+      return false;
+    }
+  }
+
+  /* From the server, with the writes it may not have yet laid back on —
+     everything still queued, and anything sent while this was in flight
+     (lib/overlay). Without that, an answer given offline showed as undone
+     until the next load, and answering again counted from the old total. */
+  async function fetchFresh(uid) {
+    const since = Date.now();
+    await flushQueue();
+    mark("flush");
+    const d = await loadAll(uid);
+    return overlayOps(d, pendingOps(since));
   }
 
   /* A link to a featured deck has nothing to add: it is already on
@@ -319,37 +356,134 @@ export default function App() {
   // Pull the snapshot once per signed-in user. Depend on user.id — not the
   // user object — so a tab-focus token refresh doesn't remount the whole app
   // and wipe an in-progress practice session.
+  /* Where what is on screen came from: null until this account's data is
+     applied, then "device" (the offline copy) or "server". */
+  const sourceRef = useRef(null);
+  const userIdRef = useRef(null);
+  userIdRef.current = user?.id ?? null;
+
+  /*
+   * Offline (2026-10-19): the device's copy first, then the server.
+   *
+   * The copy (lib/offlineStore) is everything below as it was when you last
+   * used the app here, so it opens at once — no "Loading your progress…" —
+   * and opens at all with no connection. The server is then asked in the
+   * background and replaces it when it answers. If it does not, you carry on
+   * from the copy, marked offline, and what you do waits in the write queue.
+   *
+   * With no copy (a first sign-in on this device) it is the server or the
+   * retry screen, as it always was.
+   */
   useEffect(() => {
     if (!user?.id || recovering) { setDataLoading(false); return; }
     let cancelled = false;
+    sourceRef.current = null;
     setDataLoading(true);
     setLoadError(null);
+    setQueueOwner(user.id);
     (async () => {
-      try {
-        // Still in parallel, though loadDecks no longer fetches anything: it is
-        // the gate that stops a screen reading QUESTIONS before the user's own
-        // rows have landed.
-        const [, d] = await Promise.all([
-          loadDecks(),
-          (async () => { setQueueOwner(user.id); await flushQueue(); mark("flush"); return loadAll(user.id); })(),
-        ]);
-        if (cancelled) return;
+      await loadDecks();
+      const cached = await readSnapshot(user.id);
+      if (cancelled) return;
+      if (cached) {
+        applySnapshot(overlayOps(cached.data, pendingOps()));
+        sourceRef.current = "device";
         mark("data");
-        applySnapshot(d);
         setDataLoading(false);
+      }
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        setOnline(false);
+        if (!cached) { setLoadError("offline"); setDataLoading(false); }
+        return;
+      }
+      /* Said at once if the server cannot be reached, while the load below
+         takes its time to fail. */
+      probe(SUPABASE_URL).then(ok => {
+        if (ok || cancelled || sourceRef.current === "server") return;
+        setOnline(false);
+        /* No copy to show: say so now rather than after the load's timeout.
+           The load carries on, and replaces this if it gets through. */
+        if (!cached) { setLoadError("offline"); setDataLoading(false); }
+      });
+      try {
+        const d = await withTimeout(fetchFresh(user.id), cached ? LOAD_TIMEOUT : FIRST_LOAD_TIMEOUT);
+        if (cancelled) return;
+        if (!cached) mark("data");
+        applySnapshot(d);
+        sourceRef.current = "server";
+        setOnline(true);
+        setLoadError(null);
+        setDataLoading(false);
+        /* Ask the browser not to clear the offline copy to free up space.
+           Granted or refused without a prompt in Chrome and Safari. */
+        try { navigator.storage?.persist?.().catch(() => {}); } catch { /* unsupported */ }
       } catch (e) {
         if (cancelled) return;
         /* Nothing is applied on this path, so the pool keeps whatever it had
            rather than being replaced with the empty results of a failed
-           fetch. */
-        setLoadError(e?.message || "Could not reach the server.");
+           fetch. With a copy on screen, that is all this means: offline. */
+        setOnline(false);
+        if (cached) return;
+        setLoadError(prev => (prev === "offline" ? prev : e?.message || "Could not reach the server."));
         setDataLoading(false);
-        return;
       }
-
     })();
     return () => { cancelled = true; };
   }, [user?.id, recovering, reloadKey]);
+
+  /* The device's copy, kept up to date with what is on screen — after every
+     change, every write, and as the page is put away (a phone may never come
+     back to it). Only once this account's own data is on screen, so one
+     account's state is never saved under another's name. */
+  const snapshotRef = useRef(null);
+  snapshotRef.current = () => ({
+    pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
+    announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn,
+    showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
+    generated: genRowsRef.current, questionEdits: getQuestionEdits(),
+    decks: decksRef.current, featured: featuredRef.current,
+  });
+  const saveTimer = useRef(null);
+  function saveSoon(delay = 600) {
+    clearTimeout(saveTimer.current);
+    const uid = userIdRef.current;
+    saveTimer.current = setTimeout(() => {
+      if (!uid || uid !== userIdRef.current || !sourceRef.current) return;
+      saveSnapshot(uid, snapshotRef.current());
+    }, delay);
+  }
+  useEffect(() => {
+    if (!user?.id || dataLoading || loadError || !sourceRef.current) return;
+    saveSoon();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
+    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, generated, decks, featured]);
+  useEffect(() => {
+    if (!user?.id) return;
+    const off = onWrite(() => saveSoon(1200));
+    const now = () => {
+      const uid = userIdRef.current;
+      if (uid && sourceRef.current) saveSnapshot(uid, snapshotRef.current());
+    };
+    const onHide = () => { if (document.visibilityState === "hidden") now(); };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", now);
+    return () => {
+      off();
+      clearTimeout(saveTimer.current);
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", now);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  /* Question images, kept on the device for questions you have, once the
+     server has answered (lib/questionImage). */
+  useEffect(() => {
+    if (!user?.id || dataLoading || sourceRef.current !== "server") return;
+    const t = setTimeout(() => keepImagesOffline(QUESTIONS.map(q => q.img).filter(p => typeof p === "string" && p)), 4000);
+    return () => clearTimeout(t);
+  }, [user?.id, dataLoading, generated, featured]);
 
   /* Timings of this load (lib/loadTiming), sent once the first screen is
      drawn — the frame after, so "shown" includes the paint. */
@@ -503,23 +637,41 @@ export default function App() {
       import("./views/LeaderboardView").catch(quiet);
       import("./views/ProfileView").catch(quiet);
       import("./views/GenerateMode").catch(quiet);
+      import("./views/AnnouncementsView").catch(quiet);
     };
     const ric = window.requestIdleCallback;
     const id = ric ? ric(warm, { timeout: 3000 }) : setTimeout(warm, 1500);
     return () => (ric ? window.cancelIdleCallback(id) : clearTimeout(id));
   }, [user]);
 
-  // A tab that was open while the network went out gets a chance to catch up.
+  /* A tab that was open while the network went out gets a chance to catch up.
+     Offline, it also keeps trying — every 20 seconds, and at once when the
+     browser says the network is back or the app is brought forward — and a
+     load that works sends what was queued, brings in anything new, and takes
+     the offline bar away. */
+  const online = useOnline();
   useEffect(() => {
     if (!user) return;
-    const onBack = () => { if (document.visibilityState === "visible") flushQueue(); };
+    const onBack = () => {
+      if (document.visibilityState !== "visible") return;
+      if (online) flushQueue(); else refreshData();
+    };
+    const onOffline = () => setOnline(false);
     document.addEventListener("visibilitychange", onBack);
     window.addEventListener("online", onBack);
+    window.addEventListener("offline", onOffline);
+    const tick = online ? null : setInterval(async () => {
+      if (document.visibilityState !== "visible" || navigator.onLine === false) return;
+      if (await probe(SUPABASE_URL)) refreshData();
+    }, 20000);
     return () => {
       document.removeEventListener("visibilitychange", onBack);
       window.removeEventListener("online", onBack);
+      window.removeEventListener("offline", onOffline);
+      if (tick) clearInterval(tick);
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, online]);
 
   /** Every answer counts once toward today's activity and the streak. */
   function countStudied() {
@@ -893,10 +1045,12 @@ export default function App() {
       <div style={{ minHeight: "var(--app-vh)", display: "grid", placeItems: "center", padding: 24 }}>
         <div style={{ maxWidth: 340, textAlign: "center" }}>
           <p style={{ margin: 0, fontSize: 17, fontWeight: 600, color: "var(--c-on-field)" }}>
-            Couldn’t load your work
+            {loadError === "offline" ? "You’re offline" : "Couldn’t load your work"}
           </p>
           <p style={{ margin: "8px 0 0", fontSize: 14.5, lineHeight: 1.5, color: "var(--c-on-field)", opacity: 0.75 }}>
-            Nothing is lost — it’s all on the server. Check your connection and try again.
+            {loadError === "offline"
+              ? "Open Resurface once with a connection on this device, and after that it works offline too."
+              : "Nothing is lost — it’s all on the server. Check your connection and try again."}
           </p>
           <button
             type="button"
@@ -977,6 +1131,7 @@ export default function App() {
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
+    <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
@@ -1083,7 +1238,7 @@ export default function App() {
 
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
-          {v === V.ADMIN && <AdminView />}
+          {v === V.ADMIN && (online ? <AdminView /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView items={announcements} newSince={annNewSince}
             isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} onSetWelcome={setWelcomeAnnouncement} />}

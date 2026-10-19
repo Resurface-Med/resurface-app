@@ -68,6 +68,9 @@ export function setQuestionEdits(map) {
   syncQuestions();
 }
 
+/* The corrections as they are now — for the device's offline copy. */
+export function getQuestionEdits() { return edits; }
+
 /**
  * One correction, as it is made.
  *

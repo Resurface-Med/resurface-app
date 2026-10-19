@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { readImage, saveImage, hasImage, deleteImage } from "./offlineStore";
 
 /**
  * Images attached to questions.
@@ -64,22 +65,80 @@ export async function uploadQuestionImage(userId, file) {
    derived when something needs to draw it. */
 const urlCache = new Map();
 
-export async function questionImageUrl(path) {
-  if (!path) return null;
+/* The device's copy of an image, as a URL the page can draw: one per image
+   for the life of the page. */
+const localUrls = new Map();
+
+async function signedUrl(path) {
   const hit = urlCache.get(path);
   if (hit && hit.expires > Date.now()) return hit.url;
+  try {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(path, 3600);
+    if (error || !data?.signedUrl) return null;
+    urlCache.set(path, { url: data.signedUrl, expires: Date.now() + 55 * 60 * 1000 });
+    return data.signedUrl;
+  } catch { return null; }
+}
 
-  const { data, error } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(path, 3600);
-  if (error || !data?.signedUrl) return null;
+/*
+ * Offline (2026-10-19): the device's copy when there is one — it is the same
+ * image, it draws with no connection, and it costs no request — otherwise a
+ * signed link, keeping the image for next time.
+ */
+export async function questionImageUrl(path) {
+  if (!path) return null;
+  if (localUrls.has(path)) return localUrls.get(path);
+  const blob = await readImage(path);
+  if (blob) {
+    const url = URL.createObjectURL(blob);
+    localUrls.set(path, url);
+    return url;
+  }
+  const url = await signedUrl(path);
+  if (url) keepOne(path, url);
+  return url;
+}
 
-  urlCache.set(path, { url: data.signedUrl, expires: Date.now() + 55 * 60 * 1000 });
-  return data.signedUrl;
+const MAX_BYTES = 3 * 1024 * 1024;
+async function keepOne(path, url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return false;
+    const blob = await res.blob();
+    if (!blob.type.startsWith("image/") || blob.size > MAX_BYTES) return false;
+    return saveImage(path, blob);
+  } catch { return false; }
+}
+
+/*
+ * Every question image you have, onto the device, so a question you have not
+ * opened yet still shows its image offline. In the background, a few at a
+ * time, skipping ones already kept; run again after each load from the
+ * server, so it catches up on whatever a previous run missed.
+ */
+let keeping = null;
+export function keepImagesOffline(paths) {
+  if (keeping) return keeping;
+  keeping = (async () => {
+    const todo = [];
+    for (const p of new Set(paths)) if (!(await hasImage(p))) todo.push(p);
+    for (let i = 0; i < todo.length; i += 4) {
+      if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+      await Promise.all(todo.slice(i, i + 4).map(async p => {
+        const url = await signedUrl(p);
+        if (url) await keepOne(p, url);
+      }));
+    }
+  })().catch(() => {}).finally(() => { keeping = null; });
+  return keeping;
 }
 
 export async function removeQuestionImage(path) {
   if (!path) return;
   urlCache.delete(path);
+  localUrls.delete(path);
+  await deleteImage(path);
   await supabase.storage.from(BUCKET).remove([path]);
 }

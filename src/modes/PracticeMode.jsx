@@ -13,6 +13,7 @@ import DeckTree, { prune } from "../ui/DeckTree";
 import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
+import { isOnline } from "../lib/online";
 import QuestionManager from "../ui/QuestionManager";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
@@ -319,9 +320,21 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      into rename — as Finder does a new folder — rather than a separate field
      above the list (Rafil, 2026-10-17). Cancelling, or leaving it blank,
      takes it away again. */
+  /* A new deck needs its id from the server; offline (or if that fails) it
+     says so, rather than the button doing nothing. Renaming, moving and
+     deleting are queued like answers, so they work offline. */
+  async function makeDeck(name, parentId) {
+    const offlineMsg = () => confirm({ title: "You’re offline", body: "Making a new deck needs a connection. You can still revise, rename, move and delete decks.", action: "OK", cancel: null });
+    if (!isOnline() || navigator.onLine === false) { offlineMsg(); return null; }
+    try { return await deckActions.createDeck(name, parentId); }
+    catch {
+      confirm({ title: "Couldn’t make the deck", body: "Check your connection and try again.", action: "OK", cancel: null });
+      return null;
+    }
+  }
   async function newDeckInline(parentId = null) {
-    const d = await deckActions.createDeck("New deck", parentId);
-    if (!parentId && isPhone) setActiveRootId(d.id);
+    const d = await makeDeck("New deck", parentId);
+    if (!d) return;
     setNaming({ mode: "rename", deckId: d.id, fresh: true });
   }
   function endNaming(id, name) {
@@ -331,14 +344,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setNaming(null);
   }
   async function createDeckNamed(name, parentId = null) {
-    const d = await deckActions.createDeck(name, parentId);
+    if (!await makeDeck(name, parentId)) return;
     setCreatingDeck(false);
     setNaming(null);
-    /* Only the phone has tabs, and this is what selects one. On desktop it
-       used to strand you: the new deck became the "active root", which drew
-       its own empty state instead of the tree, and with the tab strip gone
-       there was nothing left to click to get back out of it. */
-    if (!parentId && isPhone) setActiveRootId(d.id);
+    /* A new deck does not become the "active root": that drew its own empty
+       state instead of the tree, and with no tabs left on either layout it
+       stranded you there. */
   }
   // Phones split the setup in two. A phone screen cannot hold a scrolling list
   // and a full set of controls at once without the controls eating half of it,
@@ -879,7 +890,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                       <span className="setup-head__meta">
                         <span>{nothingChosen ? poolSize : scoped} question{(nothingChosen ? poolSize : scoped) === 1 ? "" : "s"}</span>
-                        <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>＋ New deck</button>
+                        {activeRoot
+                          ? <button type="button" className="gen-link" onClick={() => setActiveRootId(null)}>← All decks</button>
+                          : <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>＋ New deck</button>}
                       </span>
                     </div>
                   )}
@@ -1024,9 +1037,17 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
                     <>{nothingChosen ? poolSize : scoped} question{(nothingChosen ? poolSize : scoped) === 1 ? "" : "s"}</>
-                    <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>
-                      ＋ New deck
-                    </button>
+                    {/* Landed inside one deck (from a share link or Generate):
+                        the way back to the whole list. */}
+                    {activeRoot ? (
+                      <button type="button" className="gen-link" onClick={() => setActiveRootId(null)}>
+                        ← All decks
+                      </button>
+                    ) : (
+                      <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>
+                        ＋ New deck
+                      </button>
+                    )}
                   </span>
                 </div>
               )}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
+import { isOnline } from "../lib/online";
 import aiBooks from "../assets/ai-books.png?inline"; // inline: see QuizShell
 import { supabase } from "../lib/supabase";
 import { splitMarks } from "../lib/formatExplain";
@@ -206,6 +207,11 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   async function sendPrompt(label, apiText) {
     const trimmed = (apiText || label).trim();
     if (!trimmed || sending || atLimit) return;
+    /* The AI runs on the server; offline, say so rather than send. */
+    if (!isOnline() || navigator.onLine === false) {
+      setError("You’re offline. Resurface AI needs a connection.");
+      return;
+    }
 
     setSending(true);
     setError("");
@@ -264,7 +270,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
         threads.set(askedFor, threadOf(askedFor).filter(m => m.id !== userMsg.id));
         return;
       }
-      setError(e.message);
+      setError(e instanceof TypeError ? "Couldn’t reach Resurface AI. Check your connection and try again." : e.message);
       setMessages(prev => prev.filter(m => m.id !== userMsg.id));
       if (apiText === undefined) setDraft(label);
     } finally {

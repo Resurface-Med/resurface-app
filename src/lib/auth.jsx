@@ -1,6 +1,30 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase, isConfigured } from "./supabase";
 import { mark, flag, tokenWasExpired } from "./loadTiming";
+import { clearOffline } from "./offlineStore";
+
+/*
+ * The session Supabase still has on the device, read directly (2026-10-19,
+ * offline).
+ *
+ * An access token lasts an hour. Past that, opening the app asks the server
+ * for a new one, and with no connection getSession() answers "no session" —
+ * though it keeps the session stored, because a network failure is not a
+ * sign-out (it removes it itself when the server actually refuses it). Taken
+ * at its word, the app showed the sign-in page to someone signed in, on a
+ * train, who could not sign in there anyway. So when it says none and one is
+ * still stored, that one is used: enough to know who you are and open your
+ * copy on this device. Data requests still go through Supabase, which
+ * refreshes the token as soon as there is a connection.
+ */
+function storedSession() {
+  try {
+    const raw = localStorage.getItem(supabase.auth.storageKey);
+    const s = raw ? JSON.parse(raw) : null;
+    if (!s?.refresh_token || !s?.user?.id) return null;
+    return s;
+  } catch { return null; }
+}
 
 const AuthContext = createContext(null);
 
@@ -20,14 +44,32 @@ export function AuthProvider({ children }) {
     if (!isConfigured) return;
 
     flag("refreshed", tokenWasExpired());
+    /* With an expired token and no connection, getSession() keeps retrying
+       the refresh for half a minute before it answers. The app does not wait
+       for it: after a moment, the stored session opens your copy on this
+       device, and getSession's answer, when it comes, replaces it. */
+    let settled = false;
+    const early = setTimeout(() => {
+      if (settled) return;
+      const s = storedSession();
+      if (s) { setSession(prev => prev ?? s); setLoading(false); }
+    }, navigator.onLine === false ? 0 : 2500);
     supabase.auth.getSession().then(({ data }) => {
+      settled = true; clearTimeout(early);
       mark("auth");
-      setSession(data.session ?? null);
+      setSession(data.session ?? storedSession());
+      setLoading(false);
+    }, () => {
+      settled = true; clearTimeout(early);
+      setSession(storedSession());
       setLoading(false);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
+      /* Only a real sign-out ends the session. "None" at start-up while one
+         is still stored is the offline case above. */
+      if (!next && event !== "SIGNED_OUT") next = storedSession();
       // Keep the same session object when nothing meaningful changed. A new
       // object on every TOKEN_REFRESHED used to remount the app via effects
       // that depended on `user`, which killed in-progress practice sessions
@@ -45,7 +87,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => { clearTimeout(early); sub.subscription.unsubscribe(); };
   }, []);
 
   const value = {
@@ -101,7 +143,18 @@ export function AuthProvider({ children }) {
       return res;
     },
 
-    signOut: () => supabase.auth.signOut(),
+    /* Offline, signing out everywhere cannot reach the server and Supabase
+       then keeps the session; this device is signed out regardless. The
+       device's copy of your work goes with it. Writes still queued stay,
+       stamped as yours, and are sent the next time you sign in. */
+    signOut: async () => {
+      let res;
+      try { res = await supabase.auth.signOut(); } catch (e) { res = { error: e }; }
+      if (res?.error) res = await supabase.auth.signOut({ scope: "local" });
+      await clearOffline();
+      setSession(null);
+      return res;
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

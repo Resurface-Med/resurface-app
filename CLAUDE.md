@@ -31,6 +31,20 @@ the theme and a queue of writes that failed mid-session, and nothing else.
 `pq_*` keys are legacy from "principles-quiz" and must never be renamed —
 they are invisible to users and renaming them wipes everyone's progress.
 
+**Offline** (2026-10-19). The one exception: IndexedDB keeps a copy of the
+signed-in account's snapshot (`src/lib/offlineStore.js`) and its question
+images, so the app opens at once and works with no connection. The copy is
+only ever read into the screen, never written over the server; writes still
+go through the queue. On a load from the server, writes it may not have yet
+are laid back over the result (`src/lib/overlay.js`, tested), or an answer
+given offline would count from the old total. `lib/online.js` holds whether
+the server is reachable; anything server-only (Generate, Resurface AI,
+leaderboard, Admin, photos, share links, new decks) checks it. The service
+worker keeps every built file from `precache.json` (written by
+`vite.config.js`). Sign-out wipes the copy. To check it, drive the built
+app with the server stopped and Supabase failed at the network layer (CDP
+`Fetch`); reasoning about offline is not checking it.
+
 **Decks are the one container.** A deck holds questions and can hold decks,
 to any depth; every one is a row you own and the app ships none. Questions
 filter by `leaf` (a deck id), never by name — two decks may share a name.

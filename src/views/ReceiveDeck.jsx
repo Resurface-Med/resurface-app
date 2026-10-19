@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useOnline } from "../lib/online";
 import { C, card, primaryBtn, btnGhost } from "../ui/theme";
 import { remote } from "../lib/remote";
 import { QUESTIONS } from "../data";
@@ -85,8 +86,13 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
   const [total, setTotal] = useState(0);
   const [error, setError] = useState(null);
 
+  /* Offline, the link waits: it is checked as soon as the connection is
+     back, rather than being thrown away with "couldn't check". */
+  const online = useOnline();
   useEffect(() => {
+    if (!online) { setState(s => (s === "ready" ? s : "offline")); return; }
     let cancelled = false;
+    setState(s => (s === "ready" ? s : "loading"));
     (async () => {
       try {
         const row = await remote.deckPreview(code);
@@ -110,9 +116,10 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
       }
     })();
     return () => { cancelled = true; };
-  }, [code]);
+  }, [code, online]);
 
   async function add() {
+    if (!online) { setError("You’re offline. Adding a deck needs a connection."); return; }
     setAdding(true);
     setError(null);
     try {
@@ -139,6 +146,19 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
           Looking…
         </div>
       </div>
+    );
+  }
+
+  if (state === "offline") {
+    return (
+      <Shell>
+        <Title>You’re offline</Title>
+        <Body>Someone sent you a deck. It opens here as soon as you’re back online.</Body>
+        <button type="button" className="btn-press" onClick={onSkip}
+          style={{ ...primaryBtn, ...dialogBtn, width: "100%" }}>
+          Go to my decks
+        </button>
+      </Shell>
     );
   }
 

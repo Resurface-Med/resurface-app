@@ -33,3 +33,6 @@ export function usePref(key) {
     () => state[key],
   );
 }
+
+/* All of them as they are now — for the device's offline copy. */
+export function getPrefs() { return state; }

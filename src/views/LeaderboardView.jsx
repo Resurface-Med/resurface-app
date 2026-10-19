@@ -5,6 +5,7 @@ import Wave from "../ui/Wave";
 import { fetchLeaderboardWeek } from "../lib/remote";
 import Avatar from "../ui/Avatar";
 import { avatarSrc } from "../lib/avatar";
+import { useOnline } from "../lib/online";
 
 /**
  * Cohort leaderboard — questions answered in the last 7 days.
@@ -46,8 +47,13 @@ export default function LeaderboardView({ userId }) {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
 
+  /* Everyone's numbers live on the server, so offline there is no board;
+     it loads by itself when the connection is back. */
+  const online = useOnline();
   useEffect(() => {
+    if (!online || rows) return;
     let cancelled = false;
+    setError("");
     (async () => {
       try {
         const data = await fetchLeaderboardWeek();
@@ -57,7 +63,8 @@ export default function LeaderboardView({ userId }) {
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online]);
 
 
   const podium = (rows ?? []).filter(r => r.week_count > 0 && r.rank <= 3).slice(0, 3);
@@ -82,11 +89,17 @@ export default function LeaderboardView({ userId }) {
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
-          {error && (
+          {!rows && !online && (
+            <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
+              You’re offline. The board shows when you’re back online.
+            </p>
+          )}
+
+          {error && online && (
             <p style={{ color: C.danger, fontSize: 14 }}>{error}</p>
           )}
 
-          {rows === null && !error && (
+          {rows === null && !error && online && (
             <p style={{ color: C.muted, fontSize: 14.5 }}>Loading the board…</p>
           )}
 

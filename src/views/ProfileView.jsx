@@ -8,6 +8,11 @@ import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
 import Avatar from "../ui/Avatar";
 import { avatarSrc, ownAvatar, uploadAvatar, removeAvatar } from "../lib/avatar";
+import { isOnline } from "../lib/online";
+
+/* Photos, passwords and deleting the account go straight to the server;
+   offline they say so instead of failing. Everything else here is queued. */
+const offline = () => !isOnline() || navigator.onLine === false;
 
 /**
  * Account surface — identity, study prefs, sign-in, danger zone.
@@ -41,6 +46,7 @@ export default function ProfileView({
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoErr, setPhotoErr] = useState("");
   async function photoAction(fn) {
+    if (offline()) { setPhotoErr("You’re offline. Changing your photo needs a connection."); return; }
     setPhotoErr(""); setPhotoBusy(true);
     try { onAvatarChange?.(await fn()); }
     catch (e) { setPhotoErr(e.message); }
@@ -114,6 +120,7 @@ export default function ProfileView({
     setPwMsg("");
     if (pw.length < 6) return setPwErr("Password must be at least 6 characters.");
     if (pw !== pw2) return setPwErr("Those don't match.");
+    if (offline()) return setPwErr("You’re offline. Changing your password needs a connection.");
     setPwBusy(true);
     try {
       const { error } = await updatePassword(pw);
@@ -138,6 +145,10 @@ export default function ProfileView({
    * dialog says and nobody reads.
    */
   async function deleteAccount() {
+    if (offline()) {
+      await confirm({ title: "You’re offline", body: "Deleting your account needs a connection. Nothing has been deleted.", action: "OK", cancel: null });
+      return;
+    }
     const ok = await confirm({
       title: "Delete your account?",
       body: "Your decks, questions, progress and streaks are deleted straight away. There is no way to get them back.",
