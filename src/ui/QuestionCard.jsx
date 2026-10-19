@@ -88,19 +88,10 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-/* Where a Resurface (featured) question is from: the books mark and the
-   name, then the topic it sits in — the deck's own path below its folder,
-   e.g. "Renal › Glomerulus", which says more than the year. */
-function SourceTag({ q, focus = false }) {
-  const path = (q.path ?? []).slice(1).map(p => p.name);
-  const topic = path.length > 2 ? [path[0], path[path.length - 1]] : path;
-  return (
-    <span className={`q-src${focus ? " q-src--focus" : ""}`}>
-      <img className="q-src__mark" src="/books.webp" alt="" aria-hidden="true" width="16" height="16" />
-      <span className="q-src__brand">Resurface</span>
-      {topic.length > 0 && <span className="q-src__topic">{topic.join(" › ")}</span>}
-    </span>
-  );
+/* A quiet mark that this is a Resurface question, not one of your own
+   (Rafil, 2026-10-19: no logo — Resurface AI has that — and no path). */
+function SourceTag({ focus = false }) {
+  return <span className={`q-src${focus ? " q-src--focus" : ""}`}>Resurface question</span>;
 }
 
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {

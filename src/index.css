@@ -9801,3 +9801,4 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .q-src__topic::before { content: ""; display: inline-block; width: 1px; height: 12px; margin: 0 10px; vertical-align: -1px; background: var(--c-border); background: rgba(15, 27, 61, 0.16); }
 [data-theme="dark"] .q-src__topic::before { background: rgba(255, 255, 255, 0.18); }
 .q-src.q-src--focus { display: flex; margin: 0 0 12px; padding: 0; }
+.q-src { font-size: 13px; font-weight: 600; color: var(--c-accent); letter-spacing: -0.1px; }
