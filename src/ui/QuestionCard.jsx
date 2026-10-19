@@ -88,6 +88,21 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
+/* Where a Resurface (featured) question is from: the books mark and the
+   name, then the topic it sits in — the deck's own path below its folder,
+   e.g. "Renal › Glomerulus", which says more than the year. */
+function SourceTag({ q, focus = false }) {
+  const path = (q.path ?? []).slice(1).map(p => p.name);
+  const topic = path.length > 2 ? [path[0], path[path.length - 1]] : path;
+  return (
+    <span className={`q-src${focus ? " q-src--focus" : ""}`}>
+      <img className="q-src__mark" src="/books.webp" alt="" aria-hidden="true" width="16" height="16" />
+      <span className="q-src__brand">Resurface</span>
+      {topic.length > 0 && <span className="q-src__topic">{topic.join(" › ")}</span>}
+    </span>
+  );
+}
+
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {
   const answered = sel !== null || timedOut;
 
@@ -249,7 +264,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       <div className="q-card-meta">
         {/* A premade question says where it is from; your own say nothing.
             Not yours to edit either, so no pencil — Report is under it. */}
-        {q.featured && <span className="q-src">Resurface · {q.path?.[0]?.name ?? "Shared deck"}</span>}
+        {q.featured && <SourceTag q={q} />}
         <div className="q-card-tools">
           <span className="q-tool-extra">
           {canEdit(q) && <button
@@ -291,7 +306,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
       {/* In a session (focus mode) the meta row above is not drawn, so the
           source goes on a line of its own over the stem. */}
-      {focusMode && q.featured && <p className="q-src q-src--focus">Resurface · {q.path?.[0]?.name ?? "Shared deck"}</p>}
+      {focusMode && q.featured && <SourceTag q={q} focus />}
       <Highlighter
         as="p"
         text={q.q}
