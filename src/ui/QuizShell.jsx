@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import aiMark from "../assets/ai-mark.png?inline";
 
 import EditQuestionModal from "./EditQuestionModal";
+import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
@@ -220,8 +221,9 @@ export default function QuizShell({
             <BeakerIcon size={17} />
           </button>
 
-          {/* Premade (featured) questions are not yours to edit. */}
-          {!q?.featured && <button
+          {/* Premade (featured) questions are not yours to edit — unless you
+              are an admin, when the edit goes into the deck itself. */}
+          {canEdit(q) && <button
             type="button"
             className="quiz-shell__tool btn-press"
             onClick={() => setEditing(true)}
@@ -355,6 +357,7 @@ export default function QuizShell({
       {editing && (
         <EditQuestionModal
           q={q}
+          persist={persistFor(q)}
           onClose={() => setEditing(false)}
           onSave={updated => { setEditing(false); onSaveEdit?.(updated); }}
         />

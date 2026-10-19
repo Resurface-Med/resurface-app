@@ -6,6 +6,7 @@ import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
 import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
+import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 
 /* One paint list for every question. The stroke is drawn on the letters
@@ -239,7 +240,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
   return (
     <>
-    {editing && <EditQuestionModal q={q} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
+    {editing && <EditQuestionModal q={q} persist={persistFor(q)} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div
       style={focusMode ? undefined : qcard}
       className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}`}
@@ -251,7 +252,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         {q.featured && <span className="q-src">Resurface · {q.path?.[0]?.name ?? "Shared deck"}</span>}
         <div className="q-card-tools">
           <span className="q-tool-extra">
-          {!q.featured && <button
+          {canEdit(q) && <button
             type="button"
             onClick={() => setEditing(true)}
             title="Edit question"
@@ -457,7 +458,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 telling yourself a question is wrong helps nobody, changing
                 it does. Either way the control is in the same place, which
                 is where it went missing from when a deck was your own. */}
-            {q.gen
+            {q.gen || (q.featured && canEdit(q))
               ? <button type="button" className="q-fix" onClick={() => setEditing(true)}>Edit question</button>
               : <FlagQuestion questionId={q.id} />}
           </div>

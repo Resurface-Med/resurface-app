@@ -27,7 +27,8 @@ import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits } from "./data
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
-import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner } from "./lib/remote";
+import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured } from "./lib/remote";
+import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs } from "./lib/prefs";
@@ -180,6 +181,15 @@ export default function App() {
     setFeatured(f);
     applyGenerated(genRowsRef.current);
   }
+  /* An admin's changes to a Resurface deck's questions (Manage questions on
+     it). Deletes go to the deck itself, for everyone, then the pool is
+     reloaded; there is no Move — its questions stay in it. */
+  const featuredActions = {
+    deleteQuestions: async ids => {
+      try { await adminDeleteFeatured(ids); } finally { await refreshData(); }
+    },
+    moveQuestions: null,
+  };
   function hideFeatured(id, hide) {
     const f = featuredRef.current;
     applyFeatured({ ...f, roots: f.roots.map(r => (r.id === id ? { ...r, hidden: hide } : r)) });
@@ -769,7 +779,7 @@ export default function App() {
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
     let cancelled = false;
-    fetchIsAdmin().then(ok => { if (!cancelled) setIsAdmin(ok); });
+    fetchIsAdmin().then(ok => { if (!cancelled) { setIsAdmin(ok); setFeaturedAdmin(ok); } });
     return () => { cancelled = true; };
   }, [user]);
 
@@ -1006,6 +1016,7 @@ export default function App() {
             decks={decks} deckActions={deckActions}
             featured={featured.roots} featuredDecks={featuredDecks}
             onHideFeatured={hideFeatured}
+            featuredActions={isAdmin ? featuredActions : null}
             openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
             autoStart={autoStart} onAutoStartConsumed={() => setAutoStart(false)}
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}

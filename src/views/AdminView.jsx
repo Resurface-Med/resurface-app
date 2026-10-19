@@ -6,7 +6,10 @@ import {
   fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
   fetchAiQuota, fetchShareLog,
+  fetchAdminFeatured, fetchFeatureCandidates, adminSetFeatured, adminUnfeature, adminDeleteFeatured,
 } from "../lib/remote";
+import EditQuestionModal from "../ui/EditQuestionModal";
+import { persistFor } from "../lib/adminFeatured";
 import { Spark, ChartPanel, BigChart } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
 
@@ -30,6 +33,7 @@ const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
+  { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
   { k: "generating", label: "Generating", title: "Questions generated", desc: "How many questions the AI wrote each day over the last 30 days." },
   { k: "tokens", label: "AI usage", title: "AI usage", desc: "How much of the AI model each feature uses, in tokens." },
   { k: "mail", label: "Mailing list", title: "Mailing list", desc: "People who agreed to receive news and study emails." },
@@ -492,6 +496,145 @@ function Sharing() {
   );
 }
 
+/* ── Resurface decks ─────────────────────────────────────────────────
+   Which of the students' decks every student sees (migration 0014), and
+   how: the folder it is shown in, the "by …" credit, and sub-deck names.
+   All of it changes only how the deck is shown — the owner's own deck
+   keeps its names. Questions are edited from the deck in Study. */
+function FeaturedRow({ row, onChanged }) {
+  const [byline, setByline] = useState(row.byline ?? "");
+  const [folder, setFolder] = useState(row.folder ?? "");
+  const [renames, setRenames] = useState(row.renames ?? {});
+  const [names, setNames] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const dirty = byline !== (row.byline ?? "") || folder !== (row.folder ?? "")
+    || JSON.stringify(renames) !== JSON.stringify(row.renames ?? {});
+  async function save() {
+    setBusy(true);
+    try {
+      const clean = Object.fromEntries(Object.entries(renames).filter(([id, v]) => v.trim() && v.trim() !== row.subdecks.find(d => d.id === id)?.name));
+      await adminSetFeatured(row.deck_id, byline, folder, clean);
+      setSaved(true); setTimeout(() => setSaved(false), 1800);
+      onChanged();
+    } finally { setBusy(false); }
+  }
+  async function stop() {
+    if (!await confirm({
+      title: `Stop featuring ${row.name}?`,
+      body: "It disappears from everyone’s Study list. The owner keeps their deck, and nobody’s progress is lost.",
+      action: "Stop featuring", danger: true,
+    })) return;
+    setBusy(true);
+    try { await adminUnfeature(row.deck_id); onChanged(); } finally { setBusy(false); }
+  }
+  return (
+    <li className="feat-admin">
+      <div className="feat-admin__head">
+        <div>
+          <p className="feat-admin__name">{row.name}</p>
+          <p className="feat-admin__meta">{row.questions.toLocaleString("en-GB")} questions · {row.subdecks.length} sub-decks · made by {row.owner_name || row.owner_email}</p>
+        </div>
+        <button type="button" className="gen-link adm-danger-link" onClick={stop} disabled={busy}>Stop featuring</button>
+      </div>
+      <div className="feat-admin__fields">
+        <label className="feat-admin__field">
+          <span>Shown inside a folder called</span>
+          <input value={folder} onChange={e => setFolder(e.target.value)} placeholder="No folder" />
+        </label>
+        <label className="feat-admin__field">
+          <span>Credit, shown as “by …”</span>
+          <input value={byline} onChange={e => setByline(e.target.value)} placeholder={row.owner_name || "Owner’s name"} />
+        </label>
+      </div>
+      <button type="button" className="gen-link" onClick={() => setNames(n => !n)} aria-expanded={names}>
+        {names ? "Hide sub-deck names" : "Rename sub-decks"}
+      </button>
+      {names && (
+        <ul className="feat-admin__subs">
+          {row.subdecks.map(d => (
+            <li key={d.id} style={{ paddingLeft: (d.depth - 1) * 18 }}>
+              <input value={renames[d.id] ?? d.name} onChange={e => setRenames(r => ({ ...r, [d.id]: e.target.value }))} aria-label={`Name for ${d.name}`} />
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="feat-admin__save">
+        <button type="button" className="adm-action btn-press" onClick={save} disabled={busy || !dirty}>
+          {saved ? "Saved" : busy ? "Saving…" : "Save changes"}
+        </button>
+      </div>
+    </li>
+  );
+}
+
+function Featured() {
+  const [version, setVersion] = useState(0);
+  const load = useCallback(() => fetchAdminFeatured(), [version]); // eslint-disable-line react-hooks/exhaustive-deps
+  const loadC = useCallback(() => fetchFeatureCandidates(), [version]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [{ rows, error }] = useSection(load);
+  const [cands] = useSection(loadC);
+  const [adding, setAdding] = useState(false);
+  const [query, setQuery] = useState("");
+  const [busy, setBusy] = useState(null);
+  const refresh = () => setVersion(v => v + 1);
+
+  async function feature(c) {
+    if (!await confirm({
+      title: `Feature ${c.name} for everyone?`,
+      body: `Every student will see it in Study, credited to ${c.owner_name || "its owner"}. Check they are happy for it to be shared first. Anyone with an old copy of it is moved onto it.`,
+      action: "Feature it",
+    })) return;
+    setBusy(c.deck_id);
+    try { await adminSetFeatured(c.deck_id, c.owner_name ?? "", "", {}); setAdding(false); refresh(); }
+    finally { setBusy(null); }
+  }
+
+  if (error) return <Empty>{error}</Empty>;
+  if (!rows) return <Empty>&nbsp;</Empty>;
+  const q = query.trim().toLowerCase();
+  const shown = (cands.rows ?? []).filter(c => !q || [c.name, c.owner_name, c.owner_email].some(t => (t ?? "").toLowerCase().includes(q)));
+
+  return (
+    <section className="adm-panel">
+      {rows.length === 0 ? <Empty>No decks are featured yet.</Empty> : (
+        <ul className="feat-admin-list">
+          {rows.map(r => <FeaturedRow key={r.deck_id + version} row={r} onChanged={refresh} />)}
+        </ul>
+      )}
+
+      {!adding ? (
+        <button type="button" className="adm-action btn-press feat-admin-add" onClick={() => setAdding(true)}>Feature another deck</button>
+      ) : (
+        <div className="feat-admin-pick">
+          <div className="adm-toolbar">
+            <span className="adm-toolbar__label">Feature a deck</span>
+            <button type="button" className="gen-link" style={{ marginLeft: "auto" }} onClick={() => setAdding(false)}>Cancel</button>
+          </div>
+          <input className="feat-admin-search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search by deck or person" />
+          {cands.error ? <Empty>{cands.error}</Empty> : !cands.rows ? <Empty>&nbsp;</Empty> : shown.length === 0 ? <Empty>No decks match.</Empty> : (
+            <table className="adm-table">
+              <thead><tr><th>Deck</th><th>Made by</th><th className="adm-num">Questions</th><th><span className="sr-only">Feature</span></th></tr></thead>
+              <tbody>
+                {shown.map(c => (
+                  <tr key={c.deck_id}>
+                    <th scope="row">{c.name}</th>
+                    <td>{c.owner_name || c.owner_email}</td>
+                    <td className="adm-num">{c.questions.toLocaleString("en-GB")}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <button type="button" className="gen-link" disabled={busy === c.deck_id} onClick={() => feature(c)}>{busy === c.deck_id ? "…" : "Feature"}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 /* ── Generating ────────────────────────────────────────────────────
    Questions per day, not requests. The free tier caps requests and one
    request returns several questions, so read this as the shape of usage
@@ -709,7 +852,10 @@ function Mail() {
 /* ── Flags ────────────────────────────────────────────────────────── */
 function FlagRow({ row, index, onCleared }) {
   const [busy, setBusy] = useState(false);
-  const q = useMemo(() => QUESTIONS.find(x => x.id === row.question_id), [row.question_id]);
+  const [editing, setEditing] = useState(false);
+  const [edits, bump] = useState(0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const q = useMemo(() => QUESTIONS.find(x => x.id === row.question_id), [row.question_id, edits]);
   const notes = (row.notes ?? []).filter(n => String(n || "").trim());
   const where = q?.path?.map(p => p.name).join(" › ");
 
@@ -724,14 +870,35 @@ function FlagRow({ row, index, onCleared }) {
     finally { setBusy(false); }
   }
 
+  /* A reported Resurface question can be fixed or removed from here; the
+     change goes into the deck itself, for everyone. */
+  async function remove() {
+    if (!await confirm({
+      title: "Delete this question?",
+      body: "It is removed from the Resurface deck for everyone, and from its owner’s deck too.",
+      action: "Delete", danger: true,
+    })) return;
+    setBusy(true);
+    try { await adminDeleteFeatured([row.question_id]); await clearFlags(row.question_id); onCleared(row.question_id); }
+    finally { setBusy(false); }
+  }
+
   return (
     <li className="flagq" data-in="rise" style={{ "--i": index }}>
+      {editing && q && (
+        <EditQuestionModal q={q} persist={persistFor(q)}
+          onClose={() => setEditing(false)} onSave={() => { setEditing(false); bump(n => n + 1); }} />
+      )}
       <div className="flagq__head">
         <span className="flagq__count">{row.flags} {Number(row.flags) === 1 ? "report" : "reports"}</span>
         <span className="flagq__reasons">{(row.reasons ?? []).map(r => REASONS[r] ?? r).join(" · ")}</span>
-        <button type="button" className="gen-link flagq__clear" onClick={clear} disabled={busy}>
-          {busy ? "Clearing…" : "Mark as dealt with"}
-        </button>
+        <span className="flagq__acts">
+          {q?.featured && <button type="button" className="gen-link" onClick={() => setEditing(true)} disabled={busy}>Edit question</button>}
+          {q?.featured && <button type="button" className="gen-link adm-danger-link" onClick={remove} disabled={busy}>Delete</button>}
+          <button type="button" className="gen-link" onClick={clear} disabled={busy}>
+            {busy ? "…" : "Mark as dealt with"}
+          </button>
+        </span>
       </div>
       <p className="flagq__stem">
         {q ? q.q : <span className="flagq__missing">Question #{row.question_id} — not in the bank on this device</span>}
@@ -767,6 +934,7 @@ const PANELS = {
   overview: Overview,
   people: People,
   sharing: Sharing,
+  featured: Featured,
   generating: Generating,
   tokens: Tokens,
   mail: Mail,

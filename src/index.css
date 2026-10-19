@@ -9489,3 +9489,29 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .feat-soon-wrap > .feat-soon, .feat-soon-wrap > .feat-soon-line { margin: 0; }
 .feat-soon-wrap > .feat-soon { transform-origin: 50% 0; }
 .feat-soon-wrap > .feat-soon-line { transform-origin: 0 50%; }
+
+/* Admin › Resurface decks. */
+.feat-admin-list { list-style: none; margin: 0 0 22px; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.feat-admin { padding: 20px 22px; border: 1.5px solid var(--c-border); border-radius: var(--r-card, 18px); background: var(--c-card-solid); display: flex; flex-direction: column; gap: 14px; }
+.feat-admin__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.feat-admin__name { margin: 0; font-size: 18px; font-weight: 600; color: var(--c-text); letter-spacing: -0.3px; }
+.feat-admin__meta { margin: 4px 0 0; font-size: 14px; color: var(--c-sub); }
+.feat-admin__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.feat-admin__field { display: flex; flex-direction: column; gap: 6px; }
+.feat-admin__field span { font-size: 14px; font-weight: 500; color: var(--c-sub); }
+.feat-admin input, .feat-admin-search {
+  width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1.5px solid transparent; border-radius: 12px;
+  background: var(--c-surface3); color: var(--c-text); font: inherit; font-size: 15px; outline: none;
+}
+.feat-admin input:focus, .feat-admin-search:focus { border-color: var(--c-accent-brd); background: var(--c-card-solid); }
+.feat-admin > .gen-link { align-self: flex-start; font-size: 14.5px; }
+.feat-admin__subs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 340px; overflow-y: auto; }
+.feat-admin__subs input { padding: 7px 12px; font-size: 14px; }
+.feat-admin__save { display: flex; justify-content: flex-end; }
+.feat-admin__save .adm-action { margin-left: 0; }
+.feat-admin__save .adm-action:disabled { opacity: 0.45; cursor: default; }
+.feat-admin-add { margin-left: 0; }
+.feat-admin-pick { margin-top: 6px; display: flex; flex-direction: column; gap: 12px; }
+.adm-danger-link { color: var(--c-danger) !important; }
+.flagq__acts { margin-left: auto; display: inline-flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 640px) { .feat-admin__fields { grid-template-columns: 1fr; } .feat-admin { padding: 16px; } }

@@ -8,7 +8,7 @@ import { applyQuestionEdit } from "../data";
 const LETTERS = ["A", "B", "C", "D", "E"];
 
 
-export default function EditQuestionModal({ q, onClose, onSave }) {
+export default function EditQuestionModal({ q, onClose, onSave, persist = null }) {
   const { user } = useAuth();
   const [question, setQuestion]   = useState(q.q);
   const [opts, setOpts]           = useState([...q.opts]);
@@ -68,9 +68,12 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
   /* Both halves of recording a correction: the pool the app reads from, and
      the table it is reloaded from. It used to be only the table, so every
      correction was discarded on the next load. */
+  /* `persist`, when given, saves somewhere else — an admin editing a
+     Resurface deck saves into the deck itself (lib/adminFeatured). */
   function record(updated) {
     applyQuestionEdit(q.id, updated);
-    if (user) remote.questionEdit(user.id, q.id, updated);
+    if (persist) Promise.resolve(persist(updated)).catch(() => setStatus("failed"));
+    else if (user) remote.questionEdit(user.id, q.id, updated);
   }
 
   /*
@@ -84,7 +87,7 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
    * A new question is different: there is nothing to save into until it
    * exists, so it keeps its "Add question" button.
    */
-  const [status, setStatus] = useState("idle");      // idle | saved | invalid
+  const [status, setStatus] = useState("idle");      // idle | saved | invalid | failed
   const savedOnce = useRef(false);
   const pending = useRef(null);
   const first = useRef(true);
@@ -139,8 +142,10 @@ export default function EditQuestionModal({ q, onClose, onSave }) {
             <div className="qm-titles">
               <h2 className="qm-title">{isNew ? "New question" : "Edit question"}</h2>
               {!isNew && (
-                <p className={`qm-sub qe-status${status === "invalid" ? " is-invalid" : ""}`} aria-live="polite">
-                  {status === "invalid"
+                <p className={`qm-sub qe-status${status === "invalid" || status === "failed" ? " is-invalid" : ""}`} aria-live="polite">
+                  {status === "failed"
+                    ? "Not saved. Check your connection and try again."
+                    : status === "invalid"
                     ? "Not saved: a question needs its wording, at least two options and a correct answer that isn’t blank."
                     : status === "saved" ? "Saved" : "Changes save as you type."}
                 </p>

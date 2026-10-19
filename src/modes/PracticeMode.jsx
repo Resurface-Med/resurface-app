@@ -14,6 +14,7 @@ import { DeckTabs, DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckCont
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import QuestionManager from "../ui/QuestionManager";
+import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
 
 /** Categories carry their subject as a prefix; the button already names it. */
@@ -185,7 +186,7 @@ function describeSession(s) {
 const NONE = ["none"];
 const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] === "none");
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -622,7 +623,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const r = featured.find(x => (x.top ?? x.id) === topId);
       if (r) onHideFeatured?.(r.id, true);
     };
-    const featuredMenu = [{ label: "Hide from my decks", onSelect: n => hideFeatured(n.id) }];
+    const featuredMenu = [
+      /* Admins manage a Resurface deck's questions from here (lib/adminFeatured). */
+      ...(isFeaturedAdmin() && featuredActions ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }] : []),
+      { label: "Hide from my decks", onSelect: n => hideFeatured(n.id) },
+    ];
     const rowMenu = node => !node.mine ? (node.byline && onHideFeatured ? featuredMenu : null) : [
       { label: "Manage questions", onSelect: n => setManaging(n.id) },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
@@ -811,7 +816,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     /* Drawn by both layouts. It was only in the desktop one, so on a phone
        Share set the deck and nothing appeared. */
     const manager = managing && (
-      <QuestionManager deckId={managing} decks={decks} pStats={pStats} actions={deckActions} onClose={() => setManaging(null)} />
+      featuredDecks.some(d => d.id === managing)
+        ? <QuestionManager deckId={managing} decks={listDecks} pStats={pStats} actions={featuredActions}
+            editPersist={(updated, q) => persistFor(q)?.(updated)} onClose={() => setManaging(null)} />
+        : <QuestionManager deckId={managing} decks={decks} pStats={pStats} actions={deckActions} onClose={() => setManaging(null)} />
     );
     const shareSheet = sharing && (
       <ShareSheet

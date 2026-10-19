@@ -25,7 +25,10 @@ const Chevron = ({ open }) => (
   <svg className={`qm-chev${open ? " is-open" : ""}`} width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 5.25 7 8.75l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
-export default function QuestionManager({ deckId, decks, pStats = {}, actions, onClose }) {
+/* `editPersist`: where an edit is saved, when not to your own corrections (an
+   admin managing a Resurface deck). Without actions.moveQuestions there is
+   no Move — a featured deck's questions stay in it. */
+export default function QuestionManager({ deckId, decks, pStats = {}, actions, onClose, editPersist = null }) {
   const deck = decks.find(d => d.id === deckId);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(null);
@@ -175,7 +178,7 @@ export default function QuestionManager({ deckId, decks, pStats = {}, actions, o
                     {q.exp && <p className="qm-exp">{q.exp}</p>}
                     <div className="qm-acts">
                       <button type="button" className="qm-act btn-press" onClick={() => setEditing(q)}>Edit</button>
-                      <button type="button" className="qm-act btn-press" onClick={() => setMoving([q.id])}>Move to…</button>
+                      {actions.moveQuestions && <button type="button" className="qm-act btn-press" onClick={() => setMoving([q.id])}>Move to…</button>}
                       <button type="button" className="qm-act is-danger btn-press" onClick={() => remove([q.id])}>Delete</button>
                     </div>
                   </div>
@@ -188,7 +191,7 @@ export default function QuestionManager({ deckId, decks, pStats = {}, actions, o
         <div className={`qm-bar${picked.size ? " is-up" : ""}`} aria-hidden={!picked.size}>
           <span className="qm-bar-n">{picked.size} selected</span>
           <span className="qm-bar-acts">
-            <button type="button" className="qm-bar-btn btn-press" onClick={() => setMoving([...picked])} tabIndex={picked.size ? 0 : -1}>Move</button>
+            {actions.moveQuestions && <button type="button" className="qm-bar-btn btn-press" onClick={() => setMoving([...picked])} tabIndex={picked.size ? 0 : -1}>Move</button>}
             <button type="button" className="qm-bar-btn btn-press" onClick={() => remove([...picked])} tabIndex={picked.size ? 0 : -1}>Delete</button>
             <button type="button" className="qm-bar-x" onClick={() => setPicked(new Set())} aria-label="Clear selection" tabIndex={picked.size ? 0 : -1}>
               <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
@@ -219,6 +222,7 @@ export default function QuestionManager({ deckId, decks, pStats = {}, actions, o
       {editing && (
         <EditQuestionModal
           q={editing}
+          persist={editPersist ? updated => editPersist(updated, editing) : null}
           onClose={() => setEditing(null)}
           onSave={() => { setEditing(null); setVersion(v => v + 1); }}
         />

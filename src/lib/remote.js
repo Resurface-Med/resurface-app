@@ -428,6 +428,36 @@ export async function fetchTokenTotals() {
   return data ?? [];
 }
 
+/* Admin control of the Resurface (featured) decks — migration 0021. Ids
+   from the pool carry GEN_ID_BASE; the table's do not. */
+export async function adminEditFeatured(id, payload) {
+  const { error } = await supabase.rpc("admin_edit_featured_question", { qid: Number(id) - GEN_ID_BASE, body: payload });
+  if (error) throw new Error(error.message);
+}
+export async function adminDeleteFeatured(ids) {
+  const { data, error } = await supabase.rpc("admin_delete_featured_questions", { ids: ids.map(id => Number(id) - GEN_ID_BASE) });
+  if (error) throw new Error(error.message);
+  return data ?? 0;
+}
+export async function fetchAdminFeatured() {
+  const { data, error } = await supabase.rpc("admin_featured_decks");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+export async function fetchFeatureCandidates() {
+  const { data, error } = await supabase.rpc("admin_feature_candidates");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+export async function adminSetFeatured(deck, byline, folder, renames = {}) {
+  const { error } = await supabase.rpc("admin_set_featured", { deck, p_byline: byline ?? "", p_folder: folder ?? "", p_renames: renames });
+  if (error) throw new Error(error.message);
+}
+export async function adminUnfeature(deck) {
+  const { error } = await supabase.rpc("admin_unfeature", { deck });
+  if (error) throw new Error(error.message);
+}
+
 /* Who sent whose deck to whom, newest first (migration 0020). */
 export async function fetchShareLog(lim = 300) {
   const { data, error } = await supabase.rpc("admin_share_log", { lim });
