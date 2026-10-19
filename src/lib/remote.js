@@ -436,7 +436,7 @@ export async function fetchTokenTotals() {
    them, admins post and remove them. */
 export async function fetchAnnouncements() {
   const { data, error } = await supabase.from("announcements")
-    .select("id, created_at, published_at, title, body, tag, image_url")
+    .select("id, created_at, published_at, title, body, tag, image_url, welcome")
     .order("published_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(50);
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -452,6 +452,11 @@ export async function adminPostAnnouncement({ title, body, tag = null, image = n
 }
 export async function adminUpdateAnnouncement(id, { title, body, tag = null, image = null }) {
   const { error } = await supabase.rpc("admin_update_announcement", { p_id: id, p_title: title, p_body: body, p_tag: tag, p_image: image });
+  if (error) throw new Error(error.message);
+}
+/* The post new accounts see on Home (migration 0026); null clears it. */
+export async function adminSetWelcome(id) {
+  const { error } = await supabase.rpc("admin_set_welcome", { p_id: id });
   if (error) throw new Error(error.message);
 }
 /* Drafts (migration 0024): published_at null until an admin publishes. */

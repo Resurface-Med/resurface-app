@@ -9695,3 +9695,40 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-post__act { border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-sub); cursor: pointer; }
 .ann-post__act:hover { color: var(--c-text); }
 .ann-post__act.is-danger { color: var(--c-danger); }
+
+/* Home for a new account: the welcome note as a letter, the film beside it. */
+.dash-welcome { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(24px, 3vw, 44px); align-items: start; }
+.dash-letter__title { margin: 0 0 12px; font-size: clamp(22px, 2.2vw, 26px); font-weight: 600; letter-spacing: -0.6px; color: var(--c-text); }
+.dash-letter .ann-rich { margin-top: 0; font-size: 16px; }
+.dash-letter__acts { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 20px; }
+.dash-letter__go, .dash-letter__alt {
+  display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px;
+  font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.dash-letter__go { border: 0; background: var(--c-accent); color: #fff; }
+.dash-letter__alt { border: 1.5px solid var(--c-border); background: var(--c-card-solid); color: var(--c-text); }
+.dash-welcome__film .dash-film { width: 100%; }
+@media (max-width: 900px) { .dash-welcome { grid-template-columns: 1fr; } }
+.dash-welcome__film { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 10px; }
+.dash-welcome__side { margin: 0 0 2px; font-size: 14px; font-weight: 600; color: var(--c-sub); }
+.dash-start {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: 100%; text-align: left;
+  padding: 16px 18px; border: 1.5px solid var(--c-border); border-radius: 16px; background: var(--c-card-solid);
+  font: inherit; cursor: pointer; transition: border-color .15s ease, background .15s ease;
+}
+.dash-start:first-of-type { background: var(--c-accent); border-color: var(--c-accent); }
+.dash-start:first-of-type .dash-start__t, .dash-start:first-of-type .dash-start__s { color: #fff; }
+.dash-start:hover { border-color: var(--c-accent-brd); }
+.dash-start__t { font-size: 15.5px; font-weight: 600; color: var(--c-text); }
+.dash-start__s { font-size: 13.5px; color: var(--c-sub); }
+.dash-welcome__film .dash-film { margin-top: 6px; }
+.dash-welcome__film .dash-film__play { white-space: nowrap; }
+@media (max-width: 900px) { .dash-welcome__film { position: static; order: -1; } }
+/* The welcome, simplified: just the note, one column, a quiet link to the film. */
+.dash-welcome { grid-template-columns: minmax(0, 1fr); max-width: 680px; }
+.dash-letter__film {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; padding: 0;
+  border: 0; background: none; font: inherit; font-size: 15px; font-weight: 500; color: var(--c-accent); cursor: pointer;
+}
+.dash-letter__film:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ann-post__acts { flex-wrap: wrap; justify-content: flex-end; }

@@ -49,7 +49,7 @@ export function Rich({ text }) {
   );
 }
 
-function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit }) {
+function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit, onWelcome }) {
   const draft = !a.published_at && a.id !== "draft";
   return (
     <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}${draft ? " is-draft" : ""}`}>
@@ -68,6 +68,11 @@ function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit }) {
           <span>{when(a.published_at || a.created_at)}</span>
           {(onEdit || onDelete) && (
             <span className="ann-post__acts">
+              {onWelcome && a.published_at && (
+                <button type="button" className="ann-post__act" onClick={() => onWelcome(a)}>
+                  {a.welcome ? "Shown on Home · remove" : "Show on Home for new people"}
+                </button>
+              )}
               {onEdit && <button type="button" className="ann-post__act" onClick={() => onEdit(a)}>Edit</button>}
               {onPublish && a.published_at && <button type="button" className="ann-post__act" onClick={() => onPublish(a, false)}>Unpublish</button>}
               {onDelete && <button type="button" className="ann-post__act is-danger" onClick={() => onDelete(a)}>Delete</button>}
@@ -152,7 +157,7 @@ function Composer({ initial = null, onSave, onCancel }) {
 
 /* `composing` (and onComposeDone) come from the page, whose band holds the
    New announcement button. An edit opens in the post's own place. */
-export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onUpdate, onDelete, onPublish,
+export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onUpdate, onDelete, onPublish, onSetWelcome,
   composing = false, onComposeDone }) {
   const [editing, setEditing] = useState(null);
   async function remove(a) {
@@ -165,7 +170,11 @@ export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false,
     try { await onPublish(a.id, on); } catch { /* stays as it was */ }
   }
   const isNew = a => newSince != null && !!a.published_at && a.published_at > newSince;
-  const admin = isAdmin ? { onDelete: remove, onPublish: onPublish ? publish : null, onEdit: onUpdate ? a => setEditing(a.id) : null } : {};
+  async function welcome(a) {
+    if (!a.welcome && !await confirm({ title: "Show this on Home for new people?", body: "New accounts see it as a note on Home until they answer their first question. It replaces any other post shown there.", action: "Show on Home" })) return;
+    try { await onSetWelcome(a.welcome ? null : a.id); } catch { /* unchanged */ }
+  }
+  const admin = isAdmin ? { onDelete: remove, onPublish: onPublish ? publish : null, onEdit: onUpdate ? a => setEditing(a.id) : null, onWelcome: onSetWelcome ? welcome : null } : {};
   const render = (a, lead) => (editing === a.id
     ? <Composer key={a.id} initial={a} onCancel={() => setEditing(null)}
         onSave={async post => { await onUpdate(a.id, post); setEditing(null); }} />

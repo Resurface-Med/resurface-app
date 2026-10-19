@@ -29,7 +29,7 @@ import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
-  adminSetAnnouncementPublished, adminUpdateAnnouncement } from "./lib/remote";
+  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome } from "./lib/remote";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
@@ -841,6 +841,10 @@ export default function App() {
     await adminUpdateAnnouncement(id, post);
     setAnnouncements(await fetchAnnouncements());
   }
+  async function setWelcomeAnnouncement(id) {
+    await adminSetWelcome(id);
+    setAnnouncements(await fetchAnnouncements());
+  }
   async function publishAnnouncement(id, publish) {
     await adminSetAnnouncementPublished(id, publish);
     setAnnouncements(await fetchAnnouncements());
@@ -1044,6 +1048,7 @@ export default function App() {
               "Loading…" appearing and vanishing in a frame. */}
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
+            welcome={announcements.find(a => a.welcome && a.published_at) ?? null}
             activity={activity}
             srCards={srCards}
             dailyGoal={dailyGoal}
@@ -1081,7 +1086,7 @@ export default function App() {
           {v === V.ADMIN && <AdminView />}
 
           {v === V.NEWS && <AnnouncementsView items={announcements} newSince={annNewSince}
-            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} />}
+            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} onSetWelcome={setWelcomeAnnouncement} />}
 
           {v === V.PROFILE && (
             <ProfileView

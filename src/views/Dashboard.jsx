@@ -7,6 +7,7 @@ import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
 import { seenCount, masteredCount, share } from "../lib/progress";
+import { Rich } from "../ui/Announcements";
 
 /**
  * The home screen.
@@ -49,6 +50,7 @@ function StatRow({ label, value, strong = false, top = false, i = 0 }) {
 export default function Dashboard({
   pStats, streak, dueCount, setView,
   activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy,
+  welcome = null,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
@@ -97,10 +99,18 @@ export default function Dashboard({
      here; after that it is the poster below, to watch again. Seen is saved
      on the profile, so a second device does not play it again. */
   const introSeen = usePref("introSeen");
-  const [filmOpen, setFilmOpen] = useState(() => empty && (!introSeen || previewFirstRun));
+  /* With a welcome note to read, the film waits to be asked for. */
+  const [filmOpen, setFilmOpen] = useState(() => empty && !welcome && (!introSeen || previewFirstRun));
   function closeFilm() { setFilmOpen(false); if (!previewFirstRun) setPref("introSeen", true); }
 
-  const actions = empty
+  /* With the welcome note on the sheet, the band holds the two ways to
+     start and nothing else — the note says the rest. */
+  const actions = empty && welcome
+    ? [
+        { scope: "all", label: "Start practising", primary: true },
+        { scope: "generate", label: "Make my own questions", primary: false },
+      ]
+    : empty
     ? [
         { scope: "generate", label: "Turn your content into questions", primary: true },
         ...(total > 0 ? [{ scope: "all", label: "Practice", primary: false }] : []),
@@ -172,7 +182,7 @@ export default function Dashboard({
             </button>
           ))}
         </div>
-        {empty && (
+        {empty && !welcome && (
           <p data-in="rise" style={{ "--i": 3, margin: "12px 0 0", fontSize: 15, color: OF.soft, maxWidth: 520, lineHeight: 1.5 }}>
             Drop in your slides, a PDF or an Anki deck, and get exam-style questions in about thirty seconds.
           </p>
@@ -184,7 +194,22 @@ export default function Dashboard({
       {/* ── Sheet: where you stand, and what you've been doing ─────── */}
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
-          {empty ? (
+          {empty && welcome ? (
+            /* A new account's Home: Rafil's welcome note (the What's new post
+               marked as the welcome, so it is edited there), with the two
+               ways to start as buttons in it, and the film beside it. */
+            <div className="dash-welcome" data-in="rise" style={{ "--i": 5 }}>
+              <article className="dash-letter">
+                <h2 className="dash-letter__title">{welcome.title}</h2>
+                <Rich text={welcome.body} />
+                <button type="button" className="dash-letter__film" onClick={() => setFilmOpen(true)}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor" /></svg>
+                  Watch how it works (37 seconds)
+                </button>
+              </article>
+
+            </div>
+          ) : empty ? (
             <section data-in="rise" className="dash-film-wrap" style={{ "--i": 5 }}>
               <h2 style={{ ...sectionH, textAlign: "center" }}>How it works</h2>
               <button type="button" className="dash-film" onClick={() => setFilmOpen(true)} aria-label="Watch how Resurface works">
