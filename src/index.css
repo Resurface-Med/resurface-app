@@ -9860,7 +9860,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   transform: translateX(-50%);
   display: flex; align-items: center; gap: 10px;
   max-width: calc(100vw - 32px);
-  padding: 6px 6px 6px 16px; min-height: 44px; box-sizing: border-box;
+  padding: 6px 6px 6px 14px; min-height: 44px; box-sizing: border-box;
   border-radius: 999px;
   background: var(--c-card-solid); color: var(--c-text);
   box-shadow: 0 14px 34px -12px rgba(15, 27, 61, 0.45);
@@ -9868,8 +9868,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   animation: updateIn 0.36s cubic-bezier(0.34, 1.3, 0.5, 1) both;
 }
 .offline-note.is-back { padding-right: 18px; }
-.offline-note-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
-.offline-note-dot.is-on { background: #22c55e; }
+.offline-note-icon { flex: none; color: var(--c-muted); }
 .offline-note-text { min-width: 0; }
 .offline-note-x {
   flex: none; display: grid; place-items: center;
@@ -9881,11 +9880,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @media (max-width: 900px) {
   .offline-note {
     top: auto; bottom: calc(96px + var(--safe-b, 0px));
-    left: 16px; right: 16px; transform: none; max-width: none;
-    font-size: 13.5px;
+    left: 0; right: 0; margin: 0 auto; width: fit-content; transform: none;
+    max-width: calc(100vw - 32px);
+    font-size: 14px;
     animation-name: updateInPhone;
   }
-  .offline-note-text { flex: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .offline-note { animation-duration: 0.01s; } }
 

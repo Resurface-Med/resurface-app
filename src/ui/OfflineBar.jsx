@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { CloudOff, Cloud } from "lucide-react";
 import { useOnline } from "../lib/online";
 import { h1 } from "./theme";
 import Wave from "./Wave";
@@ -35,9 +36,11 @@ export default function OfflineBar({ hold = false }) {
   if (!online && dismissed) return null;
   return (
     <div className={`offline-note${online ? " is-back" : ""}`} role="status" aria-live="polite">
-      <span className={`offline-note-dot${online ? " is-on" : ""}`} aria-hidden="true" />
+      {online
+        ? <Cloud className="offline-note-icon" size={18} strokeWidth={2} aria-hidden="true" />
+        : <CloudOff className="offline-note-icon" size={18} strokeWidth={2} aria-hidden="true" />}
       <span className="offline-note-text">
-        {online ? "Back online. Everything’s saved." : "You’re offline. Answers sync later."}
+        {online ? "Back online" : "You’re offline"}
       </span>
       {!online && (
         <button type="button" className="offline-note-x" onClick={() => setDismissed(true)} aria-label="Hide">
