@@ -13,7 +13,7 @@ import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 import LabValues, { BeakerIcon } from "./LabValues";
-import SubwaySurfers, { useSubway } from "./SubwaySurfers";
+import SideVideos, { useSideVideos } from "./SubwaySurfers";
 
 /**
  * Full-screen study mode: no sidebar until you ask for the question list.
@@ -60,7 +60,7 @@ export default function QuizShell({
   const [editing, setEditing] = useState(false);
   /* Lab values, slid in from the right (ui/LabValues). */
   const [labsOpen, setLabsOpen] = useState(false);
-  const subway = useSubway();
+  const videos = useSideVideos();
 
   /* Declared above the effects, because the Escape handler below closes the
      rail and a const arrow referenced before its declaration is a temporal
@@ -187,9 +187,9 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}${subway.on ? " has-subway" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}${videos.subway || videos.parkour ? " has-subway" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
-      {subway.on && <SubwaySurfers onClose={subway.close} side={railOpen ? "right" : "left"} />}
+      <SideVideos videos={videos} railOpen={railOpen} aiOpen={showAi} />
       <header className="quiz-shell__header">
         <button
           type="button"
@@ -203,13 +203,13 @@ export default function QuizShell({
         </button>
 
         <div className="quiz-shell__progress-wrap">
-          <div className="quiz-shell__progress" aria-hidden="true">
+          <div className="quiz-shell__progress" aria-hidden="true" onClick={videos.tapBar}>
             <div
               className="quiz-shell__progress-fill"
               style={{ transform: `scaleX(${progress})` }}
             />
           </div>
-          <span className="quiz-shell__count" onClick={subway.tap}>
+          <span className="quiz-shell__count" onClick={videos.tapCounter}>
             {position}/{total}
           </span>
 

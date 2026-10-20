@@ -2,78 +2,112 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useOnline } from "../lib/online";
 
 /**
- * Subway Surfers beside the question (2026-10-20). An inside joke, hidden:
+ * Gameplay beside the question (2026-10-20). An inside joke, hidden:
  * nothing in the app points to it.
  *
- * During a session: on a keyboard, type "sub"; on a phone, tap the question
- * counter three times quickly. The same again, or the ×, puts it away.
- * Remembered on this device only. (It was the Konami code; too long.)
+ * During a session —
+ *   Subway Surfers, on the left: type "sub", or tap the question counter
+ *     three times quickly on a phone.
+ *   Minecraft parkour, on the right: type "mc", or tap the progress bar
+ *     three times quickly.
+ * The same again, or a video's ×, puts it away. Remembered on this device.
+ * On a phone, where there are no margins, they share a strip across the
+ * bottom — the split screen the joke is about.
  *
- * The footage is the game's own: the official Subway Surfers channel's
- * vertical gameplay video, embedded with YouTube's player (no-cookie), muted
- * and looping. It is the player YouTube offers for this, not a copy of the
- * video. Nothing shows offline.
+ * Both are YouTube embeds (no-cookie player), muted and looping: Subway
+ * Surfers from the game's official channel, Minecraft parkour from a channel
+ * that publishes free-to-use gameplay. Nothing shows offline. (The Subway
+ * code was the Konami code; too long.)
  */
-const VIDEO = "QPW3XwBoQlw";
-const SRC = `https://www.youtube-nocookie.com/embed/${VIDEO}?autoplay=1&mute=1&loop=1&playlist=${VIDEO}&controls=0&playsinline=1&rel=0&modestbranding=1&disablekb=1&iv_load_policy=3`;
-const KEY = "resurface_subway";
-/* Letters do nothing else in a session, so typing this has no side effect. */
-const CODE = ["s", "u", "b"];
+const embed = id => `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&controls=0&playsinline=1&rel=0&modestbranding=1&disablekb=1&iv_load_policy=3`;
+export const VIDEOS = {
+  subway:  { id: "QPW3XwBoQlw", code: ["s", "u", "b"], key: "resurface_subway",  title: "Subway Surfers" },
+  parkour: { id: "-lVgihPljuI", code: ["m", "c"],      key: "resurface_parkour", title: "Minecraft parkour" },
+};
 
-function read() { try { return localStorage.getItem(KEY) === "1"; } catch { return false; } }
-function write(on) { try { if (on) localStorage.setItem(KEY, "1"); else localStorage.removeItem(KEY); } catch { /* storage off */ } }
+function read(key) { try { return localStorage.getItem(key) === "1"; } catch { return false; } }
+function write(key, on) { try { if (on) localStorage.setItem(key, "1"); else localStorage.removeItem(key); } catch { /* storage off */ } }
 
-/* On or off, and the two ways of switching it: the keyboard code (listened
-   for here) and `tap`, for the counter's onClick. */
-export function useSubway() {
-  const [on, setOn] = useState(read);
-  const toggle = useCallback(() => setOn(v => { write(!v); return !v; }), []);
+/* Three taps, each within 500ms of the last. */
+function useTriple(fire) {
+  const r = useRef({ n: 0, t: 0 });
+  return () => {
+    const now = Date.now();
+    r.current.n = now - r.current.t < 500 ? r.current.n + 1 : 1;
+    r.current.t = now;
+    if (r.current.n >= 3) { r.current.n = 0; fire(); }
+  };
+}
+
+/* Which are on, and the ways of switching them: the typed codes (listened
+   for here), and taps for the counter and the progress bar. */
+export function useSideVideos() {
+  const [on, setOn] = useState(() => ({ subway: read(VIDEOS.subway.key), parkour: read(VIDEOS.parkour.key) }));
+  const set = useCallback((name, value) => setOn(prev => {
+    const v = typeof value === "function" ? value(prev[name]) : value;
+    write(VIDEOS[name].key, v);
+    return { ...prev, [name]: v };
+  }), []);
+  const toggle = useCallback(name => set(name, v => !v), [set]);
 
   useEffect(() => {
-    let at = 0;
+    const at = { subway: 0, parkour: 0 };
     const onKey = e => {
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable=true]")) return;
       const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      if (k === CODE[at]) {
-        at += 1;
-        if (at === CODE.length) { at = 0; toggle(); }
-      } else {
-        at = k === CODE[0] ? 1 : 0;
+      for (const [name, { code }] of Object.entries(VIDEOS)) {
+        if (k === code[at[name]]) {
+          at[name] += 1;
+          if (at[name] === code.length) { at[name] = 0; toggle(name); }
+        } else {
+          at[name] = k === code[0] ? 1 : 0;
+        }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  /* Three taps, each within 500ms of the last. */
-  const taps = useRef({ n: 0, t: 0 });
-  const tap = () => {
-    const now = Date.now();
-    const r = taps.current;
-    r.n = now - r.t < 500 ? r.n + 1 : 1;
-    r.t = now;
-    if (r.n >= 3) { r.n = 0; toggle(); }
+  return {
+    ...on,
+    tapCounter: useTriple(() => toggle("subway")),
+    tapBar: useTriple(() => toggle("parkour")),
+    close: name => set(name, false),
   };
-
-  return { on, tap, close: () => { write(false); setOn(false); } };
 }
 
-export default function SubwaySurfers({ onClose, side = "left" }) {
-  const online = useOnline();
-  if (!online) return null;
+function Video({ name, side, onClose }) {
+  const v = VIDEOS[name];
   return (
-    <div className={`subway is-${side}`} role="complementary" aria-label="Subway Surfers">
+    <div className={`subway is-${side} is-${name}`} role="complementary" aria-label={v.title}>
       <iframe
         className="subway__video"
-        src={SRC}
-        title="Subway Surfers gameplay"
+        src={embed(v.id)}
+        title={`${v.title} gameplay`}
         allow="autoplay; encrypted-media; picture-in-picture"
         referrerPolicy="strict-origin-when-cross-origin"
         tabIndex={-1}
       />
-      <button type="button" className="subway__x" onClick={onClose} aria-label="Hide Subway Surfers">
+      <button type="button" className="subway__x" onClick={() => onClose(name)} aria-label={`Hide ${v.title}`}>
         <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       </button>
+    </div>
+  );
+}
+
+/* Subway on the left (on the right while the question list fills the left
+   and Minecraft is off); Minecraft on the right, stepping aside while the AI
+   panel is open there. */
+export default function SideVideos({ videos, railOpen = false, aiOpen = false }) {
+  const online = useOnline();
+  if (!online) return null;
+  const parkour = videos.parkour && !aiOpen;
+  const subway = videos.subway;
+  if (!subway && !parkour) return null;
+  return (
+    <div className={`subway-strip${subway && parkour ? " is-both" : ""}`}>
+      {subway && <Video name="subway" side={railOpen && !parkour ? "right" : "left"} onClose={videos.close} />}
+      {parkour && <Video name="parkour" side="right" onClose={videos.close} />}
     </div>
   );
 }
