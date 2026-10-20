@@ -247,7 +247,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     {editing && <EditQuestionModal q={q} persist={persistFor(q)} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div
       style={focusMode ? undefined : qcard}
-      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img ? " has-results" : ""}${q.exhibit && !q.img && exhibitBeside(q.exhibit) ? " has-exhibit" : ""}`}
+      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img && exhibitBeside(q.exhibit) ? " has-exhibit" : ""}`}
     >
       {!focusMode && (
       <div className="q-card-meta">

@@ -10153,25 +10153,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .quiz-shell .qx__table,
 .quiz-shell .qx__line { font-size: 16.5px; }
 .quiz-shell .q-ask { font-size: clamp(20px, 2.5vw, 27px); letter-spacing: -0.55px; margin-top: 4px; }
-/* Results need more room than the story does. The card grows only when a
-   question has them; the stem and the question sentence stay on the measure
-   the card had at 680px, and the extra width is the gap between the numbers. */
-.quiz-shell__main:has(.q-card.has-results),
-.quiz-shell .q-card--focus.has-results { max-width: min(920px, 100%); }
-.quiz-shell .q-card--focus.has-results .q-stem--focus,
-.quiz-shell .q-card--focus.has-results .q-ask {
-  max-width: calc(680px - 2 * clamp(28px, 3.2vw, 38px));
-}
-.quiz-shell .q-card--focus.has-results .qx,
-.quiz-shell .q-card--focus.has-results .qx-set { max-width: none; }
-.quiz-shell .q-card--focus.has-results .qx__line { column-gap: 4rem; }
-.quiz-shell .q-card--focus.has-results .qx__table:not(.is-grid) { table-layout: fixed; }
-.quiz-shell .q-card--focus.has-results .qx__table:not(.is-grid) > thead > tr > th:nth-child(2),
-.quiz-shell .q-card--focus.has-results .qx__table:not(.is-grid) > thead > tr > th:nth-child(3) { width: 30%; }
 @media (max-width: 900px) {
   .qx__title, .qx__table, .qx__line,
   .quiz-shell .qx__title, .quiz-shell .qx__table, .quiz-shell .qx__line { font-size: 15px; }
-  .quiz-shell .q-card--focus.has-results .qx__line { column-gap: 2.25rem; }
   .qx__table th, .qx__table td { padding: 8px 10px; }
   .quiz-shell .q-ask { font-size: 17.5px; letter-spacing: -0.3px; }
 }
@@ -10180,9 +10164,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @media (min-width: 1240px) {
   .quiz-shell__body:not(.has-ai) .quiz-shell__main:has(.q-card.has-exhibit),
   .quiz-shell__body:not(.has-ai) .q-card--focus.has-exhibit { max-width: min(1080px, 100%); }
-  .quiz-shell__body:not(.has-ai) .q-card--focus.has-exhibit .q-stem--focus {
-    max-width: calc(680px - 2 * clamp(28px, 3.2vw, 38px));
-  }
+  .quiz-shell__body:not(.has-ai) .q-card--focus.has-exhibit .q-stem--focus { max-width: 62ch; }
   .quiz-shell__body:not(.has-ai) .q-card.has-exhibit .q-body {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: clamp(20px, 2.2vw, 30px); align-items: start;
