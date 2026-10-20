@@ -155,7 +155,14 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
           Look around first
         </button>
       </div>
-      {!done && <button type="button" className="wr__skip" onClick={e => { e.stopPropagation(); setDone(true); }}>Skip</button>}
+      {/* Top right: another way out, always there; and while it writes,
+          Skip beside it to show it all at once. */}
+      <div className="wr__corner">
+        {!done && <button type="button" className="wr__skip" onClick={e => { e.stopPropagation(); setDone(true); }}>Skip</button>}
+        <button type="button" className="wr__x" aria-label="Close" onClick={e => { e.stopPropagation(); leave(onClose); }}>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+        </button>
+      </div>
     </div>
   );
 }
