@@ -51,6 +51,9 @@ export default function Dashboard({
   pStats, streak, dueCount, setView,
   activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy,
   welcome = null,
+  /* True while the sign-up pop-ups (and the reveal after them) are up: the
+     note waits behind them, unseen, rather than giving itself away. */
+  veiled = false,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
@@ -198,7 +201,7 @@ export default function Dashboard({
             /* A new account's Home: Rafil's welcome note (the What's new post
                marked as the welcome, so it is edited there), with the two
                ways to start as buttons in it, and the film beside it. */
-            <div className="dash-welcome" data-in="rise" style={{ "--i": 5 }}>
+            <div className={`dash-welcome${veiled ? " is-veiled" : ""}`} data-in="rise" style={{ "--i": 5 }} aria-hidden={veiled || undefined}>
               <article className="dash-letter">
                 {/* Read as a letter: a larger opening line,
                     the numbered points as steps, and the closing name as a

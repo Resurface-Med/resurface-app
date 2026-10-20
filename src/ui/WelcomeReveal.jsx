@@ -123,8 +123,16 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
             const w = list => list.map((t, j) => t.space ? " " : (
               <span key={j} className={`wr-w${t.bold ? " is-bold" : ""}`} data-d={bodyStep(t.i)} style={{ "--d": `${bodyStep(t.i)}ms` }}>{t.w}</span>
             ));
-            if (b.kind === "ul") return <ul key={k}>{b.items.map((it, j) => <li key={j}>{w(it)}</li>)}</ul>;
-            if (b.kind === "ol") return <ol key={k} start={b.start}><li>{w(b.items[0])}</li></ol>;
+            /* The number or bullet is a word of its own, written with the
+               first word after it — a list marker drawn by the browser was
+               there before the writing reached it. */
+            const mark = (m, list) => {
+              const first = list.find(x => !x.space);
+              const d = first ? bodyStep(first.i) : 0;
+              return <span className="wr-w wr-mark" aria-hidden="true" style={{ "--d": `${d}ms` }}>{m}</span>;
+            };
+            if (b.kind === "ul") return <ul key={k}>{b.items.map((it, j) => <li key={j}>{mark("•", it)}{w(it)}</li>)}</ul>;
+            if (b.kind === "ol") return <ol key={k} start={b.start}><li>{mark(`${b.start}.`, b.items[0])}{w(b.items[0])}</li></ol>;
             return <p key={k}>{b.lines.map((l, j) => <span key={j}>{j > 0 && <br />}{w(l)}</span>)}</p>;
           })}
         </div>

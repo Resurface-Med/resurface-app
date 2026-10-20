@@ -9918,8 +9918,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .wr__body { font-size: clamp(16px, 1.3vw, 18px); line-height: 1.55; color: rgba(255, 255, 255, 0.9); }
 .wr__body p { margin: 0 0 0.7em; }
-.wr__body ul, .wr__body ol { margin: 0 0 0.7em; padding-left: 1.3em; }
-.wr__body li { margin: 0.2em 0; }
+.wr__body ul, .wr__body ol { margin: 0 0 0.7em; padding: 0; list-style: none; }
+.wr__body li { position: relative; margin: 0.2em 0; padding-left: 1.5em; }
+.wr-mark { position: absolute; left: 0; top: 0; font-variant-numeric: tabular-nums; }
 .wr-w {
   display: inline-block; opacity: 0;
   transform: translateY(0.45em); filter: blur(6px);
@@ -9962,3 +9963,4 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @keyframes wrUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes wrDrift { from { transform: translate(-2%, -1%) scale(1); } to { transform: translate(3%, 2%) scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .wr__glow { animation: none; } }
+.dash-welcome.is-veiled { visibility: hidden; }
