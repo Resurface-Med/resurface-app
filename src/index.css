@@ -9796,8 +9796,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
    same thing — tilted a touch, and straightening as you reach for it. */
 .note-tile {
   position: relative; display: grid; place-items: center; width: 100%;
+  max-width: 720px; margin: 0 auto;
   overflow: hidden; border: 0; cursor: pointer; font: inherit; text-align: left;
-  padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 56px);
+  padding: clamp(22px, 3.5vw, 40px) clamp(16px, 3vw, 40px);
   border-radius: var(--r-panel);
   background: linear-gradient(160deg, #4a76ff 0%, var(--c-accent) 55%, #2c56e8 100%);
 }
@@ -9808,8 +9809,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   animation: wrDrift 14s ease-in-out infinite alternate;
 }
 .note-paper {
-  position: relative; display: block; width: min(620px, 100%);
-  padding: clamp(24px, 4vw, 44px) clamp(22px, 4vw, 48px) clamp(22px, 3.5vw, 38px);
+  position: relative; display: block; width: min(440px, 100%);
+  padding: clamp(18px, 2.6vw, 28px) clamp(18px, 2.8vw, 30px) clamp(16px, 2.4vw, 24px);
   background: #fdfcf8; color: #1e2433; border-radius: 6px;
   box-shadow: 0 1px 2px rgba(10, 20, 60, 0.12), 0 24px 50px -18px rgba(10, 20, 60, 0.55);
   transform: rotate(-0.6deg);
@@ -9820,13 +9821,13 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   box-shadow: 0 1px 2px rgba(10, 20, 60, 0.12), 0 34px 60px -18px rgba(10, 20, 60, 0.6);
 }
 .note-tile:focus-visible { outline: 3px solid var(--c-accent); outline-offset: 3px; }
-.note-paper__title { display: block; margin: 0 0 14px; font-size: clamp(22px, 2.4vw, 28px); font-weight: 600; letter-spacing: -0.6px; color: #12182a; }
-.note-paper .ann-rich { font-size: 15.5px; line-height: 1.6; color: #2e3548; }
+.note-paper__title { display: block; margin: 0 0 10px; font-size: clamp(17px, 1.6vw, 20px); font-weight: 600; letter-spacing: -0.6px; color: #12182a; }
+.note-paper .ann-rich { font-size: 13px; line-height: 1.55; color: #2e3548; }
 .note-paper .ann-rich a { color: var(--c-accent); }
-.note-paper__sig { display: block; margin-top: 10px; font-family: "Caveat", cursive; font-weight: 600; font-size: 40px; line-height: 1; color: #12182a; }
+.note-paper__sig { display: block; margin-top: 6px; font-family: "Caveat", cursive; font-weight: 600; font-size: 30px; line-height: 1; color: #12182a; }
 [data-theme="dark"] .note-paper { background: #f4f2ec; }
 @media (max-width: 600px) {
   .note-paper { transform: rotate(-0.5deg); }
-  .note-paper .ann-rich { font-size: 15px; }
+  .note-paper .ann-rich { font-size: 13px; }
 }
 @media (prefers-reduced-motion: reduce) { .note-tile__glow { animation: none; } .note-paper { transition: none; } }
