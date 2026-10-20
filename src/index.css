@@ -10105,33 +10105,26 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 @media (prefers-reduced-motion: reduce) { .streak__outer, .streak__inner { animation: none; } }
 
-/* Data exhibits (ui/QuestionExhibit, 2026-10-20): a lab sheet between the
-   stem and the options. Hairlines, the app's type, numbers lined up. */
+/* Data exhibits (ui/QuestionExhibit, 2026-10-20): a plain results table,
+   as a lab printout or an exam paper sets it — a full grid, square corners,
+   compact rows, one weight of text (Rafil: "more table like"). */
 .qx { margin: 0 0 22px; max-width: 520px; }
-.qx__title { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--c-sub); }
+.qx__title { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--c-text); }
 .qx__table {
-  width: 100%; border-collapse: collapse; font-size: 15px; color: var(--c-text);
-  background: var(--c-card-solid); border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden;
-  border-spacing: 0;
+  width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.35; color: var(--c-text);
+  background: var(--c-card-solid);
 }
-.qx__table thead th {
-  padding: 9px 14px; font-size: 12.5px; font-weight: 600; color: var(--c-muted); text-align: left;
-  background: var(--c-surface2); border-bottom: 1px solid var(--c-border);
-}
-.qx__table tbody th, .qx__table tbody td { padding: 9px 14px; border-bottom: 1px solid var(--c-border); }
-.qx__table tbody tr:last-child th, .qx__table tbody tr:last-child td { border-bottom: 0; }
-.qx__table tbody th { font-weight: 500; text-align: left; }
-.qx__table .is-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.qx__table .is-value { font-weight: 600; }
-.qx__unit { font-weight: 400; color: var(--c-muted); }
-.qx__table .is-range { color: var(--c-muted); }
-/* A 2×2 and the like: every cell centred but the row labels. */
+.qx__table th, .qx__table td { padding: 6px 10px; border: 1px solid color-mix(in srgb, var(--c-text) 22%, transparent); text-align: left; }
+.qx__table thead th { font-size: 13px; font-weight: 600; background: var(--c-surface2); }
+.qx__table tbody th { font-weight: 400; }
+.qx__table .is-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.qx__unit { color: inherit; }
+/* A 2×2 and the like: the counts centred. */
 .qx__table.is-grid td, .qx__table.is-grid thead th:not(:first-child) { text-align: center; font-variant-numeric: tabular-nums; }
-.qx__table.is-grid td { font-weight: 600; }
-.qx__note { margin: 8px 2px 0; font-size: 13px; color: var(--c-muted); }
+.qx__note { margin: 6px 0 0; font-size: 13px; color: var(--c-sub); }
 @media (max-width: 600px) {
-  .qx__table { font-size: 14px; }
-  .qx__table thead th, .qx__table tbody th, .qx__table tbody td { padding: 8px 10px; }
+  .qx__table { font-size: 13.5px; }
+  .qx__table th, .qx__table td { padding: 6px 8px; }
 }
 /* An exhibit beside the options when there is room, as an image is: the
    table stays readable and the options stay on screen. */
