@@ -42,6 +42,7 @@ import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs, getPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
 import ReceiveDeck from "./views/ReceiveDeck";
+import { rememberShare, pendingShare, forgetShare } from "./lib/pendingShare";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -245,13 +246,25 @@ export default function App() {
     applyGenerated(genRowsRef.current, deckRows);
   }
   /* A share code in the address, held until the receive screen has finished
-     with it. Read once at startup: the address is cleared immediately so a
-     reload cannot re-run it, which means this state is the only record. */
-  const [shareCode, setShareCode] = useState(() => {
+     with it. Read once at startup and the address cleared, so a reload does
+     not re-run it — but also kept in storage (lib/pendingShare), because
+     signing in reloads the page: Google sign-in comes back to the home
+     address, and an email confirmation link opens a new tab. Either used to
+     lose the deck a friend had sent. */
+  const [shareCode, setShareCodeState] = useState(() => {
     const code = deckCodeFromLocation();
-    if (code) window.history.replaceState(null, "", "/");
-    return code;
+    if (code) {
+      window.history.replaceState(null, "", "/");
+      rememberShare(code);
+      return code;
+    }
+    return pendingShare();
   });
+  /* Answered (added, skipped, or a featured deck opened): forgotten. */
+  function setShareCode(code) {
+    if (!code) forgetShare();
+    setShareCodeState(code);
+  }
   const [dataLoading, setDataLoading] = useState(true);
   /* Set when the sign-in snapshot could not be fetched. Without this the
      effect had no catch at all, so a throw left the app on "Loading your
@@ -1104,7 +1117,7 @@ export default function App() {
     );
   }
 
-  if (!user) return <LoginPage />;
+  if (!user) return <LoginPage sentDeck={Boolean(shareCode)} />;
 
   /* Before the app proper: somebody following a link is here to answer one
      question, and the nav behind it is noise until they have. After the data
@@ -1140,7 +1153,9 @@ export default function App() {
         made up from their email — anyone who used Google already has their
         own. Dismissing settles it: a prompt that keeps coming back is worse
         than the sign-up field it replaced. */}
-    {!nameChosen && (
+    {/* Not over a session: someone who followed a friend's link is put
+        straight into ten of its questions, and this used to cover the first. */}
+    {!nameChosen && !practiceSessionActive && (
       <NamePrompt
         suggestion={displayName}
         onSave={(name, year) => {

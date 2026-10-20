@@ -40,14 +40,17 @@ const RESEND_SECS = 60;
 const UNI = /\.(ac\.uk|edu)$/i;
 const resendSecsFor = email => (UNI.test(String(email).trim()) ? 120 : RESEND_SECS);
 
-export default function LoginPage() {
+/* `sentDeck`: they followed a link to someone's deck (lib/pendingShare).
+   Nearly always a new person, so it opens on sign-up, and says the deck is
+   waiting — it is added straight after, however they sign in. */
+export default function LoginPage({ sentDeck = false }) {
   const {
     signIn, signUp, signInWithGoogle, resetPassword,
     resendSignupCode, verifySignupCode, verifyRecoveryCode,
     beginRecovery, endRecovery,
   } = useAuth();
 
-  const [mode, setMode] = useState("signin"); // signin | signup | reset
+  const [mode, setMode] = useState(sentDeck ? "signup" : "signin"); // signin | signup | reset
   // After signup / reset request we collect the emailed code. After a recovery
   // code verifies, we collect the new password.
   const [step, setStep] = useState("form");   // form | code
@@ -202,6 +205,8 @@ export default function LoginPage() {
       : `We sent a 6-digit code to ${email}.`)
     : mode === "reset"
         ? "We'll email you a code to set a new one."
+      : sentDeck
+        ? `${mode === "signup" ? "Sign up" : "Sign in"} to add the deck you were sent. It’ll be waiting for you.`
       : "Your progress and generated questions follow you everywhere.";
 
   const formCta = mode === "signup" ? "Create account"

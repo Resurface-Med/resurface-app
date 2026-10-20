@@ -2,6 +2,7 @@ import { Fragment, useState, useRef, useEffect, useCallback } from "react";
 import { useOnline } from "../lib/online";
 import { apiFetch } from "../lib/api";
 import JSZip from "jszip";
+import { unreadableReason, extractDocx } from "../lib/fileRead";
 import { h1, primaryBtn } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { deckPath, indexDecks, questionsInDeck } from "../lib/decks";
@@ -153,6 +154,17 @@ function subDeckName(name) {
 }
 
 // ── File extraction ─────────────────────────────────────────────────────────
+
+/* Text pulled from a file, with too little in it to write questions from —
+   slides that are only pictures, an empty document — said plainly rather
+   than sent off to come back as nonsense. */
+const MIN_TEXT_CHARS = 80;
+function enoughText(text, kind) {
+  if (String(text).replace(/\s+/g, " ").trim().length >= MIN_TEXT_CHARS) return;
+  if (kind === "pptx") throw new Error("That PowerPoint has hardly any text in it — the slides look like pictures. Save it as a PDF and add that instead.");
+  if (kind === "docx") throw new Error("That Word file has hardly any text in it.");
+  throw new Error("That file has hardly any text in it to make questions from.");
+}
 
 async function extractPptx(file) {
   const zip = await JSZip.loadAsync(file);
@@ -341,7 +353,10 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
     const ext = file.name.split(".").pop().toLowerCase();
 
     const isText = ext === "txt" || ext === "md" || ext === "text";
-    const isDoc = ext === "pptx" || ext === "ppt" || ext === "pdf" || ext === "apkg" || isText;
+    const reason = unreadableReason(file.name);
+    if (reason) throw new Error(reason);
+    const isAnki = ext === "apkg" || ext === "colpkg";   // a whole-collection export is the same inside
+    const isDoc = ext === "pptx" || ext === "docx" || ext === "pdf" || isAnki || isText;
 
     if (isDoc && file.size > MAX_READ_BYTES) {
       throw new Error(`That file is ${(file.size / 1024 / 1024).toFixed(0)}MB, which is more than the browser can open. Split it and try again.`);
@@ -350,13 +365,19 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
       throw new Error(`That image is ${(file.size / 1024 / 1024).toFixed(1)}MB — the limit is 3MB for images. Try a smaller one.`);
     }
 
-    if (ext === "pptx" || ext === "ppt") {
-      const text = await extractPptx(file);
+    if (ext === "pptx") {
+      const text = await extractPptx(file).catch(() => { throw new Error("That PowerPoint couldn’t be opened. Try saving it again as .pptx, or as a PDF."); });
+      enoughText(text, "pptx");
+      userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
+    } else if (ext === "docx") {
+      const text = await extractDocx(file).catch(e => { throw new Error(/damaged/.test(e.message) ? e.message : "That Word file couldn’t be opened. Try saving it again, or as a PDF."); });
+      enoughText(text, "docx");
       userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (isText) {
       const text = await extractText(file);
+      enoughText(text, "text");
       userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
-    } else if (ext === "apkg") {
+    } else if (isAnki) {
       const text = await extractApkg(file);
       userContent = [{ type: "text", text: `Topic: ${deckLabel}\n\n${text}` }];
     } else if (ext === "pdf") {
@@ -765,10 +786,17 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     setPastedText("");
     setPasting(false);
     setError("");
+    /* Files that cannot be read are turned away here, with what to do
+       instead; the rest go in. */
+    const refused = incoming.map(f => unreadableReason(f.name)).filter(Boolean);
+    const usable = incoming.filter(f => !unreadableReason(f.name));
     const same = (a, b) => a.name === b.name && a.size === b.size;
     const next = [...files];
-    for (const f of incoming) if (!next.some(g => same(f, g))) next.push(f);
-    if (next.length > MAX_BATCH) setError(`Up to ${MAX_BATCH} at a time. The first ${MAX_BATCH} are in; add the rest as a second batch.`);
+    for (const f of usable) if (!next.some(g => same(f, g))) next.push(f);
+    const notes = [...refused];
+    if (next.length > MAX_BATCH) notes.push(`Up to ${MAX_BATCH} at a time. The first ${MAX_BATCH} are in; add the rest as a second batch.`);
+    if (notes.length) setError(notes.join(" "));
+    if (!next.length) return;
     const kept = next.slice(0, MAX_BATCH);
     setFiles(kept);
 
@@ -1427,18 +1455,21 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
                   </svg>
                   <span className="gen-source-text">
                     <span className="gen-source-lead">Drop a file here, or browse</span>
-                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF, text file or image · up to {MAX_BATCH} at once</span>
+                    <span className="gen-source-meta">Anki deck, PowerPoint, PDF, Word, text file or image · up to {MAX_BATCH} at once</span>
                   </span>
                 </button>
               )}
               <input
                 ref={fileRef}
                 type="file"
-                accept=".pptx,.ppt,.pdf,.apkg,.txt,.md,.jpg,.jpeg,.png,.webp"
+                accept=".pptx,.ppt,.pdf,.apkg,.colpkg,.docx,.doc,.txt,.md,.jpg,.jpeg,.png,.webp,.gif"
                 multiple
                 style={{ display: "none" }}
                 onChange={e => { acceptFiles(e.target.files); e.target.value = ""; }}
               />
+              {/* With no file in yet — the one turned away was the only one —
+                  the reason shows under the drop area. */}
+              {!files.length && !pasting && error && <p className="gen-error">{error}</p>}
               {!file && !pasting && (
                 <button type="button" className="gen-link gen-source-alt" onClick={() => setPasting(true)}>
                   Paste notes instead
