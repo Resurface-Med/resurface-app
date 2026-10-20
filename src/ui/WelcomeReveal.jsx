@@ -72,29 +72,30 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
     return () => clearTimeout(t);
   }, [done, endAt]);
 
-  /* Where the note is taller than the screen (a phone), the view follows
-     the writing down: the word being written is kept about two-thirds of
-     the way down, and nothing moves until it gets there. */
+  /* The whole sheet on one screen: where the note is taller than the
+     window, the paper is scaled down to fit, rather than the view
+     scrolling after the writing (Rafil, 2026-10-20). Measured at full size,
+     again on resize. Not below 0.7 — past that it is too small to read,
+     and a very small window scrolls by hand instead. */
   const box = useRef(null);
+  const paper = useRef(null);
+  const [fit, setFit] = useState(1);
   useEffect(() => {
-    const el = box.current;
-    if (!el || done) return;
-    const words = [...el.querySelectorAll("[data-d]")].map(w => ({ w, d: Number(w.dataset.d) }));
-    const t0 = performance.now();
-    let raf;
-    const tick = now => {
-      const at = now - t0;
-      let cur = null;
-      for (const x of words) { if (x.d <= at) cur = x.w; else break; }
-      if (cur) {
-        const target = Math.max(0, cur.offsetTop - el.clientHeight * 0.66);
-        if (target > el.scrollTop) el.scrollTop += (target - el.scrollTop) * 0.12;
-      }
-      if (at < endAt + 400) raf = requestAnimationFrame(tick);
+    const measure = () => {
+      const el = paper.current, wrap = box.current;
+      if (!el || !wrap) return;
+      el.style.zoom = "1";
+      const cs = getComputedStyle(wrap);
+      const room = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const h = el.offsetHeight;
+      const s = h > room ? Math.max(0.7, room / h) : 1;
+      el.style.zoom = String(s);
+      setFit(s);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [done, endAt]);
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   function leave(then) {
     setLeaving(true);
@@ -118,7 +119,7 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
       <div className="wr__glow" aria-hidden="true" />
       {/* On ruled paper, in ink, on the blue (2026-10-20): better contrast
           than white on blue. */}
-      <article className="wr__note ruled">
+      <article ref={paper} className="wr__note ruled" style={{ zoom: fit }}>
         <h1 className="wr__title"><Words list={note.titleWords} step={titleStep} from={300} /></h1>
         <div className="wr__body">
           {note.blocks.map((b, k) => {

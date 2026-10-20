@@ -9726,7 +9726,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   /* Centred when it fits; scrolls from the top when it does not. */
   display: flex; flex-direction: column; align-items: center;
   overflow-y: auto; overscroll-behavior: contain;
-  padding: calc(40px + var(--safe-t, 0px)) clamp(22px, 6vw, 72px) calc(40px + var(--safe-b, 0px));
+  padding: calc(24px + var(--safe-t, 0px)) clamp(16px, 6vw, 72px) calc(24px + var(--safe-b, 0px));
   background: var(--c-body-bg); color: #fff;
   animation: wrFade 0.5s ease both;
   transition: opacity 0.42s ease, transform 0.42s ease;
@@ -9835,7 +9835,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* Numbered steps sized to the miniature note. */
 .note-paper .ann-rich ol { padding-left: 20px; margin: 2px 0 5px; }
 .note-paper .ann-rich ol::before { width: 14px; height: 14px; font-size: 8px; }
-.note-tile__cue { position: relative; font-size: 13.5px; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
+.note-tile__cue { position: relative; font-size: 19px; font-weight: 600; letter-spacing: -0.3px; color: rgba(255, 255, 255, 0.9); }
 .note-tile:hover .note-tile__cue { color: #fff; }
 
 /* ── Ruled paper (2026-10-20) ─────────────────────────────────────────
