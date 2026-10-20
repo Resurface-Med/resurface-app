@@ -14,15 +14,11 @@ import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
+import { toRecord, fromRecord, sessionLabel } from "../lib/pastSessions";
+import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
-
-/** Categories carry their subject as a prefix; the button already names it. */
-
-function shortLabel(cat, deck) {
-  return cat && deck && cat.startsWith(`${deck}: `) ? cat.slice(deck.length + 2) : cat;
-}
 
 const resumeBtn = { ...fieldBtn, padding: "9px 18px", fontSize: 14 };
 const resumeGhostBtn = { ...fieldGhostBtn, padding: "9px 16px", fontSize: 14 };
@@ -152,27 +148,20 @@ function loadSaved(userId) {
  * What an unfinished session was on, read back out of its own queue.
  *
  * Derived rather than stored, on purpose: sessions saved before this existed
- * carry no label, and the queue has always held each question's deck and cat.
+ * carry no label, and the queue has always held each question's path.
  * Reading it means an old saved session describes itself too, and the shape
  * written to localStorage does not have to change.
  */
 function describeSession(s) {
   const qs = s?.queue ?? [];
   if (!qs.length) return null;
-  const decks = [...new Set(qs.map(q => q.deck).filter(Boolean))];
-  const cats = [...new Set(qs.map(q => q.cat).filter(Boolean))];
-
-  const where = decks.length === 0 ? null
-    : decks.length > 1 ? `${decks.length} subjects`
-    : cats.length === 1 ? `${decks[0]} · ${shortLabel(cats[0], decks[0])}`
-    : `${decks[0]} · ${cats.length} topics`;
-
   // Answered, not position. The old desktop pill read "3/20 left" off idx + 1,
   // which is where you are rather than what is left — at question 3 of 20 it
   // claimed 3 remained when 17 did.
   const answered = Object.keys(s?.sels ?? {}).length;
-  const done = `${answered} of ${qs.length} answered`;
-  return where ? `${where} · ${done}` : done;
+  /* Named the way Past sessions names it (lib/pastSessions), from each
+     question's path — reading `deck` and `cat` repeated the name. */
+  return `${sessionLabel(qs)} · ${answered} of ${qs.length} answered`;
 }
 
 /**
@@ -187,7 +176,7 @@ function describeSession(s) {
 const NONE = ["none"];
 const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] === "none");
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, sessions = [], onSessionSave = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -366,10 +355,34 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [savedSession, setSavedSession] = useState(() => loadSaved(user?.id));
   const [sessionFilter, setSessionFilter] = useState(null);
 
+  /* Which past session this is (lib/pastSessions): a new id for each new
+     session, the same one when it is continued. */
+  const sidRef = useRef(null);
+  const startedRef = useRef(null);
+  function newSid() {
+    sidRef.current = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID()
+      : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (c ^ (Math.random() * 16) >> (c / 4)).toString(16));
+    startedRef.current = new Date().toISOString();
+  }
+
   // Persist session whenever active state changes
   useEffect(() => {
-    if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT }));
+    if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT, sid: sidRef.current, startedAt: startedRef.current }));
   }, [queue, idx, sels, sC, sT, SESSION_KEY]);
+
+  /* Saved to your past sessions as you answer — not on opening one, which
+     would move it to the top of the list for being looked at. */
+  const loadedSels = useRef(null);
+  function saveSession(finished = false) {
+    if (!queue || !sidRef.current || !onSessionSave) return;
+    if (!finished && Object.keys(sels).length === 0) return;
+    onSessionSave(toRecord({ sid: sidRef.current, queue, sels, idx, startedAt: startedRef.current, finished }));
+  }
+  useEffect(() => {
+    if (!queue || sels === loadedSels.current) return;
+    saveSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sels]);
 
   // Tell App whether we're mid-session (so nav block only fires then)
   useEffect(() => {
@@ -410,6 +423,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
     setSessionFilter(f);
+    newSid();
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
@@ -427,6 +441,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     if (limit) qs = qs.slice(0, limit);
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
     setSessionFilter(null);
+    newSid();
     setQueue(qs.map(shuffleOptions)); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
@@ -453,10 +468,39 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         };
       }
     });
+    if (s.sid) { sidRef.current = s.sid; startedRef.current = s.startedAt ?? new Date().toISOString(); } else newSid();
+    loadedSels.current = restoredSels;
     setQueue(restoredQueue); setIdx(s.idx ?? 0); setSels(restoredSels);
     setSC(s.sC ?? 0); setST(s.sT ?? 0);
     setResults(restoredResults); setSavedSession(null);
   }
+
+  /* A past session: carried on from where it was left ("continue", which
+     is also how a finished one is looked back through), or the same
+     questions again as a new session ("redo"). */
+  function openPast(rec, how) {
+    setPastOpen(false);
+    if (how === "redo") {
+      startWith((rec.items ?? []).map(it => it.id));
+      return;
+    }
+    const got = fromRecord(rec, new Map(QUESTIONS.map(q => [q.id, q])), shuffleOptions);
+    if (!got) return;
+    const restored = {};
+    Object.entries(got.sels).forEach(([i, sel]) => {
+      const q = got.queue[i];
+      restored[i] = { id: q.id, q: q.q, cat: q.cat, correct: sel === q.ans, correctAnswer: q.opts[q.ans], yourAnswer: q.opts[sel] };
+    });
+    const answered = Object.values(restored);
+    localStorage.removeItem(SESSION_KEY); setSavedSession(null);
+    setSessionFilter(null);
+    sidRef.current = rec.id;
+    startedRef.current = rec.created_at ?? new Date().toISOString();
+    loadedSels.current = got.sels;
+    setQueue(got.queue); setIdx(got.idx); setSels(got.sels); setResults(restored);
+    setSC(answered.filter(r => r.correct).length); setST(answered.length);
+  }
+  const [pastOpen, setPastOpen] = useState(false);
 
   function discardSession() {
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
@@ -542,6 +586,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       setResults(prev => ({ ...prev, ...extra }));
       setST(t => t + open.length);
     }
+    saveSession(true);
     localStorage.removeItem(SESSION_KEY);
     setQueue(null);
   }
@@ -564,6 +609,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           const qs = QUESTIONS.filter(q => wrongIds.includes(q.id)).map(shuffleOptions);
           if (qs.length === 0) return;
           localStorage.removeItem(SESSION_KEY);
+          newSid();
           setQueue(qs); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
         }}
         onChangeSettings={() => setResults({})}
@@ -830,6 +876,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             editPersist={(updated, q) => persistFor(q)?.(updated)} onClose={() => setManaging(null)} />
         : <QuestionManager deckId={managing} decks={decks} pStats={pStats} actions={deckActions} onClose={() => setManaging(null)} />
     );
+    /* Past sessions: a link beside New deck once there are any, opening a
+       sheet — not a page of its own (Rafil, 2026-10-20). */
+    const pastLink = sessions.length > 0 ? (
+      <button type="button" className="gen-link" onClick={() => setPastOpen(true)}>Past sessions</button>
+    ) : null;
+    const pastSheet = pastOpen ? <PastSessions sessions={sessions} onOpen={openPast} onClose={() => setPastOpen(false)} /> : null;
     const shareSheet = sharing && (
       <ShareSheet
         deck={sharing}
@@ -893,6 +945,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         {activeRoot
                           ? <button type="button" className="gen-link" onClick={() => setActiveRootId(null)}>← All decks</button>
                           : <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>＋ New deck</button>}
+                        {pastLink}
                       </span>
                     </div>
                   )}
@@ -974,6 +1027,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             </div>
           </div>
           {shareSheet}
+          {pastSheet}
           {manager}
         </div>
       );
@@ -1048,6 +1102,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                         ＋ New deck
                       </button>
                     )}
+                    {pastLink}
                   </span>
                 </div>
               )}
@@ -1131,6 +1186,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           </div>
         </div>
         {shareSheet}
+        {pastSheet}
         {manager}
       </div>
     );

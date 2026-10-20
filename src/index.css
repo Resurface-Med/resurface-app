@@ -9895,3 +9895,35 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .needs-net__title { margin: 0; color: var(--c-text); font-size: 17px; font-weight: 600; }
 .needs-net p { margin: 0; max-width: 340px; }
+
+/* Past sessions (ui/PastSessions): the share sheet's card, holding a list. */
+.past-card { max-width: 560px; max-height: min(640px, calc(100vh - 48px)); display: flex; flex-direction: column; }
+.past-list { list-style: none; margin: 14px -8px 0; padding: 0; overflow-y: auto; overscroll-behavior: contain; }
+.past-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 8px; border-top: 1px solid var(--c-border);
+}
+.past-row:first-child { border-top: 0; }
+.past-main { flex: 1; min-width: 0; }
+.past-label {
+  margin: 0; font-size: 15px; font-weight: 600; color: var(--c-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.past-meta { margin: 3px 0 0; font-size: 13px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.past-acts { flex: none; display: flex; align-items: center; gap: 6px; }
+.past-redo {
+  padding: 8px 10px; border: 0; background: none; border-radius: 999px;
+  font: inherit; font-size: 13.5px; font-weight: 500; color: var(--c-muted); cursor: pointer;
+}
+.past-redo:hover { color: var(--c-text); background: var(--c-surface2); }
+.past-go {
+  padding: 8px 16px; border: 0; border-radius: 999px;
+  background: var(--c-accent-dim); color: var(--c-accent);
+  font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+}
+.past-go:hover { background: var(--c-accent); color: #fff; }
+@media (max-width: 900px) {
+  .past-card { max-height: none; }
+  .past-list { flex: 1; margin-top: 18px; }
+  .past-label { font-size: 15.5px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+}

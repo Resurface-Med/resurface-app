@@ -1,4 +1,5 @@
 import { GEN_ID_BASE } from "../data";
+import { mergeSessions } from "./pastSessions";
 
 /**
  * A snapshot with writes laid over it that the server may not have yet.
@@ -106,6 +107,9 @@ export function overlayOps(snap, ops) {
         s.generated = s.generated.filter(q => !gone.has(q.deckId));
         break;
       }
+      case "session-save":
+        s.sessions = mergeSessions(s.sessions ?? [], op.rec);
+        break;
       case "ann-seen":
         s.announcementsSeenAt = op.seenAt;
         break;
