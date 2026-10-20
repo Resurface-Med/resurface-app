@@ -36,7 +36,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="mp-title">
         <h2 className="np__title" id="mp-title">What should we call you?</h2>
         <p className="np__sub">
-          This is the name on the leaderboard. You can change it any time in your profile.
+          Shown on the leaderboard.
         </p>
 
         <input
@@ -51,12 +51,12 @@ export default function MarketingPrompt({ googleName, onContinue }) {
         />
         {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
 
-        <label className="np__label" htmlFor="mp-year">Which year are you in?</label>
+        <label className="np__label" htmlFor="mp-year">Your year</label>
         <YearSelect id="mp-year" value={year} onChange={setYear} />
 
         <label className="np__check">
           <input type="checkbox" checked={emails} onChange={e => setEmails(e.target.checked)} />
-          <span>Email me news, tips and study updates</span>
+          <span>Send me the occasional update</span>
         </label>
 
         <div className="np__row">

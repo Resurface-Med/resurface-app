@@ -51,7 +51,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="np-title">
         <h2 className="np__title" id="np-title">What should we call you?</h2>
         <p className="np__sub">
-          This is the name on the leaderboard. You can change it any time in your profile.
+          Shown on the leaderboard.
         </p>
 
         <input
@@ -66,7 +66,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
 
         {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
 
-        <label className="np__label" htmlFor="np-year">Which year are you in?</label>
+        <label className="np__label" htmlFor="np-year">Your year</label>
         <YearSelect id="np-year" value={year} onChange={setYear} />
         <div className="np__row">
           <button type="submit" className="np__save btn-press" disabled={busy || name.trim().length < 2}>

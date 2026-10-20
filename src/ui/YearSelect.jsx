@@ -25,8 +25,8 @@ export function YearPrompt({ onAnswer }) {
       <form className="np" role="dialog" aria-modal="true" aria-labelledby="yp-title"
         onSubmit={e => { e.preventDefault(); if (year !== null) onAnswer(year); }}>
         <h2 className="np__title" id="yp-title">Which year are you in?</h2>
-        <p className="np__sub">You can change it any time in your profile.</p>
-        <div style={{ marginTop: 18 }}><YearSelect value={year} onChange={setYear} /></div>
+        <p className="np__sub">You can change it in your profile.</p>
+        <div style={{ marginTop: 26 }}><YearSelect value={year} onChange={setYear} /></div>
         <div className="np__row">
           <button type="submit" className="np__save btn-press" disabled={year === null}>Save</button>
           <button type="button" className="np__skip" onClick={() => onAnswer(0)}>Not now</button>

@@ -7289,10 +7289,11 @@ html.is-deck-dragging * {
   animation: rs-fade-in 0.2s ease both;
 }
 .np {
-  width: min(430px, 100%);
+  width: min(480px, 100%);
   background: var(--c-card-solid);
   border-radius: var(--r-panel);
-  padding: clamp(22px, 3vw, 30px);
+  /* Room to breathe (Rafil, 2026-10-20: "super crammed"). */
+  padding: clamp(26px, 4vw, 40px);
   box-shadow: 0 24px 60px rgba(12, 22, 56, 0.28);
   animation: rs-pop 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
@@ -7304,14 +7305,14 @@ html.is-deck-dragging * {
   color: var(--c-text);
 }
 .np__sub {
-  margin: 7px 0 0;
+  margin: 8px 0 0;
   font-size: 14.5px;
   line-height: 1.5;
   color: var(--c-muted);
 }
 .np__field {
   width: 100%;
-  margin-top: 18px;
+  margin-top: 26px;
   padding: 13px 16px;
   border: 1.5px solid var(--c-border);
   border-radius: var(--r-ctrl);
@@ -7329,7 +7330,7 @@ html.is-deck-dragging * {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 30px;
 }
 .np__save {
   flex: 1;
@@ -9879,6 +9880,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
 }
 .year-select:focus { border-color: var(--c-accent); background-color: var(--c-card-solid); }
-.np__label { display: block; margin: 16px 0 8px; font-size: 14px; font-weight: 600; color: var(--c-text); }
-.np__check { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; font-size: 14px; line-height: 1.45; color: var(--c-sub); cursor: pointer; }
+.np__label { display: block; margin: 26px 0 10px; font-size: 14px; font-weight: 600; color: var(--c-text); }
+.np__check { display: flex; align-items: flex-start; gap: 10px; margin-top: 24px; font-size: 14px; line-height: 1.45; color: var(--c-sub); cursor: pointer; }
 .np__check input { flex: none; margin-top: 2px; width: 16px; height: 16px; accent-color: var(--c-accent); }
