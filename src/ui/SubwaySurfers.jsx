@@ -5,9 +5,9 @@ import { useOnline } from "../lib/online";
  * Subway Surfers beside the question (2026-10-20). An inside joke, hidden:
  * nothing in the app points to it.
  *
- * On a keyboard, the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) during a session; on
- * a phone, the question counter tapped five times in quick succession. The
- * same again, or the ×, puts it away. Remembered on this device only.
+ * During a session: on a keyboard, type "sub"; on a phone, tap the question
+ * counter three times quickly. The same again, or the ×, puts it away.
+ * Remembered on this device only. (It was the Konami code; too long.)
  *
  * The footage is the game's own: the official Subway Surfers channel's
  * vertical gameplay video, embedded with YouTube's player (no-cookie), muted
@@ -17,7 +17,8 @@ import { useOnline } from "../lib/online";
 const VIDEO = "QPW3XwBoQlw";
 const SRC = `https://www.youtube-nocookie.com/embed/${VIDEO}?autoplay=1&mute=1&loop=1&playlist=${VIDEO}&controls=0&playsinline=1&rel=0&modestbranding=1&disablekb=1&iv_load_policy=3`;
 const KEY = "resurface_subway";
-const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
+/* Letters do nothing else in a session, so typing this has no side effect. */
+const CODE = ["s", "u", "b"];
 
 function read() { try { return localStorage.getItem(KEY) === "1"; } catch { return false; } }
 function write(on) { try { if (on) localStorage.setItem(KEY, "1"); else localStorage.removeItem(KEY); } catch { /* storage off */ } }
@@ -33,25 +34,25 @@ export function useSubway() {
     const onKey = e => {
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, [contenteditable=true]")) return;
       const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-      if (k === KONAMI[at]) {
+      if (k === CODE[at]) {
         at += 1;
-        if (at === KONAMI.length) { at = 0; toggle(); }
+        if (at === CODE.length) { at = 0; toggle(); }
       } else {
-        at = k === KONAMI[0] ? 1 : 0;
+        at = k === CODE[0] ? 1 : 0;
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [toggle]);
 
-  /* Five taps, each within 600ms of the last. */
+  /* Three taps, each within 500ms of the last. */
   const taps = useRef({ n: 0, t: 0 });
   const tap = () => {
     const now = Date.now();
     const r = taps.current;
-    r.n = now - r.t < 600 ? r.n + 1 : 1;
+    r.n = now - r.t < 500 ? r.n + 1 : 1;
     r.t = now;
-    if (r.n >= 5) { r.n = 0; toggle(); }
+    if (r.n >= 3) { r.n = 0; toggle(); }
   };
 
   return { on, tap, close: () => { write(false); setOn(false); } };
