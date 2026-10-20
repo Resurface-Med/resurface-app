@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ago, dayLabel, wrongIds, waitingMistakes } from "../lib/pastSessions";
+import { ago, dayLabel, wrongIds, waitingMistakes, sessionLabel } from "../lib/pastSessions";
 
 /**
  * Past sessions (2026-10-20), after PassMedicine's previous-sessions page,
@@ -39,7 +39,15 @@ const result = s => {
   return s.finished ? `${s.correct} of ${s.total} right · ${pct}%` : `${s.answered} of ${s.total} answered`;
 };
 
-function History({ sessions, liveIds, waiting, onOpen, onFix, onDetail }) {
+/* Named from the questions as they are now, so a label saved by an older
+   version (or before a deck was renamed) reads right; the saved one when
+   none of its questions are left. */
+function nameOf(s, byId) {
+  const qs = (s.items ?? []).map(it => byId.get(it.id)).filter(Boolean);
+  return qs.length ? sessionLabel(qs) : s.label || "Practice";
+}
+
+function History({ sessions, liveIds, byId, waiting, onOpen, onFix, onDetail }) {
   /* A slightly heavier rule where a new day starts. */
   const dayStart = sessions.map((s, i) => i === 0 || dayLabel(s.updated_at) !== dayLabel(sessions[i - 1].updated_at));
   return (
@@ -65,7 +73,7 @@ function History({ sessions, liveIds, waiting, onOpen, onFix, onDetail }) {
           return (
             <div key={s.id} className={`pss-tr${dayStart[i] && i > 0 ? " is-day-start" : ""}`} role="row">
               <span className="pss-session" role="cell">
-                <span className="pss-name">{s.label || "Practice"}</span>
+                <span className="pss-name">{nameOf(s, byId)}</span>
                 <span className="pss-count">{s.total} question{s.total === 1 ? "" : "s"}</span>
               </span>
               <span className="pss-result" role="cell">
@@ -94,9 +102,8 @@ function History({ sessions, liveIds, waiting, onOpen, onFix, onDetail }) {
 
 const FILTERS = [["all", "All"], ["wrong", "Wrong"], ["right", "Right"]];
 
-function Detail({ s, questions, onBack, onOpen }) {
+function Detail({ s, byId, onBack, onOpen }) {
   const [filter, setFilter] = useState("all");
-  const byId = useMemo(() => new Map(questions.map(q => [q.id, q])), [questions]);
   const rows = (s.items ?? []).map((it, i) => {
     const q = byId.get(it.id);
     const state = it.pick == null ? (s.finished ? "wrong" : "open") : it.ok ? "right" : "wrong";
@@ -111,7 +118,7 @@ function Detail({ s, questions, onBack, onOpen }) {
     <div className="pss-detail">
       <aside className="pss-side">
         <button type="button" className="gen-link pss-back" onClick={onBack}>← All sessions</button>
-        <h2 className="pss-title" id="pss-title">{s.label || "Practice"}</h2>
+        <h2 className="pss-title" id="pss-title">{nameOf(s, byId)}</h2>
         <p className="pss-sub">{dayLabel(s.updated_at)} · {ago(s.updated_at)}</p>
         <p className="pss-score">
           {s.finished
@@ -161,6 +168,7 @@ export default function PastSessions({ sessions, srCards = {}, liveIds = null, q
   }, [onClose, detail]);
   const waiting = useMemo(() => waitingMistakes(sessions, srCards, liveIds), [sessions, srCards, liveIds]);
   const open = detail ? sessions.find(s => s.id === detail) : null;
+  const byId = useMemo(() => new Map(questions.map(q => [q.id, q])), [questions]);
 
   return createPortal(
     <div className="np-scrim pss-scrim" role="presentation" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -170,8 +178,8 @@ export default function PastSessions({ sessions, srCards = {}, liveIds = null, q
         </button>
         <div className="pss-body" key={open ? open.id : "list"}>
           {open
-            ? <Detail s={open} questions={questions} onBack={() => setDetail(null)} onOpen={onOpen} />
-            : <History sessions={sessions} liveIds={liveIds} waiting={waiting} onOpen={onOpen} onFix={onFix} onDetail={s => setDetail(s.id)} />}
+            ? <Detail s={open} byId={byId} onBack={() => setDetail(null)} onOpen={onOpen} />
+            : <History sessions={sessions} liveIds={liveIds} byId={byId} waiting={waiting} onOpen={onOpen} onFix={onFix} onDetail={s => setDetail(s.id)} />}
         </div>
       </div>
     </div>,
