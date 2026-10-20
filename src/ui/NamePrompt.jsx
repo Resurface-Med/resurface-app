@@ -49,15 +49,19 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
   return (
     <div className="np-scrim" role="presentation">
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="np-title">
-        <h2 className="np__title" id="np-title">What should we call you?</h2>
+        <h2 className="np__title" id="np-title">Welcome to Resurface</h2>
+
+        {/* Both questions as labels of one size, under a title that is
+            neither (Rafil, 2026-10-20). */}
+        <label className="np__label is-first" htmlFor="np-name">What should we call you?</label>
 
         <input
           ref={ref}
-          className="np__field"
+          id="np-name"
+          className="np__field is-labelled"
           value={name}
           onChange={e => { setName(e.target.value); setNameErr(""); }}
           maxLength={32}
-          aria-label="Your name"
           placeholder="Your name"
         />
 

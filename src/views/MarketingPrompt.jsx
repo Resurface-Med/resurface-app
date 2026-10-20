@@ -34,16 +34,20 @@ export default function MarketingPrompt({ googleName, onContinue }) {
   return (
     <div className="np-scrim" role="presentation">
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="mp-title">
-        <h2 className="np__title" id="mp-title">What should we call you?</h2>
+        <h2 className="np__title" id="mp-title">Welcome to Resurface</h2>
+
+        {/* Both questions as labels of one size, under a title that is
+            neither (Rafil, 2026-10-20). */}
+        <label className="np__label is-first" htmlFor="mp-name">What should we call you?</label>
 
         <input
           ref={ref}
-          className="np__field"
+          id="mp-name"
+          className="np__field is-labelled"
           value={name}
           onChange={e => { setName(e.target.value); setNameErr(""); }}
           maxLength={32}
           autoComplete="nickname"
-          aria-label="Your name"
           placeholder="Your name"
         />
         <p className="np__hint">This is the name on the leaderboard. You can change it any time in your profile.</p>
