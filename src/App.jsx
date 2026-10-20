@@ -47,6 +47,7 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
+import { YearPrompt } from "./ui/YearSelect";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -146,6 +147,9 @@ export default function App() {
   const [nameChosen, setNameChosen] = useState(true);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  /* Year of study (migration 0031). Undefined until known — an offline copy
+     from before it existed must not read as "never asked". */
+  const [studyYear, setStudyYear] = useState(undefined);
   const [avatarV, setAvatarV] = useState(null);
   /* Announcements (ui/Announcements): the list, when you last looked, and
      — while the panel is open — what counted as new when you opened it. */
@@ -274,6 +278,7 @@ export default function App() {
     setNameChosen(d.nameChosen !== false);
     setShowOnLeaderboard(d.showOnLeaderboard !== false);
     setMarketingOptIn(d.marketingOptIn);
+    setStudyYear(d.studyYear);
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
@@ -438,7 +443,7 @@ export default function App() {
   const snapshotRef = useRef(null);
   snapshotRef.current = () => ({
     pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
-    announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn,
+    announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear,
     showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
     decks: decksRef.current, featured: featuredRef.current,
@@ -457,7 +462,7 @@ export default function App() {
     saveSoon();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
-    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, generated, decks, featured]);
+    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, generated, decks, featured]);
   useEffect(() => {
     if (!user?.id) return;
     const off = onWrite(() => saveSoon(1200));
@@ -1125,16 +1130,23 @@ export default function App() {
     {!nameChosen && (
       <NamePrompt
         suggestion={displayName}
-        onSave={name => {
+        onSave={(name, year) => {
           setDisplayName(name);
           setNameChosen(true);
-          remote.profile(user.id, { displayName: name, nameChosen: true });
+          if (year !== null) setStudyYear(year);
+          remote.profile(user.id, { displayName: name, nameChosen: true, ...(year !== null ? { studyYear: year } : {}) });
         }}
-        onSkip={() => {
+        onSkip={year => {
           setNameChosen(true);
-          remote.profile(user.id, { nameChosen: true });
+          if (year !== null) setStudyYear(year);
+          remote.profile(user.id, { nameChosen: true, ...(year !== null ? { studyYear: year } : {}) });
         }}
       />
+    )}
+    {/* The year, once, for anyone not asked it in a pop-up above — accounts
+        from before the question, and anyone who left it unchosen there. */}
+    {studyYear === null && nameChosen && !(isGoogleUser(user) && marketingOptIn === null) && !practiceSessionActive && (
+      <YearPrompt onAnswer={y => { setStudyYear(y); remote.profile(user.id, { studyYear: y }); }} />
     )}
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
@@ -1145,8 +1157,10 @@ export default function App() {
       {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
         <MarketingPrompt
           googleName={displayName || googleName(user)}
-          onContinue={({ displayName: nextName, marketingOptIn: emails }) => {
+          onContinue={({ displayName: nextName, marketingOptIn: emails, studyYear: year }) => {
+            if (year !== null) setStudyYear(year);
             remote.profile(user.id, {
+              ...(year !== null ? { studyYear: year } : {}),
               marketingOptIn: emails,
               ...(nextName ? { displayName: nextName } : {}),
             });
@@ -1262,6 +1276,7 @@ export default function App() {
               showOnLeaderboard={showOnLeaderboard}
               marketingOptIn={marketingOptIn}
               dailyGoal={dailyGoal}
+              studyYear={studyYear}
               theme={theme}
               onThemeChange={setTheme}
               onProfileChange={p => {
@@ -1269,6 +1284,7 @@ export default function App() {
                 if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);
                 if (p.marketingOptIn !== undefined) setMarketingOptIn(p.marketingOptIn);
                 if (p.dailyGoal !== undefined) setDailyGoal(p.dailyGoal);
+                if (p.studyYear !== undefined) setStudyYear(p.studyYear);
               }}
               onResetProgress={() => {
                 remote.clearPractice(user.id);

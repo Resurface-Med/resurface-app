@@ -8,6 +8,7 @@ import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
 import Avatar from "../ui/Avatar";
 import { avatarSrc, ownAvatar, uploadAvatar, removeAvatar } from "../lib/avatar";
+import YearSelect from "../ui/YearSelect";
 import { isOnline } from "../lib/online";
 
 /* Photos, passwords and deleting the account go straight to the server;
@@ -36,7 +37,7 @@ function authProviders(user) {
 }
 
 export default function ProfileView({
-  userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal,
+  userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal, studyYear = null,
   onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
   avatarV = null, onAvatarChange,
 }) {
@@ -321,7 +322,17 @@ export default function ProfileView({
 
           <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
             <h2 style={sectionH}>Study</h2>
-            <p style={{ ...meta, marginTop: 4 }}>Your daily target.</p>
+            <p style={{ ...meta, marginTop: 4 }}>Your year, and your daily target.</p>
+
+            {/* Saves on choosing (migration 0031). */}
+            <label className="profile-field" style={{ marginTop: 14 }}>
+              <span className="profile-label">Year</span>
+              <YearSelect value={studyYear} onChange={y => {
+                if (y === null) return;
+                remote.profile(userId, { studyYear: y });
+                onProfileChange?.({ studyYear: y });
+              }} />
+            </label>
 
             <form onSubmit={saveGoal} className="profile-stack">
               <label className="profile-field">

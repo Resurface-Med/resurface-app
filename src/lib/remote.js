@@ -138,6 +138,7 @@ function apply(op) {
         ...(op.marketingOptIn !== undefined ? { marketing_opt_in: op.marketingOptIn } : {}),
         ...(op.showAllOptions !== undefined ? { show_all_options: op.showAllOptions } : {}),
         ...(op.introSeen !== undefined ? { intro_seen: op.introSeen } : {}),
+        ...(op.studyYear !== undefined ? { study_year: op.studyYear } : {}),
         updated_at: new Date().toISOString(),
       }).eq("id", op.userId);
     case "flag":
@@ -364,6 +365,8 @@ export async function loadAll(userId) {
     marketingOptIn: profile.data?.marketing_opt_in ?? null,
     showAllOptions: profile.data?.show_all_options === true,
     introSeen: profile.data?.intro_seen === true,
+    /* Year of study (migration 0031): 1–5, 0 something else, null not asked. */
+    studyYear: profile.data?.study_year ?? null,
     // gen marks these as one person's own questions. Their ids come from this
     // table's serial and so overlap the bank's, which matters for anything
     // keyed on question_id — flags are cohort-wide, these are not.
@@ -611,6 +614,7 @@ export const remote = {
     marketingOptIn: patch.marketingOptIn,
     showAllOptions: patch.showAllOptions,
     introSeen: patch.introSeen,
+    studyYear: patch.studyYear,
   }),
   questionEdit: (userId, questionId, payload) => send({ kind: "question-edit", userId, questionId, payload }),
   flag:       (userId, questionId, reason, note) => send({ kind: "flag", userId, questionId, reason, note }),

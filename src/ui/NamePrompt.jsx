@@ -1,5 +1,6 @@
 import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useEffect, useRef, useState } from "react";
+import YearSelect from "./YearSelect";
 
 /**
  * What should we call you?
@@ -20,15 +21,18 @@ import { useEffect, useRef, useState } from "react";
  * it for good; Profile is where it gets changed afterwards, by anyone who
  * cares, at a moment of their choosing.
  */
+/* With the year of study too (2026-10-20): onSave(name, year) and
+   onSkip(year), year being null if it was left unchosen. */
 export default function NamePrompt({ suggestion, onSave, onSkip }) {
   const [name, setName] = useState(suggestion || "");
+  const [year, setYear] = useState(null);
   const [busy, setBusy] = useState(false);
   const [nameErr, setNameErr] = useState("");
   const ref = useRef(null);
 
   useEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);
   useEffect(() => {
-    const onKey = e => { if (e.key === "Escape") onSkip(); };
+    const onKey = e => { if (e.key === "Escape") onSkip(null); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onSkip]);
@@ -39,7 +43,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
     if (trimmed.length < 2) return;
     if (isInappropriate(trimmed)) { setNameErr(NAME_NOT_ALLOWED); return; }
     setBusy(true);
-    onSave(trimmed);
+    onSave(trimmed, year);
   }
 
   return (
@@ -61,11 +65,14 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
         />
 
         {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
+
+        <label className="np__label" htmlFor="np-year">Which year are you in?</label>
+        <YearSelect id="np-year" value={year} onChange={setYear} />
         <div className="np__row">
           <button type="submit" className="np__save btn-press" disabled={busy || name.trim().length < 2}>
             {busy ? "Saving…" : "That's me"}
           </button>
-          <button type="button" className="np__skip" onClick={onSkip} disabled={busy}>
+          <button type="button" className="np__skip" onClick={() => onSkip(year)} disabled={busy}>
             Not now
           </button>
         </div>

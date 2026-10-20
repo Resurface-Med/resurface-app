@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { primaryBtn } from "../ui/theme";
 import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
+import YearSelect from "../ui/YearSelect";
 
 /** One-time ask after Google sign-in. Email signup already collected this. */
 export default function MarketingPrompt({ googleName, onContinue }) {
   const [name, setName] = useState("");
   const [emails, setEmails] = useState(false);
+  const [year, setYear] = useState(null);
   const [nameErr, setNameErr] = useState("");
 
   function submit(e) {
@@ -15,6 +17,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
     onContinue({
       displayName: trimmed.length >= 2 ? trimmed : undefined,
       marketingOptIn: emails,
+      studyYear: year,
     });
   }
 
@@ -37,6 +40,10 @@ export default function MarketingPrompt({ googleName, onContinue }) {
             onChange={e => { setName(e.target.value); setNameErr(""); }}
           />
           {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
+        </div>
+        <div className="mail-prompt__block">
+          <label className="mail-prompt__field" htmlFor="google-year">Which year are you in?</label>
+          <YearSelect id="google-year" value={year} onChange={setYear} />
         </div>
         <label className="auth-consent">
           <input

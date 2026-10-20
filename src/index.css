@@ -1806,7 +1806,7 @@ select {
 .mail-prompt__title {
   margin: 0 0 2px;
   font-size: 21px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.3px;
   color: var(--c-text);
 }
@@ -7063,7 +7063,7 @@ html.is-deck-dragging * {
 .chart-panel__title {
   margin: 0;
   font-size: 19px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.35px;
   color: var(--c-text);
 }
@@ -7149,7 +7149,7 @@ html.is-deck-dragging * {
 }
 .adm-strip strong {
   font-size: 17px;
-  font-weight: 650;
+  font-weight: 600;
   color: var(--c-text);
   font-variant-numeric: tabular-nums;
   margin-right: 3px;
@@ -7206,7 +7206,7 @@ html.is-deck-dragging * {
 .adm-panel__title {
   margin: 0;
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.25px;
   color: var(--c-text);
 }
@@ -7243,7 +7243,7 @@ html.is-deck-dragging * {
 }
 .adm-card__value {
   font-size: 30px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -1px;
   line-height: 1.1;
   color: var(--c-text);
@@ -7371,7 +7371,7 @@ html.is-deck-dragging * {
 .np__title {
   margin: 0;
   font-size: 21px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.5px;
   color: var(--c-text);
 }
@@ -7554,7 +7554,7 @@ html.is-deck-dragging * {
   cursor: pointer;
 }
 .dd-crumb:hover { background: var(--c-surface2); }
-.dd-crumb:disabled { color: var(--c-text); font-weight: 650; cursor: default; background: none; }
+.dd-crumb:disabled { color: var(--c-text); font-weight: 600; cursor: default; background: none; }
 .dd-crumb-sep { color: var(--c-muted); font-size: 14px; }
 
 .dd-list {
@@ -7830,7 +7830,7 @@ html.is-deck-dragging * {
 .gen-count-value {
   flex: none;
   font-size: 20px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.4px;
   line-height: 1;
   color: var(--c-accent);
@@ -7937,7 +7937,7 @@ html.is-deck-dragging * {
 .shr-title {
   margin: 0;
   font-size: 18px;
-  font-weight: 650;
+  font-weight: 600;
   letter-spacing: -0.35px;
   color: var(--c-text);
 }
@@ -8749,7 +8749,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .qm-head { flex: none; padding: 22px 24px 14px; border-bottom: 1px solid var(--c-border); }
 .qm-title-row { display: flex; align-items: flex-start; gap: 12px; }
 .qm-titles { flex: 1; min-width: 0; }
-.qm-title { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -0.5px; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qm-title { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qm-sub { margin: 2px 0 0; font-size: 13.5px; color: var(--c-muted); }
 .qm-x { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--c-surface2); color: var(--c-sub); cursor: pointer; }
 .qm-x:hover { color: var(--c-text); }
@@ -8954,7 +8954,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   padding: 6px 8px; margin: 0;
   border: 1.5px solid transparent; border-radius: 10px;
   background: var(--c-accent-dim);
-  font: inherit; font-size: clamp(17px, 1.7vw, 20px); font-weight: 650;
+  font: inherit; font-size: clamp(17px, 1.7vw, 20px); font-weight: 600;
   letter-spacing: -0.4px; line-height: 1;
   color: var(--c-accent); text-align: center;
   font-variant-numeric: tabular-nums;
@@ -9197,7 +9197,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 .adm-body { margin-top: clamp(24px, 3.4vh, 34px); }
 .adm-head { margin-bottom: 22px; }
-.adm-head__title { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -0.5px; color: var(--c-text); }
+.adm-head__title { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; color: var(--c-text); }
 .adm-head__desc { margin: 6px 0 0; font-size: 15px; line-height: 1.5; color: var(--c-sub); }
 
 /* Sections sit on the sheet; only the overview's cards and chart keep an
@@ -9211,7 +9211,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .adm-stat { display: flex; flex-direction: column-reverse; gap: 4px; margin: 0; }
 .adm-stat__value {
-  margin: 0; font-size: 32px; font-weight: 650; letter-spacing: -1px; line-height: 1.1;
+  margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -1px; line-height: 1.1;
   color: var(--c-text); font-variant-numeric: tabular-nums;
 }
 .adm-stat__label { font-size: 14.5px; font-weight: 500; color: var(--c-sub); line-height: 1.35; }
@@ -9222,7 +9222,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .adm-toolbar__label { font-size: 14.5px; font-weight: 600; color: var(--c-sub); }
 .adm-toolbar__count { font-size: 15.5px; color: var(--c-sub); }
-.adm-toolbar__count strong { color: var(--c-text); font-weight: 650; }
+.adm-toolbar__count strong { color: var(--c-text); font-weight: 600; }
 .adm-action {
   margin-left: auto;
   padding: 10px 18px; border: 0; border-radius: 999px;
@@ -9268,7 +9268,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .adm-card__total { font-size: 13.5px; }
 .adm-grid .adm-panel { padding: clamp(18px, 2vw, 24px); }
 .adm-panel__head { margin-bottom: 16px; align-items: center; }
-.adm-panel__title { font-size: 17px; font-weight: 650; letter-spacing: -0.3px; }
+.adm-panel__title { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
 .adm-panel__head .adm-seg { margin-left: auto; }
 .adm-list li { font-size: 15px; padding: 12px 0; }
 .adm-list__meta, .adm-list__when { font-size: 13.5px; }
@@ -9357,7 +9357,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .adm-allow__label { font-size: 15px; font-weight: 600; color: var(--c-sub); }
 .adm-allow__n { font-size: 17px; color: var(--c-sub); }
-.adm-allow__n strong { font-size: 44px; font-weight: 650; letter-spacing: -1.5px; color: var(--c-text); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.adm-allow__n strong { font-size: 44px; font-weight: 600; letter-spacing: -1.5px; color: var(--c-text); font-variant-numeric: tabular-nums; margin-right: 4px; }
 .adm-allow .adm-meter { height: 10px; margin: 4px 0 2px; }
 .adm-allow__sub { font-size: 14px; color: var(--c-muted); }
 @media (max-width: 640px) {
@@ -9602,7 +9602,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-tag.is-news { background: var(--c-orange-dim); color: var(--c-orange); }
 .ann-new { padding: 3px 10px; border-radius: 999px; background: var(--c-accent); color: #fff; font-size: 12px; font-weight: 600; }
 .ann-post__del { margin-left: auto; border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-danger); cursor: pointer; }
-.ann-post__title { margin: 10px 0 0; font-size: 19px; font-weight: 650; letter-spacing: -0.4px; line-height: 1.3; color: var(--c-text); }
+.ann-post__title { margin: 10px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -0.4px; line-height: 1.3; color: var(--c-text); }
 .ann-post.is-lead .ann-post__title { font-size: clamp(22px, 2.4vw, 28px); letter-spacing: -0.7px; }
 .ann-rich { margin-top: 10px; font-size: 15.5px; line-height: 1.65; color: var(--c-sub); }
 .ann-post.is-lead .ann-rich { font-size: 16.5px; }
@@ -9939,3 +9939,17 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   padding: 0 1px;
   margin: 0 -1px;
 }
+
+/* Year of study (ui/YearSelect): a native select, dressed as the fields
+   beside it, with a chevron of its own. */
+.year-select {
+  width: 100%; box-sizing: border-box;
+  padding: 13px 40px 13px 16px;
+  font: inherit; font-size: 15.5px; color: var(--c-text);
+  background: var(--c-surface3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%237d8aa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;
+  border: 1.5px solid var(--c-border); border-radius: var(--r-ctrl);
+  appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
+}
+.year-select:focus { border-color: var(--c-accent); box-shadow: 0 0 0 3px var(--c-accent-glow); }
+.year-select:invalid, .year-select option[value=""] { color: var(--c-muted); }
+.np__label { display: block; margin: 16px 0 8px; font-size: 14px; font-weight: 600; color: var(--c-text); }
