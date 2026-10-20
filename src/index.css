@@ -9854,6 +9854,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   background-clip: border-box;
   color: #1e2433;
 }
+/* The margin: a red rule down the left, the text starting clear of it. */
+.ruled::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: var(--margin, 40px);
+  width: 1.5px; background: rgba(226, 84, 84, 0.45); pointer-events: none;
+}
 
 /* Home: the paper on the page itself, no tile. */
 .note-tile {
@@ -9861,7 +9866,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .note-tile__cue { color: var(--c-accent); }
 .note-tile:hover .note-tile__cue { color: var(--c-accent-lt, var(--c-accent)); text-decoration: underline; text-underline-offset: 3px; }
-.note-paper.ruled { --lh: 13px; --rule: rgba(53, 98, 245, 0.09); width: min(300px, 100%); padding: 13px 16px 13px;
+.note-paper.ruled { --lh: 13px; --rule: rgba(53, 98, 245, 0.09); --margin: 18px; width: min(300px, 100%); padding: 13px 16px 13px 27px;
   box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.06), 0 14px 32px -14px rgba(15, 27, 61, 0.35); }
 .note-tile:hover .note-paper.ruled { box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.06), 0 22px 40px -14px rgba(15, 27, 61, 0.4); }
 .note-paper.ruled .note-paper__title { margin: 0 0 var(--lh); font-size: 12.5px; line-height: var(--lh); }
@@ -9873,8 +9878,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 /* Full screen: the paper on the blue, the note in ink. */
 .wr__note.ruled {
-  --lh: 26px; width: min(640px, 100%);
-  padding: calc(var(--lh) * 1.5) clamp(26px, 5vw, 52px) var(--lh);
+  --lh: 26px; --margin: 54px; width: min(640px, 100%);
+  padding: calc(var(--lh) * 1.5) clamp(26px, 5vw, 52px) var(--lh) 78px;
   border-radius: 6px;
   box-shadow: 0 2px 4px rgba(10, 20, 60, 0.15), 0 40px 80px -30px rgba(10, 20, 60, 0.6);
 }
@@ -9890,7 +9895,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .wr__note.ruled .wr__later { color: #5b6478; }
 .wr__note.ruled .wr__later:hover { color: #12182a; }
 @media (max-width: 600px) {
-  .wr__note.ruled { --lh: 26px; padding: var(--lh) 20px var(--lh); }
+  .wr__note.ruled { --lh: 26px; --margin: 30px; padding: var(--lh) 20px var(--lh) 44px; }
   .wr__note.ruled .wr__body { font-size: 15px; }
   .wr__note.ruled .wr__title { font-size: 26px; line-height: calc(var(--lh) * 1); margin-bottom: var(--lh); }
 }
