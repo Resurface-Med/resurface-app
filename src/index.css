@@ -9930,3 +9930,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* Not on phones (Rafil, 2026-10-20): there is no margin to put it in. */
 @media (max-width: 900px) { .subway-strip { display: none; } }
 @media (prefers-reduced-motion: reduce) { .subway { animation: none; } }
+
+/* Deck search: the matched text in a deck's name (ui/DeckTree Marked). */
+.deck-hit {
+  background: color-mix(in srgb, var(--c-accent) 18%, transparent);
+  color: inherit;
+  border-radius: 4px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}

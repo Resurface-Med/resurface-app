@@ -130,6 +130,24 @@ function RowMenu({ node, items, renderPicker }) {
   );
 }
 
+/* A name with the searched-for text marked (2026-10-20): search keeps the
+   decks above a match for context, and this is what says which row is the
+   match, and where in it. Every occurrence, ignoring case. */
+function Marked({ text, q }) {
+  if (!q) return text;
+  const lower = text.toLowerCase();
+  const out = [];
+  let i = 0;
+  for (let at = lower.indexOf(q); at !== -1; at = lower.indexOf(q, i)) {
+    if (at > i) out.push(text.slice(i, at));
+    out.push(<mark key={at} className="deck-hit">{text.slice(at, at + q.length)}</mark>);
+    i = at + q.length;
+  }
+  if (!out.length) return text;
+  if (i < text.length) out.push(text.slice(i));
+  return out;
+}
+
 /** Prune to rows matching the query, keeping the ancestors above a match. */
 export function prune(nodes, q) {
   return nodes.flatMap(n => {
@@ -441,7 +459,7 @@ export default function DeckTree({
             onKeyDown={e => onRowKey(e, n)}
           >
             <Check state={st} />
-            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}{n.byline && <span className="topic-by">by {n.byline}</span>}</span>
+            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}><Marked text={n.name} q={q} />{n.byline && <span className="topic-by">by {n.byline}</span>}</span>
             {depth === 0
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
               : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
