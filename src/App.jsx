@@ -938,6 +938,14 @@ export default function App() {
       });
       if (!leave) return;
     }
+    /* Study from the sidebar is always every question. A review started
+       from Home sets the scope to Due, and it used to stay that way: the
+       next visit to Study counted only due questions, with nothing on the
+       deck list saying so. */
+    if (newView === V.STUDY && view !== V.STUDY) {
+      setStudyScope("all");
+      setAutoStart(false);
+    }
     go(newView);
   }
 

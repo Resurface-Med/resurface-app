@@ -612,7 +612,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           newSid();
           setQueue(qs); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
         }}
-        onChangeSettings={() => { setResults({}); setStep("topic"); }}
+        onChangeSettings={() => { setResults({}); setStep("topic"); setScope("all"); }}
       />
     );
   }
@@ -876,6 +876,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             editPersist={(updated, q) => persistFor(q)?.(updated)} onClose={() => setManaging(null)} />
         : <QuestionManager deckId={managing} decks={decks} pStats={pStats} actions={deckActions} onClose={() => setManaging(null)} />
     );
+    /* The deck list counted only Due questions after Home's "Review" with
+       nothing on screen saying so — Jacob's deck read 11 questions (Rafil,
+       2026-10-20). Whenever the list is narrowed, it says so here, with
+       the way back to everything. */
+    const scopeNote = scope !== "all" ? (
+      <button type="button" className="gen-link" onClick={() => setScope("all")}>
+        {({ due: "Due", wrong: "Wrong", saved: "Saved" })[scope] ?? scope} only · show all
+      </button>
+    ) : null;
     /* Past sessions: a link beside New deck once there are any, opening a
        sheet — not a page of its own (Rafil, 2026-10-20). */
     const pastLink = sessions.length > 0 ? (
@@ -946,6 +955,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                           ? <button type="button" className="gen-link" onClick={() => setActiveRootId(null)}>← All decks</button>
                           : <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>＋ New deck</button>}
                         {pastLink}
+                        {scopeNote}
                       </span>
                     </div>
                   )}
@@ -1103,6 +1113,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       </button>
                     )}
                     {pastLink}
+                    {scopeNote}
                   </span>
                 </div>
               )}
