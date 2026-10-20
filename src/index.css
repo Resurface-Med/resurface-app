@@ -9933,3 +9933,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   transition: background 0.15s ease;
 }
 .wr__x:hover { background: rgba(255, 255, 255, 0.28); }
+/* The reveal's step numbers, picked out (2026-10-20): the round blue
+   badges the numbers have on Home and in What's new. */
+.wr__note.ruled .wr__body li { padding-left: 2.3em; }
+.wr__note.ruled .wr-mark {
+  top: calc((var(--lh) - 22px) / 2);
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-accent); color: #fff;
+  font-size: 12.5px; font-weight: 600; line-height: 1;
+  box-shadow: 0 3px 8px -3px rgba(53, 98, 245, 0.6);
+}

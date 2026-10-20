@@ -136,7 +136,7 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
               return <span className="wr-w wr-mark" aria-hidden="true" style={{ "--d": `${d}ms` }}>{m}</span>;
             };
             if (b.kind === "ul") return <ul key={k}>{b.items.map((it, j) => <li key={j}>{mark("•", it)}{w(it)}</li>)}</ul>;
-            if (b.kind === "ol") return <ol key={k} start={b.start}><li>{mark(`${b.start}.`, b.items[0])}{w(b.items[0])}</li></ol>;
+            if (b.kind === "ol") return <ol key={k} start={b.start}><li>{mark(`${b.start}`, b.items[0])}{w(b.items[0])}</li></ol>;
             return <p key={k}>{b.lines.map((l, j) => <span key={j}>{j > 0 && <br />}{w(l)}</span>)}</p>;
           })}
         </div>
