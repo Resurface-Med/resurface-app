@@ -137,6 +137,7 @@ function apply(op) {
         ...(op.showOnLeaderboard !== undefined ? { show_on_leaderboard: op.showOnLeaderboard } : {}),
         ...(op.marketingOptIn !== undefined ? { marketing_opt_in: op.marketingOptIn } : {}),
         ...(op.showAllOptions !== undefined ? { show_all_options: op.showAllOptions } : {}),
+        ...(op.hideRanges !== undefined ? { hide_ranges: op.hideRanges } : {}),
         ...(op.introSeen !== undefined ? { intro_seen: op.introSeen } : {}),
         ...(op.studyYear !== undefined ? { study_year: op.studyYear } : {}),
         updated_at: new Date().toISOString(),
@@ -363,6 +364,7 @@ export async function loadAll(userId) {
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
     marketingOptIn: profile.data?.marketing_opt_in ?? null,
     showAllOptions: profile.data?.show_all_options === true,
+    hideRanges: profile.data?.hide_ranges === true,
     introSeen: profile.data?.intro_seen === true,
     /* Year of study (migration 0031): 1–5, 0 something else, null not asked. */
     studyYear: profile.data?.study_year ?? null,
@@ -622,6 +624,7 @@ export const remote = {
     showOnLeaderboard: patch.showOnLeaderboard,
     marketingOptIn: patch.marketingOptIn,
     showAllOptions: patch.showAllOptions,
+    hideRanges: patch.hideRanges,
     introSeen: patch.introSeen,
     studyYear: patch.studyYear,
   }),

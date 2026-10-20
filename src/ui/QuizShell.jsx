@@ -339,6 +339,7 @@ export default function QuizShell({
               aiOpen={aiOpen}
               onAiOpenChange={setAiOpen}
               onControlsChange={setControls}
+              onOpenLabs={() => setLabsOpen(true)}
             />
           </div>
           {showAi && (

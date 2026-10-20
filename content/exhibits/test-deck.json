@@ -2,193 +2,679 @@
   {
     "q": "A 71-year-old man with COPD is brought in with two days of worsening breathlessness and a productive cough. He is drowsy but rousable. An arterial blood gas is taken on air. Which best describes his acid–base status?",
     "exhibit": {
-      "kind": "labs", "title": "Arterial blood gas (on air)",
+      "kind": "labs",
+      "title": "Arterial blood gas (on air)",
       "rows": [
-        { "name": "pH", "value": "7.27", "range": "7.35 – 7.45" },
-        { "name": "PaO₂", "value": "7.1", "unit": "kPa", "range": "11 – 15" },
-        { "name": "PaCO₂", "value": "8.9", "unit": "kPa", "range": "4.6 – 6.4" },
-        { "name": "Bicarbonate", "value": "30", "unit": "mmol/L", "range": "22 – 30" },
-        { "name": "Base excess", "value": "+4", "unit": "mmol/L", "range": "−2 to +2" }
+        {
+          "name": "pH",
+          "value": "7.27",
+          "range": "7.35 – 7.45",
+          "key": true
+        },
+        {
+          "name": "PaO₂",
+          "value": "7.1",
+          "unit": "kPa",
+          "range": "11 – 15",
+          "key": true
+        },
+        {
+          "name": "PaCO₂",
+          "value": "8.9",
+          "unit": "kPa",
+          "range": "4.6 – 6.4",
+          "key": true
+        },
+        {
+          "name": "Bicarbonate",
+          "value": "30",
+          "unit": "mmol/L",
+          "range": "22 – 30",
+          "key": true
+        },
+        {
+          "name": "Base excess",
+          "value": "+4",
+          "unit": "mmol/L",
+          "range": "−2 to +2"
+        }
       ]
     },
-    "opts": ["Respiratory acidosis with partial metabolic compensation", "Metabolic acidosis with respiratory compensation", "Fully compensated respiratory acidosis", "Metabolic alkalosis with respiratory compensation", "Mixed respiratory and metabolic acidosis"],
+    "opts": [
+      "Respiratory acidosis with partial metabolic compensation",
+      "Metabolic acidosis with respiratory compensation",
+      "Fully compensated respiratory acidosis",
+      "Metabolic alkalosis with respiratory compensation",
+      "Mixed respiratory and metabolic acidosis"
+    ],
     "ans": 0,
     "exp": "The pH is low and the PaCO₂ is high, so the primary problem is a respiratory acidosis. The bicarbonate and base excess are raised: the kidneys are retaining bicarbonate to compensate, which takes days and fits chronic CO₂ retention in COPD. The pH is still below 7.35, so the compensation is partial. With a PaO₂ under 8 kPa and a raised PaCO₂ this is type 2 respiratory failure.",
-    "optExp": [null, "In a metabolic acidosis the bicarbonate is low and the PaCO₂ falls to compensate; here both are raised.", "Compensation is full only when the pH is back within 7.35–7.45. At 7.27 it is partial.", "The pH is acidaemic, which rules out a primary alkalosis.", "A metabolic acidosis would lower the bicarbonate. Here it is raised, which is compensation, not a second acidosis."]
+    "optExp": [
+      null,
+      "In a metabolic acidosis the bicarbonate is low and the PaCO₂ falls to compensate; here both are raised.",
+      "Compensation is full only when the pH is back within 7.35–7.45. At 7.27 it is partial.",
+      "The pH is acidaemic, which rules out a primary alkalosis.",
+      "A metabolic acidosis would lower the bicarbonate. Here it is raised, which is compensation, not a second acidosis."
+    ]
   },
   {
     "q": "A 19-year-old woman with type 1 diabetes presents with a day of vomiting and abdominal pain. She is breathing deeply and rapidly. Which best describes her acid–base disturbance?",
     "exhibit": {
-      "kind": "labs", "title": "Arterial blood gas and serum chemistry",
+      "kind": "labs",
+      "title": "Arterial blood gas and serum chemistry",
       "rows": [
-        { "name": "pH", "value": "7.12", "range": "7.35 – 7.45" },
-        { "name": "PaO₂", "value": "13.8", "unit": "kPa", "range": "11 – 15" },
-        { "name": "PaCO₂", "value": "2.6", "unit": "kPa", "range": "4.6 – 6.4" },
-        { "name": "Bicarbonate", "value": "6.3", "unit": "mmol/L", "range": "22 – 30" },
-        { "name": "Sodium", "value": "132", "unit": "mmol/L", "range": "135 – 145" },
-        { "name": "Potassium", "value": "5.6", "unit": "mmol/L", "range": "3.5 – 5.3" },
-        { "name": "Chloride", "value": "98", "unit": "mmol/L", "range": "95 – 106" },
-        { "name": "Glucose", "value": "28.4", "unit": "mmol/L", "range": "3.5 – 5.5" },
-        { "name": "Blood ketones", "value": "5.2", "unit": "mmol/L", "range": "< 0.6" }
+        {
+          "name": "pH",
+          "value": "7.12",
+          "range": "7.35 – 7.45",
+          "key": true
+        },
+        {
+          "name": "PaO₂",
+          "value": "13.8",
+          "unit": "kPa",
+          "range": "11 – 15"
+        },
+        {
+          "name": "PaCO₂",
+          "value": "2.6",
+          "unit": "kPa",
+          "range": "4.6 – 6.4",
+          "key": true
+        },
+        {
+          "name": "Bicarbonate",
+          "value": "6.3",
+          "unit": "mmol/L",
+          "range": "22 – 30",
+          "key": true
+        },
+        {
+          "name": "Sodium",
+          "value": "132",
+          "unit": "mmol/L",
+          "range": "135 – 145",
+          "key": true
+        },
+        {
+          "name": "Potassium",
+          "value": "5.6",
+          "unit": "mmol/L",
+          "range": "3.5 – 5.3"
+        },
+        {
+          "name": "Chloride",
+          "value": "98",
+          "unit": "mmol/L",
+          "range": "95 – 106",
+          "key": true
+        },
+        {
+          "name": "Glucose",
+          "value": "28.4",
+          "unit": "mmol/L",
+          "range": "3.5 – 5.5",
+          "key": true
+        },
+        {
+          "name": "Blood ketones",
+          "value": "5.2",
+          "unit": "mmol/L",
+          "range": "< 0.6",
+          "key": true
+        }
       ]
     },
-    "opts": ["High anion gap metabolic acidosis with respiratory compensation", "Normal anion gap metabolic acidosis", "Respiratory acidosis with metabolic compensation", "Mixed metabolic and respiratory acidosis", "Metabolic alkalosis"],
+    "opts": [
+      "High anion gap metabolic acidosis with respiratory compensation",
+      "Normal anion gap metabolic acidosis",
+      "Respiratory acidosis with metabolic compensation",
+      "Mixed metabolic and respiratory acidosis",
+      "Metabolic alkalosis"
+    ],
     "ans": 0,
     "exp": "The pH and bicarbonate are both low, so this is a metabolic acidosis. The anion gap is Na − (Cl + HCO₃) = 132 − (98 + 6.3) ≈ 28, well above the normal 8–16: unmeasured anions, here ketones, are present. The low PaCO₂ is the expected respiratory compensation (Kussmaul breathing). With glucose 28.4 and ketones 5.2 this is diabetic ketoacidosis.",
-    "optExp": [null, "A normal-gap acidosis comes from losing bicarbonate (diarrhoea, renal tubular acidosis). Here the gap is about 28.", "In a respiratory acidosis the PaCO₂ is high. Here it is low.", "A respiratory acidosis would need a raised PaCO₂. The low PaCO₂ is compensation for the metabolic acidosis.", "The pH is acidaemic and the bicarbonate low, the opposite of an alkalosis."]
+    "optExp": [
+      null,
+      "A normal-gap acidosis comes from losing bicarbonate (diarrhoea, renal tubular acidosis). Here the gap is about 28.",
+      "In a respiratory acidosis the PaCO₂ is high. Here it is low.",
+      "A respiratory acidosis would need a raised PaCO₂. The low PaCO₂ is compensation for the metabolic acidosis.",
+      "The pH is acidaemic and the bicarbonate low, the opposite of an alkalosis."
+    ]
   },
   {
     "q": "A 5-week-old boy has had four days of forceful, non-bilious vomiting straight after feeds. He seems hungry afterwards and is now mildly dehydrated. What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs", "title": "Capillary blood gas and serum chemistry",
+      "kind": "labs",
+      "title": "Capillary blood gas and serum chemistry",
       "rows": [
-        { "name": "pH", "value": "7.52", "range": "7.35 – 7.45" },
-        { "name": "pCO₂", "value": "6.1", "unit": "kPa", "range": "4.6 – 6.4" },
-        { "name": "Bicarbonate", "value": "37", "unit": "mmol/L", "range": "22 – 30" },
-        { "name": "Sodium", "value": "133", "unit": "mmol/L", "range": "135 – 145" },
-        { "name": "Potassium", "value": "2.9", "unit": "mmol/L", "range": "3.5 – 5.3" },
-        { "name": "Chloride", "value": "84", "unit": "mmol/L", "range": "95 – 106" }
+        {
+          "name": "pH",
+          "value": "7.52",
+          "range": "7.35 – 7.45",
+          "key": true
+        },
+        {
+          "name": "pCO₂",
+          "value": "6.1",
+          "unit": "kPa",
+          "range": "4.6 – 6.4"
+        },
+        {
+          "name": "Bicarbonate",
+          "value": "37",
+          "unit": "mmol/L",
+          "range": "22 – 30",
+          "key": true
+        },
+        {
+          "name": "Sodium",
+          "value": "133",
+          "unit": "mmol/L",
+          "range": "135 – 145"
+        },
+        {
+          "name": "Potassium",
+          "value": "2.9",
+          "unit": "mmol/L",
+          "range": "3.5 – 5.3",
+          "key": true
+        },
+        {
+          "name": "Chloride",
+          "value": "84",
+          "unit": "mmol/L",
+          "range": "95 – 106",
+          "key": true
+        }
       ]
     },
-    "opts": ["Pyloric stenosis", "Gastro-oesophageal reflux", "Malrotation with volvulus", "Salt-wasting congenital adrenal hyperplasia", "Viral gastroenteritis"],
+    "opts": [
+      "Pyloric stenosis",
+      "Gastro-oesophageal reflux",
+      "Malrotation with volvulus",
+      "Salt-wasting congenital adrenal hyperplasia",
+      "Viral gastroenteritis"
+    ],
     "ans": 0,
     "exp": "A hypochloraemic, hypokalaemic metabolic alkalosis is the classic picture of pyloric stenosis. Repeated vomiting of gastric acid loses hydrogen and chloride ions; the kidneys then conserve sodium at the cost of potassium. Projectile non-bilious vomiting in a hungry boy aged 2–8 weeks fits, and an ultrasound would confirm the thickened pylorus.",
-    "optExp": [null, "Reflux causes effortless posseting in a thriving baby, not projectile vomiting with a metabolic alkalosis.", "Volvulus causes bilious vomiting and is a surgical emergency; the vomit here is not bilious.", "Salt-wasting CAH causes hyponatraemia with hyperkalaemia and acidosis. Here the potassium is low and the gas alkalotic.", "Gastroenteritis brings diarrhoea, and stool losses tend towards acidosis rather than this alkalosis."]
+    "optExp": [
+      null,
+      "Reflux causes effortless posseting in a thriving baby, not projectile vomiting with a metabolic alkalosis.",
+      "Volvulus causes bilious vomiting and is a surgical emergency; the vomit here is not bilious.",
+      "Salt-wasting CAH causes hyponatraemia with hyperkalaemia and acidosis. Here the potassium is low and the gas alkalotic.",
+      "Gastroenteritis brings diarrhoea, and stool losses tend towards acidosis rather than this alkalosis."
+    ]
   },
   {
     "q": "A 23-year-old woman develops sudden breathlessness and tingling in her fingers and around her lips while waiting to sit an exam. Her chest is clear, her oxygen saturations are 100% on air and her Wells score is 0. She has taken no medication. What is the most likely cause?",
     "exhibit": {
-      "kind": "labs", "title": "Arterial blood gas (on air)",
+      "kind": "labs",
+      "title": "Arterial blood gas (on air)",
       "rows": [
-        { "name": "pH", "value": "7.52", "range": "7.35 – 7.45" },
-        { "name": "PaO₂", "value": "13.6", "unit": "kPa", "range": "11 – 15" },
-        { "name": "PaCO₂", "value": "3.4", "unit": "kPa", "range": "4.6 – 6.4" },
-        { "name": "Bicarbonate", "value": "21", "unit": "mmol/L", "range": "22 – 30" }
+        {
+          "name": "pH",
+          "value": "7.52",
+          "range": "7.35 – 7.45",
+          "key": true
+        },
+        {
+          "name": "PaO₂",
+          "value": "13.6",
+          "unit": "kPa",
+          "range": "11 – 15",
+          "key": true
+        },
+        {
+          "name": "PaCO₂",
+          "value": "3.4",
+          "unit": "kPa",
+          "range": "4.6 – 6.4",
+          "key": true
+        },
+        {
+          "name": "Bicarbonate",
+          "value": "21",
+          "unit": "mmol/L",
+          "range": "22 – 30"
+        }
       ]
     },
-    "opts": ["Hyperventilation due to anxiety", "Pulmonary embolism", "Acute asthma", "Diabetic ketoacidosis", "Salicylate overdose"],
+    "opts": [
+      "Hyperventilation due to anxiety",
+      "Pulmonary embolism",
+      "Acute asthma",
+      "Diabetic ketoacidosis",
+      "Salicylate overdose"
+    ],
     "ans": 0,
     "exp": "A raised pH with a low PaCO₂ is a respiratory alkalosis; the bicarbonate is only slightly low because renal compensation has not had time to happen. The PaO₂ is normal. In a young woman under acute stress with perioral and finger paraesthesia (from a fall in ionised calcium), anxiety-driven hyperventilation is the likely cause.",
-    "optExp": [null, "A PE also causes a respiratory alkalosis, but usually with a low PaO₂; a normal PaO₂, saturations of 100% and a Wells score of 0 make it unlikely.", "Acute asthma would bring wheeze, and a normal or rising PaCO₂ in a severe attack; her chest is clear.", "DKA causes a metabolic acidosis, not an alkalosis.", "Salicylates can cause an early respiratory alkalosis, but she has taken nothing, and a metabolic acidosis usually follows."]
+    "optExp": [
+      null,
+      "A PE also causes a respiratory alkalosis, but usually with a low PaO₂; a normal PaO₂, saturations of 100% and a Wells score of 0 make it unlikely.",
+      "Acute asthma would bring wheeze, and a normal or rising PaCO₂ in a severe attack; her chest is clear.",
+      "DKA causes a metabolic acidosis, not an alkalosis.",
+      "Salicylates can cause an early respiratory alkalosis, but she has taken nothing, and a metabolic acidosis usually follows."
+    ]
   },
   {
     "q": "A 78-year-old man on ramipril and spironolactone presents with three days of diarrhoea and generalised weakness. His ECG shows tall tented T waves and a broad QRS complex. What is the most appropriate immediate management?",
     "exhibit": {
-      "kind": "labs", "title": "Urea and electrolytes",
+      "kind": "labs",
+      "title": "Urea and electrolytes",
       "rows": [
-        { "name": "Sodium", "value": "137", "unit": "mmol/L", "range": "135 – 145" },
-        { "name": "Potassium", "value": "6.9", "unit": "mmol/L", "range": "3.5 – 5.3" },
-        { "name": "Chloride", "value": "104", "unit": "mmol/L", "range": "95 – 106" },
-        { "name": "Bicarbonate", "value": "17", "unit": "mmol/L", "range": "22 – 29" },
-        { "name": "Urea", "value": "31.2", "unit": "mmol/L", "range": "2.5 – 7.8" },
-        { "name": "Creatinine", "value": "486", "unit": "µmol/L", "range": "60 – 120" }
+        {
+          "name": "Sodium",
+          "value": "137",
+          "unit": "mmol/L",
+          "range": "135 – 145"
+        },
+        {
+          "name": "Potassium",
+          "value": "6.9",
+          "unit": "mmol/L",
+          "range": "3.5 – 5.3",
+          "key": true
+        },
+        {
+          "name": "Chloride",
+          "value": "104",
+          "unit": "mmol/L",
+          "range": "95 – 106"
+        },
+        {
+          "name": "Bicarbonate",
+          "value": "17",
+          "unit": "mmol/L",
+          "range": "22 – 29"
+        },
+        {
+          "name": "Urea",
+          "value": "31.2",
+          "unit": "mmol/L",
+          "range": "2.5 – 7.8",
+          "key": true
+        },
+        {
+          "name": "Creatinine",
+          "value": "486",
+          "unit": "µmol/L",
+          "range": "60 – 120",
+          "key": true
+        }
       ],
       "note": "Creatinine three months ago: 104 µmol/L."
     },
-    "opts": ["30 mL of 10% calcium gluconate intravenously", "Intravenous insulin with glucose", "Nebulised salbutamol", "Oral calcium resonium", "Urgent haemodialysis"],
+    "opts": [
+      "30 mL of 10% calcium gluconate intravenously",
+      "Intravenous insulin with glucose",
+      "Nebulised salbutamol",
+      "Oral calcium resonium",
+      "Urgent haemodialysis"
+    ],
     "ans": 0,
     "exp": "Potassium of 6.9 with ECG changes is a life-threatening hyperkalaemia. The first step is to protect the heart: intravenous calcium gluconate stabilises the myocardial membrane within minutes, though it does not lower the potassium. Insulin with glucose then shifts potassium into cells. The cause here is an acute kidney injury from diarrhoea, worsened by an ACE inhibitor and a potassium-sparing diuretic, which should be stopped.",
-    "optExp": [null, "Insulin–glucose lowers the potassium and is given next, but with ECG changes the myocardium is stabilised first.", "Salbutamol helps shift potassium into cells, as an addition to insulin–glucose, not first.", "Calcium resonium removes potassium over hours to days; it does nothing for the immediate cardiac risk.", "Dialysis may be needed if the hyperkalaemia does not respond, but it is not the first step."]
+    "optExp": [
+      null,
+      "Insulin–glucose lowers the potassium and is given next, but with ECG changes the myocardium is stabilised first.",
+      "Salbutamol helps shift potassium into cells, as an addition to insulin–glucose, not first.",
+      "Calcium resonium removes potassium over hours to days; it does nothing for the immediate cardiac risk.",
+      "Dialysis may be needed if the hyperkalaemia does not respond, but it is not the first step."
+    ]
   },
   {
     "q": "A 69-year-old man who smokes presents with confusion. He has had haemoptysis and lost weight over two months. He is clinically euvolaemic and takes no regular medication. His thyroid function and morning cortisol are normal. What is the most likely cause of his hyponatraemia?",
     "exhibit": {
-      "kind": "labs", "title": "Serum and urine",
+      "kind": "labs",
+      "title": "Serum and urine",
       "rows": [
-        { "name": "Sodium", "value": "121", "unit": "mmol/L", "range": "135 – 145" },
-        { "name": "Potassium", "value": "4.1", "unit": "mmol/L", "range": "3.5 – 5.3" },
-        { "name": "Urea", "value": "2.1", "unit": "mmol/L", "range": "2.5 – 7.8" },
-        { "name": "Creatinine", "value": "58", "unit": "µmol/L", "range": "60 – 120" },
-        { "name": "Serum osmolality", "value": "254", "unit": "mOsmol/kg", "range": "285 – 295" },
-        { "name": "Urine osmolality", "value": "486", "unit": "mOsmol/kg" },
-        { "name": "Urine sodium", "value": "46", "unit": "mmol/L" }
+        {
+          "name": "Sodium",
+          "value": "121",
+          "unit": "mmol/L",
+          "range": "135 – 145",
+          "key": true
+        },
+        {
+          "name": "Potassium",
+          "value": "4.1",
+          "unit": "mmol/L",
+          "range": "3.5 – 5.3"
+        },
+        {
+          "name": "Urea",
+          "value": "2.1",
+          "unit": "mmol/L",
+          "range": "2.5 – 7.8"
+        },
+        {
+          "name": "Creatinine",
+          "value": "58",
+          "unit": "µmol/L",
+          "range": "60 – 120"
+        },
+        {
+          "name": "Serum osmolality",
+          "value": "254",
+          "unit": "mOsmol/kg",
+          "range": "285 – 295",
+          "key": true
+        },
+        {
+          "name": "Urine osmolality",
+          "value": "486",
+          "unit": "mOsmol/kg",
+          "key": true
+        },
+        {
+          "name": "Urine sodium",
+          "value": "46",
+          "unit": "mmol/L",
+          "key": true
+        }
       ]
     },
-    "opts": ["Syndrome of inappropriate ADH secretion", "Hypovolaemia from gastrointestinal losses", "Primary adrenal insufficiency", "Primary polydipsia", "Hypothyroidism"],
+    "opts": [
+      "Syndrome of inappropriate ADH secretion",
+      "Hypovolaemia from gastrointestinal losses",
+      "Primary adrenal insufficiency",
+      "Primary polydipsia",
+      "Hypothyroidism"
+    ],
     "ans": 0,
     "exp": "Low serum osmolality with an inappropriately concentrated urine (osmolality above 100) and a urine sodium above 30, in a euvolaemic patient with normal thyroid and adrenal function, meets the criteria for SIADH. A smoker with haemoptysis and weight loss suggests small cell lung cancer, a classic source of ectopic ADH.",
-    "optExp": [null, "Hypovolaemia would show clinically and the kidneys would hold on to sodium, giving a urine sodium under 30.", "Addison's disease usually brings hyperkalaemia, and his morning cortisol is normal.", "In primary polydipsia the urine is maximally dilute, with an osmolality under 100.", "His thyroid function is normal."]
+    "optExp": [
+      null,
+      "Hypovolaemia would show clinically and the kidneys would hold on to sodium, giving a urine sodium under 30.",
+      "Addison's disease usually brings hyperkalaemia, and his morning cortisol is normal.",
+      "In primary polydipsia the urine is maximally dilute, with an osmolality under 100.",
+      "His thyroid function is normal."
+    ]
   },
   {
     "q": "A 67-year-old woman has six weeks of painless jaundice with itching, pale stools and dark urine, and has lost 6 kg. On examination there is a palpable, non-tender gallbladder. What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs", "title": "Liver function tests",
+      "kind": "labs",
+      "title": "Liver function tests",
       "rows": [
-        { "name": "Bilirubin", "value": "186", "unit": "µmol/L", "range": "< 17" },
-        { "name": "ALT", "value": "64", "unit": "IU/L", "range": "10 – 50" },
-        { "name": "AST", "value": "52", "unit": "IU/L", "range": "10 – 40" },
-        { "name": "ALP", "value": "840", "unit": "IU/L", "range": "25 – 115" },
-        { "name": "GGT", "value": "612", "unit": "U/L", "range": "9 – 40" },
-        { "name": "Albumin", "value": "33", "unit": "g/L", "range": "35 – 50" }
+        {
+          "name": "Bilirubin",
+          "value": "186",
+          "unit": "µmol/L",
+          "range": "< 17",
+          "key": true
+        },
+        {
+          "name": "ALT",
+          "value": "64",
+          "unit": "IU/L",
+          "range": "10 – 50"
+        },
+        {
+          "name": "AST",
+          "value": "52",
+          "unit": "IU/L",
+          "range": "10 – 40"
+        },
+        {
+          "name": "ALP",
+          "value": "840",
+          "unit": "IU/L",
+          "range": "25 – 115",
+          "key": true
+        },
+        {
+          "name": "GGT",
+          "value": "612",
+          "unit": "U/L",
+          "range": "9 – 40",
+          "key": true
+        },
+        {
+          "name": "Albumin",
+          "value": "33",
+          "unit": "g/L",
+          "range": "35 – 50"
+        }
       ]
     },
-    "opts": ["Carcinoma of the head of the pancreas", "Choledocholithiasis", "Acute hepatitis A", "Gilbert's syndrome", "Haemolytic anaemia"],
+    "opts": [
+      "Carcinoma of the head of the pancreas",
+      "Choledocholithiasis",
+      "Acute hepatitis A",
+      "Gilbert's syndrome",
+      "Haemolytic anaemia"
+    ],
     "ans": 0,
     "exp": "A very high ALP and GGT with only a mild rise in the transaminases is a cholestatic, obstructive picture. Painless progressive jaundice with weight loss and a palpable gallbladder (Courvoisier's law: a palpable gallbladder with jaundice is unlikely to be from stones) points to a tumour obstructing the distal bile duct, most often in the head of the pancreas.",
-    "optExp": [null, "Stones in the bile duct usually cause pain, and a chronically scarred gallbladder rarely distends enough to feel.", "Hepatitis gives transaminases in the hundreds or thousands with a smaller rise in ALP.", "Gilbert's raises unconjugated bilirubin only, with normal enzymes, and does not cause pale stools or itching.", "Haemolysis raises unconjugated bilirubin without a cholestatic enzyme pattern."]
+    "optExp": [
+      null,
+      "Stones in the bile duct usually cause pain, and a chronically scarred gallbladder rarely distends enough to feel.",
+      "Hepatitis gives transaminases in the hundreds or thousands with a smaller rise in ALP.",
+      "Gilbert's raises unconjugated bilirubin only, with normal enzymes, and does not cause pale stools or itching.",
+      "Haemolysis raises unconjugated bilirubin without a cholestatic enzyme pattern."
+    ]
   },
   {
     "q": "A 31-year-old woman has three months of weight loss, heat intolerance and palpitations. Her eyes are prominent, and she has a diffuse, non-tender goitre with a bruit. What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs", "title": "Thyroid function tests",
+      "kind": "labs",
+      "title": "Thyroid function tests",
       "rows": [
-        { "name": "TSH", "value": "< 0.01", "unit": "mU/L", "range": "0.3 – 4.2" },
-        { "name": "Free T4", "value": "48", "unit": "pmol/L", "range": "9 – 25" },
-        { "name": "Free T3", "value": "15.6", "unit": "pmol/L", "range": "3.1 – 6.8" }
+        {
+          "name": "TSH",
+          "value": "< 0.01",
+          "unit": "mU/L",
+          "range": "0.3 – 4.2",
+          "key": true
+        },
+        {
+          "name": "Free T4",
+          "value": "48",
+          "unit": "pmol/L",
+          "range": "9 – 25",
+          "key": true
+        },
+        {
+          "name": "Free T3",
+          "value": "15.6",
+          "unit": "pmol/L",
+          "range": "3.1 – 6.8",
+          "key": true
+        }
       ]
     },
-    "opts": ["Graves' disease", "Toxic multinodular goitre", "Subacute (de Quervain's) thyroiditis", "TSH-secreting pituitary adenoma", "Hashimoto's thyroiditis"],
+    "opts": [
+      "Graves' disease",
+      "Toxic multinodular goitre",
+      "Subacute (de Quervain's) thyroiditis",
+      "TSH-secreting pituitary adenoma",
+      "Hashimoto's thyroiditis"
+    ],
     "ans": 0,
     "exp": "A suppressed TSH with raised free T4 and T3 is primary hyperthyroidism. In a young woman with a diffuse goitre carrying a bruit and thyroid eye disease, Graves' disease is the cause: TSH-receptor antibodies stimulate the gland. Eye signs are specific to Graves'.",
-    "optExp": [null, "A toxic multinodular goitre is nodular, affects older patients and does not cause eye disease.", "De Quervain's thyroiditis follows a viral illness and the gland is tender.", "A TSH-secreting adenoma gives a normal or raised TSH, not a suppressed one.", "Hashimoto's usually causes hypothyroidism, with a raised TSH."]
+    "optExp": [
+      null,
+      "A toxic multinodular goitre is nodular, affects older patients and does not cause eye disease.",
+      "De Quervain's thyroiditis follows a viral illness and the gland is tender.",
+      "A TSH-secreting adenoma gives a normal or raised TSH, not a suppressed one.",
+      "Hashimoto's usually causes hypothyroidism, with a raised TSH."
+    ]
   },
   {
     "q": "A 19-year-old university student has had 12 hours of fever, headache and neck stiffness. A non-blanching purpuric rash is spreading over his legs. A lumbar puncture is performed after blood cultures and empirical antibiotics. Which organism is most likely?",
     "exhibit": {
-      "kind": "labs", "title": "Cerebrospinal fluid",
+      "kind": "labs",
+      "title": "Cerebrospinal fluid",
       "rows": [
-        { "name": "Appearance", "value": "Turbid", "range": "Clear" },
-        { "name": "Opening pressure", "value": "32", "unit": "cmH₂O", "range": "10 – 20" },
-        { "name": "White cell count", "value": "2400", "unit": "× 10⁶/L", "range": "< 5" },
-        { "name": "Predominant cells", "value": "Neutrophils (90%)", "range": "Lymphocytes" },
-        { "name": "Protein", "value": "2.8", "unit": "g/L", "range": "0.15 – 0.45" },
-        { "name": "CSF glucose", "value": "1.1", "unit": "mmol/L", "range": "2.8 – 4.4" },
-        { "name": "Plasma glucose", "value": "6.2", "unit": "mmol/L", "range": "3.5 – 5.5" }
+        {
+          "name": "Appearance",
+          "value": "Turbid",
+          "range": "Clear"
+        },
+        {
+          "name": "Opening pressure",
+          "value": "32",
+          "unit": "cmH₂O",
+          "range": "10 – 20"
+        },
+        {
+          "name": "White cell count",
+          "value": "2400",
+          "unit": "× 10⁶/L",
+          "range": "< 5",
+          "key": true
+        },
+        {
+          "name": "Predominant cells",
+          "value": "Neutrophils (90%)",
+          "range": "Lymphocytes",
+          "key": true
+        },
+        {
+          "name": "Protein",
+          "value": "2.8",
+          "unit": "g/L",
+          "range": "0.15 – 0.45",
+          "key": true
+        },
+        {
+          "name": "CSF glucose",
+          "value": "1.1",
+          "unit": "mmol/L",
+          "range": "2.8 – 4.4",
+          "key": true
+        },
+        {
+          "name": "Plasma glucose",
+          "value": "6.2",
+          "unit": "mmol/L",
+          "range": "3.5 – 5.5"
+        }
       ]
     },
-    "opts": ["Neisseria meningitidis", "Streptococcus pneumoniae", "Listeria monocytogenes", "Herpes simplex virus", "Mycobacterium tuberculosis"],
+    "opts": [
+      "Neisseria meningitidis",
+      "Streptococcus pneumoniae",
+      "Listeria monocytogenes",
+      "Herpes simplex virus",
+      "Mycobacterium tuberculosis"
+    ],
     "ans": 0,
     "exp": "Turbid fluid with a high neutrophil count, high protein and a CSF glucose well under half the plasma glucose is bacterial meningitis. In a young adult living in shared accommodation, a non-blanching purpuric rash points to meningococcal disease.",
-    "optExp": [null, "Pneumococcus gives the same CSF picture but is commoner at the extremes of age and does not usually cause a purpuric rash.", "Listeria affects neonates, older adults, pregnancy and the immunocompromised.", "Viral meningitis or encephalitis gives a lymphocytic CSF with a normal glucose.", "TB meningitis is subacute over weeks, with lymphocytes and a very high protein."]
+    "optExp": [
+      null,
+      "Pneumococcus gives the same CSF picture but is commoner at the extremes of age and does not usually cause a purpuric rash.",
+      "Listeria affects neonates, older adults, pregnancy and the immunocompromised.",
+      "Viral meningitis or encephalitis gives a lymphocytic CSF with a normal glucose.",
+      "TB meningitis is subacute over weeks, with lymphocytes and a very high protein."
+    ]
   },
   {
     "q": "A new rapid blood test for deep vein thrombosis is assessed in 400 patients against compression ultrasound. What is the positive predictive value of the test?",
     "exhibit": {
-      "kind": "table", "title": "Results in 400 patients",
-      "columns": ["", "DVT on ultrasound", "No DVT"],
-      "rows": [["Test positive", "80", "30"], ["Test negative", "20", "270"]]
+      "kind": "table",
+      "title": "Results in 400 patients",
+      "columns": [
+        "",
+        "DVT on ultrasound",
+        "No DVT"
+      ],
+      "rows": [
+        [
+          "Test positive",
+          "80",
+          "30"
+        ],
+        [
+          "Test negative",
+          "20",
+          "270"
+        ]
+      ],
+      "keyRows": [
+        0
+      ]
     },
-    "opts": ["73%", "80%", "90%", "93%", "27%"],
+    "opts": [
+      "73%",
+      "80%",
+      "90%",
+      "93%",
+      "27%"
+    ],
     "ans": 0,
     "exp": "The positive predictive value is the proportion of positive tests that are true positives: 80 ÷ (80 + 30) = 72.7%, so 73%. It answers \"if my test is positive, how likely is it that I have the disease?\", and unlike sensitivity it changes with how common the disease is in the population tested.",
-    "optExp": [null, "80% is the sensitivity: 80 ÷ (80 + 20), true positives among everyone with a DVT.", "90% is the specificity: 270 ÷ (270 + 30), true negatives among everyone without a DVT.", "93% is the negative predictive value: 270 ÷ (270 + 20).", "27% is the proportion of positive tests that were false: 30 ÷ 110."]
+    "optExp": [
+      null,
+      "80% is the sensitivity: 80 ÷ (80 + 20), true positives among everyone with a DVT.",
+      "90% is the specificity: 270 ÷ (270 + 30), true negatives among everyone without a DVT.",
+      "93% is the negative predictive value: 270 ÷ (270 + 20).",
+      "27% is the proportion of positive tests that were false: 30 ÷ 110."
+    ]
   },
   {
     "q": "A 38-year-old woman has felt tired for several months. Her periods have become very heavy over the past year. What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs", "title": "Full blood count and ferritin",
+      "kind": "labs",
+      "title": "Full blood count and ferritin",
       "rows": [
-        { "name": "Haemoglobin", "value": "92", "unit": "g/L", "range": "115 – 155" },
-        { "name": "MCV", "value": "68", "unit": "fL", "range": "80 – 96" },
-        { "name": "MCH", "value": "21", "unit": "pg", "range": "27 – 33" },
-        { "name": "White cell count", "value": "6.1", "unit": "× 10⁹/L", "range": "3.0 – 10.0" },
-        { "name": "Platelets", "value": "452", "unit": "× 10⁹/L", "range": "150 – 400" },
-        { "name": "Ferritin", "value": "6", "unit": "µg/L", "range": "12 – 200" }
+        {
+          "name": "Haemoglobin",
+          "value": "92",
+          "unit": "g/L",
+          "range": "115 – 155",
+          "key": true
+        },
+        {
+          "name": "MCV",
+          "value": "68",
+          "unit": "fL",
+          "range": "80 – 96",
+          "key": true
+        },
+        {
+          "name": "MCH",
+          "value": "21",
+          "unit": "pg",
+          "range": "27 – 33"
+        },
+        {
+          "name": "White cell count",
+          "value": "6.1",
+          "unit": "× 10⁹/L",
+          "range": "3.0 – 10.0"
+        },
+        {
+          "name": "Platelets",
+          "value": "452",
+          "unit": "× 10⁹/L",
+          "range": "150 – 400"
+        },
+        {
+          "name": "Ferritin",
+          "value": "6",
+          "unit": "µg/L",
+          "range": "12 – 200",
+          "key": true
+        }
       ]
     },
-    "opts": ["Iron deficiency anaemia", "Beta-thalassaemia trait", "Anaemia of chronic disease", "Vitamin B12 deficiency", "Sideroblastic anaemia"],
+    "opts": [
+      "Iron deficiency anaemia",
+      "Beta-thalassaemia trait",
+      "Anaemia of chronic disease",
+      "Vitamin B12 deficiency",
+      "Sideroblastic anaemia"
+    ],
     "ans": 0,
     "exp": "A microcytic, hypochromic anaemia with a low ferritin is iron deficiency; a low ferritin is diagnostic. Heavy menstrual bleeding is the commonest cause in women of this age. A mildly raised platelet count is common in iron deficiency.",
-    "optExp": [null, "Thalassaemia trait is microcytic too, but the ferritin is normal and the haemoglobin usually only slightly low.", "In anaemia of chronic disease the ferritin is normal or raised, as it is an acute-phase protein.", "B12 deficiency causes a macrocytic anaemia, with a raised MCV.", "Sideroblastic anaemia is rare, and iron studies show iron overload, with a high ferritin."]
+    "optExp": [
+      null,
+      "Thalassaemia trait is microcytic too, but the ferritin is normal and the haemoglobin usually only slightly low.",
+      "In anaemia of chronic disease the ferritin is normal or raised, as it is an acute-phase protein.",
+      "B12 deficiency causes a macrocytic anaemia, with a raised MCV.",
+      "Sideroblastic anaemia is rare, and iron studies show iron overload, with a high ferritin."
+    ]
   }
 ]

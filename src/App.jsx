@@ -310,7 +310,7 @@ export default function App() {
     setStudyYear(d.studyYear);
     /* null: they could not be loaded this time — keep what is shown. */
     if (Array.isArray(d.sessions)) setSessions(d.sessions);
-    loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
+    loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen, hideRanges: d.hideRanges }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
     featuredRef.current = d.featured ?? featuredRef.current;
@@ -475,7 +475,7 @@ export default function App() {
   snapshotRef.current = () => ({
     pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
     announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear,
-    showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
+    showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen, hideRanges: getPrefs().hideRanges,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
     decks: decksRef.current, featured: featuredRef.current, sessions,
   });

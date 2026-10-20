@@ -9,7 +9,7 @@ import { useSyncExternalStore } from "react";
  * saves them, so anything deep in the tree can read and set one without the
  * value being threaded down through every view on the way.
  */
-let state = { showAllOptions: false, introSeen: false };
+let state = { showAllOptions: false, introSeen: false, hideRanges: false };
 let save = null;
 const subs = new Set();
 const emit = () => subs.forEach(fn => fn());
