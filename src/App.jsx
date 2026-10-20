@@ -32,6 +32,7 @@ import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFe
   adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
+import { mergeSessions } from "./lib/pastSessions";
 import { setOnline, useOnline, probe } from "./lib/online";
 import { SUPABASE_URL } from "./lib/supabase";
 import { keepImagesOffline } from "./lib/questionImage";
@@ -171,6 +172,8 @@ export default function App() {
   const [annSeenAt, setAnnSeenAt] = useState(null);
   const [annNewSince, setAnnNewSince] = useState(null);
   const [generated, setGenerated] = useState([]);
+  /* Past sessions (lib/pastSessions), newest first. */
+  const [sessions, setSessions] = useState([]);
   /* Your decks, as rows; the tree is built where it is shown. */
   const [decks, setDecks] = useState([]);
   /* A deck to land on in Study — after a share link, or after Generate. */
@@ -305,6 +308,8 @@ export default function App() {
     setShowOnLeaderboard(d.showOnLeaderboard !== false);
     setMarketingOptIn(d.marketingOptIn);
     setStudyYear(d.studyYear);
+    /* null: they could not be loaded this time — keep what is shown. */
+    if (Array.isArray(d.sessions)) setSessions(d.sessions);
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
@@ -472,7 +477,7 @@ export default function App() {
     announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear,
     showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
-    decks: decksRef.current, featured: featuredRef.current,
+    decks: decksRef.current, featured: featuredRef.current, sessions,
   });
   const saveTimer = useRef(null);
   function saveSoon(delay = 600) {
@@ -488,7 +493,7 @@ export default function App() {
     saveSoon();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
-    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, generated, decks, featured]);
+    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, generated, decks, featured, sessions]);
   useEffect(() => {
     if (!user?.id) return;
     const off = onWrite(() => saveSoon(1200));
@@ -1290,6 +1295,8 @@ export default function App() {
             openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
             autoStart={autoStart} onAutoStartConsumed={() => setAutoStart(false)}
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
+            sessions={sessions}
+            onSessionSave={rec => { setSessions(list => mergeSessions(list, rec)); remote.saveSession(user.id, rec); }}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {v === V.PROGRESS && <ProgressView pStats={pStats} decks={progressDecks} setView={go}

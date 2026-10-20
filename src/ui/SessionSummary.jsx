@@ -52,7 +52,7 @@ const band = {
   width: "100%",
 };
 
-export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong }) {
+export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong, onOpenPast = null }) {
   const [showWrong, setShowWrong] = useState(false);
 
   const total = results.length;
@@ -200,6 +200,15 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
               </button>
             )}
           </div>
+
+          {/* For the ones to look at later (a student: "sometimes I cba to go
+              through the incorrect ones in that moment"). */}
+          {onOpenPast && wrongOnes.length > 0 && (
+            <p className="sum-later" data-in="rise" style={{ "--i": 6 }}>
+              Not now? They’ll wait for you in{" "}
+              <button type="button" className="gen-link" onClick={onOpenPast}>Past sessions</button>.
+            </p>
+          )}
         </div>
       </div>
     </div>

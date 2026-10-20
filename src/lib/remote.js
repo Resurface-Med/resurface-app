@@ -192,10 +192,8 @@ function apply(op) {
         payload: op.payload,
         ...(op.deckId !== undefined ? { deck_id: op.deckId } : {}),
       }).eq("user_id", op.userId).eq("id", op.id);
-    /* Past sessions were removed (2026-10-20, migration 0028). A save still
-       waiting in someone's queue is done with, not retried for ever. */
     case "session-save":
-      return Promise.resolve({ error: null });
+      return supabase.from("practice_sessions").upsert({ ...op.rec, user_id: op.userId });
     case "ann-seen":
       return supabase.from("profiles").update({ announcements_seen_at: op.seenAt }).eq("id", op.userId);
     case "featured-hide":
@@ -282,7 +280,7 @@ export async function selectAll(query, orderBy) {
 export async function loadAll(userId) {
   /* Decks alongside the rest: they were fetched after all of it, a whole
      extra round trip on every sign-in. */
-  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured, announcements] =
+  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured, announcements, sessions] =
     await Promise.all([
       timed("t_practice", selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id")),
       timed("t_sr", selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id")),
@@ -295,6 +293,7 @@ export async function loadAll(userId) {
       timed("t_decks", loadUserDecks().then(data => ({ data, error: null }), error => ({ data: null, error }))),
       timed("t_featured", loadFeatured()),
       fetchAnnouncements().catch(() => []),
+      loadSessions(),
     ]);
   if (deckRes.error) throw deckRes.error;
   const decks = deckRes.data;
@@ -374,9 +373,19 @@ export async function loadAll(userId) {
     questionEdits,
     decks,
     featured,
+    sessions,
   };
 }
 
+/* Past sessions (migration 0027), newest first. Not one of the tables the
+   snapshot must have: if this fails the app opens without them. */
+export async function loadSessions() {
+  const { data, error } = await supabase.from("practice_sessions")
+    .select("id, label, items, idx, total, answered, correct, finished, created_at, updated_at")
+    .order("updated_at", { ascending: false }).limit(50);
+  if (error) return null;
+  return data ?? [];
+}
 
 /**
  * Featured decks: someone else's deck, read live by everyone (migration
@@ -689,6 +698,9 @@ export const remote = {
     if (error) throw error;
   },
   /* A featured deck, off or back on your Study list. */
+  /* A past session (lib/pastSessions), saved as it goes: queued like an
+     answer, and one at a time so the newest save is the last applied. */
+  saveSession: (userId, rec) => inOrder(() => send({ kind: "session-save", userId, rec })),
   /* Queued like an answer, so hiding one offline sticks. */
   hideFeatured: (deckId, hide) => send({ kind: "featured-hide", deckId, hide }),
   /* Your old copy of a featured deck, swapped for the live one: progress on
