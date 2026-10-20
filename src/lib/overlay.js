@@ -60,6 +60,9 @@ export function overlayOps(snap, ops) {
         if (op.marketingOptIn !== undefined) s.marketingOptIn = op.marketingOptIn;
         if (op.showAllOptions !== undefined) s.showAllOptions = op.showAllOptions;
         if (op.introSeen !== undefined) s.introSeen = op.introSeen;
+        if (op.studyYear !== undefined) s.studyYear = op.studyYear;
+        if (op.university !== undefined) s.university = op.university;
+        if (op.onboardedAt !== undefined) s.onboardedAt = op.onboardedAt;
         break;
       case "question-edit":
         s.questionEdits[op.questionId] = op.payload;

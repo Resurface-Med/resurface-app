@@ -36,7 +36,7 @@ function authProviders(user) {
 }
 
 export default function ProfileView({
-  userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal,
+  userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal, studyYear = null,
   onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
   avatarV = null, onAvatarChange,
 }) {
@@ -321,7 +321,26 @@ export default function ProfileView({
 
           <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
             <h2 style={sectionH}>Study</h2>
-            <p style={{ ...meta, marginTop: 4 }}>Your daily target.</p>
+            <p style={{ ...meta, marginTop: 4 }}>Your year, and your daily target.</p>
+
+            {/* Asked at onboarding (migration 0029); changed here, say when
+                you move up a year. Saves on choosing. */}
+            <label className="profile-field" style={{ marginTop: 14 }}>
+              <span className="profile-label">Year</span>
+              <select
+                className="profile-input"
+                value={studyYear ?? ""}
+                onChange={e => {
+                  const y = Number(e.target.value);
+                  remote.profile(userId, { studyYear: y });
+                  onProfileChange?.({ studyYear: y });
+                }}
+              >
+                {studyYear == null && <option value="" disabled>Choose your year</option>}
+                {[1, 2, 3, 4, 5].map(y => <option key={y} value={y}>Year {y}</option>)}
+                <option value={0}>Something else</option>
+              </select>
+            </label>
 
             <form onSubmit={saveGoal} className="profile-stack">
               <label className="profile-field">
