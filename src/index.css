@@ -9891,3 +9891,74 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .np__label.is-top { margin-top: 0; }
 /* One line each on a phone. */
 @media (max-width: 480px) { .np__label { font-size: 21px; letter-spacing: -0.5px; } }
+
+/* The welcome reveal (ui/WelcomeReveal): the app's blue, the note in big
+   type writing itself out a word at a time, the signature drawn on. */
+.wr {
+  position: fixed; inset: 0; z-index: 1600;
+  /* Centred when it fits; scrolls from the top when it does not. */
+  display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(40px + var(--safe-t, 0px)) clamp(22px, 6vw, 72px) calc(40px + var(--safe-b, 0px));
+  background: var(--c-body-bg); color: #fff;
+  animation: wrFade 0.5s ease both;
+  transition: opacity 0.42s ease, transform 0.42s ease;
+}
+.wr.is-leaving { opacity: 0; transform: scale(1.02); }
+.wr__glow {
+  position: fixed; inset: -20%; pointer-events: none;
+  background: radial-gradient(40% 35% at 30% 30%, rgba(255, 255, 255, 0.16), transparent 70%),
+              radial-gradient(35% 30% at 75% 70%, rgba(120, 160, 255, 0.28), transparent 70%);
+  animation: wrDrift 14s ease-in-out infinite alternate;
+}
+.wr__note { position: relative; width: min(680px, 100%); margin: auto 0; }
+.wr__title {
+  margin: 0 0 clamp(14px, 2.4vh, 24px);
+  font-size: clamp(34px, 4.4vw, 52px); font-weight: 600; letter-spacing: -1.4px; line-height: 1.08;
+}
+.wr__body { font-size: clamp(16px, 1.3vw, 18px); line-height: 1.55; color: rgba(255, 255, 255, 0.9); }
+.wr__body p { margin: 0 0 0.7em; }
+.wr__body ul, .wr__body ol { margin: 0 0 0.7em; padding-left: 1.3em; }
+.wr__body li { margin: 0.2em 0; }
+.wr-w {
+  display: inline-block; opacity: 0;
+  transform: translateY(0.45em); filter: blur(6px);
+  animation: wrWord 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: var(--d);
+}
+.wr-w.is-bold { font-weight: 600; color: #fff; }
+.wr__sig { margin: clamp(8px, 1.5vh, 16px) 0 0; font-family: "Caveat", cursive; font-weight: 600; font-size: clamp(40px, 4.4vw, 52px); line-height: 1; }
+.wr__sig-ink {
+  display: inline-block; padding-right: 0.15em;
+  clip-path: inset(0 100% 0 0);
+  animation: wrInk 1.4s cubic-bezier(0.55, 0.1, 0.35, 1) forwards;
+  animation-delay: var(--d);
+}
+.wr__acts {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px;
+  margin-top: clamp(22px, 4vh, 36px);
+  opacity: 0; animation: wrUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; animation-delay: var(--d);
+}
+.wr__go {
+  padding: 15px 28px; border: 0; border-radius: 999px;
+  background: #fff; color: var(--c-accent);
+  font: inherit; font-size: 16px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 16px 36px -14px rgba(10, 20, 60, 0.6);
+}
+.wr__later { border: 0; background: none; padding: 8px 4px; font: inherit; font-size: 15px; color: rgba(255, 255, 255, 0.82); cursor: pointer; }
+.wr__later:hover { color: #fff; }
+.wr__skip {
+  position: fixed; top: calc(18px + var(--safe-t, 0px)); right: 18px;
+  border: 0; background: rgba(255, 255, 255, 0.14); color: #fff;
+  padding: 8px 16px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer;
+}
+/* Finished (or skipped): everything in place at once. */
+.wr.is-done .wr-w, .wr.is-done .wr__sig-ink, .wr.is-done .wr__acts {
+  animation: none; opacity: 1; transform: none; filter: none; clip-path: none;
+}
+@keyframes wrFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wrWord { to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes wrInk { to { clip-path: inset(0 0 0 0); } }
+@keyframes wrUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes wrDrift { from { transform: translate(-2%, -1%) scale(1); } to { transform: translate(3%, 2%) scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .wr__glow { animation: none; } }

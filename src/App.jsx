@@ -48,6 +48,7 @@ import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
+import WelcomeReveal from "./ui/WelcomeReveal";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -150,6 +151,18 @@ export default function App() {
   /* Year of study (migration 0031). Undefined until known — an offline copy
      from before it existed must not read as "never asked". */
   const [studyYear, setStudyYear] = useState(undefined);
+  /* The welcome note's reveal (ui/WelcomeReveal): once, after a new
+     account's first pop-up; or on demand with ?reveal, to see it. */
+  const [reveal, setReveal] = useState(() => {
+    try {
+      if (!new URLSearchParams(window.location.search).has("reveal")) return false;
+      window.history.replaceState(null, "", window.location.pathname);
+      return true;
+    } catch { return false; }
+  });
+  /* New: nothing answered and nothing of their own yet — Home's own test
+     for the welcome note. */
+  const isNewAccount = () => Object.keys(pStats).length === 0 && genRowsRef.current.length === 0;
   const [avatarV, setAvatarV] = useState(null);
   /* Announcements (ui/Announcements): the list, when you last looked, and
      — while the panel is open — what counted as new when you opened it. */
@@ -1131,6 +1144,7 @@ export default function App() {
       <NamePrompt
         suggestion={displayName}
         onSave={(name, year) => {
+          if (isNewAccount()) setReveal(true);
           setDisplayName(name);
           setNameChosen(true);
           if (year !== null) setStudyYear(year);
@@ -1143,6 +1157,19 @@ export default function App() {
     {studyYear === null && nameChosen && !(isGoogleUser(user) && marketingOptIn === null) && !practiceSessionActive && (
       <YearPrompt onAnswer={y => { setStudyYear(y); remote.profile(user.id, { studyYear: y }); }} />
     )}
+    {reveal && announcements.some(a => a.welcome && a.published_at) && (
+      <WelcomeReveal
+        welcome={announcements.find(a => a.welcome && a.published_at)}
+        onClose={() => setReveal(false)}
+        onStart={() => {
+          setReveal(false);
+          setLaunchFilter({ deck: "All", cat: "All" });
+          setStudyScope("all");
+          setAutoStart(false);
+          go(V.STUDY);
+        }}
+      />
+    )}
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
@@ -1153,6 +1180,7 @@ export default function App() {
         <MarketingPrompt
           googleName={displayName || googleName(user)}
           onContinue={({ displayName: nextName, marketingOptIn: emails, studyYear: year }) => {
+            if (isNewAccount()) setReveal(true);
             if (year !== null) setStudyYear(year);
             remote.profile(user.id, {
               ...(year !== null ? { studyYear: year } : {}),

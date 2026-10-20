@@ -756,6 +756,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
+              /* With no decks of their own, the heading comes from the tree
+                 itself, under Everything, as "Your decks" does — so a new
+                 account can see whose decks these are (Rafil, 2026-10-20). */
+              heading={ownRoots.length === 0 ? "Resurface decks" : null}
               rowMenu={rowMenu} />
           </div>
         )}
