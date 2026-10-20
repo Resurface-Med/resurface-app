@@ -1781,78 +1781,6 @@ select {
   letter-spacing: -0.1px;
 }
 
-.mail-prompt-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(15, 27, 61, 0.32);
-  backdrop-filter: blur(6px);
-}
-.mail-prompt {
-  width: min(460px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  padding: 36px 32px 28px;
-  border-radius: 24px;
-  background: var(--c-card-solid);
-  border: 1px solid var(--c-border);
-  box-shadow: 0 28px 80px rgba(15, 27, 61, 0.18);
-  text-align: left;
-}
-.mail-prompt__title {
-  margin: 0 0 2px;
-  font-size: 21px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  color: var(--c-text);
-}
-.mail-prompt__block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.mail-prompt__field {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--c-text);
-}
-.mail-prompt__optional {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--c-muted);
-}
-.mail-prompt input[type="text"] {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 15px 16px;
-  font-size: 15.5px;
-  font-family: inherit;
-  color: var(--c-text);
-  background: var(--c-surface3);
-  border: 1.5px solid var(--c-border);
-  border-radius: var(--r-ctrl);
-  outline: none;
-}
-.mail-prompt input[type="text"]:focus {
-  border-color: var(--c-accent);
-  box-shadow: 0 0 0 3px var(--c-accent-glow);
-}
-.mail-prompt .auth-consent {
-  margin: 2px 0 0;
-}
-.mail-prompt .btn-press {
-  width: 100%;
-  margin-top: 4px;
-  padding-top: 14px;
-  padding-bottom: 14px;
-}
 
 .code-cell:focus {
   border-color: var(--c-accent) !important;
@@ -9940,16 +9868,17 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   margin: 0 -1px;
 }
 
-/* Year of study (ui/YearSelect): a native select, dressed as the fields
-   beside it, with a chevron of its own. */
+/* Year of study (ui/YearSelect): a native select dressed exactly as the
+   pop-up's text field (.np__field), with a chevron of its own. */
 .year-select {
   width: 100%; box-sizing: border-box;
   padding: 13px 40px 13px 16px;
-  font: inherit; font-size: 15.5px; color: var(--c-text);
-  background: var(--c-surface3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%237d8aa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;
+  font: inherit; font-size: 16px; color: var(--c-text);
+  background: var(--c-surface2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%237d8aa8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;
   border: 1.5px solid var(--c-border); border-radius: var(--r-ctrl);
   appearance: none; -webkit-appearance: none; cursor: pointer; outline: none;
 }
-.year-select:focus { border-color: var(--c-accent); box-shadow: 0 0 0 3px var(--c-accent-glow); }
-.year-select:invalid, .year-select option[value=""] { color: var(--c-muted); }
+.year-select:focus { border-color: var(--c-accent); background-color: var(--c-card-solid); }
 .np__label { display: block; margin: 16px 0 8px; font-size: 14px; font-weight: 600; color: var(--c-text); }
+.np__check { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; font-size: 14px; line-height: 1.45; color: var(--c-sub); cursor: pointer; }
+.np__check input { flex: none; margin-top: 2px; width: 16px; height: 16px; accent-color: var(--c-accent); }
