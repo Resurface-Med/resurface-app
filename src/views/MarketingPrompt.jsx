@@ -22,6 +22,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
 
   function submit(e) {
     e.preventDefault();
+    if (year === null) return;
     const trimmed = name.trim().slice(0, 32);
     if (trimmed.length >= 2 && isInappropriate(trimmed)) { setNameErr(NAME_NOT_ALLOWED); return; }
     onContinue({
@@ -60,7 +61,8 @@ export default function MarketingPrompt({ googleName, onContinue }) {
         </label>
 
         <div className="np__row">
-          <button type="submit" className="np__save btn-press">Continue</button>
+          {/* The year is required, so the year pop-up never follows this. */}
+          <button type="submit" className="np__save btn-press" disabled={year === null}>Continue</button>
         </div>
       </form>
     </div>

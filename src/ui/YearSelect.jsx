@@ -16,20 +16,21 @@ export default function YearSelect({ value, onChange, id }) {
   );
 }
 
-/* For accounts from before the question: just the year, once. "Not now"
-   counts as an answer (something else), so it does not come back. */
+/* For accounts from before the question: just the year, once. Required,
+   like the sign-up pop-ups — "Something else" is the answer for anyone it
+   does not fit. */
 export function YearPrompt({ onAnswer }) {
   const [year, setYear] = useState(null);
   return (
     <div className="np-scrim" role="presentation">
       <form className="np" role="dialog" aria-modal="true" aria-labelledby="yp-title"
         onSubmit={e => { e.preventDefault(); if (year !== null) onAnswer(year); }}>
-        <h2 className="np__title" id="yp-title">Which year are you in?</h2>
+        {/* The same question title as the sign-up pop-ups. */}
+        <h2 className="np__label is-top" id="yp-title">Which year are you in?</h2>
         <div className="np__first"><YearSelect value={year} onChange={setYear} /></div>
         <p className="np__hint">You can change it any time in your profile.</p>
         <div className="np__row">
           <button type="submit" className="np__save btn-press" disabled={year === null}>Save</button>
-          <button type="button" className="np__skip" onClick={() => onAnswer(0)}>Not now</button>
         </div>
       </form>
     </div>

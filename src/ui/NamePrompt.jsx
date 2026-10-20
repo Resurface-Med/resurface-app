@@ -16,14 +16,13 @@ import YearSelect from "./YearSelect";
  * chosen or invented from an email, so anyone who signed in with Google —
  * and therefore already has their real name — is never asked.
  *
- * Dismissing counts as answering. A prompt that returns until it gets what
- * it wants is a worse thing than the field it replaced, so "Not now" settles
- * it for good; Profile is where it gets changed afterwards, by anyone who
- * cares, at a moment of their choosing.
+ * It used to have a "Not now"; it no longer does (see below).
  */
-/* With the year of study too (2026-10-20): onSave(name, year) and
-   onSkip(year), year being null if it was left unchosen. */
-export default function NamePrompt({ suggestion, onSave, onSkip }) {
+/* With the year of study too (2026-10-20): onSave(name, year). Both are
+   required — no "Not now", and Continue waits for a year — so this is the
+   one pop-up a new account sees, not this and then the year pop-up after
+   it (Rafil found that way round). */
+export default function NamePrompt({ suggestion, onSave }) {
   const [name, setName] = useState(suggestion || "");
   const [year, setYear] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -31,11 +30,6 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
   const ref = useRef(null);
 
   useEffect(() => { ref.current?.focus(); ref.current?.select(); }, []);
-  useEffect(() => {
-    const onKey = e => { if (e.key === "Escape") onSkip(null); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onSkip]);
 
   function submit(e) {
     e.preventDefault();
@@ -69,11 +63,8 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
         <label className="np__label" htmlFor="np-year">Which year are you in?</label>
         <YearSelect id="np-year" value={year} onChange={setYear} />
         <div className="np__row">
-          <button type="submit" className="np__save btn-press" disabled={busy || name.trim().length < 2}>
+          <button type="submit" className="np__save btn-press" disabled={busy || name.trim().length < 2 || year === null}>
             {busy ? "Saving…" : "Continue"}
-          </button>
-          <button type="button" className="np__skip" onClick={() => onSkip(year)} disabled={busy}>
-            Not now
           </button>
         </div>
       </form>

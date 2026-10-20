@@ -1136,11 +1136,6 @@ export default function App() {
           if (year !== null) setStudyYear(year);
           remote.profile(user.id, { displayName: name, nameChosen: true, ...(year !== null ? { studyYear: year } : {}) });
         }}
-        onSkip={year => {
-          setNameChosen(true);
-          if (year !== null) setStudyYear(year);
-          remote.profile(user.id, { nameChosen: true, ...(year !== null ? { studyYear: year } : {}) });
-        }}
       />
     )}
     {/* The year, once, for anyone not asked it in a pop-up above — accounts
