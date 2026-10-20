@@ -22,7 +22,7 @@ function precacheList() {
       /* What the app draws from public/: logos, icons, the books. */
       for (const f of ['/books.webp', '/icon-192.png', '/logo-lockup.png', '/logo-lockup-white.png',
         '/favicon.ico', '/favicon-32.png', '/favicon-16.png', '/apple-touch-icon.png',
-        '/manifest.webmanifest', '/intro/poster-16x9.jpg']) {
+        '/manifest.webmanifest']) {
         if (existsSync('public' + f)) files.push(f);
       }
       this.emitFile({ type: 'asset', fileName: 'precache.json', source: JSON.stringify({ files }) });

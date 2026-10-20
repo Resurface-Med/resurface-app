@@ -1,7 +1,5 @@
 import { useMemo, useState } from "react";
-import IntroFilm from "../ui/IntroFilm";
 import StreakFlame from "../ui/StreakFlame";
-import { usePref, setPref } from "../lib/prefs";
 import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
@@ -95,13 +93,6 @@ export default function Dashboard({
      back to showing their progress, Jacob's deck or not. */
   const empty = (ownCount === 0 && totalT === 0) || previewFirstRun;
 
-  /* The film plays once, by itself, the first time an empty account lands
-     here; after that it is the poster below, to watch again. Seen is saved
-     on the profile, so a second device does not play it again. */
-  const introSeen = usePref("introSeen");
-  /* With a welcome note to read, the film waits to be asked for. */
-  const [filmOpen, setFilmOpen] = useState(() => empty && !welcome && (!introSeen || previewFirstRun));
-  function closeFilm() { setFilmOpen(false); if (!previewFirstRun) setPref("introSeen", true); }
 
   /* With the welcome note on the sheet, the band holds the two ways to
      start and nothing else — the note says the rest. */
@@ -136,7 +127,6 @@ export default function Dashboard({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      {filmOpen && <IntroFilm onClose={closeFilm} onStart={() => { closeFilm(); setView?.(V.GENERATE); }} />}
       {/* ── Blue field: who you are, and the one thing to do ───────── */}
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
         <header style={{
@@ -195,15 +185,8 @@ export default function Dashboard({
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           {empty ? (
+            /* No film (Rafil, 2026-10-20: not informative enough). */
             <section data-in="rise" className="dash-film-wrap" style={{ "--i": 5 }}>
-              <h2 style={{ ...sectionH, textAlign: "center" }}>How it works</h2>
-              <button type="button" className="dash-film" onClick={() => setFilmOpen(true)} aria-label="Watch how Resurface works">
-                <img src="/intro/poster-16x9.jpg" alt="" width="1280" height="720" />
-                <span className="dash-film__play">
-                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor" /></svg>
-                  Watch · 37s
-                </span>
-              </button>
               {/* The welcome note is the reveal after sign-up (and What's
                   new), not a third copy here (Rafil, 2026-10-20): just the
                   way to read it again. */}
