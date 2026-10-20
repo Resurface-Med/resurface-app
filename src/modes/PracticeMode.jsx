@@ -711,21 +711,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const featRoots = activeRoot ? [] : forest.filter(n => n.featured);
     const featMatch = !qNorm || prune(featRoots, qNorm).length > 0;
     const allCount = forest.reduce((n, r) => n + r.avail, 0);
-    const deckList = ({ key, ...treeProps }) => (
-      <>
-        {(ownRoots.length > 0 || featRoots.length === 0) && (
-          <DeckTree key={key} {...treeProps} forest={activeRoot ? forest : ownRoots}
-            allAvail={activeRoot ? treeProps.allAvail : allCount}
-            quietNoMatch={featRoots.length > 0 && featMatch}
-            heading={featRoots.length > 0 ? "Your decks" : null} />
-        )}
-        {featRoots.length > 0 && featMatch && (
-          <div className={ownRoots.length ? "feat-tree" : undefined}>
-            {ownRoots.length > 0 && <h3 className="deck-section-h">Resurface decks</h3>}
-            {/* Only one year is covered so far. Said where the decks are, with
-                the way round it, so nobody in another year thinks the app is
-                not for them (2026-10-18). */}
-            {!qNorm && <div className="feat-soon-wrap" ref={soonWrap}>{soonHidden ? (
+    /* Only one year is covered so far. Said where the decks are — under
+       their heading, so it reads as about them (2026-10-20) — with the way
+       round it, so nobody in another year thinks the app is not for them. */
+    const soonNote = !qNorm ? <div className="feat-soon-wrap" ref={soonWrap}>{soonHidden ? (
               <button type="button" className="feat-soon-line btn-press" onClick={toggleSoon} aria-expanded="false">
                 <img src="/icon-192.png" alt="" aria-hidden="true" width="22" height="22" />
                 <span>We’re adding more topics and years</span>
@@ -752,14 +741,28 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </button>
                 )}
               </section>
-            )}</div>}
+            )}</div> : null;
+    const deckList = ({ key, ...treeProps }) => (
+      <>
+        {(ownRoots.length > 0 || featRoots.length === 0) && (
+          <DeckTree key={key} {...treeProps} forest={activeRoot ? forest : ownRoots}
+            allAvail={activeRoot ? treeProps.allAvail : allCount}
+            quietNoMatch={featRoots.length > 0 && featMatch}
+            heading={featRoots.length > 0 ? "Your decks" : null} />
+        )}
+        {featRoots.length > 0 && featMatch && (
+          <div className={ownRoots.length ? "feat-tree" : undefined}>
+            {ownRoots.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
+            {ownRoots.length > 0 && soonNote}
+
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
               query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
               /* With no decks of their own, the heading comes from the tree
                  itself, under Everything, as "Your decks" does — so a new
-                 account can see whose decks these are (Rafil, 2026-10-20). */
-              heading={ownRoots.length === 0 ? "Resurface decks" : null}
+                 account can see what these are (Rafil, 2026-10-20). */
+              heading={ownRoots.length === 0 ? "Ready-made decks" : null}
+              intro={ownRoots.length === 0 ? soonNote : null}
               rowMenu={rowMenu} />
           </div>
         )}
