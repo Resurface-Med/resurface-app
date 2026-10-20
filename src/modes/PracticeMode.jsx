@@ -478,7 +478,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* A past session: carried on from where it was left ("continue", which
      is also how a finished one is looked back through), or the same
      questions again as a new session ("redo"). */
-  function openPast(rec, how) {
+  /* `at`: open on that question (its place in the record) — Review on one
+     question in the session's detail. */
+  function openPast(rec, how, at = null) {
     setPastOpen(false);
     if (how === "redo") {
       startWith((rec.items ?? []).map(it => it.id));
@@ -501,7 +503,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     sidRef.current = rec.id;
     startedRef.current = rec.created_at ?? new Date().toISOString();
     loadedSels.current = got.sels;
-    setQueue(got.queue); setIdx(got.idx); setSels(got.sels); setResults(restored);
+    /* The record's place `at`, as a place in the rebuilt queue: questions
+       deleted since drop out, so count the ones still there before it. */
+    const live = new Set(got.queue.map(q => q.id));
+    const startAt = at == null ? got.idx
+      : Math.min(got.queue.length - 1, (rec.items ?? []).slice(0, at).filter(it => live.has(it.id)).length);
+    setQueue(got.queue); setIdx(startAt); setSels(got.sels); setResults(restored);
     setSC(answered.filter(r => r.correct).length); setST(answered.length);
   }
   const [pastOpen, setPastOpen] = useState(false);
@@ -515,7 +522,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     </button>
   ) : null;
   const pastSheet = pastOpen ? (
-    <PastSessions sessions={sessions} srCards={srCards} liveIds={liveIds}
+    <PastSessions sessions={sessions} srCards={srCards} liveIds={liveIds} questions={QUESTIONS}
       onOpen={openPast} onFix={ids => { setPastOpen(false); startWith(ids); }}
       onClose={() => setPastOpen(false)} />
   ) : null;
