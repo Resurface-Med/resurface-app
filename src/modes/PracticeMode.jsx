@@ -14,7 +14,7 @@ import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
-import { toRecord, fromRecord, sessionLabel, wrongIds, waitingMistakes } from "../lib/pastSessions";
+import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
@@ -507,13 +507,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [pastOpen, setPastOpen] = useState(false);
 
   /* Past sessions (ui/PastSessions): opened from Study's heading and from
-     the end of a session. The mistakes still waiting in them are counted
-     beside the link. */
+     the end of a session. */
   const liveIds = useMemo(() => new Set(QUESTIONS.map(q => q.id)), [sessions]); // eslint-disable-line react-hooks/exhaustive-deps
-  const waitingCount = useMemo(() => waitingMistakes(sessions, srCards, liveIds).length, [sessions, srCards, liveIds]);
   const pastLink = sessions.length > 0 ? (
     <button type="button" className="gen-link" onClick={() => setPastOpen(true)}>
-      Past sessions{waitingCount > 0 && <span className="ps-link-n" aria-label={`${waitingCount} mistakes waiting`}>{waitingCount}</span>}
+      Past sessions
     </button>
   ) : null;
   const pastSheet = pastOpen ? (

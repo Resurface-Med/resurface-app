@@ -9971,28 +9971,19 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .ps-x:hover { background: var(--c-surface3); color: var(--c-text); }
 
-/* The mistakes, in the brand blue. */
+/* The mistakes: size and colour, not a box. */
 .ps-fix {
-  margin: 18px 28px 6px; padding: 18px 20px; border-radius: 16px;
-  display: flex; align-items: center; justify-content: space-between; gap: 14px 18px; flex-wrap: wrap;
-  background: linear-gradient(135deg, #4a76ff 0%, var(--c-accent) 60%, #2c56e8 100%); color: #fff;
-  box-shadow: 0 16px 34px -20px rgba(53, 98, 245, 0.9);
+  margin: 14px 28px 0; padding: 0 0 18px; border-bottom: 1px solid var(--c-border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap;
   animation: psRise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s both;
 }
-.ps-fix__text { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.ps-fix__n { font-size: 44px; font-weight: 600; letter-spacing: -1.5px; line-height: 1; font-variant-numeric: tabular-nums; }
-.ps-fix__what { font-size: 15px; font-weight: 500; line-height: 1.35; max-width: 17em; }
-.ps-fix__from { display: block; font-size: 13px; font-weight: 400; opacity: 0.8; margin-top: 2px; }
-.ps-fix__go {
-  padding: 11px 20px; border: 0; border-radius: 999px; background: #fff; color: var(--c-accent);
-  font: inherit; font-size: 14.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
-  box-shadow: 0 8px 18px -10px rgba(10, 20, 60, 0.6); transition: transform 0.15s ease;
-}
-.ps-fix__go:hover { transform: translateY(-1px); }
-.ps-clear { margin: 14px 28px 0; font-size: 14px; color: var(--c-success); font-weight: 500; animation: psRise 0.4s ease both; }
+.ps-fix__text { margin: 0; display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+.ps-fix__n { font-size: 42px; font-weight: 600; letter-spacing: -1.4px; line-height: 1; color: var(--c-accent); font-variant-numeric: tabular-nums; }
+.ps-fix__what { font-size: 14.5px; line-height: 1.4; color: var(--c-sub); max-width: 22em; }
+.ps-clear { margin: 14px 28px 0; padding-bottom: 16px; border-bottom: 1px solid var(--c-border); font-size: 14px; color: var(--c-sub); animation: psRise 0.4s ease both; }
 
 .ps-list { overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px 18px; margin-top: 10px; }
-.ps-day__h { margin: 16px 12px 6px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--c-muted); }
+.ps-day__h { margin: 16px 12px 4px; font-size: 14px; font-weight: 600; color: var(--c-muted); }
 .ps-row {
   display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 16px;
   padding: 12px; border-radius: 14px;
@@ -10031,15 +10022,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   padding: 8px 16px; border: 0; border-radius: 999px; background: var(--c-accent); color: #fff;
   font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
 }
-.ps-go.is-wrong { background: var(--c-danger); }
 .ps-alt { border: 0; background: none; padding: 3px 6px; font: inherit; font-size: 12.5px; color: var(--c-muted); cursor: pointer; }
 .ps-alt:hover { color: var(--c-text); }
 
-/* Study's link to it: the count of mistakes waiting beside it. */
-.ps-link-n {
-  display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px;
-  border-radius: 999px; background: var(--c-danger); color: #fff; font-size: 11px; font-weight: 600; vertical-align: 1px;
-}
 /* The end of a session: the mistakes will wait. */
 .sum-later { margin: 10px 0 0; font-size: 14px; color: var(--c-muted); }
 
@@ -10049,8 +10034,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .ps-scrim { padding: 0; align-items: stretch; }
   .np.ps { width: 100%; max-height: none; min-height: 100%; border-radius: 0; padding-top: calc(18px + var(--safe-t, 0px)); }
   .ps-head { padding: 0 18px; }
-  .ps-fix { margin: 16px 16px 4px; }
-  .ps-fix__go { width: 100%; }
+  .ps-fix { margin: 14px 18px 0; }
+  .ps-fix .ps-go { width: 100%; padding: 12px 16px; font-size: 14.5px; }
   .ps-list { padding: 4px 6px calc(18px + var(--safe-b, 0px)); }
   .ps-row { grid-template-columns: 44px minmax(0, 1fr); gap: 10px 12px; }
   .ps-acts { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; }

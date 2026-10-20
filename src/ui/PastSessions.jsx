@@ -102,21 +102,19 @@ export default function PastSessions({ sessions, srCards = {}, liveIds = null, o
           </button>
         </div>
 
+        {/* The mistakes: a number and a sentence, no box around them. */}
         {waiting.length > 0 ? (
           <section className="ps-fix">
-            <div className="ps-fix__text">
+            <p className="ps-fix__text">
               <span className="ps-fix__n"><CountUp to={waiting.length} /></span>
               <span className="ps-fix__what">
-                {waiting.length === 1 ? "mistake" : "mistakes"} to go back to
-                <span className="ps-fix__from">from {fromN} session{fromN === 1 ? "" : "s"}</span>
+                {waiting.length === 1 ? "question" : "questions"} you got wrong in {fromN === 1 ? "a past session" : `${fromN} past sessions`} and haven’t been back to
               </span>
-            </div>
-            <button type="button" className="ps-fix__go btn-press" onClick={() => onFix(waiting)}>
-              Go through them <span aria-hidden="true">→</span>
-            </button>
+            </p>
+            <button type="button" className="ps-go btn-press" onClick={() => onFix(waiting)}>Go through them</button>
           </section>
         ) : anyMistakes ? (
-          <p className="ps-clear">Nothing waiting. Every mistake since put right.</p>
+          <p className="ps-clear">You’ve been back to every question you got wrong.</p>
         ) : null}
 
         <div className="ps-list">
@@ -144,7 +142,7 @@ export default function PastSessions({ sessions, srCards = {}, liveIds = null, o
                       <Strip s={s} />
                     </div>
                     <div className="ps-acts">
-                      <button type="button" className={`ps-go btn-press${primary[0] === "wrong" ? " is-wrong" : ""}`} onClick={() => onOpen(s, primary[0])}>
+                      <button type="button" className="ps-go btn-press" onClick={() => onOpen(s, primary[0])}>
                         {primary[1]}
                       </button>
                       <button type="button" className="ps-alt" onClick={() => onOpen(s, secondary[0])}>{secondary[1]}</button>
