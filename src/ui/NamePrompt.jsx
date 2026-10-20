@@ -48,15 +48,10 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
 
   return (
     <div className="np-scrim" role="presentation">
-      <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="np-title">
-        <h2 className="np__title is-welcome" id="np-title">Welcome to{" "}
-          <img className="np__logo is-day" src="/logo-lockup.png" alt="Resurface" width="560" height="131" />
-          <img className="np__logo is-night" src="/logo-lockup-white.png" alt="" aria-hidden="true" width="560" height="131" />
-        </h2>
-
-        {/* Both questions as labels of one size, under a title that is
-            neither (Rafil, 2026-10-20). */}
-        <label className="np__label is-first" htmlFor="np-name">What should we call you?</label>
+      <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-label="Your details">
+        {/* Two questions as labels of one size, and no heading over them
+            (Rafil, 2026-10-20). */}
+        <label className="np__label is-first is-top" htmlFor="np-name">What should we call you?</label>
 
         <input
           ref={ref}
