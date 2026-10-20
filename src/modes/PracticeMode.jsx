@@ -448,6 +448,51 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   }
 
 
+  /*
+   * Space moves on (Rafil, 2026-10-20): on the deck list, with something
+   * ticked, it is Next; on the options after it, Start. People press it
+   * there by instinct, as they would in Anki.
+   *
+   * Clicking a deck leaves its checkbox focused, and Space on a focused
+   * checkbox would untick it — the opposite of what was meant. So a box
+   * focused by a click or tap is overridden; one reached with Tab keeps
+   * Space for ticking, as a keyboard user expects. (Not :focus-visible —
+   * Chrome turns that on for the very key press being asked about.)
+   * Typing, and any open dialog, are left alone.
+   */
+  const focusByPointer = useRef(true);
+  useEffect(() => {
+    const pointer = () => { focusByPointer.current = true; };
+    const key = e => { if (e.key === "Tab" || e.key.startsWith("Arrow")) focusByPointer.current = false; };
+    window.addEventListener("pointerdown", pointer, true);
+    window.addEventListener("keydown", key, true);
+    return () => { window.removeEventListener("pointerdown", pointer, true); window.removeEventListener("keydown", key, true); };
+  }, []);
+  useEffect(() => {
+    if (queue || Object.keys(results).length > 0) return;
+    const onKey = e => {
+      if (e.key !== " " || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement;
+      if (el && el.closest?.("input, textarea, select, [contenteditable=true]")) return;
+      if (document.querySelector("[role=dialog][aria-modal=true]")) return;
+      if (el && el !== document.body && !focusByPointer.current) return;
+      if (step === "topic") {
+        if (creatingDeck || naming || isNone(filter.leaves) || scopedCount(filter) === 0) return;
+        e.preventDefault();
+        el?.blur?.();
+        if (isPhone) setCountOpt("All");   // as each layout's Next does
+        setStep("options");
+      } else if (step === "options") {
+        if (scopedCount(filter) === 0) return;
+        e.preventDefault();
+        el?.blur?.();
+        start();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   function discardSession() {
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
   }
