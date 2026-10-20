@@ -10146,10 +10146,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   }
   .quiz-shell__body.has-ai .q-card.has-exhibit .q-body .qx { margin-bottom: 0; max-width: none; }
 }
-/* After answering: the results that mattered, picked out (a highlighter's
-   yellow, which reads as "marked" rather than as right or wrong). */
-.qx.is-answered .qx__table tr.is-key th,
-.qx.is-answered .qx__table tr.is-key td { background: #fff3b0; font-weight: 600; }
-[data-theme="dark"] .qx.is-answered .qx__table tr.is-key th,
-[data-theme="dark"] .qx.is-answered .qx__table tr.is-key td { background: rgba(255, 214, 10, 0.22); }
-.qx__keynote { margin: 6px 0 0; font-size: 13px; color: var(--c-sub); }
+/* After answering: the results that mattered, picked out quietly — a blue
+   mark at the start of the row and the result in blue. */
+.qx.is-answered .qx__table tr.is-key th[scope="row"] { box-shadow: inset 3px 0 0 var(--c-accent); }
+.qx.is-answered .qx__table tr.is-key .is-result,
+.qx.is-answered .qx__table.is-grid tr.is-key td { color: var(--c-accent); font-weight: 600; }

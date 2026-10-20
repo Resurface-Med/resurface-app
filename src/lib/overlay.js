@@ -60,7 +60,6 @@ export function overlayOps(snap, ops) {
         if (op.showOnLeaderboard !== undefined) s.showOnLeaderboard = op.showOnLeaderboard;
         if (op.marketingOptIn !== undefined) s.marketingOptIn = op.marketingOptIn;
         if (op.showAllOptions !== undefined) s.showAllOptions = op.showAllOptions;
-        if (op.hideRanges !== undefined) s.hideRanges = op.hideRanges;
         if (op.introSeen !== undefined) s.introSeen = op.introSeen;
         if (op.studyYear !== undefined) s.studyYear = op.studyYear;
         break;

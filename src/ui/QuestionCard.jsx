@@ -89,7 +89,7 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, onOpenLabs = null }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -307,7 +307,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       {/* Between the stem and the options, because it is part of the question
           being asked rather than decoration above it. */}
       <QuestionImage key={q.img || "none"} path={q.img} />
-      <QuestionExhibit exhibit={q.exhibit} answered={answered} onOpenLabs={onOpenLabs} />
+      <QuestionExhibit exhibit={q.exhibit} answered={answered} />
 
       <div
         className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}

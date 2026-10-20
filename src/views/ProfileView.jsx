@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { usePref, setPref } from "../lib/prefs";
 import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -42,7 +41,6 @@ export default function ProfileView({
   onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
   avatarV = null, onAvatarChange,
 }) {
-  const hideRanges = usePref("hideRanges");
   const { user, updatePassword, signOut } = useAuth();
   /* Profile photo (lib/avatar). Chosen here; shrunk on the device first. */
   const photo = avatarSrc(userId, ownAvatar(avatarV));
@@ -291,7 +289,7 @@ export default function ProfileView({
 
           <section className="profile-section" data-in="rise" style={{ "--i": 2 }}>
             <h2 style={sectionH}>Preferences</h2>
-            <p style={{ ...meta, marginTop: 4 }}>How Resurface looks, and how questions are shown.</p>
+            <p style={{ ...meta, marginTop: 4 }}>How Resurface looks on this device.</p>
 
             <div className="profile-stack">
               <div>
@@ -318,26 +316,6 @@ export default function ProfileView({
                     Night
                   </button>
                 </div>
-              </div>
-              {/* Exam mode for results tables (QuestionExhibit). Follows the
-                  account, like the other study preferences. */}
-              <div>
-                <span className="profile-label">Normal ranges in results tables</span>
-                <div className="profile-chips" role="radiogroup" aria-label="Normal ranges in results tables">
-                  <button type="button" role="radio" aria-checked={!hideRanges} className="btn-press"
-                    onClick={() => setPref("hideRanges", false)}
-                    style={!hideRanges ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}>
-                    Show
-                  </button>
-                  <button type="button" role="radio" aria-checked={hideRanges} className="btn-press"
-                    onClick={() => setPref("hideRanges", true)}
-                    style={hideRanges ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}>
-                    Hide, as in the exam
-                  </button>
-                </div>
-                <p style={{ ...meta, marginTop: 8 }}>
-                  The UKMLA leaves them out; you look them up in lab values, as you would on the day.
-                </p>
               </div>
             </div>
           </section>
