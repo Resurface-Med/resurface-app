@@ -34,7 +34,10 @@ export default function MarketingPrompt({ googleName, onContinue }) {
   return (
     <div className="np-scrim" role="presentation">
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="mp-title">
-        <h2 className="np__title is-welcome" id="mp-title">Welcome to <em className="np__brand">Resurface</em></h2>
+        <h2 className="np__title is-welcome" id="mp-title">Welcome to{" "}
+          <img className="np__logo is-day" src="/logo-lockup.png" alt="Resurface" width="560" height="131" />
+          <img className="np__logo is-night" src="/logo-lockup-white.png" alt="" aria-hidden="true" width="560" height="131" />
+        </h2>
 
         {/* Both questions as labels of one size, under a title that is
             neither (Rafil, 2026-10-20). */}

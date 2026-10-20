@@ -9890,12 +9890,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .np__check input { flex: none; margin-top: 2px; width: 16px; height: 16px; accent-color: var(--c-accent); }
 /* The sign-up pop-ups' heading, a step above the questions under it. */
 .np__title.is-welcome { font-size: clamp(26px, 3vw, 30px); letter-spacing: -0.8px; line-height: 1.15; }
-/* The editorial touch on the welcome (Rafil, 2026-10-20): the name in an
-   italic serif, in the brand blue, against Poppins. Instrument Serif comes
-   with Poppins from Google Fonts (index.html), italic only. */
-.np__brand {
-  font-family: "Instrument Serif", Georgia, "Times New Roman", serif;
-  font-style: italic; font-weight: 400;
-  font-size: 1.22em; letter-spacing: -0.2px;
-  color: var(--c-accent);
-}
+/* The welcome ends in the logo itself (Rafil, 2026-10-20), sized to the
+   heading's capitals; the white one in the dark theme. */
+.np__logo { display: inline-block; height: 1.5em; width: auto; vertical-align: -0.4em; }
+.np__logo.is-night { display: none; }
+[data-theme="dark"] .np__logo.is-day { display: none; }
+[data-theme="dark"] .np__logo.is-night { display: inline-block; }
