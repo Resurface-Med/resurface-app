@@ -9,6 +9,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
+import { exhibitBeside, exhibitText } from "../lib/exhibits";
 
 /* One paint list for every question. The stroke is drawn on the letters
    themselves, so the words are never split into a separate box. */
@@ -110,6 +111,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   function handleCopy() {
     const letters = "ABCDE";
     let text = q.q + "\n\n";
+    if (q.exhibit) text += exhibitText(q.exhibit) + "\n\n";
+    if (q.ask) text += q.ask + "\n\n";
     text += q.opts.map((o, i) => `${letters[i]}. ${o}`).join("\n");
 
     if (answered) {
@@ -244,7 +247,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     {editing && <EditQuestionModal q={q} persist={persistFor(q)} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div
       style={focusMode ? undefined : qcard}
-      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img ? " has-exhibit" : ""}`}
+      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img && exhibitBeside(q.exhibit) ? " has-exhibit" : ""}`}
     >
       {!focusMode && (
       <div className="q-card-meta">
@@ -309,6 +312,18 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       <QuestionImage key={q.img || "none"} path={q.img} />
       <QuestionExhibit exhibit={q.exhibit} answered={answered} />
 
+      {/* `ask` is the sentence the paper puts after the results ("Which is
+          the most likely diagnosis?"). On a wide screen it stays with the
+          options, beside a table. display:contents keeps it between the
+          results and the options when the card is stacked. */}
+      <div className={q.ask ? "q-follow" : undefined} style={q.ask ? undefined : { display: "contents" }}>
+      {q.ask && (
+        <Highlighter
+          as="p"
+          text={q.ask}
+          className={`q-ask${focusMode ? " q-ask--focus" : ""}`}
+        />
+      )}
       <div
         className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}
         role="listbox"
@@ -385,6 +400,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             </button>
           );
         })}
+      </div>
       </div>
       </div>
 

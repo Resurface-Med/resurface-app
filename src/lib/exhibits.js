@@ -1,25 +1,42 @@
 /**
- * Data exhibits (2026-10-20): the tables a question shows between its stem
- * and its options — an ABG, U&Es, LFTs, CSF, a 2×2 table — the way UKMLA
- * and USMLE papers show them.
+ * Data exhibits (2026-10-20): what a question shows between its stem and
+ * its options — an ABG or U&E table, a 2×2, or the paper's own
+ * "Investigations:" lines. UKMLA and PLAB use both, and one question can
+ * use both at once.
  *
- * A question may carry `exhibit`:
+ * A question may carry `exhibit` as one block, or as an array of blocks
+ * when the paper mixes a list and a table:
  *
  *   { kind: "labs", title: "Arterial blood gas (on air)",
- *     rows: [{ name: "pH", value: "7.27", unit: "", range: "7.35 – 7.45" }, …],
+ *     rows: [{ name: "pH", value: "7.27", unit: "", range: "7.35 – 7.45", key? }, …],
  *     note: "optional line under the table" }
  *
  *   { kind: "table", title: "…", columns: ["", "DVT present", "DVT absent"],
- *     rows: [["Test positive", "80", "30"], …] }
+ *     rows: [["Test positive", "80", "30"], …], keyRows?: number[] }
  *
- * Values are strings, written as the exam writes them. No high/low flags:
- * marking what is abnormal answers half the question.
+ *   { kind: "lines", title: "Investigations:",
+ *     rows: [
+ *       [{ name: "Haemoglobin", value: "101", unit: "g/L", range: "130–175" }],
+ *       [{ name: "MCH", value: "24", unit: "pg", range: "27–33" },
+ *        { name: "MCV", value: "73", unit: "fL", range: "80–96" }],
+ *     ] }
+ *
+ * A line is one printed row. Two results that share a line on the paper
+ * share an entry. Values are strings, written as the exam writes them.
+ * No high/low flags: marking what is abnormal answers half the question.
+ * `key` on a result (or `keyRows` on a table) is only revealed after answering.
+ *
+ * The question sentence often comes after the results on the paper. That
+ * sentence is `ask` on the question, drawn after the exhibit. Leaving it
+ * off keeps the sentence in the stem, which is how the table questions read.
  *
  * `checkExhibit` is why exhibits are data rather than pictures: an exhibit
  * that cannot be true is caught before it is saved. A blood gas whose pH
  * does not follow from its PaCO₂ and bicarbonate, a value outside what a
  * living patient can have, a stated anion gap that does not add up — each
- * is a problem listed by name. Pure, so it can be tested.
+ * is a problem listed by name. A mix is checked as one set of results, so
+ * a gas split between the list and the table still has to add up. Pure, so
+ * it can be tested.
  */
 
 const num = v => {
@@ -36,7 +53,9 @@ function find(rows, ...names) {
 }
 
 /* What a living patient can have, roughly — wide on purpose: this is to
-   catch a decimal point in the wrong place, not to judge the medicine. */
+   catch a decimal point in the wrong place, not to judge the medicine.
+   White cells are left out: a blood count and a CSF count share the name
+   and live on different scales. */
 const BOUNDS = [
   [["ph"], 6.8, 7.8],
   [["paco2", "pco2"], 1.5, 15],
@@ -49,12 +68,24 @@ const BOUNDS = [
   [["creatinine"], 15, 2500],
   [["glucose", "plasmaglucose", "capillaryglucose", "fastingglucose"], 0.5, 80],
   [["haemoglobin", "hb"], 30, 250],
+  [["MCV", "Mean cell volume"], 50, 160],
+  [["MCH", "Mean cell haemoglobin", "Mean cell haemoglobin (MCH)"], 12, 45],
+  [["Platelets", "Platelet count"], 5, 2500],
   [["calcium", "adjustedcalcium", "correctedcalcium"], 1, 5],
 ];
 
-export function checkExhibit(ex) {
+function resultsOf(part) {
+  if (!part || typeof part !== "object") return [];
+  if (part.kind === "labs") return Array.isArray(part.rows) ? part.rows : [];
+  if (part.kind === "lines" && Array.isArray(part.rows) && part.rows.every(line => Array.isArray(line))) return part.rows.flat();
+  return [];
+}
+
+/* The printed shape, not the medicine. A problem here means the numbers
+   are not worth reading yet. */
+function shapeProblems(ex) {
   const problems = [];
-  if (!ex || typeof ex !== "object") return ["No exhibit."];
+  if (!ex || typeof ex !== "object" || Array.isArray(ex)) return ["No exhibit."];
   if (!ex.title || typeof ex.title !== "string") problems.push("It has no title.");
 
   if (ex.kind === "table") {
@@ -64,10 +95,19 @@ export function checkExhibit(ex) {
     else if (ex.rows.some(r => !Array.isArray(r) || r.length !== cols.length)) problems.push("Every row needs one cell per column.");
     return problems;
   }
+  if (ex.kind === "lines") {
+    const lines = ex.rows ?? [];
+    if (!Array.isArray(lines) || !lines.length) return [...problems, "It has no results."];
+    if (lines.some(line => !Array.isArray(line) || !line.length)) problems.push("Each line needs at least one result.");
+    return problems;
+  }
   if (ex.kind !== "labs") return [...problems, `Unknown exhibit kind "${ex.kind}".`];
 
-  const rows = ex.rows ?? [];
-  if (!rows.length) return [...problems, "It has no results."];
+  if (!Array.isArray(ex.rows) || !ex.rows.length) return [...problems, "It has no results."];
+  return problems;
+}
+
+function checkResults(rows, problems) {
   if (rows.some(r => !r || !r.name || r.value === undefined || r.value === "")) problems.push("Every result needs a name and a value.");
 
   for (const [names, lo, hi] of BOUNDS) {
@@ -97,11 +137,56 @@ export function checkExhibit(ex) {
   return problems;
 }
 
+function checkOne(ex) {
+  const shape = shapeProblems(ex);
+  const kind = ex?.kind;
+  if (kind !== "labs" && kind !== "lines") return shape;
+  if (shape.some(s => s === "It has no results." || s.startsWith("Each line"))) return shape;
+  return checkResults(resultsOf(ex), shape);
+}
+
+function partLabel(part, i) {
+  const t = typeof part?.title === "string" ? part.title.replace(/:\s*$/, "") : "";
+  return t || `Part ${i + 1}`;
+}
+
+/* A table or a lab printout sits beside the options on a wide screen.
+   The paper's investigations list stays in the reading column. */
+export function exhibitBeside(ex) {
+  const parts = Array.isArray(ex) ? ex : ex ? [ex] : [];
+  return parts.some(p => p && (p.kind === "labs" || p.kind === "table"));
+}
+
+export function checkExhibit(ex) {
+  if (!Array.isArray(ex)) return checkOne(ex);
+  if (!ex.length) return ["No exhibit."];
+
+  const problems = [];
+  const results = [];
+  ex.forEach((part, i) => {
+    const shape = shapeProblems(part);
+    const label = partLabel(part, i);
+    for (const p of shape) problems.push(`${label}: ${p}`);
+    const blocked = shape.some(s => s === "It has no results." || s.startsWith("Each line") || s.startsWith("Unknown") || s === "No exhibit.");
+    if (!blocked && (part?.kind === "labs" || part?.kind === "lines")) results.push(...resultsOf(part));
+  });
+  return checkResults(results, problems);
+}
+
+function resultPhrase(r) {
+  return `${r.name} ${r.value}${r.unit ? ` ${r.unit}` : ""}${r.range ? ` (${r.range})` : ""}`;
+}
+
 /* The exhibit as plain text, for the AI that explains a question. */
 export function exhibitText(ex) {
   if (!ex) return "";
+  if (Array.isArray(ex)) return ex.map(exhibitText).filter(Boolean).join("\n\n");
   if (ex.kind === "table") {
     return [ex.title, (ex.columns ?? []).join(" | "), ...(ex.rows ?? []).map(r => r.join(" | ")), ex.note].filter(Boolean).join("\n");
+  }
+  if (ex.kind === "lines") {
+    const lines = (ex.rows ?? []).map(line => (Array.isArray(line) ? line : []).map(resultPhrase).join("    "));
+    return [ex.title, ...lines, ex.note].filter(Boolean).join("\n");
   }
   return [
     ex.title,

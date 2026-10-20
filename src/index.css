@@ -10122,6 +10122,34 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* A 2×2 and the like: the counts centred. */
 .qx__table.is-grid td, .qx__table.is-grid thead th:not(:first-child) { text-align: center; font-variant-numeric: tabular-nums; }
 .qx__note { margin: 6px 0 0; font-size: 13px; color: var(--c-sub); }
+/* The paper's investigations list: lines of results, not a grid. Two
+   results that share a line on the paper share a row and wrap when the
+   column is narrow. */
+.qx--lines { max-width: 44rem; }
+.qx--lines .qx__title { margin: 0 0 6px; font-size: 16.5px; font-weight: 600; letter-spacing: -0.2px; }
+.qx__lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.qx__line {
+  display: flex; flex-wrap: wrap; column-gap: 2.25rem; row-gap: 2px;
+  margin: 0; font-size: 16.5px; font-weight: 500; line-height: 1.45; color: var(--c-text);
+}
+.qx__line .is-result { font-variant-numeric: tabular-nums; }
+.qx-set { display: flex; flex-direction: column; gap: 16px; min-width: 0; margin: 0 0 22px; }
+.qx-set .qx { margin-bottom: 0; }
+/* The sentence after the results. It reads as the question, so it takes
+   the stem's size. display:contents until a table sits beside the options,
+   when this groups the sentence with them. */
+.q-follow { display: contents; }
+.q-ask {
+  margin: 2px 0 18px;
+  font-size: clamp(18px, 2vw, 23px);
+  font-weight: 600;
+  letter-spacing: -0.45px;
+  line-height: 1.32;
+  color: var(--c-text);
+}
+.quiz-shell .qx--lines .qx__title,
+.quiz-shell .qx--lines .qx__line { font-size: clamp(18px, 2.1vw, 24px); letter-spacing: -0.3px; }
+.quiz-shell .q-ask { font-size: clamp(20px, 2.5vw, 27px); letter-spacing: -0.55px; margin-top: 4px; }
 @media (max-width: 600px) {
   .qx__table { font-size: 13.5px; }
   .qx__table th, .qx__table td { padding: 6px 8px; }
@@ -10136,7 +10164,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: clamp(20px, 2.2vw, 30px); align-items: start;
   }
-  .quiz-shell__body:not(.has-ai) .q-card.has-exhibit .q-body .qx { margin-bottom: 0; max-width: none; }
+  .quiz-shell__body:not(.has-ai) .q-card.has-exhibit .q-body .qx,
+  .quiz-shell__body:not(.has-ai) .q-card.has-exhibit .q-body .qx-set { margin-bottom: 0; max-width: none; }
+  .quiz-shell__body:not(.has-ai) .q-card.has-exhibit .q-follow {
+    display: flex; flex-direction: column; gap: 16px; min-width: 0;
+  }
+  .quiz-shell__body:not(.has-ai) .q-card.has-exhibit .q-follow .q-ask { margin: 0; }
 }
 @media (min-width: 1480px) {
   .quiz-shell__body.has-ai .quiz-shell__main:has(.q-card.has-exhibit),
@@ -10144,10 +10177,21 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .quiz-shell__body.has-ai .q-card.has-exhibit .q-body {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start;
   }
-  .quiz-shell__body.has-ai .q-card.has-exhibit .q-body .qx { margin-bottom: 0; max-width: none; }
+  .quiz-shell__body.has-ai .q-card.has-exhibit .q-body .qx,
+  .quiz-shell__body.has-ai .q-card.has-exhibit .q-body .qx-set { margin-bottom: 0; max-width: none; }
+  .quiz-shell__body.has-ai .q-card.has-exhibit .q-follow {
+    display: flex; flex-direction: column; gap: 14px; min-width: 0;
+  }
+  .quiz-shell__body.has-ai .q-card.has-exhibit .q-follow .q-ask { margin: 0; }
 }
 /* After answering: the results that mattered, picked out quietly — a blue
    mark at the start of the row and the result in blue. */
 .qx.is-answered .qx__table tr.is-key th[scope="row"] { box-shadow: inset 3px 0 0 var(--c-accent); }
 .qx.is-answered .qx__table tr.is-key .is-result,
 .qx.is-answered .qx__table.is-grid tr.is-key td { color: var(--c-accent); font-weight: 600; }
+.qx--lines.is-answered .qx__item.is-key {
+  display: inline-block;
+  box-shadow: inset 3px 0 0 var(--c-accent);
+  padding-left: 8px;
+}
+.qx--lines.is-answered .qx__item.is-key .is-result { color: var(--c-accent); font-weight: 600; }

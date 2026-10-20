@@ -258,50 +258,24 @@
     ]
   },
   {
-    "q": "A 78-year-old man on ramipril and spironolactone presents with three days of diarrhoea and generalised weakness. His ECG shows tall tented T waves and a broad QRS complex. What is the most appropriate immediate management?",
+    "q": "A 78-year-old man on ramipril and spironolactone presents with three days of diarrhoea and generalised weakness. His ECG shows tall tented T waves and a broad QRS complex.",
+    "ask": "What is the most appropriate immediate management?",
     "exhibit": {
-      "kind": "labs",
-      "title": "Urea and electrolytes",
+      "kind": "lines",
+      "title": "Investigations:",
       "rows": [
-        {
-          "name": "Sodium",
-          "value": "137",
-          "unit": "mmol/L",
-          "range": "135 – 145"
-        },
-        {
-          "name": "Potassium",
-          "value": "6.9",
-          "unit": "mmol/L",
-          "range": "3.5 – 5.3",
-          "key": true
-        },
-        {
-          "name": "Chloride",
-          "value": "104",
-          "unit": "mmol/L",
-          "range": "95 – 106"
-        },
-        {
-          "name": "Bicarbonate",
-          "value": "17",
-          "unit": "mmol/L",
-          "range": "22 – 29"
-        },
-        {
-          "name": "Urea",
-          "value": "31.2",
-          "unit": "mmol/L",
-          "range": "2.5 – 7.8",
-          "key": true
-        },
-        {
-          "name": "Creatinine",
-          "value": "486",
-          "unit": "µmol/L",
-          "range": "60 – 120",
-          "key": true
-        }
+        [
+          { "name": "Sodium", "value": "137", "unit": "mmol/L", "range": "135–145" },
+          { "name": "Potassium", "value": "6.9", "unit": "mmol/L", "range": "3.5–5.3", "key": true }
+        ],
+        [
+          { "name": "Chloride", "value": "104", "unit": "mmol/L", "range": "95–106" },
+          { "name": "Bicarbonate", "value": "17", "unit": "mmol/L", "range": "22–29" }
+        ],
+        [
+          { "name": "Urea", "value": "31.2", "unit": "mmol/L", "range": "2.5–7.8", "key": true },
+          { "name": "Creatinine", "value": "486", "unit": "µmol/L", "range": "60–120", "key": true }
+        ]
       ],
       "note": "Creatinine three months ago: 104 µmol/L."
     },
@@ -323,55 +297,27 @@
     ]
   },
   {
-    "q": "A 69-year-old man who smokes presents with confusion. He has had haemoptysis and lost weight over two months. He is clinically euvolaemic and takes no regular medication. His thyroid function and morning cortisol are normal. What is the most likely cause of his hyponatraemia?",
+    "q": "A 69-year-old man who smokes presents with confusion. He has had haemoptysis and lost weight over two months. He is clinically euvolaemic and takes no regular medication. His thyroid function and morning cortisol are normal.",
+    "ask": "What is the most likely cause of his hyponatraemia?",
     "exhibit": {
-      "kind": "labs",
-      "title": "Serum and urine",
+      "kind": "lines",
+      "title": "Investigations:",
       "rows": [
-        {
-          "name": "Sodium",
-          "value": "121",
-          "unit": "mmol/L",
-          "range": "135 – 145",
-          "key": true
-        },
-        {
-          "name": "Potassium",
-          "value": "4.1",
-          "unit": "mmol/L",
-          "range": "3.5 – 5.3"
-        },
-        {
-          "name": "Urea",
-          "value": "2.1",
-          "unit": "mmol/L",
-          "range": "2.5 – 7.8"
-        },
-        {
-          "name": "Creatinine",
-          "value": "58",
-          "unit": "µmol/L",
-          "range": "60 – 120"
-        },
-        {
-          "name": "Serum osmolality",
-          "value": "254",
-          "unit": "mOsmol/kg",
-          "range": "285 – 295",
-          "key": true
-        },
-        {
-          "name": "Urine osmolality",
-          "value": "486",
-          "unit": "mOsmol/kg",
-          "key": true
-        },
-        {
-          "name": "Urine sodium",
-          "value": "46",
-          "unit": "mmol/L",
-          "key": true
-        }
+        [
+          { "name": "Sodium", "value": "121", "unit": "mmol/L", "range": "135–145", "key": true },
+          { "name": "Potassium", "value": "4.1", "unit": "mmol/L", "range": "3.5–5.3" }
+        ],
+        [
+          { "name": "Urea", "value": "2.1", "unit": "mmol/L", "range": "2.5–7.8" },
+          { "name": "Creatinine", "value": "58", "unit": "µmol/L", "range": "60–120" }
+        ],
+        [
+          { "name": "Serum osmolality", "value": "254", "unit": "mOsmol/kg", "range": "285–295", "key": true }
+        ],
+        [
+          { "name": "Urine osmolality", "value": "486", "unit": "mOsmol/kg", "key": true },
+          { "name": "Urine sodium", "value": "46", "unit": "mmol/L", "key": true }
+        ]
       ]
     },
     "opts": [
@@ -392,50 +338,26 @@
     ]
   },
   {
-    "q": "A 67-year-old woman has six weeks of painless jaundice with itching, pale stools and dark urine, and has lost 6 kg. On examination there is a palpable, non-tender gallbladder. What is the most likely diagnosis?",
+    "q": "A 67-year-old woman has six weeks of painless jaundice with itching, pale stools and dark urine, and has lost 6 kg. On examination there is a palpable, non-tender gallbladder.",
+    "ask": "What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs",
-      "title": "Liver function tests",
+      "kind": "lines",
+      "title": "Investigations:",
       "rows": [
-        {
-          "name": "Bilirubin",
-          "value": "186",
-          "unit": "µmol/L",
-          "range": "< 17",
-          "key": true
-        },
-        {
-          "name": "ALT",
-          "value": "64",
-          "unit": "IU/L",
-          "range": "10 – 50"
-        },
-        {
-          "name": "AST",
-          "value": "52",
-          "unit": "IU/L",
-          "range": "10 – 40"
-        },
-        {
-          "name": "ALP",
-          "value": "840",
-          "unit": "IU/L",
-          "range": "25 – 115",
-          "key": true
-        },
-        {
-          "name": "GGT",
-          "value": "612",
-          "unit": "U/L",
-          "range": "9 – 40",
-          "key": true
-        },
-        {
-          "name": "Albumin",
-          "value": "33",
-          "unit": "g/L",
-          "range": "35 – 50"
-        }
+        [
+          { "name": "Bilirubin", "value": "186", "unit": "µmol/L", "range": "< 17", "key": true }
+        ],
+        [
+          { "name": "ALT", "value": "64", "unit": "IU/L", "range": "10–50" },
+          { "name": "AST", "value": "52", "unit": "IU/L", "range": "10–40" }
+        ],
+        [
+          { "name": "ALP", "value": "840", "unit": "IU/L", "range": "25–115", "key": true },
+          { "name": "GGT", "value": "612", "unit": "U/L", "range": "9–40", "key": true }
+        ],
+        [
+          { "name": "Albumin", "value": "33", "unit": "g/L", "range": "35–50" }
+        ]
       ]
     },
     "opts": [
@@ -456,32 +378,19 @@
     ]
   },
   {
-    "q": "A 31-year-old woman has three months of weight loss, heat intolerance and palpitations. Her eyes are prominent, and she has a diffuse, non-tender goitre with a bruit. What is the most likely diagnosis?",
+    "q": "A 31-year-old woman has three months of weight loss, heat intolerance and palpitations. Her eyes are prominent, and she has a diffuse, non-tender goitre with a bruit.",
+    "ask": "What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs",
-      "title": "Thyroid function tests",
+      "kind": "lines",
+      "title": "Investigations:",
       "rows": [
-        {
-          "name": "TSH",
-          "value": "< 0.01",
-          "unit": "mU/L",
-          "range": "0.3 – 4.2",
-          "key": true
-        },
-        {
-          "name": "Free T4",
-          "value": "48",
-          "unit": "pmol/L",
-          "range": "9 – 25",
-          "key": true
-        },
-        {
-          "name": "Free T3",
-          "value": "15.6",
-          "unit": "pmol/L",
-          "range": "3.1 – 6.8",
-          "key": true
-        }
+        [
+          { "name": "TSH", "value": "< 0.01", "unit": "mU/L", "range": "0.3–4.2", "key": true }
+        ],
+        [
+          { "name": "Free T4", "value": "48", "unit": "pmol/L", "range": "9–25", "key": true },
+          { "name": "Free T3", "value": "15.6", "unit": "pmol/L", "range": "3.1–6.8", "key": true }
+        ]
       ]
     },
     "opts": [
@@ -614,50 +523,26 @@
     ]
   },
   {
-    "q": "A 38-year-old woman has felt tired for several months. Her periods have become very heavy over the past year. What is the most likely diagnosis?",
+    "q": "A 38-year-old woman has felt tired for several months. Her periods have become very heavy over the past year.",
+    "ask": "What is the most likely diagnosis?",
     "exhibit": {
-      "kind": "labs",
-      "title": "Full blood count and ferritin",
+      "kind": "lines",
+      "title": "Investigations:",
       "rows": [
-        {
-          "name": "Haemoglobin",
-          "value": "92",
-          "unit": "g/L",
-          "range": "115 – 155",
-          "key": true
-        },
-        {
-          "name": "MCV",
-          "value": "68",
-          "unit": "fL",
-          "range": "80 – 96",
-          "key": true
-        },
-        {
-          "name": "MCH",
-          "value": "21",
-          "unit": "pg",
-          "range": "27 – 33"
-        },
-        {
-          "name": "White cell count",
-          "value": "6.1",
-          "unit": "× 10⁹/L",
-          "range": "3.0 – 10.0"
-        },
-        {
-          "name": "Platelets",
-          "value": "452",
-          "unit": "× 10⁹/L",
-          "range": "150 – 400"
-        },
-        {
-          "name": "Ferritin",
-          "value": "6",
-          "unit": "µg/L",
-          "range": "12 – 200",
-          "key": true
-        }
+        [
+          { "name": "Haemoglobin", "value": "92", "unit": "g/L", "range": "115–155", "key": true }
+        ],
+        [
+          { "name": "MCV", "value": "68", "unit": "fL", "range": "80–96", "key": true },
+          { "name": "MCH", "value": "21", "unit": "pg", "range": "27–33" }
+        ],
+        [
+          { "name": "White cell count", "value": "6.1", "unit": "× 10⁹/L", "range": "3.0–10.0" },
+          { "name": "Platelets", "value": "452", "unit": "× 10⁹/L", "range": "150–400" }
+        ],
+        [
+          { "name": "Ferritin", "value": "6", "unit": "µg/L", "range": "12–200", "key": true }
+        ]
       ]
     },
     "opts": [
@@ -675,6 +560,71 @@
       "In anaemia of chronic disease the ferritin is normal or raised, as it is an acute-phase protein.",
       "B12 deficiency causes a macrocytic anaemia, with a raised MCV.",
       "Sideroblastic anaemia is rare, and iron studies show iron overload, with a high ferritin."
+    ]
+  },
+  {
+    "q": "A 72-year-old man has had six months of increased frequency of defaecation and three months of dark red rectal bleeding mixed with the stool.",
+    "ask": "Which is the most likely diagnosis?",
+    "exhibit": {
+      "kind": "lines",
+      "title": "Investigations:",
+      "rows": [
+        [
+          {
+            "name": "Haemoglobin",
+            "value": "101",
+            "unit": "g/L",
+            "range": "130–175",
+            "key": true
+          }
+        ],
+        [
+          {
+            "name": "Mean cell haemoglobin (MCH)",
+            "value": "24",
+            "unit": "pg",
+            "range": "27–33",
+            "key": true
+          },
+          {
+            "name": "MCV",
+            "value": "73",
+            "unit": "fL",
+            "range": "80–96",
+            "key": true
+          }
+        ],
+        [
+          {
+            "name": "White cell count",
+            "value": "9.1",
+            "unit": "× 10⁹/L",
+            "range": "3.0–10.0"
+          },
+          {
+            "name": "Platelets",
+            "value": "354",
+            "unit": "× 10⁹/L",
+            "range": "150–400"
+          }
+        ]
+      ]
+    },
+    "opts": [
+      "Colonic carcinoma",
+      "Diverticular disease",
+      "Haemorrhoids",
+      "Ischaemic colitis",
+      "Ulcerative colitis"
+    ],
+    "ans": 0,
+    "exp": "Dark red blood mixed into the stool, a change in how often he opens his bowels, and a microcytic anaemia (low haemoglobin, low MCV, low MCH) in a man of 72 is a colorectal carcinoma until it is excluded. The white cell and platelet counts are normal, which fits slow blood loss rather than an acute colitis.",
+    "optExp": [
+      null,
+      "Diverticular bleeding is sudden and usually large. It does not give months of blood mixed through the stool together with a change in bowel habit.",
+      "Haemorrhoids cause bright red blood on the paper or dripping into the pan, not blood mixed into the stool, and they do not change bowel frequency.",
+      "Ischaemic colitis is an acute illness of hours or days, with pain and bloody diarrhoea, not a six-month history.",
+      "Ulcerative colitis causes bloody diarrhoea, usually over a shorter time and often with a systemically inflamed picture. This history in a man of 72 is carcinoma first."
     ]
   }
 ]

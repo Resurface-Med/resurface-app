@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { checkExhibit, exhibitText } from "../src/lib/exhibits.js";
+import { checkExhibit, exhibitBeside, exhibitText } from "../src/lib/exhibits.js";
 
 const deck = JSON.parse(readFileSync(new URL("../content/exhibits/test-deck.json", import.meta.url), "utf8"));
 const abg = (ph, co2, hco3) => ({
@@ -29,11 +29,41 @@ describe("checkExhibit", () => {
   it("reads as plain text for the AI", () => {
     expect(exhibitText(abg(7.27, 8.9, 30))).toBe("ABG\npH: 7.27\nPaCO₂: 8.9 kPa\nBicarbonate: 30");
   });
+  it("reads an investigations list the way the paper prints it, two results to a line", () => {
+    const ex = {
+      kind: "lines", title: "Investigations:",
+      rows: [
+        [{ name: "Haemoglobin", value: "101", unit: "g/L", range: "130–175" }],
+        [{ name: "MCH", value: "24", unit: "pg", range: "27–33" }, { name: "MCV", value: "73", unit: "fL", range: "80–96" }],
+      ],
+    };
+    expect(checkExhibit(ex)).toEqual([]);
+    expect(exhibitText(ex)).toBe("Investigations:\nHaemoglobin 101 g/L (130–175)\nMCH 24 pg (27–33)    MCV 73 fL (80–96)");
+    expect(exhibitBeside(ex)).toBe(false);
+  });
+  it("rejects a list that is not written as lines, and an impossible MCV", () => {
+    expect(checkExhibit({ kind: "lines", title: "Investigations:", rows: [{ name: "Hb", value: "101" }] })[0]).toMatch(/Each line/);
+    expect(checkExhibit({ kind: "lines", title: "Investigations:", rows: [[{ name: "MCV", value: "730", unit: "fL" }]] })[0]).toMatch(/MCV of 730/);
+  });
+  it("checks a list and a table as one set of results", () => {
+    const lines = { kind: "lines", title: "Investigations:", rows: [[{ name: "Bicarbonate", value: "30", unit: "mmol/L" }]] };
+    const gas = { kind: "labs", title: "ABG", rows: [{ name: "pH", value: "7.27" }, { name: "PaCO₂", value: "8.9", unit: "kPa" }] };
+    expect(checkExhibit([lines, gas])).toEqual([]);
+    expect(checkExhibit([lines, { ...gas, rows: [{ name: "pH", value: "7.40" }, { name: "PaCO₂", value: "8.9", unit: "kPa" }] }])[0]).toMatch(/pH does not follow/);
+    expect(exhibitBeside([lines, gas])).toBe(true);
+    expect(exhibitText([lines, gas])).toBe("Investigations:\nBicarbonate 30 mmol/L\n\nABG\npH: 7.27\nPaCO₂: 8.9 kPa");
+  });
 });
 
 describe("the test deck", () => {
   it("every exhibit passes its own checks", () => {
     for (const q of deck) expect([q.q.slice(0, 40), checkExhibit(q.exhibit)]).toEqual([q.q.slice(0, 40), []]);
+  });
+  it("each question is either a list or a table", () => {
+    const kinds = deck.map(q => q.exhibit.kind);
+    expect(deck.every(q => q.exhibit && !Array.isArray(q.exhibit))).toBe(true);
+    expect(kinds).toContain("lines");
+    expect(kinds.some(k => k === "labs" || k === "table")).toBe(true);
   });
   it("every question is a well-formed single best answer", () => {
     for (const q of deck) {

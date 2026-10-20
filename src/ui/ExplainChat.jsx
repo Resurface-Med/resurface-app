@@ -94,7 +94,7 @@ function contextBody(q, picked, answered) {
   return {
     questionId: q.id,
     /* The exhibit goes with the stem, so the AI can read the numbers. */
-    question: q.exhibit ? `${q.q}\n\n${exhibitText(q.exhibit)}` : q.q,
+    question: [q.q, q.exhibit ? exhibitText(q.exhibit) : "", q.ask].filter(Boolean).join("\n\n"),
     options: q.opts,
     picked: answered ? picked : null,
     ...(answered ? { correct: q.ans, explanation: q.exp } : {}),
