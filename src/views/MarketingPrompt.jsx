@@ -35,9 +35,6 @@ export default function MarketingPrompt({ googleName, onContinue }) {
     <div className="np-scrim" role="presentation">
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="mp-title">
         <h2 className="np__title" id="mp-title">What should we call you?</h2>
-        <p className="np__sub">
-          This is the name on the leaderboard. You can change it any time in your profile.
-        </p>
 
         <input
           ref={ref}
@@ -49,6 +46,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
           aria-label="Your name"
           placeholder="Your name"
         />
+        <p className="np__hint">This is the name on the leaderboard. You can change it any time in your profile.</p>
         {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
 
         <label className="np__label" htmlFor="mp-year">Which year are you in?</label>

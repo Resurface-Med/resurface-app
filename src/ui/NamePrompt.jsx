@@ -50,9 +50,6 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
     <div className="np-scrim" role="presentation">
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="np-title">
         <h2 className="np__title" id="np-title">What should we call you?</h2>
-        <p className="np__sub">
-          This is the name on the leaderboard. You can change it any time in your profile.
-        </p>
 
         <input
           ref={ref}
@@ -64,6 +61,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
           placeholder="Your name"
         />
 
+        <p className="np__hint">This is the name on the leaderboard. You can change it any time in your profile.</p>
         {nameErr && <p className="name-err" role="alert">{nameErr}</p>}
 
         <label className="np__label" htmlFor="np-year">Which year are you in?</label>
