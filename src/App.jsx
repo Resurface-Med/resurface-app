@@ -38,7 +38,7 @@ import { SUPABASE_URL } from "./lib/supabase";
 import { keepImagesOffline } from "./lib/questionImage";
 import OfflineBar, { NeedsConnection } from "./ui/OfflineBar";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
-import { EXHIBIT_DECK_ID, setExhibitPreviewHidden, withExhibitPreview } from "./lib/exhibitPreview";
+import { seedExhibitDeck } from "./lib/seedExhibitDeck";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs, getPrefs } from "./lib/prefs";
@@ -224,7 +224,7 @@ export default function App() {
   /* Progress reads every deck you practise from, featured ones included. */
   const progressDecks = useMemo(() => [...decks, ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
   function applyFeatured(next) {
-    const f = withExhibitPreview(next ?? { roots: [], decks: [], questions: [] });
+    const f = next ?? { roots: [], decks: [], questions: [] };
     featuredRef.current = f;
     setFeatured(f);
     applyGenerated(genRowsRef.current);
@@ -241,9 +241,6 @@ export default function App() {
   function hideFeatured(id, hide) {
     const f = featuredRef.current;
     applyFeatured({ ...f, roots: f.roots.map(r => (r.id === id ? { ...r, hidden: hide } : r)) });
-    /* The sample deck is not a row in featured_decks, so hiding it has
-       nothing to write. A failed write would sit in the queue forever. */
-    if (id === EXHIBIT_DECK_ID) { setExhibitPreviewHidden(hide); return; }
     remote.hideFeatured(id, hide).catch(() => {});
   }
 
@@ -297,7 +294,7 @@ export default function App() {
 
   /* Everything loadAll returns, onto the screen. Shared by sign-in and by
      pull-to-refresh, so a refresh cannot miss something the first load set. */
-  function applySnapshot(d) {
+  function applySnapshot(d, { seed = false } = {}) {
     setPStats(d.pStats);
     setSrCards(d.srCards);
     setBookmarks(d.bookmarks);
@@ -317,10 +314,25 @@ export default function App() {
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
-    featuredRef.current = withExhibitPreview(d.featured ?? featuredRef.current);
+    featuredRef.current = d.featured ?? featuredRef.current;
     setFeatured(featuredRef.current);
     applyDecks(d.decks ?? []);
     applyGenerated(d.generated, d.decks ?? []);
+    /* The exhibit sample belongs to one account, not the ready-made list.
+       Created once that account's server snapshot is in, so a cached copy
+       cannot race it. */
+    if (seed) {
+      seedExhibitDeck({
+        user,
+        displayName: d.displayName,
+        decks: d.decks ?? [],
+        generated: d.generated ?? [],
+      }).then(extra => {
+        if (!extra) return;
+        applyDecks(extra.decks);
+        applyGenerated(extra.generated, extra.decks);
+      }).catch(() => {});
+    }
   }
 
   /* Pull-to-refresh on a phone: the same fetch, without the loading screen.
@@ -329,7 +341,7 @@ export default function App() {
   async function refreshData() {
     if (!user?.id) return false;
     try {
-      applySnapshot(await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT));
+      applySnapshot(await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT), { seed: true });
       sourceRef.current = "server";
       setOnline(true);
       setLoadError(null);
@@ -449,7 +461,7 @@ export default function App() {
         const d = await withTimeout(fetchFresh(user.id), cached ? LOAD_TIMEOUT : FIRST_LOAD_TIMEOUT);
         if (cancelled) return;
         if (!cached) mark("data");
-        applySnapshot(d);
+        applySnapshot(d, { seed: true });
         sourceRef.current = "server";
         setOnline(true);
         setLoadError(null);
