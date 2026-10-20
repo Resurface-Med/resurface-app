@@ -711,13 +711,13 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const featRoots = activeRoot ? [] : forest.filter(n => n.featured);
     const featMatch = !qNorm || prune(featRoots, qNorm).length > 0;
     const allCount = forest.reduce((n, r) => n + r.avail, 0);
-    /* Only one year is covered so far. Said where the decks are — under
-       their heading, so it reads as about them (2026-10-20) — with the way
+    /* Only one year is covered so far. Said where the decks are — just
+       above their heading, so it reads as about them (2026-10-20) — with the way
        round it, so nobody in another year thinks the app is not for them. */
     const soonNote = !qNorm ? <div className="feat-soon-wrap" ref={soonWrap}>{soonHidden ? (
               <button type="button" className="feat-soon-line btn-press" onClick={toggleSoon} aria-expanded="false">
                 <img src="/icon-192.png" alt="" aria-hidden="true" width="22" height="22" />
-                <span>We’re adding more topics and years</span>
+                <span>We’re working hard to add more topics and years</span>
                 <svg className="feat-soon-chev" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
             ) : (
@@ -727,7 +727,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 </button>
                 <img src="/icon-192.png" alt="" aria-hidden="true" className="feat-soon__mark" width="44" height="44" />
                 <div className="feat-soon__text">
-                  <h3 className="feat-soon__title">We’re adding more topics and years</h3>
+                  <h3 className="feat-soon__title">We’re working hard to add more topics and years</h3>
                   <p className="feat-soon__body">
                     The Year 2 deck covers the renal block in full so far. We’re adding the next
                     topics as the year goes on, and working on decks for the other years. In the
@@ -752,8 +752,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         )}
         {featRoots.length > 0 && featMatch && (
           <div className={ownRoots.length ? "feat-tree" : undefined}>
-            {ownRoots.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
             {ownRoots.length > 0 && soonNote}
+            {ownRoots.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
 
             <DeckTree key="featured" forest={featRoots} value={filter}
               onChange={next => setFilter(f => ({ ...f, ...next }))}
