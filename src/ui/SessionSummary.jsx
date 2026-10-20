@@ -76,13 +76,15 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 5);
 
-  /* A clean run has no topics and no misses, so the sheet is only the
-     actions. They sit in the middle of that open space. */
-  const nothingToReview = shaky.length === 0 && wrongOnes.length === 0;
+  /* A clean run has no misses to list, so it lists what you answered
+     instead: the screen keeps the same shape either way, rather than two
+     buttons floating in an empty sheet (Rafil, 2026-10-20). */
+  const clean = wrongOnes.length === 0;
+  const listed = clean ? results : wrongOnes;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div style={{ ...band, paddingTop: "clamp(24px, 4vh, 40px)", paddingBottom: "clamp(22px, 3vh, 32px)" }}>
+      <div className="page-band" style={{ ...band, paddingTop: "clamp(24px, 4vh, 40px)", paddingBottom: "clamp(22px, 3vh, 32px)" }}>
         <span style={eyebrowField} data-in="left">{title}</span>
 
         {/* The count, not a percentage. A single-question session scoring
@@ -100,16 +102,12 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div
-        className={nothingToReview ? "sum-sheet-wrap is-clean" : "sum-sheet-wrap"}
-        style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: nothingToReview ? 0 : "clamp(28px, 4vh, 56px)" }}
+        className="sum-sheet-wrap"
+        style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(28px, 4vh, 56px)" }}
       >
         <div
-          className={nothingToReview ? "sum-sheet is-clean" : "sum-sheet"}
-          style={{
-            ...band,
-            maxWidth: nothingToReview ? band.maxWidth : 720,
-            paddingTop: nothingToReview ? 0 : "clamp(18px, 2.8vh, 32px)",
-          }}
+          className="sum-sheet"
+          style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}
         >
           {shaky.length > 0 && (
             <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>
@@ -131,7 +129,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
             </section>
           )}
 
-          {wrongOnes.length > 0 && (
+          {listed.length > 0 && (
             <section className="sum-section" data-in="rise" style={{ "--i": 4 }}>
               <button
                 type="button"
@@ -140,8 +138,10 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
                 aria-expanded={showWrong}
               >
                 <span>
-                  <span style={{ ...sectionH, display: "block" }}>Missed questions</span>
-                  <span className="prog-section-note">{wrongOnes.length} to review</span>
+                  <span style={{ ...sectionH, display: "block" }}>{clean ? "Your questions" : "Missed questions"}</span>
+                  <span className="prog-section-note">
+                    {clean ? `All ${total} right` : `${wrongOnes.length} to review`}
+                  </span>
                 </span>
                 <span className={`prog-chevron${showWrong ? " is-open" : ""}`} aria-hidden="true">
                   <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
@@ -152,14 +152,14 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
 
               {showWrong && (
                 <ol className="sum-missed">
-                  {wrongOnes.map(r => (
+                  {listed.map(r => (
                     <li key={r.id} className="sum-missed-item">
                       <p className="sum-missed-q">{r.q}</p>
                       <p className="sum-missed-row">
                         <span className="sum-missed-lbl is-ok">Answer</span>
                         <span>{r.correctAnswer}</span>
                       </p>
-                      {r.yourAnswer && (
+                      {!r.correct && r.yourAnswer && (
                         <p className="sum-missed-row">
                           <span className="sum-missed-lbl is-bad">You put</span>
                           <span>{r.yourAnswer}</span>
@@ -192,9 +192,11 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
               </button>
             )}
 
+            {/* Where this goes: the deck list, to pick what is next. It was
+                "Change settings", which said nothing about leaving. */}
             {onChangeSettings && (
               <button type="button" className="btn-press" onClick={onChangeSettings} style={btnGhost}>
-                Change settings
+                Back to Study
               </button>
             )}
           </div>

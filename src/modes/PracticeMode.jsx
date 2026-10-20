@@ -599,7 +599,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   if (!queue && Object.keys(results).length > 0) {
     return (
       <SessionSummary
-        title={SCOPES.find(s => s.k === scope)?.label ?? "Practice"}
+        title={scope === "all" ? "Practice" : SCOPES.find(s => s.k === scope)?.label ?? "Practice"}
         results={Object.values(results)}
         onRestart={() => {
           const f = sessionFilter ?? filter;
@@ -612,7 +612,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           newSid();
           setQueue(qs); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
         }}
-        onChangeSettings={() => setResults({})}
+        onChangeSettings={() => { setResults({}); setStep("topic"); }}
       />
     );
   }
