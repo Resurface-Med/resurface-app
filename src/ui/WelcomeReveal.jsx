@@ -116,7 +116,9 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
     <div ref={box} className={`wr${done ? " is-done" : ""}${leaving ? " is-leaving" : ""}`} role="dialog" aria-modal="true" aria-label={welcome?.title || "Welcome"}
       onClick={() => { if (!done) setDone(true); }}>
       <div className="wr__glow" aria-hidden="true" />
-      <article className="wr__note">
+      {/* On ruled paper, in ink, on the blue (2026-10-20): better contrast
+          than white on blue. */}
+      <article className="wr__note ruled">
         <h1 className="wr__title"><Words list={note.titleWords} step={titleStep} from={300} /></h1>
         <div className="wr__body">
           {note.blocks.map((b, k) => {

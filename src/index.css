@@ -9837,3 +9837,60 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .note-paper .ann-rich ol::before { width: 14px; height: 14px; font-size: 8px; }
 .note-tile__cue { position: relative; font-size: 13.5px; font-weight: 500; color: rgba(255, 255, 255, 0.9); }
 .note-tile:hover .note-tile__cue { color: #fff; }
+
+/* ── Ruled paper (2026-10-20) ─────────────────────────────────────────
+   The welcome note on lined paper, on Home (on the white sheet) and full
+   screen (on the blue). Every line of text sits on a rule: line heights
+   and the gaps between blocks are all whole multiples of --lh, and the
+   rules are drawn from the top of the text, not the top of the paper. */
+.ruled {
+  --lh: 28px;
+  --rule: rgba(53, 98, 245, 0.16);
+  background-color: #fdfcf8;
+  background-image: repeating-linear-gradient(to bottom,
+    transparent 0, transparent calc(var(--lh) - 1px),
+    var(--rule) calc(var(--lh) - 1px), var(--rule) var(--lh));
+  background-origin: content-box;
+  background-clip: border-box;
+  color: #1e2433;
+}
+
+/* Home: the paper on the page itself, no tile. */
+.note-tile {
+  background: none; padding: 6px 0 0; max-width: 360px; gap: 14px; overflow: visible;
+}
+.note-tile__cue { color: var(--c-accent); }
+.note-tile:hover .note-tile__cue { color: var(--c-accent-lt, var(--c-accent)); text-decoration: underline; text-underline-offset: 3px; }
+.note-paper.ruled { --lh: 13px; --rule: rgba(53, 98, 245, 0.09); width: min(300px, 100%); padding: 13px 16px 13px;
+  box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.06), 0 14px 32px -14px rgba(15, 27, 61, 0.35); }
+.note-tile:hover .note-paper.ruled { box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.06), 0 22px 40px -14px rgba(15, 27, 61, 0.4); }
+.note-paper.ruled .note-paper__title { margin: 0 0 var(--lh); font-size: 12.5px; line-height: var(--lh); }
+.note-paper.ruled .ann-rich { font-size: 8.8px; line-height: var(--lh); }
+.note-paper.ruled .ann-rich p, .note-paper.ruled .ann-rich ol, .note-paper.ruled .ann-rich ul { margin: 0 0 var(--lh); }
+.note-paper.ruled .ann-rich ol li { line-height: var(--lh); }
+.note-paper.ruled .ann-rich ol::before { top: 0; width: 12px; height: 12px; font-size: 7.5px; }
+.note-paper.ruled .note-paper__sig { margin: 0; font-size: 19px; line-height: calc(var(--lh) * 2); }
+
+/* Full screen: the paper on the blue, the note in ink. */
+.wr__note.ruled {
+  --lh: 26px; width: min(640px, 100%);
+  padding: calc(var(--lh) * 1.5) clamp(26px, 5vw, 52px) var(--lh);
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(10, 20, 60, 0.15), 0 40px 80px -30px rgba(10, 20, 60, 0.6);
+}
+.wr__note.ruled .wr__title { margin: 0 0 var(--lh); font-size: clamp(28px, 3.2vw, 36px); line-height: calc(var(--lh) * 2); color: #12182a; letter-spacing: -1px; }
+.wr__note.ruled .wr__body { font-size: 15.5px; line-height: var(--lh); color: #2e3548; }
+.wr__note.ruled .wr__body p, .wr__note.ruled .wr__body ul, .wr__note.ruled .wr__body ol { margin: 0 0 var(--lh); }
+.wr__note.ruled .wr__body li { margin: 0; }
+.wr__note.ruled .wr-w.is-bold { color: #12182a; }
+.wr__note.ruled .wr__body a { color: var(--c-accent); }
+.wr__note.ruled .wr__sig { margin: 0; line-height: calc(var(--lh) * 2); color: #12182a; }
+.wr__note.ruled .wr__acts { margin-top: var(--lh); }
+.wr__note.ruled .wr__go { background: var(--c-accent); color: #fff; box-shadow: 0 12px 26px -12px rgba(53, 98, 245, 0.7); }
+.wr__note.ruled .wr__later { color: #5b6478; }
+.wr__note.ruled .wr__later:hover { color: #12182a; }
+@media (max-width: 600px) {
+  .wr__note.ruled { --lh: 26px; padding: var(--lh) 20px var(--lh); }
+  .wr__note.ruled .wr__body { font-size: 15px; }
+  .wr__note.ruled .wr__title { font-size: 26px; line-height: calc(var(--lh) * 1); margin-bottom: var(--lh); }
+}

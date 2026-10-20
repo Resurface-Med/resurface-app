@@ -196,14 +196,13 @@ export default function Dashboard({
                 <div className="note-tile" role="button" tabIndex={0} aria-label="Read the welcome note"
                   onClick={e => { if (!e.target.closest("a")) onReplayWelcome?.(); }}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onReplayWelcome?.(); } }}>
-                  <span className="note-tile__glow" aria-hidden="true" />
                   {(() => {
                     const blocks = String(welcome.body || "").trim().split(/\n{2,}/);
                     const last = blocks[blocks.length - 1]?.trim() ?? "";
                     const sig = blocks.length > 1 && last.length <= 24 && !/[.!?:]$/.test(last) ? last : null;
                     const text = sig ? blocks.slice(0, -1).join("\n\n") : welcome.body;
                     return (
-                      <span className="note-paper">
+                      <span className="note-paper ruled">
                         <span className="note-paper__title">{welcome.title}</span>
                         <Rich text={text} />
                         {sig && <span className="note-paper__sig">{sig}</span>}
