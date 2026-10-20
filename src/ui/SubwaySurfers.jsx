@@ -1,18 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useOnline } from "../lib/online";
 
 /**
  * Gameplay beside the question (2026-10-20). An inside joke, hidden:
  * nothing in the app points to it.
  *
- * During a session —
- *   Subway Surfers, on the left: type "sub", or tap the question counter
- *     three times quickly on a phone.
- *   Minecraft parkour, on the right: type "mc", or tap the progress bar
- *     three times quickly.
+ * During a session, on a keyboard —
+ *   Subway Surfers, in the left margin: type "sub".
+ *   Minecraft parkour, in the right margin: type "mc".
  * The same again, or a video's ×, puts it away. Remembered on this device.
- * On a phone, where there are no margins, they share a strip across the
- * bottom — the split screen the joke is about.
+ * Desktop only: a phone has no margins, and the split-screen strip that was
+ * tried there was taken out (Rafil, 2026-10-20).
  *
  * Both are YouTube embeds (no-cookie player), muted and looping: Subway
  * Surfers from the game's official channel, Minecraft parkour from a channel
@@ -28,19 +26,7 @@ export const VIDEOS = {
 function read(key) { try { return localStorage.getItem(key) === "1"; } catch { return false; } }
 function write(key, on) { try { if (on) localStorage.setItem(key, "1"); else localStorage.removeItem(key); } catch { /* storage off */ } }
 
-/* Three taps, each within 500ms of the last. */
-function useTriple(fire) {
-  const r = useRef({ n: 0, t: 0 });
-  return () => {
-    const now = Date.now();
-    r.current.n = now - r.current.t < 500 ? r.current.n + 1 : 1;
-    r.current.t = now;
-    if (r.current.n >= 3) { r.current.n = 0; fire(); }
-  };
-}
-
-/* Which are on, and the ways of switching them: the typed codes (listened
-   for here), and taps for the counter and the progress bar. */
+/* Which are on, and the typed codes that switch them. */
 export function useSideVideos() {
   const [on, setOn] = useState(() => ({ subway: read(VIDEOS.subway.key), parkour: read(VIDEOS.parkour.key) }));
   const set = useCallback((name, value) => setOn(prev => {
@@ -70,8 +56,6 @@ export function useSideVideos() {
 
   return {
     ...on,
-    tapCounter: useTriple(() => toggle("subway")),
-    tapBar: useTriple(() => toggle("parkour")),
     close: name => set(name, false),
   };
 }
@@ -100,7 +84,8 @@ function Video({ name, side, onClose }) {
    panel is open there. */
 export default function SideVideos({ videos, railOpen = false, aiOpen = false }) {
   const online = useOnline();
-  if (!online) return null;
+  /* Not on phones — not even loaded, hidden — and not offline. */
+  if (!online || window.matchMedia?.("(max-width: 900px)").matches) return null;
   const parkour = videos.parkour && !aiOpen;
   const subway = videos.subway;
   if (!subway && !parkour) return null;

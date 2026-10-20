@@ -9901,14 +9901,17 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .subway {
   position: fixed; z-index: 1250;
   top: 50%; transform: translateY(-50%);
-  width: clamp(170px, 15vw, 250px); aspect-ratio: 9 / 16;
+  /* As much of the margin as there is: the gap beside the question (it
+     is at most 720px wide), or 82% of the height, whichever runs out. */
+  width: max(170px, min(calc((100vw - 760px) / 2 - 24px), calc(82vh * 9 / 16)));
+  aspect-ratio: 9 / 16;
   border-radius: 18px; overflow: hidden;
   background: #000;
   box-shadow: 0 18px 40px -14px rgba(15, 27, 61, 0.55);
   animation: subwayIn 0.4s cubic-bezier(0.34, 1.3, 0.5, 1) both;
 }
-.subway.is-left { left: 28px; }
-.subway.is-right { right: 28px; }
+.subway.is-left { left: 24px; }
+.subway.is-right { right: 24px; }
 .subway__video {
   position: absolute; top: 50%; left: 50%;
   /* Larger than the box, to crop YouTube's title and logo off the edges. */
@@ -9924,30 +9927,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .subway:hover .subway__x, .subway__x:focus-visible { opacity: 1; }
 @keyframes subwayIn { from { opacity: 0; transform: translateY(-46%) scale(0.92); } to { opacity: 1; transform: translateY(-50%); } }
-/* On a phone there is no margin, so it is the split screen the joke is
-   about: the question above, the gameplay in a strip across the bottom —
-   two side by side when both are on — and the question's scroll area
-   ending above it so nothing is hidden. */
-@media (max-width: 900px) {
-  .subway-strip {
-    position: fixed; z-index: 1250;
-    left: 12px; right: 12px; bottom: calc(92px + var(--safe-b, 0px));
-    height: 27vh;
-    display: grid; grid-template-columns: 1fr; gap: 8px;
-    animation: subwayInPhone 0.4s cubic-bezier(0.34, 1.3, 0.5, 1) both;
-  }
-  .subway-strip.is-both { grid-template-columns: 1fr 1fr; }
-  .subway, .subway.is-left, .subway.is-right {
-    position: relative; top: auto; left: auto; right: auto; bottom: auto; transform: none;
-    width: auto; height: 100%; aspect-ratio: auto; border-radius: 16px;
-    animation: none;
-  }
-  /* The video's own shape across the box's width; the box shows its lower
-     middle, where the runner is. Half-width boxes show nearly all of it. */
-  .subway__video { width: 100%; height: calc((100vw - 24px) * 16 / 9); top: -12%; }
-  .subway-strip.is-both .subway__video { width: 100%; height: calc((50vw - 16px) * 16 / 9); top: 50%; }
-  .subway__x { opacity: 1; }
-  .quiz-shell.has-subway .quiz-shell__body { padding-bottom: calc(27vh + 28px); }
-  @keyframes subwayInPhone { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-}
+/* Not on phones (Rafil, 2026-10-20): there is no margin to put it in. */
+@media (max-width: 900px) { .subway-strip { display: none; } }
 @media (prefers-reduced-motion: reduce) { .subway { animation: none; } }

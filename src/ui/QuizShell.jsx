@@ -187,7 +187,7 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}${videos.subway || videos.parkour ? " has-subway" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
       <SideVideos videos={videos} railOpen={railOpen} aiOpen={showAi} />
       <header className="quiz-shell__header">
@@ -203,13 +203,13 @@ export default function QuizShell({
         </button>
 
         <div className="quiz-shell__progress-wrap">
-          <div className="quiz-shell__progress" aria-hidden="true" onClick={videos.tapBar}>
+          <div className="quiz-shell__progress" aria-hidden="true">
             <div
               className="quiz-shell__progress-fill"
               style={{ transform: `scaleX(${progress})` }}
             />
           </div>
-          <span className="quiz-shell__count" onClick={videos.tapCounter}>
+          <span className="quiz-shell__count">
             {position}/{total}
           </span>
 
