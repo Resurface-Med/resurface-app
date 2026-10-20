@@ -1161,17 +1161,13 @@ export default function App() {
       <WelcomeReveal
         welcome={announcements.find(a => a.welcome && a.published_at)}
         onClose={() => setReveal(false)}
-        onGenerate={() => { setReveal(false); setGenerateInto(null); go(V.GENERATE); }}
-        /* A ready-made deck, tried straight away: five of its questions. */
-        {...(() => {
-          const root = featured.roots.find(r => !r.hidden);
-          const ids = QUESTIONS.filter(q => q.featured).map(q => q.id);
-          if (!root || !ids.length) return {};
-          return {
-            tryLabel: `Try the ${root.name} deck`,
-            onTry: () => { setReveal(false); practise(ids, 5); },
-          };
-        })()}
+        onStart={() => {
+          setReveal(false);
+          setLaunchFilter({ deck: "All", cat: "All" });
+          setStudyScope("all");
+          setAutoStart(false);
+          go(V.STUDY);
+        }}
       />
     )}
     <PullToRefresh onRefresh={refreshData} />

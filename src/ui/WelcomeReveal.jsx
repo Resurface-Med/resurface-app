@@ -50,28 +50,19 @@ function Words({ list, step, from }) {
   ));
 }
 
-/* What it does, in one line, before anything else (2026-10-20: about half
-   of new accounts never started, and the note led with backstory). */
-const LEAD = "Exam-style questions from your own lectures.";
-
-export default function WelcomeReveal({ welcome, onGenerate, onTry, tryLabel, onClose }) {
-  /* The lead takes the title's place; the post's title ("Welcome to
-     Resurface") is the small line above it. */
-  const note = useMemo(() => parse(LEAD, welcome?.body), [welcome]);
+export default function WelcomeReveal({ welcome, onStart, onClose }) {
+  const note = useMemo(() => parse(welcome?.title, welcome?.body), [welcome]);
   const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const [done, setDone] = useState(reduced);
   const [leaving, setLeaving] = useState(false);
 
-  /* The lead first, slower; then the two ways in, at once, so nobody has
-     to wait for the note to act; then the note, at a pace that keeps it to
-     a few seconds however long it is. */
+  /* The title first, slower; then the body at a pace that keeps the whole
+     note to a few seconds however long it is. */
   const titleCount = note.titleWords.filter(t => !t.space).length;
-  const titleStep = 120;
-  const leadFrom = 500;
-  const actsAt = leadFrom + titleCount * titleStep + 200;
-  const bodyFrom = actsAt + 700;
+  const titleStep = 110;
+  const bodyFrom = 400 + titleCount * titleStep;
   const bodyCount = note.count - titleCount;
-  const step = Math.max(14, Math.min(45, 3400 / Math.max(1, bodyCount)));
+  const step = Math.max(14, Math.min(45, 4200 / Math.max(1, bodyCount)));
   const sigAt = bodyFrom + bodyCount * step + 250;
   const endAt = sigAt + (note.sig ? 1500 : 200);
 
@@ -126,18 +117,7 @@ export default function WelcomeReveal({ welcome, onGenerate, onTry, tryLabel, on
       onClick={() => { if (!done) setDone(true); }}>
       <div className="wr__glow" aria-hidden="true" />
       <article className="wr__note">
-        <p className="wr__eyebrow">{welcome?.title || "Welcome to Resurface"}</p>
-        <h1 className="wr__title"><Words list={note.titleWords} step={titleStep} from={leadFrom} /></h1>
-        <div className="wr__ways" data-d={actsAt} style={{ "--d": `${actsAt}ms` }}>
-          <button type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(onGenerate); }}>
-            Make questions from my lectures <span aria-hidden="true">→</span>
-          </button>
-          {onTry && (
-            <button type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(onTry); }}>
-              {tryLabel} <span aria-hidden="true">→</span>
-            </button>
-          )}
-        </div>
+        <h1 className="wr__title"><Words list={note.titleWords} step={titleStep} from={300} /></h1>
         <div className="wr__body">
           {note.blocks.map((b, k) => {
             const w = list => list.map((t, j) => t.space ? " " : (
@@ -162,6 +142,9 @@ export default function WelcomeReveal({ welcome, onGenerate, onTry, tryLabel, on
           </p>
         )}
         <div className="wr__acts" data-d={endAt} style={{ "--d": `${endAt}ms` }}>
+          <button type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(onStart); }}>
+            Start practising <span aria-hidden="true">→</span>
+          </button>
           <button type="button" className="wr__later" onClick={e => { e.stopPropagation(); leave(onClose); }}>
             Look around first
           </button>
