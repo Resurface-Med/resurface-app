@@ -10060,3 +10060,47 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* The end of a session: the mistakes will wait. */
 .sum-later { margin: 10px 0 0; font-size: 14px; color: var(--c-muted); }
 
+
+/* Restored (2026-10-20): these lived beside the intro film's styles and
+   were removed with them by mistake — the streak flame, Study's scroll
+   area and dock. */
+
+.setup-dock.is-hidden, .setup-next-dock.is-hidden { display: none; }
+/* With nothing in it the list is not a scroller, so it does not clip the
+   button's shadow into a hard-edged box. */
+.topic-scroll.is-plain { overflow: visible; display: flex; flex-direction: column; }
+
+/* The streak (ui/StreakFlame.jsx): a flame and a number, on the band. */
+.streak { display: inline-flex; align-items: center; gap: 6px; }
+.streak__n {
+  font-size: clamp(26px, 2.6vw, 32px);
+  font-weight: 700;
+  color: var(--c-on-field);
+  letter-spacing: -1.2px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+/* On the leaderboard: row-sized, the number in the column's muted style. */
+.streak--small { gap: 3px; }
+.streak--small .streak__n {
+  font-size: 13.5px; font-weight: 600; letter-spacing: 0;
+  color: var(--c-sub);
+}
+/* Optical, not geometric: the flame's weight sits low in its box, so
+   centred by its box it reads as dropping below the number. */
+.streak--small .streak__flame { filter: none; transform: translateY(-1.5px); }
+.streak__flame { overflow: visible; filter: drop-shadow(0 2px 6px rgba(255, 110, 30, 0.35)); }
+.streak__outer, .streak__inner { transform-box: fill-box; transform-origin: 50% 100%; }
+.streak__outer { animation: flameOuter 1.6s ease-in-out infinite; }
+.streak__inner { animation: flameInner 1.1s ease-in-out infinite; }
+@keyframes flameOuter {
+  0%, 100% { transform: scale(1, 1) skewX(0deg); }
+  30%      { transform: scale(0.97, 1.05) skewX(-2.5deg); }
+  60%      { transform: scale(1.02, 0.97) skewX(2deg); }
+}
+@keyframes flameInner {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  40%      { transform: scale(0.92, 1.1) translateY(-0.4px); }
+  70%      { transform: scale(1.04, 0.94) translateY(0.3px); }
+}
+@media (prefers-reduced-motion: reduce) { .streak__outer, .streak__inner { animation: none; } }
