@@ -9883,9 +9883,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* A field's note, under it (Rafil, 2026-10-20). */
 .np__hint { margin: 10px 2px 0; font-size: 13.5px; line-height: 1.5; color: var(--c-muted); }
 .np__first { margin-top: 30px; }
-.np__label { display: block; margin: 34px 0 12px; font-size: 19px; font-weight: 600; letter-spacing: -0.35px; color: var(--c-text); }
+.np__label { display: block; margin: 38px 0 14px; font-size: 24px; font-weight: 600; letter-spacing: -0.6px; line-height: 1.2; color: var(--c-text); }
 .np__label.is-first { margin-top: 28px; }
 .np__field.is-labelled { margin-top: 0; }
 .np__check { display: flex; align-items: flex-start; gap: 10px; margin-top: 30px; font-size: 14px; line-height: 1.45; color: var(--c-sub); cursor: pointer; }
 .np__check input { flex: none; margin-top: 2px; width: 16px; height: 16px; accent-color: var(--c-accent); }
 .np__label.is-top { margin-top: 0; }
+/* One line each on a phone. */
+@media (max-width: 480px) { .np__label { font-size: 21px; letter-spacing: -0.5px; } }
