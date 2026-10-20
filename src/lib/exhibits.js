@@ -4,6 +4,10 @@
  * "Investigations:" lines. UKMLA and PLAB use both, and one question can
  * use both at once.
  *
+ * A third paper shape is not an exhibit. Observations with the normal
+ * range written into the sentence ("pulse rate 150 bpm (95–140)") are
+ * the stem.
+ *
  * A question may carry `exhibit` as one block, or as an array of blocks
  * when the paper mixes a list and a table:
  *

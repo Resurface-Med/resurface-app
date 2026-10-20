@@ -5941,6 +5941,7 @@ html.is-deck-dragging * {
   line-height: 1.32;
   color: var(--c-text);
   max-width: none;
+  white-space: pre-line;
 }
 .quiz-shell .q-card--focus .q-opts {
   gap: 10px;

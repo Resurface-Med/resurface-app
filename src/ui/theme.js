@@ -107,6 +107,7 @@ export const qstem = {
   lineHeight: 1.28,
   color: C.text,
   maxWidth: "46ch",
+  whiteSpace: "pre-line",
 };
 
 export const pageWrap = {

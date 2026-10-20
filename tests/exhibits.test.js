@@ -57,13 +57,23 @@ describe("checkExhibit", () => {
 
 describe("the test deck", () => {
   it("every exhibit passes its own checks", () => {
-    for (const q of deck) expect([q.q.slice(0, 40), checkExhibit(q.exhibit)]).toEqual([q.q.slice(0, 40), []]);
+    for (const q of deck) {
+      if (!q.exhibit) continue;
+      expect([q.q.slice(0, 40), checkExhibit(q.exhibit)]).toEqual([q.q.slice(0, 40), []]);
+    }
   });
-  it("each question is either a list or a table", () => {
-    const kinds = deck.map(q => q.exhibit.kind);
-    expect(deck.every(q => q.exhibit && !Array.isArray(q.exhibit))).toBe(true);
+  it("each question is a list, a table, or observations written into the stem", () => {
+    const shown = deck.filter(q => q.exhibit);
+    const prose = deck.filter(q => !q.exhibit);
+    expect(shown.every(q => !Array.isArray(q.exhibit))).toBe(true);
+    const kinds = shown.map(q => q.exhibit.kind);
     expect(kinds).toContain("lines");
     expect(kinds.some(k => k === "labs" || k === "table")).toBe(true);
+    expect(prose.length).toBeGreaterThan(0);
+    for (const q of prose) {
+      expect(q.q).toMatch(/\([^)]+\)/);
+      expect(q.q.trim().endsWith("?")).toBe(true);
+    }
   });
   it("every question is a well-formed single best answer", () => {
     for (const q of deck) {

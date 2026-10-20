@@ -626,5 +626,62 @@
       "Ischaemic colitis is an acute illness of hours or days, with pain and bloody diarrhoea, not a six-month history.",
       "Ulcerative colitis causes bloody diarrhoea, usually over a shorter time and often with a systemically inflamed picture. This history in a man of 72 is carcinoma first."
     ]
+  },
+  {
+    "q": "A 3-year-old girl has had a fever and a runny nose for the past 2 days. She is alert but miserable.\n\nHer temperature is 39.6°C, pulse rate 150 bpm (95–140), blood pressure 105/62 mmHg (90/50–110/70), respiratory rate 36 breaths per minute (20–30) and oxygen saturation 97% in air. She has a red throat and looks flushed, with a flat erythematous rash across her trunk and face that feels rough. There is no rash around her mouth.\n\nWhich is the most likely diagnosis?",
+    "opts": [
+      "Kawasaki disease",
+      "Measles",
+      "Meningococcal disease",
+      "Roseola infantum",
+      "Scarlet fever"
+    ],
+    "ans": 4,
+    "exp": "A rough, sandpaper rash with flushing, a red throat and pallor around the mouth, on a background of fever, is scarlet fever from group A streptococcus. The pulse and respiratory rate are raised with the fever; the blood pressure and oxygen saturation are normal, which fits a toxic exanthem rather than shock.",
+    "optExp": [
+      "Kawasaki disease needs a fever of at least five days, and usually red eyes, a strawberry tongue and swollen hands or cervical nodes. Two days is too short.",
+      "Measles has cough, conjunctivitis and a rash that starts at the hairline. The rash is not rough, and the throat is not the main finding.",
+      "Meningococcal disease makes a child much more unwell, and the rash is purpuric and non-blanching, not a rough erythematous rash in an alert child.",
+      "In roseola the rash appears as the fever settles and the child brightens. Here the fever is still high and she is miserable with the rash already out.",
+      null
+    ]
+  },
+  {
+    "q": "A 28-year-old woman who is 32 weeks pregnant has had sudden breathlessness and pain on the right side of her chest for two hours. She is anxious.\n\nHer pulse rate is 122 bpm (60–100), blood pressure 102/68 mmHg (100/60–140/90), respiratory rate 26 breaths per minute (12–20) and oxygen saturation 90% in air. Her chest is clear and both calves are soft and non-tender.\n\nWhich is the most likely diagnosis?",
+    "opts": [
+      "Anaemia of pregnancy",
+      "Panic attack",
+      "Pneumonia",
+      "Pneumothorax",
+      "Pulmonary embolism"
+    ],
+    "ans": 4,
+    "exp": "Sudden breathlessness, tachycardia and hypoxia, with a clear chest, in late pregnancy is a pulmonary embolism until it is excluded. Pregnancy is a major risk factor. Soft, non-tender calves do not rule it out: most people with a pulmonary embolism have no clinical sign of a deep vein thrombosis.",
+    "optExp": [
+      "Anaemia can cause breathlessness, but it does not desaturate the haemoglobin that is there. Saturation stays normal.",
+      "Panic causes a fast pulse and a fast respiratory rate, but not an oxygen saturation of 90%.",
+      "Pneumonia usually brings a fever and crackles or bronchial breathing on the affected side. The chest here is clear.",
+      "A pneumothorax large enough to drop the saturation reduces the breath sounds on one side. The chest is clear.",
+      null
+    ]
+  },
+  {
+    "q": "A 16-year-old boy develops an itchy rash, swollen lips and wheeze ten minutes after eating a peanut. He feels faint.\n\nHis pulse rate is 128 bpm (60–100), blood pressure 82/50 mmHg (100/60–130/85), respiratory rate 24 breaths per minute (12–20) and oxygen saturation 94% in air.\n\nWhich is the most likely diagnosis?",
+    "opts": [
+      "Anaphylaxis",
+      "Asthma attack",
+      "Panic attack",
+      "Urticaria",
+      "Vasovagal syncope"
+    ],
+    "ans": 0,
+    "exp": "Skin, airway and circulation are all involved within minutes of a peanut: an itchy rash, lip swelling, wheeze and hypotension. That is anaphylaxis. The low blood pressure is what separates it from a rash or an asthma attack alone.",
+    "optExp": [
+      null,
+      "Asthma gives wheeze, but not lip swelling, an itchy rash and a blood pressure of 82/50 immediately after a peanut.",
+      "Panic does not cause lip swelling, wheeze or hypotension.",
+      "Urticaria is the rash alone. Swollen lips, wheeze and a falling blood pressure mean the reaction has gone further.",
+      "A vasovagal faint slows the pulse. His pulse is 128, and a faint does not swell the lips or wheeze the chest."
+    ]
   }
 ]

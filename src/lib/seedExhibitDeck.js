@@ -1,7 +1,8 @@
 /**
  * The exhibit sample belongs to the bobpattack account, as one of its own
- * decks. It is created the first time that account signs in. Anyone else
- * never downloads it, and it is not a ready-made deck.
+ * decks. It is created the first time that account signs in. Questions
+ * added to the sample later are inserted into that deck on the next
+ * sign-in. Anyone else never downloads it, and it is not a ready-made deck.
  */
 import { nextPosition } from "./deckOrder";
 import { remote } from "./remote";
@@ -18,31 +19,63 @@ export function isExhibitAccount(user, displayName) {
   return who.includes("bobpattack");
 }
 
+/* Stems already waiting in the write queue for this deck. A failed insert
+   is retried from there, so seeding them again would double the question. */
+function queuedStems(deckId) {
+  try {
+    const queued = JSON.parse(localStorage.getItem("pq_write_queue")) ?? [];
+    return queued
+      .filter(op => op.kind === "generated-add")
+      .flatMap(op => op.rows ?? [])
+      .filter(row => row.deck_id === deckId)
+      .map(row => row.payload?.q)
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export async function seedExhibitDeck({ user, displayName, decks, generated }) {
   if (started || !user?.id || !isExhibitAccount(user, displayName)) return null;
-  if ((decks ?? []).some(d => !d.parentId && d.name === "Exhibits")) return null;
   started = true;
   try {
     const questions = (await import("../../content/exhibits/test-deck.json")).default;
-    const position = nextPosition(decks ?? [], null);
-    const created = await remote.createDeck(user.id, "Exhibits", null, position);
-    const ids = await remote.addGenerated(user.id, questions, created.id);
-    const deck = {
-      id: created.id,
-      name: "Exhibits",
-      parentId: null,
-      position,
-      shareCode: created.share_code,
-      createdAt: created.created_at,
-    };
-    const nextDecks = [...(decks ?? []), deck];
-    const nextGenerated = [...(generated ?? [])];
-    if (ids) {
-      questions.forEach((q, i) => nextGenerated.push({
-        ...q, id: ids[i], gen: true, deckId: created.id,
-      }));
+    const existing = (decks ?? []).find(d => !d.parentId && d.name === "Exhibits");
+    if (!existing) {
+      const position = nextPosition(decks ?? [], null);
+      const created = await remote.createDeck(user.id, "Exhibits", null, position);
+      const ids = await remote.addGenerated(user.id, questions, created.id);
+      const deck = {
+        id: created.id,
+        name: "Exhibits",
+        parentId: null,
+        position,
+        shareCode: created.share_code,
+        createdAt: created.created_at,
+      };
+      const nextDecks = [...(decks ?? []), deck];
+      const nextGenerated = [...(generated ?? [])];
+      if (ids) {
+        questions.forEach((q, i) => nextGenerated.push({
+          ...q, id: ids[i], gen: true, deckId: created.id,
+        }));
+      }
+      return { decks: nextDecks, generated: nextGenerated };
     }
-    return { decks: nextDecks, generated: nextGenerated };
+
+    const have = new Set(
+      (generated ?? []).filter(g => g.deckId === existing.id).map(g => g.q),
+    );
+    for (const stem of queuedStems(existing.id)) have.add(stem);
+    const missing = questions.filter(q => !have.has(q.q));
+    if (!missing.length) return null;
+    const ids = await remote.addGenerated(user.id, missing, existing.id);
+    if (!ids) return null;
+    const nextGenerated = [...(generated ?? [])];
+    missing.forEach((q, i) => nextGenerated.push({
+      ...q, id: ids[i], gen: true, deckId: existing.id,
+    }));
+    return { decks, generated: nextGenerated };
   } catch (err) {
     started = false;
     throw err;
