@@ -210,6 +210,7 @@ export default function Dashboard({
                       </span>
                     );
                   })()}
+                  <span className="note-tile__cue">Read the note again →</span>
                 </div>
               </section>
             ) : null
