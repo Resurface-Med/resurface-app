@@ -1249,7 +1249,7 @@ export default function App() {
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             welcome={announcements.find(a => a.welcome && a.published_at) ?? null}
-            veiled={reveal || !nameChosen || (isGoogleUser(user) && marketingOptIn === null) || studyYear === null}
+            onReplayWelcome={() => setReveal(true)}
             activity={activity}
             srCards={srCards}
             dailyGoal={dailyGoal}

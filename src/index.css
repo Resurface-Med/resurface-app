@@ -9963,4 +9963,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @keyframes wrUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes wrDrift { from { transform: translate(-2%, -1%) scale(1); } to { transform: translate(3%, 2%) scale(1.08); } }
 @media (prefers-reduced-motion: reduce) { .wr__glow { animation: none; } }
-.dash-welcome.is-veiled { visibility: hidden; }
+.dash-replay {
+  display: block; margin: 16px auto 0; border: 0; background: none; padding: 6px 4px;
+  font: inherit; font-size: 14.5px; font-weight: 500; color: var(--c-accent); cursor: pointer;
+}
+.dash-replay:hover { text-decoration: underline; text-underline-offset: 3px; }

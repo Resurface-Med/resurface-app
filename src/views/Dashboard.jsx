@@ -7,7 +7,6 @@ import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
 import { seenCount, masteredCount, share } from "../lib/progress";
-import { Rich } from "../ui/Announcements";
 
 /**
  * The home screen.
@@ -51,9 +50,7 @@ export default function Dashboard({
   pStats, streak, dueCount, setView,
   activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy,
   welcome = null,
-  /* True while the sign-up pop-ups (and the reveal after them) are up: the
-     note waits behind them, unseen, rather than giving itself away. */
-  veiled = false,
+  onReplayWelcome = null,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
@@ -197,36 +194,7 @@ export default function Dashboard({
       {/* ── Sheet: where you stand, and what you've been doing ─────── */}
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
-          {empty && welcome ? (
-            /* A new account's Home: Rafil's welcome note (the What's new post
-               marked as the welcome, so it is edited there), with the two
-               ways to start as buttons in it, and the film beside it. */
-            <div className={`dash-welcome${veiled ? " is-veiled" : ""}`} data-in="rise" style={{ "--i": 5 }} aria-hidden={veiled || undefined}>
-              <article className="dash-letter">
-                {/* Read as a letter: a larger opening line,
-                    the numbered points as steps, and the closing name as a
-                    signature (a short last line on its own). */}
-                {(() => {
-                  const blocks = String(welcome.body || "").trim().split(/\n{2,}/);
-                  const last = blocks[blocks.length - 1]?.trim() ?? "";
-                  const sig = blocks.length > 1 && last.length <= 24 && !/[.!?:]$/.test(last) ? last : null;
-                  const text = sig ? blocks.slice(0, -1).join("\n\n") : welcome.body;
-                  return (
-                    <>
-                      <h2 className="dash-letter__title">{welcome.title}</h2>
-                      <Rich text={text} />
-                      {sig && <p className="dash-letter__sig">{sig}</p>}
-                    </>
-                  );
-                })()}
-                <button type="button" className="dash-letter__film" onClick={() => setFilmOpen(true)}>
-                  <svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z" fill="currentColor" /></svg>
-                  Watch how it works (37 seconds)
-                </button>
-              </article>
-
-            </div>
-          ) : empty ? (
+          {empty ? (
             <section data-in="rise" className="dash-film-wrap" style={{ "--i": 5 }}>
               <h2 style={{ ...sectionH, textAlign: "center" }}>How it works</h2>
               <button type="button" className="dash-film" onClick={() => setFilmOpen(true)} aria-label="Watch how Resurface works">
@@ -236,6 +204,19 @@ export default function Dashboard({
                   Watch · 37s
                 </span>
               </button>
+              {/* The welcome note is the reveal after sign-up (and What's
+                  new), not a third copy here (Rafil, 2026-10-20): just the
+                  way to read it again. */}
+              {welcome && onReplayWelcome && (
+                <button type="button" className="dash-replay" onClick={onReplayWelcome}>
+                  Read {(() => {
+                    const blocks = String(welcome.body || "").trim().split(/\n{2,}/);
+                    const last = blocks[blocks.length - 1]?.trim() ?? "";
+                    const sig = blocks.length > 1 && last.length <= 24 && !/[.!?:]$/.test(last) ? last : null;
+                    return sig ? `${sig}’s` : "the welcome";
+                  })()} note again
+                </button>
+              )}
             </section>
           ) : (
           <div className="dash-split">
