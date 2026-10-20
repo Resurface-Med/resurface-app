@@ -87,7 +87,8 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
       el.style.zoom = "1";
       const cs = getComputedStyle(wrap);
       const room = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      const h = el.offsetHeight;
+      const acts = wrap.querySelector(".wr__acts");
+      const h = el.offsetHeight + (acts ? acts.offsetHeight + 36 : 0);
       const s = h > room ? Math.max(0.7, room / h) : 1;
       el.style.zoom = String(s);
       setFit(s);
@@ -144,15 +145,16 @@ export default function WelcomeReveal({ welcome, onStart, onClose }) {
             <span className="wr__sig-ink">{note.sig}</span>
           </p>
         )}
-        <div className="wr__acts" data-d={endAt} style={{ "--d": `${endAt}ms` }}>
-          <button type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(onStart); }}>
-            Start practising <span aria-hidden="true">→</span>
-          </button>
-          <button type="button" className="wr__later" onClick={e => { e.stopPropagation(); leave(onClose); }}>
-            Look around first
-          </button>
-        </div>
       </article>
+      {/* The way in, under the letter on the blue rather than on it. */}
+      <div className="wr__acts is-below" data-d={endAt} style={{ "--d": `${endAt}ms` }}>
+        <button type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(onStart); }}>
+          Start practising <span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="wr__later" onClick={e => { e.stopPropagation(); leave(onClose); }}>
+          Look around first
+        </button>
+      </div>
       {!done && <button type="button" className="wr__skip" onClick={e => { e.stopPropagation(); setDone(true); }}>Skip</button>}
     </div>
   );

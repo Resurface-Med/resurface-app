@@ -9899,3 +9899,24 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .wr__note.ruled .wr__body { font-size: 15px; }
   .wr__note.ruled .wr__title { font-size: 26px; line-height: calc(var(--lh) * 1); margin-bottom: var(--lh); }
 }
+
+/* The reveal's way in, under the paper on the blue (2026-10-20). */
+.wr__acts.is-below {
+  position: relative; width: min(640px, 100%);
+  display: flex; align-items: center; justify-content: center; gap: 12px 28px; flex-wrap: wrap;
+  margin: 20px 0 0;
+}
+.wr__acts.is-below .wr__go {
+  padding: 17px 34px; font-size: 17px; background: #fff; color: var(--c-accent);
+  box-shadow: 0 18px 40px -16px rgba(10, 20, 60, 0.6);
+}
+.wr__acts.is-below .wr__later { color: rgba(255, 255, 255, 0.85); font-size: 15.5px; font-weight: 500; }
+.wr__acts.is-below .wr__later:hover { color: #fff; }
+/* The paper and the actions centred together. */
+.wr__note.ruled { margin: auto 0 0; }
+.wr__acts.is-below { margin-bottom: auto; }
+@media (max-width: 600px) {
+  .wr__acts.is-below { gap: 6px 20px; margin-top: 16px; }
+  .wr__acts.is-below .wr__go { padding: 14px 28px; font-size: 16px; }
+  .wr__acts.is-below .wr__later { font-size: 14.5px; }
+}
