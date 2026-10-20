@@ -13,6 +13,7 @@ import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 import LabValues, { BeakerIcon } from "./LabValues";
+import SubwaySurfers, { useSubway } from "./SubwaySurfers";
 
 /**
  * Full-screen study mode: no sidebar until you ask for the question list.
@@ -59,6 +60,7 @@ export default function QuizShell({
   const [editing, setEditing] = useState(false);
   /* Lab values, slid in from the right (ui/LabValues). */
   const [labsOpen, setLabsOpen] = useState(false);
+  const subway = useSubway();
 
   /* Declared above the effects, because the Escape handler below closes the
      rail and a const arrow referenced before its declaration is a temporal
@@ -185,8 +187,9 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}${subway.on ? " has-subway" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
+      {subway.on && <SubwaySurfers onClose={subway.close} side={railOpen ? "right" : "left"} />}
       <header className="quiz-shell__header">
         <button
           type="button"
@@ -206,7 +209,7 @@ export default function QuizShell({
               style={{ transform: `scaleX(${progress})` }}
             />
           </div>
-          <span className="quiz-shell__count">
+          <span className="quiz-shell__count" onClick={subway.tap}>
             {position}/{total}
           </span>
 
