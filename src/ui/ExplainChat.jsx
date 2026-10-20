@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { isOnline } from "../lib/online";
+import { exhibitText } from "../lib/exhibits";
 import aiBooks from "../assets/ai-books.png?inline"; // inline: see QuizShell
 import { supabase } from "../lib/supabase";
 import { splitMarks } from "../lib/formatExplain";
@@ -92,7 +93,8 @@ function contextBody(q, picked, answered) {
      the model cannot give away what it was never sent. */
   return {
     questionId: q.id,
-    question: q.q,
+    /* The exhibit goes with the stem, so the AI can read the numbers. */
+    question: q.exhibit ? `${q.q}\n\n${exhibitText(q.exhibit)}` : q.q,
     options: q.opts,
     picked: answered ? picked : null,
     ...(answered ? { correct: q.ans, explanation: q.exp } : {}),

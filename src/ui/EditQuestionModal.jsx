@@ -61,6 +61,8 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
     exp: exp.trim(),
     optExp: optExp.map((e, i) => i === ans ? null : (e.trim() || null)),
     img: img ?? null,
+    /* Not editable here yet; kept as it was. */
+    ...(q.exhibit ? { exhibit: q.exhibit } : {}),
   });
   const canSave = question.trim() && opts.filter(o => o.trim()).length >= 2
     && opts[ans]?.trim();

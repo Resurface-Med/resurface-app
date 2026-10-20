@@ -8,6 +8,7 @@ import FlagQuestion from "./FlagQuestion";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
+import QuestionExhibit from "./QuestionExhibit";
 
 /* One paint list for every question. The stroke is drawn on the letters
    themselves, so the words are never split into a separate box. */
@@ -243,7 +244,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     {editing && <EditQuestionModal q={q} persist={persistFor(q)} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div
       style={focusMode ? undefined : qcard}
-      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}`}
+      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img ? " has-exhibit" : ""}`}
     >
       {!focusMode && (
       <div className="q-card-meta">
@@ -306,6 +307,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       {/* Between the stem and the options, because it is part of the question
           being asked rather than decoration above it. */}
       <QuestionImage key={q.img || "none"} path={q.img} />
+      <QuestionExhibit exhibit={q.exhibit} />
 
       <div
         className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}
