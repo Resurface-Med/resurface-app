@@ -47,7 +47,6 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
-import Onboarding, { YearCard } from "./ui/Onboarding";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -147,11 +146,6 @@ export default function App() {
   const [nameChosen, setNameChosen] = useState(true);
   const [showOnLeaderboard, setShowOnLeaderboard] = useState(true);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
-  /* Onboarding (ui/Onboarding, migration 0029). Undefined until known — an
-     offline copy from before these existed must not read as "never asked". */
-  const [studyYear, setStudyYear] = useState(undefined);
-  const [university, setUniversity] = useState(undefined);
-  const [onboardedAt, setOnboardedAt] = useState(undefined);
   const [avatarV, setAvatarV] = useState(null);
   /* Announcements (ui/Announcements): the list, when you last looked, and
      — while the panel is open — what counted as new when you opened it. */
@@ -280,9 +274,6 @@ export default function App() {
     setNameChosen(d.nameChosen !== false);
     setShowOnLeaderboard(d.showOnLeaderboard !== false);
     setMarketingOptIn(d.marketingOptIn);
-    setStudyYear(d.studyYear);
-    setUniversity(d.university);
-    setOnboardedAt(d.onboardedAt);
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
@@ -448,7 +439,6 @@ export default function App() {
   snapshotRef.current = () => ({
     pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
     announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn,
-    studyYear, university, onboardedAt,
     showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
     decks: decksRef.current, featured: featuredRef.current,
@@ -467,8 +457,7 @@ export default function App() {
     saveSoon();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
-    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, university, onboardedAt,
-    generated, decks, featured]);
+    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, generated, decks, featured]);
   useEffect(() => {
     if (!user?.id) return;
     const off = onWrite(() => saveSoon(1200));
@@ -1133,27 +1122,7 @@ export default function App() {
         made up from their email — anyone who used Google already has their
         own. Dismissing settles it: a prompt that keeps coming back is worse
         than the sign-up field it replaced. */}
-    {/* A new account: the onboarding flow, which also asks the name (and,
-        after Google, about emails) — so neither prompt below is shown. */}
-    {onboardedAt === null && !practiceSessionActive && (
-      <Onboarding
-        suggestedName={displayName || googleName(user)}
-        askEmails={isGoogleUser(user) && marketingOptIn === null}
-        onFinish={a => {
-          const at = new Date().toISOString();
-          setDisplayName(a.displayName); setNameChosen(true);
-          setStudyYear(a.studyYear); setUniversity(a.university); setOnboardedAt(at);
-          if (a.marketingOptIn !== undefined) setMarketingOptIn(a.marketingOptIn);
-          remote.profile(user.id, { ...a, nameChosen: true, onboardedAt: at });
-        }}
-      />
-    )}
-    {/* An account from before onboarding, asked its year once. */}
-    {onboardedAt && studyYear === null && nameChosen && !practiceSessionActive
-      && !(isGoogleUser(user) && marketingOptIn === null) && (
-      <YearCard onAnswer={y => { setStudyYear(y); remote.profile(user.id, { studyYear: y }); }} />
-    )}
-    {!nameChosen && onboardedAt && (
+    {!nameChosen && (
       <NamePrompt
         suggestion={displayName}
         onSave={name => {
@@ -1173,7 +1142,7 @@ export default function App() {
     <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
-      {isGoogleUser(user) && marketingOptIn === null && onboardedAt && !practiceSessionActive && (
+      {isGoogleUser(user) && marketingOptIn === null && !practiceSessionActive && (
         <MarketingPrompt
           googleName={displayName || googleName(user)}
           onContinue={({ displayName: nextName, marketingOptIn: emails }) => {
@@ -1293,7 +1262,6 @@ export default function App() {
               showOnLeaderboard={showOnLeaderboard}
               marketingOptIn={marketingOptIn}
               dailyGoal={dailyGoal}
-              studyYear={studyYear}
               theme={theme}
               onThemeChange={setTheme}
               onProfileChange={p => {
@@ -1301,7 +1269,6 @@ export default function App() {
                 if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);
                 if (p.marketingOptIn !== undefined) setMarketingOptIn(p.marketingOptIn);
                 if (p.dailyGoal !== undefined) setDailyGoal(p.dailyGoal);
-                if (p.studyYear !== undefined) setStudyYear(p.studyYear);
               }}
               onResetProgress={() => {
                 remote.clearPractice(user.id);
