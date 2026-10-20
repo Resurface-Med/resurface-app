@@ -38,6 +38,7 @@ import { SUPABASE_URL } from "./lib/supabase";
 import { keepImagesOffline } from "./lib/questionImage";
 import OfflineBar, { NeedsConnection } from "./ui/OfflineBar";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
+import { EXHIBIT_DECK_ID, setExhibitPreviewHidden, withExhibitPreview } from "./lib/exhibitPreview";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs, getPrefs } from "./lib/prefs";
@@ -223,7 +224,7 @@ export default function App() {
   /* Progress reads every deck you practise from, featured ones included. */
   const progressDecks = useMemo(() => [...decks, ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
   function applyFeatured(next) {
-    const f = next ?? { roots: [], decks: [], questions: [] };
+    const f = withExhibitPreview(next ?? { roots: [], decks: [], questions: [] });
     featuredRef.current = f;
     setFeatured(f);
     applyGenerated(genRowsRef.current);
@@ -240,6 +241,9 @@ export default function App() {
   function hideFeatured(id, hide) {
     const f = featuredRef.current;
     applyFeatured({ ...f, roots: f.roots.map(r => (r.id === id ? { ...r, hidden: hide } : r)) });
+    /* The sample deck is not a row in featured_decks, so hiding it has
+       nothing to write. A failed write would sit in the queue forever. */
+    if (id === EXHIBIT_DECK_ID) { setExhibitPreviewHidden(hide); return; }
     remote.hideFeatured(id, hide).catch(() => {});
   }
 
@@ -313,7 +317,7 @@ export default function App() {
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
-    featuredRef.current = d.featured ?? featuredRef.current;
+    featuredRef.current = withExhibitPreview(d.featured ?? featuredRef.current);
     setFeatured(featuredRef.current);
     applyDecks(d.decks ?? []);
     applyGenerated(d.generated, d.decks ?? []);

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { checkExhibit, exhibitBeside, exhibitText } from "../src/lib/exhibits.js";
+import { exhibitPreview, withExhibitPreview, EXHIBIT_DECK_ID } from "../src/lib/exhibitPreview.js";
 
 const deck = JSON.parse(readFileSync(new URL("../content/exhibits/test-deck.json", import.meta.url), "utf8"));
 const abg = (ph, co2, hco3) => ({
@@ -64,6 +65,14 @@ describe("the test deck", () => {
     expect(deck.every(q => q.exhibit && !Array.isArray(q.exhibit))).toBe(true);
     expect(kinds).toContain("lines");
     expect(kinds.some(k => k === "labs" || k === "table")).toBe(true);
+  });
+  it("the sample deck is what Study shows, one exhibit each", () => {
+    const preview = exhibitPreview();
+    expect(preview.questions).toHaveLength(deck.length);
+    expect(preview.questions.every(q => !Array.isArray(q.exhibit))).toBe(true);
+    expect(preview.deck.id).toBe(EXHIBIT_DECK_ID);
+    const twice = withExhibitPreview(withExhibitPreview({ roots: [], decks: [], questions: [] }));
+    expect(twice.questions).toHaveLength(deck.length);
   });
   it("every question is a well-formed single best answer", () => {
     for (const q of deck) {
