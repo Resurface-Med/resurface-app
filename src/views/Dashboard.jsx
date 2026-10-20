@@ -4,6 +4,7 @@ import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
+import { Rich } from "../ui/Announcements";
 import { seenCount, masteredCount, share } from "../lib/progress";
 
 /**
@@ -185,22 +186,33 @@ export default function Dashboard({
       <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           {empty ? (
-            /* No film (Rafil, 2026-10-20: not informative enough). */
-            <section data-in="rise" className="dash-film-wrap" style={{ "--i": 5 }}>
-              {/* The welcome note is the reveal after sign-up (and What's
-                  new), not a third copy here (Rafil, 2026-10-20): just the
-                  way to read it again. */}
-              {welcome && onReplayWelcome && (
-                <button type="button" className="dash-replay" onClick={onReplayWelcome}>
-                  Read {(() => {
+            /* The welcome note, whole, on a sheet of paper on the app's blue
+               (Rafil, 2026-10-20). Clicking it plays the reveal again. */
+            welcome ? (
+              <section data-in="rise" style={{ "--i": 5 }}>
+                {/* A div, not a button: the note has links in it (an email
+                    address), which a button cannot hold. Clicking a link
+                    follows it; anywhere else plays the reveal. */}
+                <div className="note-tile" role="button" tabIndex={0} aria-label="Read the welcome note"
+                  onClick={e => { if (!e.target.closest("a")) onReplayWelcome?.(); }}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onReplayWelcome?.(); } }}>
+                  <span className="note-tile__glow" aria-hidden="true" />
+                  {(() => {
                     const blocks = String(welcome.body || "").trim().split(/\n{2,}/);
                     const last = blocks[blocks.length - 1]?.trim() ?? "";
                     const sig = blocks.length > 1 && last.length <= 24 && !/[.!?:]$/.test(last) ? last : null;
-                    return sig ? `${sig}’s` : "the welcome";
-                  })()} note again
-                </button>
-              )}
-            </section>
+                    const text = sig ? blocks.slice(0, -1).join("\n\n") : welcome.body;
+                    return (
+                      <span className="note-paper">
+                        <span className="note-paper__title">{welcome.title}</span>
+                        <Rich text={text} />
+                        {sig && <span className="note-paper__sig">{sig}</span>}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </section>
+            ) : null
           ) : (
           <div className="dash-split">
 
