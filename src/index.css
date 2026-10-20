@@ -9888,3 +9888,5 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .np__field.is-labelled { margin-top: 0; }
 .np__check { display: flex; align-items: flex-start; gap: 10px; margin-top: 30px; font-size: 14px; line-height: 1.45; color: var(--c-sub); cursor: pointer; }
 .np__check input { flex: none; margin-top: 2px; width: 16px; height: 16px; accent-color: var(--c-accent); }
+/* The sign-up pop-ups' heading, a step above the questions under it. */
+.np__title.is-welcome { font-size: clamp(26px, 3vw, 30px); letter-spacing: -0.8px; line-height: 1.15; }

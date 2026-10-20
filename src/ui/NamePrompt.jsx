@@ -49,7 +49,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
   return (
     <div className="np-scrim" role="presentation">
       <form className="np" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="np-title">
-        <h2 className="np__title" id="np-title">Welcome to Resurface</h2>
+        <h2 className="np__title is-welcome" id="np-title">Welcome to Resurface</h2>
 
         {/* Both questions as labels of one size, under a title that is
             neither (Rafil, 2026-10-20). */}
