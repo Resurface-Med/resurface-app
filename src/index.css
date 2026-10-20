@@ -9957,92 +9957,43 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .note-tile:hover .note-tile__cue { color: #fff; text-decoration: underline; text-underline-offset: 4px; }
 
 /* ── Past sessions (ui/PastSessions, 2026-10-20) ─────────────────────────
-   The pop-up's card, wider; the mistakes first, then each day's sessions.
-   Everything arrives in order: card, count, rings, strips, rows. */
+   A plain list in the pop-up's card: rows divided by hairlines, the actions
+   as text. */
 .ps-scrim { z-index: 1550; }
 .np.ps {
-  width: min(640px, 100%); max-height: min(760px, calc(100dvh - 40px));
-  display: flex; flex-direction: column; padding: 26px 0 0; overflow: hidden;
+  width: min(560px, 100%); max-height: min(720px, calc(100dvh - 40px));
+  display: flex; flex-direction: column; padding: 26px 0 8px; overflow: hidden;
 }
 .ps-head { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; }
 .ps-x {
   display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%;
-  background: var(--c-surface2); color: var(--c-muted); cursor: pointer; transition: background 0.15s, color 0.15s;
+  background: none; color: var(--c-muted); cursor: pointer;
 }
-.ps-x:hover { background: var(--c-surface3); color: var(--c-text); }
-
-/* The mistakes: size and colour, not a box. */
-.ps-fix {
-  margin: 14px 28px 0; padding: 0 0 18px; border-bottom: 1px solid var(--c-border);
-  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap;
-  animation: psRise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.08s both;
-}
-.ps-fix__text { margin: 0; display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
-.ps-fix__n { font-size: 42px; font-weight: 600; letter-spacing: -1.4px; line-height: 1; color: var(--c-accent); font-variant-numeric: tabular-nums; }
-.ps-fix__what { font-size: 14.5px; line-height: 1.4; color: var(--c-sub); max-width: 22em; }
-.ps-clear { margin: 14px 28px 0; padding-bottom: 16px; border-bottom: 1px solid var(--c-border); font-size: 14px; color: var(--c-sub); animation: psRise 0.4s ease both; }
-
-.ps-list { overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px 18px; margin-top: 10px; }
-.ps-day__h { margin: 16px 12px 4px; font-size: 14px; font-weight: 600; color: var(--c-muted); }
+.ps-x:hover { background: var(--c-surface2); color: var(--c-text); }
+.ps-note { margin: 8px 28px 0; font-size: 14px; line-height: 1.5; color: var(--c-muted); }
+.ps-list { overflow-y: auto; overscroll-behavior: contain; padding: 4px 28px 16px; margin-top: 8px; }
+.ps-day__h { margin: 18px 0 2px; font-size: 13.5px; font-weight: 600; color: var(--c-muted); }
 .ps-row {
-  display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 16px;
-  padding: 12px; border-radius: 14px;
-  opacity: 0; animation: psRise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  animation-delay: calc(180ms + var(--i) * 70ms);
-  transition: background 0.15s ease;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 13px 0; border-bottom: 1px solid var(--c-border);
 }
-.ps-row:hover { background: var(--c-surface2); }
+.ps-day .ps-row:last-child { border-bottom: 0; }
 .ps-main { min-width: 0; }
-.ps-label { margin: 0; font-size: 15px; font-weight: 600; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ps-label { margin: 0; font-size: 15px; font-weight: 500; color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ps-meta { margin: 2px 0 0; font-size: 13px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
-
-/* The score ring: fills on arrival. */
-.ps-ring { position: relative; display: grid; place-items: center; width: 48px; height: 48px; }
-.ps-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-.ps-ring__track { fill: none; stroke: var(--c-surface3); stroke-width: 4.5; }
-.ps-ring__fill { fill: none; stroke-width: 4.5; stroke-linecap: round; transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.ps-ring.is-good .ps-ring__fill { stroke: var(--c-success); }
-.ps-ring.is-mid .ps-ring__fill { stroke: var(--c-warning); }
-.ps-ring.is-low .ps-ring__fill { stroke: var(--c-danger); }
-.ps-ring.is-open .ps-ring__fill { stroke: var(--c-accent); }
-.ps-ring__n { position: relative; font-size: 11.5px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; letter-spacing: -0.3px; }
-
-/* How each question went: drawn left to right. */
-.ps-strip {
-  display: flex; gap: 2px; height: 5px; margin-top: 8px; max-width: 260px;
-  clip-path: inset(0 100% 0 0); animation: psDraw 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  animation-delay: calc(320ms + var(--i) * 70ms);
-}
-.ps-strip__q { flex: 1; min-width: 2px; border-radius: 3px; background: var(--c-surface3); }
-.ps-strip__q.is-right { background: var(--c-success); }
-.ps-strip__q.is-wrong { background: var(--c-danger); }
-
-.ps-acts { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.ps-go {
-  padding: 8px 16px; border: 0; border-radius: 999px; background: var(--c-accent); color: #fff;
-  font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
-}
-.ps-alt { border: 0; background: none; padding: 3px 6px; font: inherit; font-size: 12.5px; color: var(--c-muted); cursor: pointer; }
-.ps-alt:hover { color: var(--c-text); }
-
-/* The end of a session: the mistakes will wait. */
-.sum-later { margin: 10px 0 0; font-size: 14px; color: var(--c-muted); }
-
-@keyframes psRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes psDraw { to { clip-path: inset(0 0 0 0); } }
+.ps-acts { flex: none; display: flex; align-items: center; gap: 16px; }
+.ps-go, .ps-alt { border: 0; background: none; padding: 4px 0; font: inherit; font-size: 14px; cursor: pointer; }
+.ps-go { font-weight: 600; color: var(--c-accent); }
+.ps-alt { color: var(--c-muted); }
+.ps-go:hover, .ps-alt:hover { text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 600px) {
   .ps-scrim { padding: 0; align-items: stretch; }
   .np.ps { width: 100%; max-height: none; min-height: 100%; border-radius: 0; padding-top: calc(18px + var(--safe-t, 0px)); }
-  .ps-head { padding: 0 18px; }
-  .ps-fix { margin: 14px 18px 0; }
-  .ps-fix .ps-go { width: 100%; padding: 12px 16px; font-size: 14.5px; }
-  .ps-list { padding: 4px 6px calc(18px + var(--safe-b, 0px)); }
-  .ps-row { grid-template-columns: 44px minmax(0, 1fr); gap: 10px 12px; }
-  .ps-acts { grid-column: 2; flex-direction: row; align-items: center; justify-content: flex-start; gap: 10px; }
+  .ps-head { padding: 0 20px; }
+  .ps-note { margin: 8px 20px 0; }
+  .ps-list { padding: 4px 20px calc(16px + var(--safe-b, 0px)); }
   .ps-label { white-space: normal; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .ps-fix, .ps-row, .ps-clear { animation: none; opacity: 1; }
-  .ps-strip { animation: none; clip-path: none; }
-  .ps-ring__fill { transition: none; }
-}
+/* The end of a session: the mistakes will wait. */
+.sum-later { margin: 10px 0 0; font-size: 14px; color: var(--c-muted); }
+
