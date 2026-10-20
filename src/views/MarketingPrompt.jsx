@@ -60,7 +60,7 @@ export default function MarketingPrompt({ googleName, onContinue }) {
         </label>
 
         <div className="np__row">
-          <button type="submit" className="np__save btn-press">That's me</button>
+          <button type="submit" className="np__save btn-press">Continue</button>
         </div>
       </form>
     </div>

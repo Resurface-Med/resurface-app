@@ -70,7 +70,7 @@ export default function NamePrompt({ suggestion, onSave, onSkip }) {
         <YearSelect id="np-year" value={year} onChange={setYear} />
         <div className="np__row">
           <button type="submit" className="np__save btn-press" disabled={busy || name.trim().length < 2}>
-            {busy ? "Saving…" : "That's me"}
+            {busy ? "Saving…" : "Continue"}
           </button>
           <button type="button" className="np__skip" onClick={() => onSkip(year)} disabled={busy}>
             Not now
