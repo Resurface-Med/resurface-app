@@ -9900,24 +9900,22 @@ button.dp3-row:hover { background: var(--c-card-solid); }
    beside the question, portrait, like the phone it was made for. */
 .subway {
   position: fixed; z-index: 1250;
-  /* The whole height between the session's header and its bottom bar, and
-     the whole margin beside the question (at most 720px wide) — capped at
-     the video's own width for that height, so it is never letterboxed. */
-  top: 104px; bottom: 100px;
-  width: max(170px, min(calc((100vw - 720px) / 2 - 32px), calc((100vh - 204px) * 0.62)));
-  border-radius: 20px; overflow: hidden;
+  top: 50%; transform: translateY(-50%);
+  /* As much of the margin as there is: the gap beside the question (it
+     is at most 720px wide), or 82% of the height, whichever runs out. */
+  width: max(170px, min(calc((100vw - 760px) / 2 - 24px), calc(82vh * 9 / 16)));
+  aspect-ratio: 9 / 16;
+  border-radius: 18px; overflow: hidden;
   background: #000;
   box-shadow: 0 18px 40px -14px rgba(15, 27, 61, 0.55);
   animation: subwayIn 0.4s cubic-bezier(0.34, 1.3, 0.5, 1) both;
 }
-.subway.is-left { left: 16px; }
-.subway.is-right { right: 16px; }
+.subway.is-left { left: 24px; }
+.subway.is-right { right: 24px; }
 .subway__video {
   position: absolute; top: 50%; left: 50%;
-  /* Sized by height, a little over, so it covers the box and YouTube's
-     title and logo fall off the edges. */
-  height: 110%; width: calc((100vh - 204px) * 1.1 * 9 / 16);
-  transform: translate(-50%, -50%);
+  /* Larger than the box, to crop YouTube's title and logo off the edges. */
+  width: 124%; height: 124%; transform: translate(-50%, -50%);
   border: 0; pointer-events: none;
 }
 .subway__x {
@@ -9928,7 +9926,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   opacity: 0; transition: opacity 0.15s ease;
 }
 .subway:hover .subway__x, .subway__x:focus-visible { opacity: 1; }
-@keyframes subwayIn { from { opacity: 0; transform: translateY(12px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes subwayIn { from { opacity: 0; transform: translateY(-46%) scale(0.92); } to { opacity: 1; transform: translateY(-50%); } }
 /* Not on phones (Rafil, 2026-10-20): there is no margin to put it in. */
 @media (max-width: 900px) { .subway-strip { display: none; } }
 @media (prefers-reduced-motion: reduce) { .subway { animation: none; } }
