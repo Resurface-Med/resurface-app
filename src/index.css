@@ -8976,7 +8976,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 8px 40px; align-items: start;
 }
-.adm-today__switch { grid-column: 1 / -1; justify-self: start; margin: 0 0 12px; }
 .adm-cal__bar { display: flex; align-items: center; gap: 4px; margin: 0 0 10px; }
 .adm-cal__month { flex: 1; margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.2px; text-align: center; color: var(--c-text); }
 .adm-cal__nav {
@@ -9058,6 +9057,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .adm-seg__btn:hover { background: none; color: var(--c-text); }
 .adm-seg__btn.is-on { background: var(--c-card-solid); color: var(--c-text); font-weight: 600; box-shadow: 0 1px 3px rgba(15, 27, 61, 0.12); }
+.adm-cal .adm-today__switch { display: flex; width: 100%; margin: 0 0 12px; }
+.adm-cal .adm-today__switch .adm-seg__btn { flex: 1; text-align: center; }
 
 /* Tables at body size. */
 .adm-table { font-size: 15px; }

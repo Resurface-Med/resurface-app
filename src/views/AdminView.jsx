@@ -350,16 +350,16 @@ function Today() {
 
   return (
     <section className="adm-panel adm-today">
-      <div className="adm-seg adm-today__switch" role="tablist" aria-label="Show">
-        {[["studied", "Studied"], ["signed", "Signed up"]].map(([k, label]) => (
-          <button key={k} type="button" role="tab" aria-selected={mode === k}
-            className={`adm-seg__btn${mode === k ? " is-on" : ""}`}
-            onClick={() => setMode(k)}>
-            {label}
-          </button>
-        ))}
-      </div>
-      <div className="adm-cal" role="listbox" aria-label="Day">
+      <div className="adm-cal">
+        <div className="adm-seg adm-today__switch" role="tablist" aria-label="Show">
+          {[["studied", "Studied"], ["signed", "Signed up"]].map(([k, label]) => (
+            <button key={k} type="button" role="tab" aria-selected={mode === k}
+              className={`adm-seg__btn${mode === k ? " is-on" : ""}`}
+              onClick={() => setMode(k)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="adm-cal__bar">
           <button type="button" className="adm-cal__nav" aria-label="Previous month" disabled={!canPrev}
             onClick={() => setCursor(c => { const d = new Date(c.y, c.m - 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>
@@ -373,7 +373,7 @@ function Today() {
             ›
           </button>
         </div>
-        <div className="adm-cal__grid">
+        <div className="adm-cal__grid" role="listbox" aria-label="Day">
           {WEEKDAYS.map(w => <span key={w} className="adm-cal__wd">{w}</span>)}
           {cells.map((key, i) => {
             if (!key) return <span key={`gap-${i}`} className="adm-cal__gap" />;
