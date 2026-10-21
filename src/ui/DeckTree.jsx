@@ -98,8 +98,8 @@ function RenameField({ initial, onDone }) {
   );
 }
 
-/** A row's own menu. Only your decks have one. An item marked `picker`
-    swaps the menu for the Move to… list, anchored to the same ⋯. */
+/** A row's own menu. An item marked `picker` swaps the menu for the
+    Move to… list, anchored to the same ⋯. */
 function RowMenu({ node, items, renderPicker }) {
   const [mode, setMode] = useState(null);           // null | "menu" | "picker"
   const ref = useRef(null);
@@ -334,8 +334,10 @@ export default function DeckTree({
      Move up / Move down were here too and were cut (2026-10-15): dragging
      and Alt+arrows already do one step, and they were menu clutter. */
   function menuFor(n) {
-    /* Your decks, and a featured deck's own row (to hide it). */
-    const items = rowMenu && (n.mine || n.byline) ? rowMenu(n) : null;
+    /* The caller decides which rows have a menu. Yours do; a featured
+       folder does, so it can be hidden; an admin's does on every deck
+       under that folder, so its questions can be managed. */
+    const items = rowMenu ? rowMenu(n) : null;
     if (!items || !onMove || !n.mine) return items;
     const moves = [{ label: "Move to…", picker: true }];
     const at = items.findIndex(it => it.danger);

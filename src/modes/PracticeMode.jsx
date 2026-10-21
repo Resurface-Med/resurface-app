@@ -743,8 +743,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       onRename: endNaming,
     };
 
-    /* What a row's menu offers: your decks the lot, a featured deck's own
-       row only a way to hide it. */
+    /* What a row's menu offers: your decks the lot. A ready-made folder can
+       be hidden. An admin also manages questions on every deck inside it —
+       the byline, and so the hide, live only on the folder. */
     /* Rows carry the id drawn at the top (a folder, perhaps); hiding is
        keyed on the real deck. */
     const hideFeatured = topId => {
@@ -752,12 +753,14 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const r = featured.find(x => (x.top ?? x.id) === topId);
       if (r) onHideFeatured?.(r.id, true);
     };
+    const manageFeatured = isFeaturedAdmin() && featuredActions
+      ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }]
+      : [];
     const featuredMenu = [
-      /* Admins manage a Resurface deck's questions from here (lib/adminFeatured). */
-      ...(isFeaturedAdmin() && featuredActions ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }] : []),
+      ...manageFeatured,
       { label: "Hide from my decks", onSelect: n => hideFeatured(n.id) },
     ];
-    const rowMenu = node => !node.mine ? (node.byline && onHideFeatured ? featuredMenu : null) : [
+    const rowMenu = node => node.mine ? [
       { label: "Manage questions", onSelect: n => setManaging(n.id) },
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
@@ -768,7 +771,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
-    ];
+    ] : node.byline && onHideFeatured ? featuredMenu
+      : node.featured && manageFeatured.length ? manageFeatured
+      : null;
     const qNorm = topicQuery.trim().toLowerCase();
     /* A featured deck you hid can be brought back. (An old copy of one is
        swapped for it automatically — see App's switchToFeatured.) */
