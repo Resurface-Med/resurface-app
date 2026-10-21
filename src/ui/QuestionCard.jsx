@@ -375,13 +375,22 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
                 {answered && (ok || (picked && !ok) || Number.isInteger(peerPcts?.[i])) && (
                   <span className="q-opt-end">
-                    {ok && <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>}
-                    {picked && !ok && <span className="q-opt-mark bad" aria-hidden="true">✗</span>}
                     {Number.isInteger(peerPcts?.[i]) && (
-                      <span className="q-opt-pct" title={`${peerPcts[i]}% of students chose this`}>
-                        {peerPcts[i]}%
+                      <span className="q-opt-share">
+                        <span
+                          className="q-opt-track"
+                          style={{ "--share": peerPcts[i] / 100 }}
+                          aria-hidden="true"
+                        >
+                          <span />
+                        </span>
+                        <span className="q-opt-pct" title={`${peerPcts[i]}% of students chose this`}>
+                          {peerPcts[i]}%
+                        </span>
                       </span>
                     )}
+                    {ok && <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>}
+                    {picked && !ok && <span className="q-opt-mark bad" aria-hidden="true">✗</span>}
                   </span>
                 )}
 
