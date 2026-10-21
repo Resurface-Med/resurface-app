@@ -32,6 +32,13 @@ create table if not exists public.practice_stats (
   updated_at timestamp with time zone not null default now()
 );
 
+create table if not exists public.option_picks (
+  user_id uuid not null,
+  question_id integer not null,
+  option_index smallint not null,
+  created_at timestamp with time zone not null default now()
+);
+
 create table if not exists public.sr_cards (
   user_id uuid not null,
   question_id integer not null,
@@ -142,6 +149,10 @@ alter table public.practice_stats add constraint practice_stats_user_id_fkey for
 alter table public.practice_stats add constraint practice_stats_check check (total >= correct);
 alter table public.practice_stats add constraint practice_stats_correct_check check (correct >= 0);
 
+alter table public.option_picks add constraint option_picks_pkey primary key (user_id, question_id);
+alter table public.option_picks add constraint option_picks_user_id_fkey foreign key (user_id) references auth.users(id) on delete cascade;
+alter table public.option_picks add constraint option_picks_option_index_check check (option_index >= 0 and option_index < 12);
+
 alter table public.sr_cards add constraint sr_cards_pkey primary key (user_id, question_id);
 alter table public.sr_cards add constraint sr_cards_user_id_fkey foreign key (user_id) references auth.users(id) on delete cascade;
 
@@ -187,6 +198,7 @@ alter table public.admins add constraint admins_user_id_fkey foreign key (user_i
 -- userbase. That property is what makes the read path scale; keep it.
 
 create index if not exists sr_cards_due on public.sr_cards using btree (user_id, due_date);
+create index if not exists option_picks_question_idx on public.option_picks using btree (question_id);
 create index if not exists generated_questions_user on public.generated_questions using btree (user_id, created_at);
 create index if not exists generated_questions_deck on public.generated_questions using btree (deck_id);
 create index if not exists question_flags_question_idx on public.question_flags using btree (question_id);
@@ -199,6 +211,7 @@ create index if not exists ai_usage_user_id_idx on public.ai_usage using btree (
 
 alter table public.profiles            enable row level security;
 alter table public.practice_stats      enable row level security;
+alter table public.option_picks       enable row level security;
 alter table public.sr_cards            enable row level security;
 alter table public.bookmarks           enable row level security;
 alter table public.activity            enable row level security;
@@ -216,6 +229,7 @@ alter table public.ops_heartbeat       enable row level security;
 
 create policy "own profile"             on public.profiles            for all to authenticated using ((select auth.uid()) = id)      with check ((select auth.uid()) = id);
 create policy "own practice stats"      on public.practice_stats      for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy "own option picks"        on public.option_picks        for insert to authenticated with check ((select auth.uid()) = user_id);
 create policy "own sr cards"            on public.sr_cards            for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 create policy "own bookmarks"           on public.bookmarks           for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 create policy "own activity"            on public.activity            for all to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
@@ -532,6 +546,23 @@ language sql stable security definer set search_path = 'public' as $$
   order by 2
 $$;
 
+-- Counts per option, and only once 20 people have answered. Below that the
+-- app shows a stand-in. Keep the 20 in step with PEER_MIN in src/lib/peerSplit.js.
+create or replace function public.option_split(qid integer)
+returns table(option_index integer, n integer)
+language sql stable security definer set search_path = public as $$
+  with picks as (
+    select p.option_index
+    from public.option_picks p
+    where p.question_id = qid
+      and auth.uid() is not null
+  )
+  select picks.option_index, count(*)::integer
+  from picks
+  where (select count(*) from picks) >= 20
+  group by picks.option_index
+$$;
+
 create or replace function public.admin_tokens_totals()
 returns table(kind text, calls_all bigint, tokens_all bigint, calls_7d bigint, tokens_7d bigint, tokens_today bigint)
 language sql stable security definer set search_path = 'public' as $$
@@ -631,6 +662,7 @@ end;
 $$;
 
 grant execute on function public.keepalive_ping() to anon, authenticated;
+grant execute on function public.option_split(integer) to authenticated;
 
 -- More than about a day in age_hours means the cron has stopped.
 create or replace function public.admin_heartbeats()

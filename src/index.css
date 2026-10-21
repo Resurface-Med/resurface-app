@@ -772,6 +772,27 @@ body::after {
 .q-opt-mark.ok { color: var(--c-success); }
 .q-opt-mark.bad { color: var(--c-danger); }
 
+/* How the cohort split, shown once the answer is in. The tick and the
+   number share the end of the row. */
+.q-opt-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.q-opt-pct {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  color: var(--c-muted);
+}
+.q-opt.is-correct .q-opt-pct,
+.q-opt.is-wrong .q-opt-pct {
+  color: var(--c-text);
+}
+
 /* Rule-out: present on focus/hover only, so five options stay five choices. */
 .q-elim {
   flex-shrink: 0;

@@ -69,6 +69,9 @@ export function shuffleOptions(q) {
     opts: order.map(i => q.opts[i]),
     ans: order.indexOf(q.ans),
     optExp: q.optExp ? order.map(i => q.optExp[i]) : undefined,
+    /* Display slot → the option's index before the shuffle. Peer splits are
+       counted on that index, because the letter is different for everyone. */
+    optOrder: order,
   };
 }
 

@@ -748,13 +748,16 @@ export default function App() {
    * engine — questions still resurface before you forget them — without asking
    * anyone to grade their own recall on a four-point scale.
    */
-  function recordAnswer(id, correct) {
+  function recordAnswer(id, correct, optionIndex) {
     setPStats(prev => {
       const s = prev[id] || { correct: 0, total: 0 };
       const row = { correct: s.correct + (correct ? 1 : 0), total: s.total + 1 };
       remote.practice(user.id, id, row.correct, row.total);
       return { ...prev, [id]: row };
     });
+    /* The option, not just right or wrong, so a question can show how the
+       cohort split once enough people have answered it. Skips have no pick. */
+    if (Number.isInteger(optionIndex)) remote.pick(user.id, id, optionIndex);
 
     setSrCards(prev => {
       const card = sm2Review(prev[id], correct ? 3 : 1);

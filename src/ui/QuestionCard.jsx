@@ -90,7 +90,7 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerPcts = null }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -373,11 +373,16 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                   onMarked={() => { justMarked.current = true; }}
                 />
 
-                {answered && ok && (
-                  <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>
-                )}
-                {answered && picked && !ok && (
-                  <span className="q-opt-mark bad" aria-hidden="true">✗</span>
+                {answered && (ok || (picked && !ok) || Number.isInteger(peerPcts?.[i])) && (
+                  <span className="q-opt-end">
+                    {ok && <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>}
+                    {picked && !ok && <span className="q-opt-mark bad" aria-hidden="true">✗</span>}
+                    {Number.isInteger(peerPcts?.[i]) && (
+                      <span className="q-opt-pct" title={`${peerPcts[i]}% of students chose this`}>
+                        {peerPcts[i]}%
+                      </span>
+                    )}
+                  </span>
                 )}
 
                 {!answered && (

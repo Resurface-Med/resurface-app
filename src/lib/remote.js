@@ -106,6 +106,12 @@ function apply(op) {
         user_id: op.userId, question_id: op.questionId,
         correct: op.correct, total: op.total, updated_at: new Date().toISOString(),
       });
+    case "pick":
+      /* First answer only. A retry after the explanation is not another vote. */
+      return supabase.from("option_picks").upsert(
+        { user_id: op.userId, question_id: op.questionId, option_index: op.optionIndex },
+        { onConflict: "user_id,question_id", ignoreDuplicates: true },
+      );
     case "sr":
       return supabase.from("sr_cards").upsert({
         user_id: op.userId, question_id: op.questionId,
@@ -604,6 +610,13 @@ export async function clearFlags(questionId) {
   if (error) throw new Error(error.message);
 }
 
+/** How many people picked each option. Empty until the tally is large enough. */
+export async function fetchOptionSplit(questionId) {
+  const { data, error } = await supabase.rpc("option_split", { qid: questionId });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchLeaderboardWeek() {
   const { data, error } = await supabase.rpc("leaderboard_week");
   if (error) throw error;
@@ -615,6 +628,7 @@ export async function fetchLeaderboardWeek() {
 
 export const remote = {
   practice: (userId, questionId, correct, total) => send({ kind: "practice", userId, questionId, correct, total }),
+  pick:     (userId, questionId, optionIndex) => send({ kind: "pick", userId, questionId, optionIndex }),
   sr:       (userId, questionId, card)           => send({ kind: "sr", userId, questionId, card }),
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),

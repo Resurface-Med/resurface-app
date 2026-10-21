@@ -14,6 +14,8 @@ import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
+import { fetchOptionSplit } from "../lib/remote";
+import { displayPeerPcts, canonicalPick } from "../lib/peerSplit";
 import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
@@ -22,6 +24,15 @@ import SessionSummary from "../ui/SessionSummary";
 
 const resumeBtn = { ...fieldBtn, padding: "9px 18px", fontSize: 14 };
 const resumeGhostBtn = { ...fieldGhostBtn, padding: "9px 16px", fontSize: 14 };
+
+function countsFor(rows, n) {
+  const counts = Array(n).fill(0);
+  for (const r of rows) {
+    const i = Number(r.option_index);
+    if (i >= 0 && i < n) counts[i] = Number(r.n) || 0;
+  }
+  return counts;
+}
 
 /** Same measure as the dashboard, so the two screens sit on one grid. */
 const band = {
@@ -350,6 +361,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [results, setResults] = useState({});
   const [sC, setSC] = useState(0);
   const [sT, setST] = useState(0);
+  /* question id → { kind: "real", counts } | { kind: "standin" }. Fetched
+     before the answer so the number is there when the rows reveal, and not
+     refetched after, so it doesn't jump once your own pick lands. */
+  const [peer, setPeer] = useState({});
+  const peerRef = useRef({});
   const { user } = useAuth();
   const SESSION_KEY = sessionKey(user?.id);
   const [savedSession, setSavedSession] = useState(() => loadSaved(user?.id));
@@ -369,6 +385,41 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useEffect(() => {
     if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT, sid: sidRef.current, startedAt: startedRef.current }));
   }, [queue, idx, sels, sC, sT, SESSION_KEY]);
+
+  /* The split for this question and the next, so it's ready when the answer
+     lands. An empty result means there aren't enough answers yet, and the
+     card shows the stand-in. A failed fetch does the same. */
+  useEffect(() => {
+    if (!queue?.length) return;
+    const seen = peerRef.current;
+    const want = [idx, idx + 1]
+      .map(i => queue[i])
+      .filter(q => q && seen[q.id] == null);
+    if (!want.length) return;
+    let cancel = false;
+    for (const item of want) seen[item.id] = "loading";
+    for (const item of want) {
+      fetchOptionSplit(item.id).then(rows => {
+        if (cancel) return;
+        const next = rows?.length
+          ? { kind: "real", counts: countsFor(rows, item.opts.length) }
+          : { kind: "standin" };
+        seen[item.id] = next;
+        setPeer(p => ({ ...p, [item.id]: next }));
+      }).catch(() => {
+        if (cancel) return;
+        const next = { kind: "standin" };
+        seen[item.id] = next;
+        setPeer(p => ({ ...p, [item.id]: next }));
+      });
+    }
+    return () => {
+      cancel = true;
+      for (const item of want) {
+        if (seen[item.id] === "loading") delete seen[item.id];
+      }
+    };
+  }, [queue, idx]);
 
   /* Saved to your past sessions as you answer — not on opening one, which
      would move it to the top of the list for being looked at. */
@@ -582,7 +633,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const correct = i === q.ans;
     setSels(prev => ({ ...prev, [idx]: i }));
     setST(t => t + 1); if (correct) setSC(c => c + 1);
-    onAnswer(q.id, correct);
+    const live = QUESTIONS.find(x => x.id === q.id);
+    onAnswer(q.id, correct, canonicalPick(q, i, live?.opts));
 
     /*
      * Got it wrong: it comes back before you leave.
@@ -1286,6 +1338,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const q = queue[idx];
   const sel = sels[idx] ?? null;
   const isBookmarked = bookmarks.includes(q?.id);
+  const liveOpts = q ? QUESTIONS.find(x => x.id === q.id)?.opts : null;
+  const peerPcts = q && peer[q.id]
+    ? displayPeerPcts(q, peer[q.id].kind === "real" ? peer[q.id].counts : null, liveOpts)
+    : null;
 
   return (
     <QuizShell
@@ -1306,6 +1362,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         setQueue((prev) => prev.map((item, i) => (i === idx ? { ...item, ...updated } : item)))
       }
       onRequestExit={onRequestExit}
+      peerPcts={peerPcts}
     />
   );
 }
