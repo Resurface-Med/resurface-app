@@ -26,21 +26,33 @@ describe("peerPercents", () => {
     expect(a).toHaveLength(5);
   });
 
-  it("never leaves a wrong option looking like only you picked it", () => {
+  it("spreads the early split differently from question to question", () => {
+    const corrects = [];
+    const traps = [];
     let correctLeads = 0;
+    let stamped = 0;
     for (let id = 1; id <= 280; id++) {
       const correct = id % 5;
       const pct = peerPercents(id, 5, correct, null);
       const wrong = pct.filter((_, i) => i !== correct);
       expect(sum(pct)).toBe(100);
-      expect(Math.min(...wrong)).toBeGreaterThanOrEqual(13);
-      expect(Math.max(...wrong)).toBeGreaterThanOrEqual(20);
-      expect(pct[correct]).toBeGreaterThanOrEqual(28);
-      expect(pct[correct]).toBeLessThanOrEqual(46);
+      expect(Math.min(...wrong)).toBeGreaterThanOrEqual(5);
+      expect(pct[correct]).toBeGreaterThanOrEqual(26);
+      expect(pct[correct]).toBeLessThanOrEqual(84);
+      corrects.push(pct[correct]);
+      traps.push(Math.max(...wrong));
       if (pct[correct] >= Math.max(...wrong)) correctLeads += 1;
+      const low = Math.min(...wrong);
+      if (wrong.filter(v => v <= low + 1).length >= 3) stamped += 1;
     }
+    const mean = corrects.reduce((a, b) => a + b, 0) / corrects.length;
+    const sd = Math.sqrt(corrects.reduce((a, b) => a + (b - mean) ** 2, 0) / corrects.length);
+    const trapSpread = Math.max(...traps) - Math.min(...traps);
+    expect(sd).toBeGreaterThan(8);
+    expect(trapSpread).toBeGreaterThan(20);
+    expect(stamped).toBeLessThan(70);
     expect(correctLeads).toBeGreaterThan(180);
-    expect(correctLeads).toBeLessThan(280);
+    expect(correctLeads).toBeLessThan(270);
   });
 
   it("rounds a real split so the parts still add to 100", () => {

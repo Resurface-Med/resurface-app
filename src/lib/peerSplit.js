@@ -42,16 +42,84 @@ function apportion(exact, total) {
   return floors;
 }
 
-/* A wrong option below this reads as "only you picked it". The stand-in
-   keeps every distractor in a group, and one of them close behind the
-   right answer, so missing it feels like a common miss. Real tallies
-   are not adjusted. */
-function floorFor(others) {
-  if (others <= 1) return 40;
-  if (others === 2) return 18;
-  if (others === 3) return 15;
-  if (others === 4) return 13;
-  return Math.max(8, Math.floor(48 / others));
+/* How a year actually splits, before anyone has answered.
+ *
+ * One formula makes every question look like the last one: the right
+ * option in the mid-thirties, one distractor just behind, the rest
+ * copies of each other. A paper is not like that. Some stems are
+ * straightforward, some come down to two options, some have a trap
+ * that beats the key. The shape is chosen from the question, then the
+ * shares are drawn, so neighbouring questions do not wear the same
+ * numbers. A distractor is kept off a sliver — 4% is "only you" — and
+ * the real tally is never passed through this. */
+const SHAPES = [
+  { c: 8.4, t: 1.7, o: 0.42 },             // straightforward
+  { c: 6.2, t: 2.1, o: 0.55 },             // comfortable
+  { c: 4.4, t: 2.4, o: 0.62 },             // one real trap
+  { c: 3.6, t: 2.15, s: 1.55, o: 0.48 },   // two ways to miss it
+  { c: 3.15, t: 2.85, o: 0.58 },           // down to two options
+  { c: 2.55, t: 3.05, o: 0.72 },           // the trap wins
+  { c: 5.1, t: 1.35, o: 0.95 },            // the misses spread out
+  { c: 3.9, t: 1.9, s: 1.25, o: 0.4 },     // a favourite miss and a long tail
+];
+
+/* Gamma(alpha, 1). Marsaglia and Tsang; alpha below 1 uses the
+   standard boost. The mean is alpha, which is all the shapes need. */
+function gamma(rand, alpha) {
+  if (!(alpha > 0)) return 0;
+  if (alpha < 1) {
+    const u = Math.max(rand(), 1e-12);
+    return gamma(rand, alpha + 1) * Math.pow(u, 1 / alpha);
+  }
+  const d = alpha - 1 / 3;
+  const c = 1 / Math.sqrt(9 * d);
+  for (let i = 0; i < 64; i++) {
+    let x;
+    let v;
+    do {
+      const u1 = Math.max(rand(), 1e-12);
+      const u2 = rand();
+      x = Math.sqrt(-2 * Math.log(u1)) * Math.cos(Math.PI * 2 * u2);
+      v = 1 + c * x;
+    } while (v <= 0);
+    v = v * v * v;
+    const u = rand();
+    if (u < 1 - 0.0331 * x * x * x * x) return d * v;
+    if (Math.log(Math.max(u, 1e-12)) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
+  }
+  return alpha;
+}
+
+/* Pull any option up to `floor` by taking from the largest share, and
+   break a pile of identical tails by moving single points off the
+   leader. Three 13s is the tell the last version had. */
+function settle(out, floor) {
+  const give = (from, to, amount) => {
+    const moved = Math.min(amount, out[from] - floor);
+    if (moved <= 0) return 0;
+    out[from] -= moved;
+    out[to] += moved;
+    return moved;
+  };
+  for (let guard = 0; guard < out.length * 4; guard++) {
+    const low = out.findIndex(v => v < floor);
+    if (low < 0) break;
+    let donor = 0;
+    for (let i = 1; i < out.length; i++) if (out[i] > out[donor]) donor = i;
+    if (!give(donor, low, floor - out[low])) break;
+  }
+  for (let guard = 0; guard < 6; guard++) {
+    const counts = new Map();
+    out.forEach(v => counts.set(v, (counts.get(v) || 0) + 1));
+    const piled = [...counts.entries()].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1])[0];
+    if (!piled) break;
+    const value = piled[0];
+    const from = out.findIndex(v => v === Math.max(...out) && v > floor);
+    const to = out.findIndex(v => v === value);
+    if (from < 0 || to < 0 || from === to) break;
+    if (!give(from, to, 1)) break;
+  }
+  return out;
 }
 
 function standIn(id, n, correctIndex) {
@@ -61,35 +129,65 @@ function standIn(id, n, correctIndex) {
     ? correctIndex
     : 0;
   const rand = mulberry32(hashId(id) ^ Math.imul(n, 0x9e3779b1));
-  const others = n - 1;
-  const floor = floorFor(others);
-  const minTrap = others === 1 ? floor : Math.max(floor + 6, Math.min(22, 100 - floor * (others - 1) - 30));
-  const maxCorrect = 100 - (others - 1) * floor - minTrap;
-  const hard = others > 1 && (hashId(id) % 5) === 0;
-
-  let correctPct = others === 1
-    ? 54 + Math.floor(rand() * 8)
-    : hard
-      ? 28 + Math.floor(rand() * 3)
-      : Math.max(34, maxCorrect - 6) + Math.floor(rand() * 6);
-  if (correctPct > maxCorrect) correctPct = maxCorrect;
-
-  const spare = 100 - correctPct - others * floor;
-  const trapAt = Math.floor(rand() * others);
-  const parts = Array(others).fill(floor);
-  const trapNeeds = Math.max(0, minTrap - floor);
-  const sprinkle = hard ? 0 : Math.min(Math.max(0, spare - trapNeeds), others - 1, 1 + Math.floor(rand() * 3));
-  parts[trapAt] += spare - sprinkle;
-  for (let i = 0, left = sprinkle; i < others && left > 0; i++) {
-    if (i === trapAt) continue;
-    parts[i] += 1;
-    left -= 1;
+  const shape = SHAPES[hashId(String(id) + ":" + n) % SHAPES.length];
+  const wrong = [];
+  for (let i = 0; i < n; i++) if (i !== correct) wrong.push(i);
+  for (let i = wrong.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [wrong[i], wrong[j]] = [wrong[j], wrong[i]];
   }
 
-  const out = Array(n).fill(0);
-  out[correct] = correctPct;
-  let j = 0;
-  for (let i = 0; i < n; i++) if (i !== correct) out[i] = parts[j++];
+  const weights = Array(n).fill(0);
+  weights[correct] = gamma(rand, shape.c);
+  if (wrong[0] !== undefined) weights[wrong[0]] = gamma(rand, shape.t);
+  if (shape.s && wrong[1] !== undefined) weights[wrong[1]] = gamma(rand, shape.s);
+  for (let k = shape.s ? 2 : 1; k < wrong.length; k++) weights[wrong[k]] = gamma(rand, shape.o);
+  /* Only the main trap may pass the key, and only just. Any other
+     distractor that draws hot is pulled back, so a wrong option cannot
+     run away with twice the right answer. */
+  wrong.forEach((i, k) => {
+    const limit = k === 0 ? 1.22 : 0.9;
+    if (weights[i] > weights[correct] * limit) {
+      const base = k === 0 ? 1.02 : 0.55;
+      const span = k === 0 ? 0.18 : 0.3;
+      weights[i] = weights[correct] * (base + rand() * span);
+    }
+  });
+
+  const total = weights.reduce((a, b) => a + b, 0) || 1;
+  const out = apportion(weights.map(w => (w / total) * 100), 100);
+  /* 5% still draws a bar. Below that, the option you just chose looks
+     like nobody else was there. Identical tails are then walked apart,
+     because a row of the same number is the other tell. */
+  const floor = n <= 2 ? 32 : n === 3 ? 8 : 5;
+  settle(out, floor);
+  const atFloor = [];
+  let donor = 0;
+  for (let i = 0; i < n; i++) {
+    if (out[i] === floor) atFloor.push(i);
+    if (out[i] > out[donor]) donor = i;
+  }
+  for (let k = 1; k < atFloor.length; k++) {
+    const want = Math.min(2 * k, 5);
+    const room = out[donor] - floor - 10;
+    const moved = Math.min(want, room);
+    if (moved <= 0) break;
+    out[donor] -= moved;
+    out[atFloor[k]] += moved;
+  }
+  /* The key stays a real share of the year. A draw can leave it in the
+     teens, which reads as a broken answer rather than a hard question. */
+  if (n >= 4) {
+    const others = [];
+    for (let i = 0; i < n; i++) if (i !== correct) others.push(i);
+    while (out[correct] < 26) {
+      let donor = others[0];
+      for (const i of others) if (out[i] > out[donor]) donor = i;
+      if (out[donor] <= floor + 1) break;
+      out[donor] -= 1;
+      out[correct] += 1;
+    }
+  }
   return out;
 }
 
