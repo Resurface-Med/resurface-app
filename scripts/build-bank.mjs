@@ -263,7 +263,7 @@ async function generate() {
     process.stdout.write(`  [${i + 1}/${todo.length}] ${lec.subject} · ${lec.topic} … `);
     try {
       const { text } = await extract(lec.file);
-      const res = await callClaude({ system: systemPrompt(perLecture, false), text, key });
+      const res = await callClaude({ system: systemPrompt(perLecture), text, key });
       spent.input += res.usage?.input_tokens || 0;
       spent.output += res.usage?.output_tokens || 0;
 
