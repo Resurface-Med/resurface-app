@@ -3,6 +3,7 @@ import { shuffleOptions } from "../src/ui/theme.js";
 import {
   PEER_MIN, peerPercents, fromCounts, displayPeerPcts, canonicalPick,
 } from "../src/lib/peerSplit.js";
+import { JUDGED, JUDGED_COUNT } from "../src/lib/peerJudgment.js";
 
 const sum = xs => xs.reduce((a, b) => a + b, 0);
 
@@ -45,6 +46,38 @@ describe("peerPercents", () => {
     expect(easy[0]).toBeGreaterThan(pct[0]);
     expect(easy[0]).toBeGreaterThanOrEqual(68);
     expect(pct.every(n => n >= 5)).toBe(true);
+  });
+
+  it("reads the Year 2 deck off the choice, not off how the options are worded", () => {
+    expect(JUDGED_COUNT).toBe(599);
+    for (const [id, row] of JUDGED) {
+      const pct = peerPercents(id, 5, row.correct, null);
+      const wrong = pct.filter((_, i) => i !== row.correct);
+      expect(pct.reduce((a, b) => a + b, 0)).toBe(100);
+      expect(new Set(pct).size).toBe(5);
+      expect(Math.min(...pct)).toBeGreaterThanOrEqual(5);
+      expect(pct[row.correct] - Math.max(...wrong)).toBeGreaterThanOrEqual(8);
+      expect(pct[row.traps[0]]).toBe(Math.max(...wrong));
+    }
+
+    const schisto = peerPercents(1000202, 5, 3, null);
+    expect(schisto[3]).toBeGreaterThan(schisto[4]);
+    expect(schisto[4]).toBeGreaterThan(schisto[2]);
+
+    const lining = peerPercents(1000221, 5, 3, null);
+    expect(lining[3]).toBeGreaterThan(lining[2]);
+    expect(lining[3]).toBeGreaterThanOrEqual(60);
+
+    const turp = peerPercents(1000190, 5, 4, null);
+    expect(turp[4]).toBeGreaterThan(turp[0]);
+    expect(turp[4]).toBeGreaterThanOrEqual(60);
+
+    const spelling = peerPercents(1002079, 5, 2, null);
+    expect(spelling[2]).toBeGreaterThan(spelling[1]);
+    expect(spelling[1]).toBeGreaterThan(20);
+
+    const tallied = peerPercents(1000202, 5, 3, [10, 5, 3, 2, 0]);
+    expect(tallied).toEqual([50, 25, 15, 10, 0]);
   });
 
   it("rounds a real split so the parts still add to 100", () => {

@@ -2,12 +2,15 @@
  * How the cohort split on a question.
  *
  * Once PEER_MIN distinct people have answered, the percentages are theirs.
- * Before that, the split is read off the question itself: a wrong option
- * that is almost the right one takes a real share, and an unrelated one
- * does not. Two options never land on the same number. option_split
- * returns nothing until the tally is large enough, so a thin sample never
- * reaches the screen. Keep PEER_MIN in step with that function.
+ * Before that, a Year 2 question uses the split judged from that question:
+ * how hard the choice is, and which wrong option a student would actually
+ * pick. Any other question is read off its wording. Two options never land
+ * on the same number. option_split returns nothing until the tally is
+ * large enough, so a thin sample never reaches the screen. Keep PEER_MIN
+ * in step with that function.
  */
+
+import { judgedPercents } from "./peerJudgment.js";
 
 export const PEER_MIN = 20;
 
@@ -178,6 +181,8 @@ export function peerPercents(questionId, n, correctIndex, counts, opts, stem) {
   const correct = Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < n
     ? correctIndex
     : 0;
+  const judged = judgedPercents(questionId, n, correct);
+  if (judged) return judged;
   const texts = Array.isArray(opts) && opts.length === n
     ? opts
     : Array.from({ length: n }, (_, i) => `option ${i}`);
