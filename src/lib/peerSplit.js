@@ -2,11 +2,11 @@
  * How the cohort split on a question.
  *
  * Once PEER_MIN distinct people have answered, the percentages are theirs.
- * Before that there isn't a split worth showing, so the number is a stable
- * stand-in for this question: the same one for everybody, and it gives way
- * the moment the real tally crosses the line. option_split returns nothing
- * until then, so a thin sample never reaches the screen. Keep PEER_MIN in
- * step with that function.
+ * Before that, the split is read off the question itself: a wrong option
+ * that is almost the right one takes a real share, and an unrelated one
+ * does not. Two options never land on the same number. option_split
+ * returns nothing until the tally is large enough, so a thin sample never
+ * reaches the screen. Keep PEER_MIN in step with that function.
  */
 
 export const PEER_MIN = 20;
@@ -21,16 +21,6 @@ function hashId(id) {
   return h >>> 0;
 }
 
-function mulberry32(seed) {
-  let a = seed >>> 0;
-  return function () {
-    a = (a + 0x6D2B79F5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
 /** Integer parts that sum to `total`, following the fractional remainders. */
 function apportion(exact, total) {
   const floors = exact.map(x => Math.floor(x));
@@ -42,157 +32,128 @@ function apportion(exact, total) {
   return floors;
 }
 
-/* How a year actually splits, before anyone has answered.
- *
- * One formula makes every question look like the last one: the right
- * option in the mid-thirties, one distractor just behind, the rest
- * copies of each other. A paper is not like that. Some stems are
- * straightforward, some come down to two options, some have a trap
- * that beats the key. The shape is chosen from the question, then the
- * shares are drawn, so neighbouring questions do not wear the same
- * numbers. A distractor is kept off a sliver — 4% is "only you" — and
- * the real tally is never passed through this. */
-const SHAPES = [
-  { c: 9.6, t: 1.75, o: 0.38 },            // straightforward
-  { c: 9.6, t: 1.75, o: 0.38 },
-  { c: 7.6, t: 1.95, o: 0.45 },            // comfortable
-  { c: 7.6, t: 1.95, o: 0.45 },
-  { c: 6.4, t: 2.15, o: 0.48 },            // a clear leader
-  { c: 6.4, t: 2.15, o: 0.48 },
-  { c: 5.4, t: 2.35, o: 0.5 },             // one real trap, still a majority
-  { c: 5.0, t: 2.2, s: 1.4, o: 0.4 },      // two ways to miss it
-  { c: 4.6, t: 3.3, o: 0.48 },             // down to two options
-  { c: 7.0, t: 1.45, o: 0.75 },            // the misses spread out
-];
+const STOP = new Set("a an the of in on to for with from by and or its is are which what that into over".split(" "));
 
-/* Gamma(alpha, 1). Marsaglia and Tsang; alpha below 1 uses the
-   standard boost. The mean is alpha, which is all the shapes need. */
-function gamma(rand, alpha) {
-  if (!(alpha > 0)) return 0;
-  if (alpha < 1) {
-    const u = Math.max(rand(), 1e-12);
-    return gamma(rand, alpha + 1) * Math.pow(u, 1 / alpha);
-  }
-  const d = alpha - 1 / 3;
-  const c = 1 / Math.sqrt(9 * d);
-  for (let i = 0; i < 64; i++) {
-    let x;
-    let v;
-    do {
-      const u1 = Math.max(rand(), 1e-12);
-      const u2 = rand();
-      x = Math.sqrt(-2 * Math.log(u1)) * Math.cos(Math.PI * 2 * u2);
-      v = 1 + c * x;
-    } while (v <= 0);
-    v = v * v * v;
-    const u = rand();
-    if (u < 1 - 0.0331 * x * x * x * x) return d * v;
-    if (Math.log(Math.max(u, 1e-12)) < 0.5 * x * x + d * (1 - v + Math.log(v))) return d * v;
-  }
-  return alpha;
+function words(s) {
+  const raw = String(s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .split(/[\s-]+/)
+    .filter(w => w && !STOP.has(w));
+  const kept = raw.filter(w => w.length > 2);
+  return kept.length ? kept : raw.slice(0, 4);
 }
 
-/* Pull any option up to `floor` by taking from the largest share, and
-   break a pile of identical tails by moving single points off the
-   leader. Three 13s is the tell the last version had. */
+/* Words that sit on every option ("cells") do not make two answers alike.
+   What is left is the choice the question is actually asking. */
+function distinctive(opts) {
+  const docs = opts.map(words);
+  const df = new Map();
+  for (const doc of docs) for (const w of new Set(doc)) df.set(w, (df.get(w) || 0) + 1);
+  return docs.map(doc => doc.filter(w => (df.get(w) || 0) < docs.length));
+}
+
+function likeness(a, b) {
+  if (!a.length || !b.length) return 0;
+  const setA = new Set(a);
+  const setB = new Set(b);
+  let inter = 0;
+  for (const w of setA) if (setB.has(w)) inter += 1;
+  const dice = (2 * inter) / (setA.size + setB.size);
+  const tail = a[a.length - 1] === b[b.length - 1] ? 0.2 : 0;
+  return Math.min(1, dice + tail);
+}
+
 function settle(out, floor) {
-  const give = (from, to, amount) => {
-    const moved = Math.min(amount, out[from] - floor);
-    if (moved <= 0) return 0;
-    out[from] -= moved;
-    out[to] += moved;
-    return moved;
-  };
   for (let guard = 0; guard < out.length * 4; guard++) {
     const low = out.findIndex(v => v < floor);
-    if (low < 0) break;
+    if (low < 0) return out;
     let donor = 0;
     for (let i = 1; i < out.length; i++) if (out[i] > out[donor]) donor = i;
-    if (!give(donor, low, floor - out[low])) break;
-  }
-  for (let guard = 0; guard < 6; guard++) {
-    const counts = new Map();
-    out.forEach(v => counts.set(v, (counts.get(v) || 0) + 1));
-    const piled = [...counts.entries()].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1])[0];
-    if (!piled) break;
-    const value = piled[0];
-    const from = out.findIndex(v => v === Math.max(...out) && v > floor);
-    const to = out.findIndex(v => v === value);
-    if (from < 0 || to < 0 || from === to) break;
-    if (!give(from, to, 1)) break;
+    const moved = Math.min(floor - out[low], out[donor] - floor);
+    if (moved <= 0) break;
+    out[donor] -= moved;
+    out[low] += moved;
   }
   return out;
 }
 
-function standIn(id, n, correctIndex) {
-  if (n <= 0) return [];
-  if (n === 1) return [100];
-  const correct = Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < n
-    ? correctIndex
-    : 0;
-  const rand = mulberry32(hashId(id) ^ Math.imul(n, 0x9e3779b1));
-  const shape = SHAPES[hashId(String(id) + ":" + n) % SHAPES.length];
-  const wrong = [];
-  for (let i = 0; i < n; i++) if (i !== correct) wrong.push(i);
-  for (let i = wrong.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [wrong[i], wrong[j]] = [wrong[j], wrong[i]];
-  }
-
-  const weights = Array(n).fill(0);
-  weights[correct] = gamma(rand, shape.c);
-  if (wrong[0] !== undefined) weights[wrong[0]] = gamma(rand, shape.t);
-  if (shape.s && wrong[1] !== undefined) weights[wrong[1]] = gamma(rand, shape.s);
-  for (let k = shape.s ? 2 : 1; k < wrong.length; k++) weights[wrong[k]] = gamma(rand, shape.o);
-  /* Only the main trap may pass the key, and only just. Any other
-     distractor that draws hot is pulled back, so a wrong option cannot
-     run away with twice the right answer. */
-  wrong.forEach((i, k) => {
-    const limit = k === 0 ? 1.22 : 0.9;
-    if (weights[i] > weights[correct] * limit) {
-      const base = k === 0 ? 1.02 : 0.55;
-      const span = k === 0 ? 0.18 : 0.3;
-      weights[i] = weights[correct] * (base + rand() * span);
+/* The one you picked and the right one sitting on 40 and 40 is the tell.
+   Walk the later copy onto the next free percent. */
+function untie(out, floor, correct) {
+  for (let guard = 0; guard < out.length * 12; guard++) {
+    const seen = new Map();
+    let dup = -1;
+    for (let i = 0; i < out.length; i++) {
+      if (seen.has(out[i])) { dup = i; break; }
+      seen.set(out[i], i);
     }
-  });
-
-  const total = weights.reduce((a, b) => a + b, 0) || 1;
-  const out = apportion(weights.map(w => (w / total) * 100), 100);
-  /* 5% still draws a bar. Below that, the option you just chose looks
-     like nobody else was there. Identical tails are then walked apart,
-     because a row of the same number is the other tell. */
-  const floor = n <= 2 ? 32 : n === 3 ? 8 : 5;
-  settle(out, floor);
-  const atFloor = [];
-  let donor = 0;
-  for (let i = 0; i < n; i++) {
-    if (out[i] === floor) atFloor.push(i);
-    if (out[i] > out[donor]) donor = i;
-  }
-  for (let k = 1; k < atFloor.length; k++) {
-    const want = Math.min(2 * k, 5);
-    const room = out[donor] - floor - 10;
-    const moved = Math.min(want, room);
+    if (dup < 0) return out;
+    let donor = -1;
+    for (let i = 0; i < out.length; i++) {
+      if (i === dup || i === correct || out[i] <= floor) continue;
+      if (donor < 0 || out[i] > out[donor]) donor = i;
+    }
+    if (donor < 0 && correct !== dup && out[correct] > floor) donor = correct;
+    if (donor < 0) break;
+    const taken = new Set(out.filter((_, i) => i !== dup));
+    let next = out[dup] + 1;
+    while (taken.has(next)) next += 1;
+    const moved = Math.min(next - out[dup], out[donor] - floor);
     if (moved <= 0) break;
     out[donor] -= moved;
-    out[atFloor[k]] += moved;
-  }
-  /* Anything under half gets walked up to its own mark in the low
-     fifties, not to one shared number. A pile of questions at 46% was
-     the new tell. */
-  if (n >= 4) {
-    const liftTo = 52 + (hashId(id) % 7);
-    const others = [];
-    for (let i = 0; i < n; i++) if (i !== correct) others.push(i);
-    while (out[correct] < liftTo) {
-      let donor = others[0];
-      for (const i of others) if (out[i] > out[donor]) donor = i;
-      if (out[donor] <= floor + 1) break;
-      out[donor] -= 1;
-      out[correct] += 1;
-    }
+    out[dup] += moved;
   }
   return out;
+}
+
+function standIn(id, opts, correct, stem) {
+  const n = opts.length;
+  if (n <= 0) return [];
+  if (n === 1) return [100];
+  const docs = distinctive(opts);
+  const stemWords = new Set(words(stem));
+  const pulls = docs.map((doc, i) => {
+    if (i === correct) return -1;
+    const twin = likeness(doc, docs[correct]);
+    const borrowed = doc.some(w => stemWords.has(w) && !docs[correct].includes(w));
+    return Math.min(1, twin + (borrowed ? 0.12 : 0));
+  });
+  const ranked = pulls
+    .map((p, i) => ({ p, i }))
+    .filter(x => x.i !== correct)
+    .sort((a, b) => b.p - a.p || a.i - b.i);
+  const top = ranked[0]?.p ?? 0;
+  const floor = n <= 2 ? 28 : n === 3 ? 8 : 5;
+  const spare = 100 - floor * n;
+  const above = top >= 0.55 ? 18 + (hashId(id) % 5)
+    : top >= 0.32 ? 11 + (hashId(id) % 3)
+    : 6 + (hashId(id) % 3);
+  /* Floors are already on every option. The spare goes to the key, after
+     a near miss has taken its crowd and a second one in the same family
+     has taken a smaller crowd behind it. */
+  const out = Array(n).fill(floor);
+  let left = spare;
+  const keep = Math.min(30, Math.max(0, spare - above));
+  ranked.forEach((item, k) => {
+    let give = 0;
+    if (k === 0) give = Math.min(above, Math.max(0, left - keep));
+    else if (item.p >= 0.45) give = Math.min(Math.max(4, above - 10), Math.max(0, left - keep));
+    if (give > 0) {
+      out[item.i] += give;
+      left -= give;
+    }
+  });
+  out[correct] += left;
+  const drift = 100 - out.reduce((a, b) => a + b, 0);
+  out[correct] += drift;
+  if (ranked[0] && out[correct] - out[ranked[0].i] < 8 && out[ranked[0].i] - 8 >= floor) {
+    const need = 8 - (out[correct] - out[ranked[0].i]);
+    out[ranked[0].i] -= need;
+    out[correct] += need;
+  }
+  settle(out, floor);
+  return untie(out, floor, correct);
 }
 
 /** Real tally → percentages that sum to 100. Missing options are 0. */
@@ -206,14 +167,21 @@ export function fromCounts(counts, n) {
 /**
  * One integer percent per canonical option, summing to 100.
  * `counts` is how many distinct people picked each index, or null when
- * that tally isn't being used.
+ * that tally isn't being used. `opts` and `stem` are the question, so
+ * the stand-in can follow how hard the choice actually is.
  */
-export function peerPercents(questionId, n, correctIndex, counts) {
+export function peerPercents(questionId, n, correctIndex, counts, opts, stem) {
   if (Array.isArray(counts)) {
     const total = counts.reduce((a, b) => a + (Number(b) || 0), 0);
     if (total >= PEER_MIN) return fromCounts(counts, n);
   }
-  return standIn(questionId, n, correctIndex);
+  const correct = Number.isInteger(correctIndex) && correctIndex >= 0 && correctIndex < n
+    ? correctIndex
+    : 0;
+  const texts = Array.isArray(opts) && opts.length === n
+    ? opts
+    : Array.from({ length: n }, (_, i) => `option ${i}`);
+  return standIn(questionId, texts, correct, stem || "");
 }
 
 /* Display slot → canonical index, from the shuffle map or by matching the
@@ -240,7 +208,15 @@ export function displayPeerPcts(q, counts, liveOpts) {
   if (!n) return [];
   const order = optionSources(q, liveOpts);
   const correct = order ? order[q.ans] : q.ans;
-  const base = peerPercents(q.id, n, correct, Array.isArray(counts) ? counts : null);
+  const texts = Array.isArray(liveOpts) && liveOpts.length === n
+    ? liveOpts
+    : (() => {
+        if (!order) return q.opts;
+        const canon = Array(n);
+        for (let i = 0; i < n; i++) canon[order[i]] = q.opts[i];
+        return canon;
+      })();
+  const base = peerPercents(q.id, n, correct, Array.isArray(counts) ? counts : null, texts, q.q);
   if (!order) return base;
   return q.opts.map((_, i) => base[order[i]] ?? 0);
 }

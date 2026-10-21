@@ -19,39 +19,32 @@ describe("peerPercents", () => {
   });
 
   it("is the same number for everyone, and the percents add up", () => {
-    const a = peerPercents(42, 5, 2, null);
-    const b = peerPercents(42, 5, 2, null);
+    const opts = ["Femur", "Insulin", "Mitochondrion", "Aorta", "Glucagon"];
+    const a = peerPercents(42, 5, 0, null, opts, "Which bone forms the thigh?");
+    const b = peerPercents(42, 5, 0, null, opts, "Which bone forms the thigh?");
     expect(a).toEqual(b);
     expect(sum(a)).toBe(100);
-    expect(a).toHaveLength(5);
+    expect(new Set(a).size).toBe(5);
   });
 
-  it("spreads the early split differently from question to question", () => {
-    const corrects = [];
-    const traps = [];
-    let correctLeads = 0;
-    let stamped = 0;
-    for (let id = 1; id <= 280; id++) {
-      const correct = id % 5;
-      const pct = peerPercents(id, 5, correct, null);
-      const wrong = pct.filter((_, i) => i !== correct);
-      expect(sum(pct)).toBe(100);
-      expect(Math.min(...wrong)).toBeGreaterThanOrEqual(5);
-      expect(pct[correct]).toBeGreaterThanOrEqual(52);
-      expect(pct[correct]).toBeLessThanOrEqual(86);
-      corrects.push(pct[correct]);
-      traps.push(Math.max(...wrong));
-      if (pct[correct] >= Math.max(...wrong)) correctLeads += 1;
-      const low = Math.min(...wrong);
-      if (wrong.filter(v => v <= low + 1).length >= 3) stamped += 1;
-    }
-    const mean = corrects.reduce((a, b) => a + b, 0) / corrects.length;
-    const sd = Math.sqrt(corrects.reduce((a, b) => a + (b - mean) ** 2, 0) / corrects.length);
-    const trapSpread = Math.max(...traps) - Math.min(...traps);
-    expect(sd).toBeGreaterThan(6);
-    expect(trapSpread).toBeGreaterThan(15);
-    expect(stamped).toBeLessThan(90);
-    expect(correctLeads).toBeGreaterThan(240);
+  it("gives a close option a crowd, and never the same number as the key", () => {
+    const opts = [
+      "Transitional epithelial cells",
+      "Columnar epithelial cells",
+      "Squamous epithelial cells",
+      "Mesothelial cells",
+      "Endothelial cells",
+    ];
+    const pct = peerPercents(7, 5, 0, null, opts, "Which cells line the urinary bladder?");
+    const easy = peerPercents(8, 5, 0, null, ["Femur", "Insulin", "Mitochondrion", "Aorta", "Glucagon"], "Which bone forms the thigh?");
+    expect(sum(pct)).toBe(100);
+    expect(new Set(pct).size).toBe(5);
+    expect(pct[0]).toBeGreaterThan(pct[2]);
+    expect(pct[0] - Math.max(pct[1], pct[2], pct[3], pct[4])).toBeGreaterThanOrEqual(8);
+    expect(pct[2]).toBeGreaterThan(pct[4]);
+    expect(easy[0]).toBeGreaterThan(pct[0]);
+    expect(easy[0]).toBeGreaterThanOrEqual(68);
+    expect(pct.every(n => n >= 5)).toBe(true);
   });
 
   it("rounds a real split so the parts still add to 100", () => {
@@ -67,7 +60,7 @@ describe("shuffle and the split", () => {
     expect(shown.optOrder.map(i => live.opts[i])).toEqual(shown.opts);
     expect(shown.optOrder[shown.ans]).toBe(1);
 
-    const canonical = peerPercents(9, 4, 1, null);
+    const canonical = peerPercents(9, 4, 1, null, live.opts, live.q);
     const onScreen = displayPeerPcts(shown, null, live.opts);
     shown.opts.forEach((text, i) => {
       expect(onScreen[i]).toBe(canonical[live.opts.indexOf(text)]);
@@ -79,6 +72,6 @@ describe("shuffle and the split", () => {
     const live = ["a", "b", "c"];
     const shown = { id: 3, opts: ["c", "a", "b"], ans: 1 };
     expect(canonicalPick(shown, 0, live)).toBe(2);
-    expect(displayPeerPcts(shown, null, live)[0]).toBe(peerPercents(3, 3, 0, null)[2]);
+    expect(displayPeerPcts(shown, null, live)[0]).toBe(peerPercents(3, 3, 0, null, live, "Which is it?")[2]);
   });
 });
