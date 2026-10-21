@@ -316,17 +316,22 @@ function Today() {
     return all;
   }, [daily.rows]);
 
-  /* Sign-ups are the account's creation time, read on this calendar. The
-     activity day is the student's own; a join is when the row appeared. */
+  /* A sign-up is finishing the first pop-up, not the moment the account
+     row appeared. Until that column is on the people list, creation time
+     is all there is. */
   const signedUp = useMemo(() => {
     const all = new Map();
+    const recorded = (rows ?? []).some(p => "signed_up" in p);
     for (const p of rows ?? []) {
-      if (!p.joined) continue;
-      const key = todayKey(new Date(p.joined));
+      const when = recorded ? p.signed_up : p.joined;
+      if (!when) continue;
+      const key = todayKey(new Date(when));
       if (!all.has(key)) all.set(key, []);
       all.get(key).push(p);
     }
-    for (const list of all.values()) list.sort((a, b) => String(b.joined).localeCompare(String(a.joined)));
+    for (const list of all.values()) {
+      list.sort((a, b) => String((recorded ? b.signed_up : b.joined) || "").localeCompare(String((recorded ? a.signed_up : a.joined) || "")));
+    }
     return all;
   }, [rows]);
 
