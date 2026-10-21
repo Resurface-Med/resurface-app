@@ -32,7 +32,7 @@ import { todayKey } from "../lib/storage";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
-  { k: "today", label: "Today", title: "Today", desc: "Who answered a question on a day. Move through the last six months. Opening the app without answering is not recorded." },
+  { k: "today", label: "Today", title: "Today", desc: "Who answered a question, or who signed up, on a day. Move through the last six months. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
@@ -300,6 +300,7 @@ function Today() {
   const earliestKey = todayKey(earliest);
   const [cursor, setCursor] = useState({ y: todayDate.getFullYear(), m: todayDate.getMonth() });
   const [day, setDay] = useState(today);
+  const [mode, setMode] = useState("studied");
   const cells = useMemo(() => monthCells(cursor.y, cursor.m), [cursor]);
   const at = cursor.y * 12 + cursor.m;
   const canPrev = at > earliest.getFullYear() * 12 + earliest.getMonth();
@@ -315,21 +316,49 @@ function Today() {
     return all;
   }, [daily.rows]);
 
+  /* Sign-ups are the account's creation time, read on this calendar. The
+     activity day is the student's own; a join is when the row appeared. */
+  const signedUp = useMemo(() => {
+    const all = new Map();
+    for (const p of rows ?? []) {
+      if (!p.joined) continue;
+      const key = todayKey(new Date(p.joined));
+      if (!all.has(key)) all.set(key, []);
+      all.get(key).push(p);
+    }
+    for (const list of all.values()) list.sort((a, b) => String(b.joined).localeCompare(String(a.joined)));
+    return all;
+  }, [rows]);
+
   const used = useMemo(() => {
+    if (mode === "signed") {
+      return (signedUp.get(day) ?? []).map(p => ({ ...p, n: Number(p.answered) || 0 }));
+    }
     const counts = byDay.get(day) ?? new Map();
     return (rows ?? [])
       .filter(p => counts.has(p.user_id))
       .map(p => ({ ...p, n: counts.get(p.user_id) }))
       .sort((a, b) => b.n - a.n || String(a.display_name || a.email).localeCompare(String(b.display_name || b.email)));
-  }, [rows, byDay, day]);
+  }, [rows, byDay, signedUp, day, mode]);
 
   if (error || daily.error) return <Empty>{error || daily.error}</Empty>;
   if (!rows || !daily.rows) return <Empty>&nbsp;</Empty>;
 
   const answers = used.reduce((sum, p) => sum + p.n, 0);
+  const studiedSince = used.filter(p => p.n > 0).length;
+  const signing = mode === "signed";
 
   return (
     <section className="adm-panel adm-today">
+      <div className="adm-seg adm-today__switch" role="tablist" aria-label="Show">
+        {[["studied", "Studied"], ["signed", "Signed up"]].map(([k, label]) => (
+          <button key={k} type="button" role="tab" aria-selected={mode === k}
+            className={`adm-seg__btn${mode === k ? " is-on" : ""}`}
+            onClick={() => setMode(k)}>
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="adm-cal" role="listbox" aria-label="Day">
         <div className="adm-cal__bar">
           <button type="button" className="adm-cal__nav" aria-label="Previous month" disabled={!canPrev}
@@ -349,7 +378,10 @@ function Today() {
           {cells.map((key, i) => {
             if (!key) return <span key={`gap-${i}`} className="adm-cal__gap" />;
             const open = key >= earliestKey && key <= today;
-            const count = open ? (byDay.get(key)?.size ?? 0) : 0;
+            const count = !open ? 0 : signing ? (signedUp.get(key)?.length ?? 0) : (byDay.get(key)?.size ?? 0);
+            const countLabel = signing
+              ? (count ? `, ${count} signed up` : ", nobody signed up")
+              : (count ? `, ${count} ${count === 1 ? "person" : "people"}` : ", nobody");
             return (
               <button
                 key={key}
@@ -358,9 +390,7 @@ function Today() {
                 aria-selected={key === day}
                 aria-disabled={!open}
                 disabled={!open}
-                aria-label={open
-                  ? `${dayTitle(key)}${count ? `, ${count} ${count === 1 ? "person" : "people"}` : ", nobody"}`
-                  : dayTitle(key)}
+                aria-label={open ? `${dayTitle(key)}${countLabel}` : dayTitle(key)}
                 className={`adm-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${!open ? " is-out" : count ? "" : " is-quiet"}`}
                 onClick={() => open && setDay(key)}
               >
@@ -374,18 +404,21 @@ function Today() {
       <div className="adm-today__day">
         <h3 className="adm-today__title">{day === today ? "Today" : dayTitle(day)}</h3>
         {day === today && <p className="adm-today__sub">{dayTitle(day)}</p>}
-        <Stats items={[
+        <Stats items={signing ? [
+          [used.length, used.length === 1 ? "Sign-up" : "Sign-ups"],
+          [studiedSince.toLocaleString("en-GB"), studiedSince === 1 ? "Has studied" : "Have studied"],
+        ] : [
           [used.length, used.length === 1 ? "Person" : "People"],
           [answers.toLocaleString("en-GB"), answers === 1 ? "Question answered" : "Questions answered"],
         ]} />
         {used.length === 0 ? (
-          <Empty>Nobody answered a question.</Empty>
+          <Empty>{signing ? "Nobody signed up." : "Nobody answered a question."}</Empty>
         ) : (
           <table className="adm-table adm-people">
             <thead>
               <tr>
                 <th>Person</th>
-                <th className="adm-num">Answered</th>
+                <th className="adm-num">{signing ? "Answered since" : "Answered"}</th>
               </tr>
             </thead>
             <tbody>
