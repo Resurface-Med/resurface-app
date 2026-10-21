@@ -24,21 +24,22 @@ describe("peerPercents", () => {
     expect(a).toEqual(b);
     expect(sum(a)).toBe(100);
     expect(a).toHaveLength(5);
-    expect(a.every(n => n >= 4)).toBe(true);
   });
 
-  it("stays in a plausible range across questions", () => {
+  it("never leaves a wrong option looking like only you picked it", () => {
     let correctLeads = 0;
     for (let id = 1; id <= 280; id++) {
       const correct = id % 5;
       const pct = peerPercents(id, 5, correct, null);
+      const wrong = pct.filter((_, i) => i !== correct);
       expect(sum(pct)).toBe(100);
-      expect(pct[correct]).toBeGreaterThanOrEqual(32);
-      expect(pct[correct]).toBeLessThanOrEqual(75);
-      expect(Math.max(...pct.filter((_, i) => i !== correct))).toBeLessThan(70);
-      if (pct[correct] === Math.max(...pct)) correctLeads += 1;
+      expect(Math.min(...wrong)).toBeGreaterThanOrEqual(13);
+      expect(Math.max(...wrong)).toBeGreaterThanOrEqual(20);
+      expect(pct[correct]).toBeGreaterThanOrEqual(28);
+      expect(pct[correct]).toBeLessThanOrEqual(46);
+      if (pct[correct] >= Math.max(...wrong)) correctLeads += 1;
     }
-    expect(correctLeads).toBeGreaterThan(200);
+    expect(correctLeads).toBeGreaterThan(180);
     expect(correctLeads).toBeLessThan(280);
   });
 

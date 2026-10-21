@@ -42,6 +42,18 @@ function apportion(exact, total) {
   return floors;
 }
 
+/* A wrong option below this reads as "only you picked it". The stand-in
+   keeps every distractor in a group, and one of them close behind the
+   right answer, so missing it feels like a common miss. Real tallies
+   are not adjusted. */
+function floorFor(others) {
+  if (others <= 1) return 40;
+  if (others === 2) return 18;
+  if (others === 3) return 15;
+  if (others === 4) return 13;
+  return Math.max(8, Math.floor(48 / others));
+}
+
 function standIn(id, n, correctIndex) {
   if (n <= 0) return [];
   if (n === 1) return [100];
@@ -49,35 +61,35 @@ function standIn(id, n, correctIndex) {
     ? correctIndex
     : 0;
   const rand = mulberry32(hashId(id) ^ Math.imul(n, 0x9e3779b1));
-  const hard = (hashId(id) % 7) === 0;
   const others = n - 1;
-  const minOther = n <= 5 ? 4 : 2;
-  const maxCorrect = 100 - others * minOther;
-  let correctPct = hard
-    ? 32 + Math.floor(rand() * 16)
-    : 54 + Math.floor(rand() * 22);
+  const floor = floorFor(others);
+  const minTrap = others === 1 ? floor : Math.max(floor + 6, Math.min(22, 100 - floor * (others - 1) - 30));
+  const maxCorrect = 100 - (others - 1) * floor - minTrap;
+  const hard = others > 1 && (hashId(id) % 5) === 0;
+
+  let correctPct = others === 1
+    ? 54 + Math.floor(rand() * 8)
+    : hard
+      ? 28 + Math.floor(rand() * 3)
+      : Math.max(34, maxCorrect - 6) + Math.floor(rand() * 6);
   if (correctPct > maxCorrect) correctPct = maxCorrect;
 
-  const weights = Array.from({ length: others }, () => 0.25 + rand());
-  weights[Math.floor(rand() * others)] *= hard ? 2.8 : 1.7;
-  const wsum = weights.reduce((a, b) => a + b, 0);
-  const rest = 100 - correctPct;
-  const floors = apportion(weights.map(w => (w / wsum) * rest), rest);
-  const min = Math.min(minOther, Math.floor(rest / others));
-  for (let guard = 0; guard < others * 5 && min > 0; guard++) {
-    const low = floors.findIndex(x => x < min);
-    if (low < 0) break;
-    let donor = 0;
-    for (let i = 1; i < others; i++) if (floors[i] > floors[donor]) donor = i;
-    if (floors[donor] <= min) break;
-    floors[donor] -= 1;
-    floors[low] += 1;
+  const spare = 100 - correctPct - others * floor;
+  const trapAt = Math.floor(rand() * others);
+  const parts = Array(others).fill(floor);
+  const trapNeeds = Math.max(0, minTrap - floor);
+  const sprinkle = hard ? 0 : Math.min(Math.max(0, spare - trapNeeds), others - 1, 1 + Math.floor(rand() * 3));
+  parts[trapAt] += spare - sprinkle;
+  for (let i = 0, left = sprinkle; i < others && left > 0; i++) {
+    if (i === trapAt) continue;
+    parts[i] += 1;
+    left -= 1;
   }
 
   const out = Array(n).fill(0);
   out[correct] = correctPct;
   let j = 0;
-  for (let i = 0; i < n; i++) if (i !== correct) out[i] = floors[j++];
+  for (let i = 0; i < n; i++) if (i !== correct) out[i] = parts[j++];
   return out;
 }
 
