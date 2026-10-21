@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
@@ -32,7 +32,7 @@ import { todayKey } from "../lib/storage";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
-  { k: "today", label: "Today", title: "Today", desc: "Who answered a question today. Opening the app without answering is not recorded." },
+  { k: "today", label: "Today", title: "Today", desc: "Who answered a question on a day. Scroll back to check an earlier one. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
@@ -261,45 +261,101 @@ function Overview() {
 }
 
 /* ── Today ─────────────────────────────────────────────────────────
-   Who studied on this calendar day, where the admin is. The day on an
-   activity row is the student's own local day, same as the heatmap. */
+   Who studied on a calendar day, where the admin is. The day on an
+   activity row is the student's own local day, same as the heatmap.
+   Thirty days, newest at the right, because that is the one you open on. */
+const TODAY_SPAN = 30;
+
+function recentDays(n) {
+  const days = [];
+  const start = new Date();
+  for (let i = n - 1; i >= 0; i -= 1) {
+    const d = new Date(start);
+    d.setDate(start.getDate() - i);
+    days.push(todayKey(d));
+  }
+  return days;
+}
+
+function dayBits(key) {
+  const [y, m, d] = key.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return {
+    wd: date.toLocaleDateString("en-GB", { weekday: "short" }),
+    n: date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
+  };
+}
+
 function Today() {
   const [{ rows, error }] = useSection(fetchPeople);
-  const loadDaily = useCallback(() => fetchPeopleDaily(2), []);
+  const loadDaily = useCallback(() => fetchPeopleDaily(TODAY_SPAN + 2), []);
   const [daily] = useSection(loadDaily);
+  const today = todayKey();
+  const days = useMemo(() => recentDays(TODAY_SPAN), []);
+  const [day, setDay] = useState(today);
+  const strip = useRef(null);
+
+  const byDay = useMemo(() => {
+    const all = new Map();
+    for (const r of daily.rows ?? []) {
+      const key = String(r.day).slice(0, 10);
+      if (!all.has(key)) all.set(key, new Map());
+      all.get(key).set(r.user_id, Number(r.answers) || 0);
+    }
+    return all;
+  }, [daily.rows]);
 
   const used = useMemo(() => {
-    const today = todayKey();
-    const counts = new Map();
-    for (const r of daily.rows ?? []) {
-      if (String(r.day).slice(0, 10) !== today) continue;
-      counts.set(r.user_id, Number(r.answers) || 0);
-    }
+    const counts = byDay.get(day) ?? new Map();
     return (rows ?? [])
       .filter(p => counts.has(p.user_id))
-      .map(p => ({ ...p, today: counts.get(p.user_id) }))
-      .sort((a, b) => b.today - a.today || String(a.display_name || a.email).localeCompare(String(b.display_name || b.email)));
-  }, [rows, daily.rows]);
+      .map(p => ({ ...p, n: counts.get(p.user_id) }))
+      .sort((a, b) => b.n - a.n || String(a.display_name || a.email).localeCompare(String(b.display_name || b.email)));
+  }, [rows, byDay, day]);
+
+  useEffect(() => {
+    strip.current?.querySelector(".is-on")?.scrollIntoView({ inline: "nearest", block: "nearest" });
+  }, [day, daily.rows]);
 
   if (error || daily.error) return <Empty>{error || daily.error}</Empty>;
   if (!rows || !daily.rows) return <Empty>&nbsp;</Empty>;
 
-  const answers = used.reduce((sum, p) => sum + p.today, 0);
+  const answers = used.reduce((sum, p) => sum + p.n, 0);
+  const when = day === today ? "today" : `on ${dayBits(day).n}`;
 
   return (
     <section className="adm-panel">
+      <div className="adm-days" ref={strip} role="listbox" aria-label="Day">
+        {days.map(key => {
+          const bits = dayBits(key);
+          const quiet = !(byDay.get(key)?.size);
+          return (
+            <button
+              key={key}
+              type="button"
+              role="option"
+              aria-selected={key === day}
+              className={`adm-day${key === day ? " is-on" : ""}${quiet ? " is-quiet" : ""}`}
+              onClick={() => setDay(key)}
+            >
+              <span className="adm-day__wd">{key === today ? "Today" : bits.wd}</span>
+              <span className="adm-day__n">{bits.n}</span>
+            </button>
+          );
+        })}
+      </div>
       <Stats items={[
         [used.length, used.length === 1 ? "Person" : "People"],
         [answers.toLocaleString("en-GB"), answers === 1 ? "Question answered" : "Questions answered"],
       ]} />
       {used.length === 0 ? (
-        <Empty>Nobody has answered a question yet today.</Empty>
+        <Empty>Nobody answered a question {when}.</Empty>
       ) : (
         <table className="adm-table adm-people">
           <thead>
             <tr>
               <th>Person</th>
-              <th className="adm-num">Answered today</th>
+              <th className="adm-num">Answered</th>
             </tr>
           </thead>
           <tbody>
@@ -312,7 +368,7 @@ function Today() {
                   </span>
                   <span className="adm-email">{p.email}</span>
                 </th>
-                <td className="adm-num">{p.today.toLocaleString("en-GB")}</td>
+                <td className="adm-num">{p.n.toLocaleString("en-GB")}</td>
               </tr>
             ))}
           </tbody>
