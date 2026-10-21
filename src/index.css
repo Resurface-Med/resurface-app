@@ -73,6 +73,10 @@
 @media (min-width: 901px) and (max-height: 880px) { :root { --app-scale: 0.96; } }
 @media (min-width: 901px) and (max-height: 780px) { :root { --app-scale: 0.92; } }
 @media (min-width: 901px) and (max-height: 700px) { :root { --app-scale: 0.88; } }
+/* A 768px-tall laptop, after the browser and the taskbar, is about 600px.
+   0.88 still left a five-option question and the welcome note running off
+   the bottom. One step further, and the layouts below give the padding back. */
+@media (min-width: 901px) and (max-height: 640px) { :root { --app-scale: 0.82; } }
 
 /* Nothing may exceed the viewport width. A single overflowing child turns the
    whole page into a horizontal scroller, which on touch reads as the layout
@@ -6009,6 +6013,21 @@ html.is-deck-dragging * {
     calc(14px + var(--safe-b));
   background: transparent;
 }
+/* A wide, short window (2026-10-21). The card was centred with padding that
+   a tall screen can spare and a 768px laptop cannot: the fifth option sat
+   under the footer. The padding comes back to the question; a short card
+   still centres, because the column's auto margins only spend space it has. */
+@media (min-width: 901px) and (max-height: 760px) {
+  .quiz-shell__body {
+    padding-top: 8px;
+    padding-bottom: 10px;
+  }
+  .quiz-shell__footer { padding-bottom: 8px; }
+  .quiz-shell .q-card--focus { padding: 18px 22px; }
+  .quiz-shell .q-stem--focus { margin-bottom: 12px; }
+  .quiz-shell .q-card--focus .q-opts { gap: 6px; }
+  .quiz-shell .q-card--focus .q-opt { padding: 10px 14px; }
+}
 .quiz-shell__footer-bar {
   display: flex;
   align-items: center;
@@ -9944,6 +9963,24 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   background: var(--c-accent); color: #fff;
   font-size: 12.5px; font-weight: 600; line-height: 1;
   box-shadow: 0 3px 8px -3px rgba(53, 98, 245, 0.6);
+}
+/* Home on a short wide window: the column is one screen, and the note
+   scales into what is left under the greeting (Dashboard measures it). */
+@media (min-width: 901px) and (max-height: 860px) {
+  .home-welcome {
+    height: var(--app-vh);
+    max-height: var(--app-vh);
+    overflow: hidden;
+  }
+  .home-welcome > .page-band,
+  .home-welcome > .page-wave { flex-shrink: 0; }
+  .home-welcome .home-sheet {
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 }
 /* Home's note back in a little blue tile (Rafil, 2026-10-20): the paper
    and "Read the note again" together on the reveal's blue. */

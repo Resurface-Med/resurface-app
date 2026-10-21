@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import StreakFlame from "../ui/StreakFlame";
 import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -125,9 +125,37 @@ export default function Dashboard({
 
   const pctMastered = share(mastered, total) * 100;
   const pctSeenOnly = share(Math.max(seen - mastered, 0), total) * 100;
+  const showWelcome = empty && welcome;
+  const sheetRef = useRef(null);
+  const tileRef = useRef(null);
+
+  /* The note is the whole sheet on a tall screen. On a short one it is
+     scaled down to fit under the greeting, the same way the reveal fits
+     it to the window, rather than the home page scrolling to the signature. */
+  useEffect(() => {
+    if (!showWelcome) return;
+    const measure = () => {
+      const sheet = sheetRef.current;
+      const tile = tileRef.current;
+      if (!sheet || !tile) return;
+      tile.style.zoom = "1";
+      const cs = getComputedStyle(sheet);
+      const room = sheet.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      if (room <= 0 || tile.offsetHeight <= 0) return;
+      const inner = sheet.firstElementChild;
+      const chrome = inner ? Math.max(0, inner.offsetHeight - tile.offsetHeight) : 0;
+      const allowed = room - chrome;
+      const s = tile.offsetHeight > allowed ? Math.max(0.7, allowed / tile.offsetHeight) : 1;
+      tile.style.zoom = String(s);
+    };
+    measure();
+    document.fonts?.ready?.then(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [showWelcome, welcome]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
+    <div className={showWelcome ? "home-welcome" : undefined} style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       {/* ── Blue field: who you are, and the one thing to do ───────── */}
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(20px, 3vh, 30px)" }}>
         <header style={{
@@ -180,10 +208,10 @@ export default function Dashboard({
         )}
       </div>
 
-      <Wave from="transparent" to="var(--c-card-solid)" />
+      <Wave className="page-wave" from="transparent" to="var(--c-card-solid)" height="clamp(28px, min(4vw, 6vh), 64px)" />
 
       {/* ── Sheet: where you stand, and what you've been doing ─────── */}
-      <div style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: "clamp(24px, 4vh, 48px)" }}>
+      <div ref={sheetRef} className="home-sheet" style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: showWelcome ? 12 : "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           {empty ? (
             /* The welcome note, whole, on a sheet of paper on the app's blue
@@ -193,7 +221,7 @@ export default function Dashboard({
                 {/* A div, not a button: the note has links in it (an email
                     address), which a button cannot hold. Clicking a link
                     follows it; anywhere else plays the reveal. */}
-                <div className="note-tile" role="button" tabIndex={0} aria-label="Read the welcome note"
+                <div ref={tileRef} className="note-tile" role="button" tabIndex={0} aria-label="Read the welcome note"
                   onClick={e => { if (!e.target.closest("a")) onReplayWelcome?.(); }}
                   onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onReplayWelcome?.(); } }}>
                   {(() => {

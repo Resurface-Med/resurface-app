@@ -262,7 +262,7 @@ export default function QuizShell({
       <Wave
         from="var(--c-bg)"
         to="var(--c-surface2)"
-        height="clamp(28px, 3.2vw, 46px)"
+        height="clamp(16px, min(3.2vw, 4.2vh), 46px)"
       />
 
       <div className="quiz-shell__stage">
