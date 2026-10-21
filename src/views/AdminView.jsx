@@ -1041,6 +1041,7 @@ function FlagRow({ row, index, onCleared }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const q = useMemo(() => QUESTIONS.find(x => x.id === row.question_id), [row.question_id, edits]);
   const notes = (row.notes ?? []).filter(n => String(n || "").trim());
+  const reporters = Array.isArray(row.reporters) ? row.reporters : [];
   const where = q?.path?.map(p => p.name).join(" › ");
 
   async function clear() {
@@ -1088,7 +1089,20 @@ function FlagRow({ row, index, onCleared }) {
         {q ? q.q : <span className="flagq__missing">Question #{row.question_id} — not in the bank on this device</span>}
       </p>
       {where && <p className="flagq__where">{where}</p>}
-      {notes.length > 0 && (
+      {reporters.length > 0 ? (
+        <>
+        <p className="flagq__who-label">Reported by</p>
+        <ul className="flagq__who">
+          {reporters.map((p, i) => (
+            <li key={`${p.email || "report"}-${i}`}>
+              <span className="flagq__who-name">{p.name || <span className="adm-dim">No name yet</span>}</span>
+              {p.email && <span className="flagq__who-email">{p.email}</span>}
+              {p.note && <span className="flagq__who-note">“{p.note}”</span>}
+            </li>
+          ))}
+        </ul>
+        </>
+      ) : notes.length > 0 && (
         <ul className="flagq__notes">{notes.map((n, i) => <li key={i}>“{n}”</li>)}</ul>
       )}
     </li>
