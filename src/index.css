@@ -8976,7 +8976,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 8px 40px; align-items: start;
 }
-.adm-today__switch { grid-column: 1 / -1; margin: 0 0 12px; }
+.adm-today__switch { grid-column: 1 / -1; justify-self: start; margin: 0 0 12px; }
 .adm-cal__bar { display: flex; align-items: center; gap: 4px; margin: 0 0 10px; }
 .adm-cal__month { flex: 1; margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.2px; text-align: center; color: var(--c-text); }
 .adm-cal__nav {
