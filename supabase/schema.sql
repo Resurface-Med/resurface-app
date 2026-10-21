@@ -546,8 +546,7 @@ language sql stable security definer set search_path = 'public' as $$
   order by 2
 $$;
 
--- Counts per option, and only once 20 people have answered. Below that the
--- app shows a stand-in. Keep the 20 in step with PEER_MIN in src/lib/peerSplit.js.
+-- Counts per option, once 20 people have answered. The app no longer reads this.
 create or replace function public.option_split(qid integer)
 returns table(option_index integer, n integer)
 language sql stable security definer set search_path = public as $$

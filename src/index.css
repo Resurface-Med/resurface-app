@@ -772,61 +772,11 @@ body::after {
 .q-opt-mark.ok { color: var(--c-success); }
 .q-opt-mark.bad { color: var(--c-danger); }
 
-/* How the cohort split, shown once the answer is in. The bar and the
-   number are the comparison; the tick stays past them, so the percent
-   does not read as a mark. */
 .q-opt-end {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 14px;
   flex-shrink: 0;
-}
-.q-opt-share {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.q-opt-track {
-  width: 52px;
-  height: 5px;
-  border-radius: 99px;
-  background: color-mix(in srgb, currentColor 18%, transparent);
-  color: var(--c-muted);
-  overflow: hidden;
-}
-.q-opt-track > span {
-  display: block;
-  height: 100%;
-  width: 100%;
-  border-radius: inherit;
-  background: currentColor;
-  transform-origin: left center;
-  transform: scaleX(var(--share));
-  animation: q-share-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@keyframes q-share-in {
-  from { transform: scaleX(0); }
-}
-.q-opt.is-correct .q-opt-track { color: var(--c-success); }
-.q-opt.is-wrong .q-opt-track { color: var(--c-danger); }
-.q-opt-pct {
-  min-width: 2.8em;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-size: 15px;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  color: var(--c-muted);
-}
-.q-opt.is-correct .q-opt-pct { color: var(--c-success); }
-.q-opt.is-wrong .q-opt-pct { color: var(--c-danger); }
-@media (prefers-reduced-motion: reduce) {
-  .q-opt-track > span { animation: none; }
-}
-@media (max-width: 480px) {
-  .q-opt-track { width: 36px; }
-  .q-opt-end { gap: 10px; }
 }
 
 /* Rule-out: present on focus/hover only, so five options stay five choices. */
