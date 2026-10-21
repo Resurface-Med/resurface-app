@@ -32,7 +32,7 @@ import { todayKey } from "../lib/storage";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
-  { k: "today", label: "Today", title: "Today", desc: "Who answered a question in the last week. Pick a day. Opening the app without answering is not recorded." },
+  { k: "today", label: "Today", title: "Today", desc: "Who answered a question on a day. Move through the last six months. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
@@ -261,30 +261,25 @@ function Overview() {
 }
 
 /* ── Today ─────────────────────────────────────────────────────────
-   Who studied on a day in the last week, where the admin is. The day on
-   an activity row is the student's own local day, same as the heatmap.
-   The week is a calendar, Monday first, so the list sits beside it. */
+   Who studied on a day, where the admin is. The day on an activity row
+   is the student's own local day, same as the heatmap. One month at a
+   time, Monday first, back through six months, so the list sits beside it. */
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const CAL_SPAN = 180;
 
 function parseDay(key) {
   const [y, m, d] = key.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 
-function lastWeek(today) {
-  const end = parseDay(today);
-  const keys = [];
-  for (let i = 6; i >= 0; i -= 1) {
-    const d = new Date(end);
-    d.setDate(end.getDate() - i);
-    keys.push(todayKey(d));
-  }
-  const first = parseDay(keys[0]);
+function monthCells(year, month) {
+  const first = new Date(year, month, 1);
   const lead = (first.getDay() + 6) % 7;
-  const cells = [...Array(lead).fill(null), ...keys];
+  const count = new Date(year, month + 1, 0).getDate();
+  const cells = Array(lead).fill(null);
+  for (let d = 1; d <= count; d += 1) cells.push(todayKey(new Date(year, month, d)));
   while (cells.length % 7) cells.push(null);
-  const months = [keys[0], keys[6]].map(k => parseDay(k).toLocaleDateString("en-GB", { month: "long" }));
-  return { cells, label: months[0] === months[1] ? months[0] : `${months[0]} – ${months[1]}` };
+  return cells;
 }
 
 function dayTitle(key) {
@@ -293,11 +288,22 @@ function dayTitle(key) {
 
 function Today() {
   const [{ rows, error }] = useSection(fetchPeople);
-  const loadDaily = useCallback(() => fetchPeopleDaily(9), []);
+  const loadDaily = useCallback(() => fetchPeopleDaily(CAL_SPAN + 2), []);
   const [daily] = useSection(loadDaily);
   const today = todayKey();
-  const week = useMemo(() => lastWeek(today), [today]);
+  const todayDate = parseDay(today);
+  const earliest = useMemo(() => {
+    const d = parseDay(today);
+    d.setDate(d.getDate() - (CAL_SPAN - 1));
+    return d;
+  }, [today]);
+  const earliestKey = todayKey(earliest);
+  const [cursor, setCursor] = useState({ y: todayDate.getFullYear(), m: todayDate.getMonth() });
   const [day, setDay] = useState(today);
+  const cells = useMemo(() => monthCells(cursor.y, cursor.m), [cursor]);
+  const at = cursor.y * 12 + cursor.m;
+  const canPrev = at > earliest.getFullYear() * 12 + earliest.getMonth();
+  const canNext = at < todayDate.getFullYear() * 12 + todayDate.getMonth();
 
   const byDay = useMemo(() => {
     const all = new Map();
@@ -324,22 +330,39 @@ function Today() {
 
   return (
     <section className="adm-panel adm-today">
-      <div className="adm-cal" role="listbox" aria-label="Last 7 days">
-        <div className="adm-cal__month">{week.label}</div>
+      <div className="adm-cal" role="listbox" aria-label="Day">
+        <div className="adm-cal__bar">
+          <button type="button" className="adm-cal__nav" aria-label="Previous month" disabled={!canPrev}
+            onClick={() => setCursor(c => { const d = new Date(c.y, c.m - 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>
+            ‹
+          </button>
+          <div className="adm-cal__month">
+            {new Date(cursor.y, cursor.m, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
+          </div>
+          <button type="button" className="adm-cal__nav" aria-label="Next month" disabled={!canNext}
+            onClick={() => setCursor(c => { const d = new Date(c.y, c.m + 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>
+            ›
+          </button>
+        </div>
         <div className="adm-cal__grid">
           {WEEKDAYS.map(w => <span key={w} className="adm-cal__wd">{w}</span>)}
-          {week.cells.map((key, i) => {
+          {cells.map((key, i) => {
             if (!key) return <span key={`gap-${i}`} className="adm-cal__gap" />;
-            const count = byDay.get(key)?.size ?? 0;
+            const open = key >= earliestKey && key <= today;
+            const count = open ? (byDay.get(key)?.size ?? 0) : 0;
             return (
               <button
                 key={key}
                 type="button"
                 role="option"
                 aria-selected={key === day}
-                aria-label={`${dayTitle(key)}${count ? `, ${count} ${count === 1 ? "person" : "people"}` : ", nobody"}`}
-                className={`adm-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${count ? "" : " is-quiet"}`}
-                onClick={() => setDay(key)}
+                aria-disabled={!open}
+                disabled={!open}
+                aria-label={open
+                  ? `${dayTitle(key)}${count ? `, ${count} ${count === 1 ? "person" : "people"}` : ", nobody"}`
+                  : dayTitle(key)}
+                className={`adm-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${!open ? " is-out" : count ? "" : " is-quiet"}`}
+                onClick={() => open && setDay(key)}
               >
                 <span className="adm-cal__n">{parseDay(key).getDate()}</span>
                 {count > 0 && <span className="adm-cal__c">{count}</span>}
