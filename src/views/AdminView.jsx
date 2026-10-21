@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
@@ -32,7 +32,7 @@ import { todayKey } from "../lib/storage";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
-  { k: "today", label: "Today", title: "Today", desc: "Who answered a question on a day. Scroll back to check an earlier one. Opening the app without answering is not recorded." },
+  { k: "today", label: "Today", title: "Today", desc: "Who answered a question in the last week. Pick a day. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
@@ -261,39 +261,43 @@ function Overview() {
 }
 
 /* ── Today ─────────────────────────────────────────────────────────
-   Who studied on a calendar day, where the admin is. The day on an
-   activity row is the student's own local day, same as the heatmap.
-   Thirty days, newest at the right, because that is the one you open on. */
-const TODAY_SPAN = 30;
+   Who studied on a day in the last week, where the admin is. The day on
+   an activity row is the student's own local day, same as the heatmap.
+   The week is a calendar, Monday first, so the list sits beside it. */
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function recentDays(n) {
-  const days = [];
-  const start = new Date();
-  for (let i = n - 1; i >= 0; i -= 1) {
-    const d = new Date(start);
-    d.setDate(start.getDate() - i);
-    days.push(todayKey(d));
-  }
-  return days;
+function parseDay(key) {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
 }
 
-function dayBits(key) {
-  const [y, m, d] = key.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  return {
-    wd: date.toLocaleDateString("en-GB", { weekday: "short" }),
-    n: date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
-  };
+function lastWeek(today) {
+  const end = parseDay(today);
+  const keys = [];
+  for (let i = 6; i >= 0; i -= 1) {
+    const d = new Date(end);
+    d.setDate(end.getDate() - i);
+    keys.push(todayKey(d));
+  }
+  const first = parseDay(keys[0]);
+  const lead = (first.getDay() + 6) % 7;
+  const cells = [...Array(lead).fill(null), ...keys];
+  while (cells.length % 7) cells.push(null);
+  const months = [keys[0], keys[6]].map(k => parseDay(k).toLocaleDateString("en-GB", { month: "long" }));
+  return { cells, label: months[0] === months[1] ? months[0] : `${months[0]} – ${months[1]}` };
+}
+
+function dayTitle(key) {
+  return parseDay(key).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 }
 
 function Today() {
   const [{ rows, error }] = useSection(fetchPeople);
-  const loadDaily = useCallback(() => fetchPeopleDaily(TODAY_SPAN + 2), []);
+  const loadDaily = useCallback(() => fetchPeopleDaily(9), []);
   const [daily] = useSection(loadDaily);
   const today = todayKey();
-  const days = useMemo(() => recentDays(TODAY_SPAN), []);
+  const week = useMemo(() => lastWeek(today), [today]);
   const [day, setDay] = useState(today);
-  const strip = useRef(null);
 
   const byDay = useMemo(() => {
     const all = new Map();
@@ -313,67 +317,71 @@ function Today() {
       .sort((a, b) => b.n - a.n || String(a.display_name || a.email).localeCompare(String(b.display_name || b.email)));
   }, [rows, byDay, day]);
 
-  useEffect(() => {
-    strip.current?.querySelector(".is-on")?.scrollIntoView({ inline: "nearest", block: "nearest" });
-  }, [day, daily.rows]);
-
   if (error || daily.error) return <Empty>{error || daily.error}</Empty>;
   if (!rows || !daily.rows) return <Empty>&nbsp;</Empty>;
 
   const answers = used.reduce((sum, p) => sum + p.n, 0);
-  const when = day === today ? "today" : `on ${dayBits(day).n}`;
 
   return (
-    <section className="adm-panel">
-      <div className="adm-days" ref={strip} role="listbox" aria-label="Day">
-        {days.map(key => {
-          const bits = dayBits(key);
-          const quiet = !(byDay.get(key)?.size);
-          return (
-            <button
-              key={key}
-              type="button"
-              role="option"
-              aria-selected={key === day}
-              className={`adm-day${key === day ? " is-on" : ""}${quiet ? " is-quiet" : ""}`}
-              onClick={() => setDay(key)}
-            >
-              <span className="adm-day__wd">{key === today ? "Today" : bits.wd}</span>
-              <span className="adm-day__n">{bits.n}</span>
-            </button>
-          );
-        })}
+    <section className="adm-panel adm-today">
+      <div className="adm-cal" role="listbox" aria-label="Last 7 days">
+        <div className="adm-cal__month">{week.label}</div>
+        <div className="adm-cal__grid">
+          {WEEKDAYS.map(w => <span key={w} className="adm-cal__wd">{w}</span>)}
+          {week.cells.map((key, i) => {
+            if (!key) return <span key={`gap-${i}`} className="adm-cal__gap" />;
+            const count = byDay.get(key)?.size ?? 0;
+            return (
+              <button
+                key={key}
+                type="button"
+                role="option"
+                aria-selected={key === day}
+                aria-label={`${dayTitle(key)}${count ? `, ${count} ${count === 1 ? "person" : "people"}` : ", nobody"}`}
+                className={`adm-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${count ? "" : " is-quiet"}`}
+                onClick={() => setDay(key)}
+              >
+                <span className="adm-cal__n">{parseDay(key).getDate()}</span>
+                {count > 0 && <span className="adm-cal__c">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <Stats items={[
-        [used.length, used.length === 1 ? "Person" : "People"],
-        [answers.toLocaleString("en-GB"), answers === 1 ? "Question answered" : "Questions answered"],
-      ]} />
-      {used.length === 0 ? (
-        <Empty>Nobody answered a question {when}.</Empty>
-      ) : (
-        <table className="adm-table adm-people">
-          <thead>
-            <tr>
-              <th>Person</th>
-              <th className="adm-num">Answered</th>
-            </tr>
-          </thead>
-          <tbody>
-            {used.map(p => (
-              <tr key={p.user_id}>
-                <th scope="row">
-                  <span className="adm-name">
-                    {p.display_name || <span className="adm-dim">No name yet</span>}
-                    {p.is_admin && <span className="adm-badge">admin</span>}
-                  </span>
-                  <span className="adm-email">{p.email}</span>
-                </th>
-                <td className="adm-num">{p.n.toLocaleString("en-GB")}</td>
+      <div className="adm-today__day">
+        <h3 className="adm-today__title">{day === today ? "Today" : dayTitle(day)}</h3>
+        {day === today && <p className="adm-today__sub">{dayTitle(day)}</p>}
+        <Stats items={[
+          [used.length, used.length === 1 ? "Person" : "People"],
+          [answers.toLocaleString("en-GB"), answers === 1 ? "Question answered" : "Questions answered"],
+        ]} />
+        {used.length === 0 ? (
+          <Empty>Nobody answered a question.</Empty>
+        ) : (
+          <table className="adm-table adm-people">
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th className="adm-num">Answered</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {used.map(p => (
+                <tr key={p.user_id}>
+                  <th scope="row">
+                    <span className="adm-name">
+                      {p.display_name || <span className="adm-dim">No name yet</span>}
+                      {p.is_admin && <span className="adm-badge">admin</span>}
+                    </span>
+                    <span className="adm-email">{p.email}</span>
+                  </th>
+                  <td className="adm-num">{p.n.toLocaleString("en-GB")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </section>
   );
 }
