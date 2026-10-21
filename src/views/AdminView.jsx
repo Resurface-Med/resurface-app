@@ -12,11 +12,12 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { Spark, ChartPanel, BigChart } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
+import { todayKey } from "../lib/storage";
 
 /**
  * Running the place.
  *
- * Five sections behind one tab, and every one of them reads a SECURITY
+ * Sections behind one tab, and every one of them reads a SECURITY
  * DEFINER function that checks the `admins` table itself. Nothing here is a
  * permission: a student who reached this page would find five empty lists.
  * That matters most on People, which carries everybody's email.
@@ -31,6 +32,7 @@ import { confirm } from "../ui/Confirm";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
+  { k: "today", label: "Today", title: "Today", desc: "Who answered a question today. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
@@ -255,6 +257,68 @@ function Overview() {
         </aside>
       </div>
     </>
+  );
+}
+
+/* ── Today ─────────────────────────────────────────────────────────
+   Who studied on this calendar day, where the admin is. The day on an
+   activity row is the student's own local day, same as the heatmap. */
+function Today() {
+  const [{ rows, error }] = useSection(fetchPeople);
+  const loadDaily = useCallback(() => fetchPeopleDaily(2), []);
+  const [daily] = useSection(loadDaily);
+
+  const used = useMemo(() => {
+    const today = todayKey();
+    const counts = new Map();
+    for (const r of daily.rows ?? []) {
+      if (String(r.day).slice(0, 10) !== today) continue;
+      counts.set(r.user_id, Number(r.answers) || 0);
+    }
+    return (rows ?? [])
+      .filter(p => counts.has(p.user_id))
+      .map(p => ({ ...p, today: counts.get(p.user_id) }))
+      .sort((a, b) => b.today - a.today || String(a.display_name || a.email).localeCompare(String(b.display_name || b.email)));
+  }, [rows, daily.rows]);
+
+  if (error || daily.error) return <Empty>{error || daily.error}</Empty>;
+  if (!rows || !daily.rows) return <Empty>&nbsp;</Empty>;
+
+  const answers = used.reduce((sum, p) => sum + p.today, 0);
+
+  return (
+    <section className="adm-panel">
+      <Stats items={[
+        [used.length, used.length === 1 ? "Person" : "People"],
+        [answers.toLocaleString("en-GB"), answers === 1 ? "Question answered" : "Questions answered"],
+      ]} />
+      {used.length === 0 ? (
+        <Empty>Nobody has answered a question yet today.</Empty>
+      ) : (
+        <table className="adm-table adm-people">
+          <thead>
+            <tr>
+              <th>Person</th>
+              <th className="adm-num">Answered today</th>
+            </tr>
+          </thead>
+          <tbody>
+            {used.map(p => (
+              <tr key={p.user_id}>
+                <th scope="row">
+                  <span className="adm-name">
+                    {p.display_name || <span className="adm-dim">No name yet</span>}
+                    {p.is_admin && <span className="adm-badge">admin</span>}
+                  </span>
+                  <span className="adm-email">{p.email}</span>
+                </th>
+                <td className="adm-num">{p.today.toLocaleString("en-GB")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
   );
 }
 
@@ -932,6 +996,7 @@ function Flags() {
 
 const PANELS = {
   overview: Overview,
+  today: Today,
   people: People,
   sharing: Sharing,
   featured: Featured,
