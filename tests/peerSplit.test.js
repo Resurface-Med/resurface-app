@@ -37,8 +37,8 @@ describe("peerPercents", () => {
       const wrong = pct.filter((_, i) => i !== correct);
       expect(sum(pct)).toBe(100);
       expect(Math.min(...wrong)).toBeGreaterThanOrEqual(5);
-      expect(pct[correct]).toBeGreaterThanOrEqual(26);
-      expect(pct[correct]).toBeLessThanOrEqual(84);
+      expect(pct[correct]).toBeGreaterThanOrEqual(52);
+      expect(pct[correct]).toBeLessThanOrEqual(86);
       corrects.push(pct[correct]);
       traps.push(Math.max(...wrong));
       if (pct[correct] >= Math.max(...wrong)) correctLeads += 1;
@@ -48,11 +48,10 @@ describe("peerPercents", () => {
     const mean = corrects.reduce((a, b) => a + b, 0) / corrects.length;
     const sd = Math.sqrt(corrects.reduce((a, b) => a + (b - mean) ** 2, 0) / corrects.length);
     const trapSpread = Math.max(...traps) - Math.min(...traps);
-    expect(sd).toBeGreaterThan(8);
-    expect(trapSpread).toBeGreaterThan(20);
-    expect(stamped).toBeLessThan(70);
-    expect(correctLeads).toBeGreaterThan(180);
-    expect(correctLeads).toBeLessThan(270);
+    expect(sd).toBeGreaterThan(6);
+    expect(trapSpread).toBeGreaterThan(15);
+    expect(stamped).toBeLessThan(90);
+    expect(correctLeads).toBeGreaterThan(240);
   });
 
   it("rounds a real split so the parts still add to 100", () => {

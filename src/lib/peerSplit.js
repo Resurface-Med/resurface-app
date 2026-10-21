@@ -53,14 +53,16 @@ function apportion(exact, total) {
  * numbers. A distractor is kept off a sliver — 4% is "only you" — and
  * the real tally is never passed through this. */
 const SHAPES = [
-  { c: 8.4, t: 1.7, o: 0.42 },             // straightforward
-  { c: 6.2, t: 2.1, o: 0.55 },             // comfortable
-  { c: 4.4, t: 2.4, o: 0.62 },             // one real trap
-  { c: 3.6, t: 2.15, s: 1.55, o: 0.48 },   // two ways to miss it
-  { c: 3.15, t: 2.85, o: 0.58 },           // down to two options
-  { c: 2.55, t: 3.05, o: 0.72 },           // the trap wins
-  { c: 5.1, t: 1.35, o: 0.95 },            // the misses spread out
-  { c: 3.9, t: 1.9, s: 1.25, o: 0.4 },     // a favourite miss and a long tail
+  { c: 9.6, t: 1.75, o: 0.38 },            // straightforward
+  { c: 9.6, t: 1.75, o: 0.38 },
+  { c: 7.6, t: 1.95, o: 0.45 },            // comfortable
+  { c: 7.6, t: 1.95, o: 0.45 },
+  { c: 6.4, t: 2.15, o: 0.48 },            // a clear leader
+  { c: 6.4, t: 2.15, o: 0.48 },
+  { c: 5.4, t: 2.35, o: 0.5 },             // one real trap, still a majority
+  { c: 5.0, t: 2.2, s: 1.4, o: 0.4 },      // two ways to miss it
+  { c: 4.6, t: 3.3, o: 0.48 },             // down to two options
+  { c: 7.0, t: 1.45, o: 0.75 },            // the misses spread out
 ];
 
 /* Gamma(alpha, 1). Marsaglia and Tsang; alpha below 1 uses the
@@ -175,12 +177,14 @@ function standIn(id, n, correctIndex) {
     out[donor] -= moved;
     out[atFloor[k]] += moved;
   }
-  /* The key stays a real share of the year. A draw can leave it in the
-     teens, which reads as a broken answer rather than a hard question. */
+  /* Anything under half gets walked up to its own mark in the low
+     fifties, not to one shared number. A pile of questions at 46% was
+     the new tell. */
   if (n >= 4) {
+    const liftTo = 52 + (hashId(id) % 7);
     const others = [];
     for (let i = 0; i < n; i++) if (i !== correct) others.push(i);
-    while (out[correct] < 26) {
+    while (out[correct] < liftTo) {
       let donor = others[0];
       for (const i of others) if (out[i] > out[donor]) donor = i;
       if (out[donor] <= floor + 1) break;
