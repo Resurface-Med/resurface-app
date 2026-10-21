@@ -32,7 +32,7 @@ import { todayKey } from "../lib/storage";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
-  { k: "today", label: "Today", title: "Today", desc: "Who answered a question, who signed up, or who generated questions, on a day. Move through the last six months. Opening the app without answering is not recorded." },
+  { k: "today", label: "Activity", title: "Activity", desc: "Who answered a question, who signed up, or who generated questions, on a day. Move through the last six months. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
