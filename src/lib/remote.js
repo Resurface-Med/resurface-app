@@ -479,6 +479,13 @@ export async function fetchGenerationDaily(days = 14) {
   return data ?? [];
 }
 
+/* Per person, unlike the chart above, which only has the day's total. */
+export async function fetchGeneratedDaily(days = 180) {
+  const { data, error } = await supabase.rpc("admin_generated_daily", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchTokenTotals() {
   const { data, error } = await supabase.rpc("admin_tokens_totals");
   if (error) throw new Error(error.message);

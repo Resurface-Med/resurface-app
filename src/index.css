@@ -8991,7 +8991,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 .adm-body { margin-top: clamp(24px, 3.4vh, 34px); }
 .adm-today {
-  display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  display: grid; grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
   gap: 8px 40px; align-items: start;
 }
 .adm-cal__bar { display: flex; align-items: center; gap: 4px; margin: 0 0 10px; }

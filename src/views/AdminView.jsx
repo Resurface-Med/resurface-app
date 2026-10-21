@@ -3,7 +3,7 @@ import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
-  fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily,
+  fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily, fetchGeneratedDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
   fetchAiQuota, fetchShareLog,
   fetchAdminFeatured, fetchFeatureCandidates, adminSetFeatured, adminUnfeature, adminDeleteFeatured,
@@ -32,7 +32,7 @@ import { todayKey } from "../lib/storage";
    the meaning of. */
 const SECTIONS = [
   { k: "overview", label: "Overview", title: "Overview", desc: "How much of today’s AI allowance is used, then the last 7 days compared with the 7 before." },
-  { k: "today", label: "Today", title: "Today", desc: "Who answered a question, or who signed up, on a day. Move through the last six months. Opening the app without answering is not recorded." },
+  { k: "today", label: "Today", title: "Today", desc: "Who answered a question, who signed up, or who generated questions, on a day. Move through the last six months. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
   { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
@@ -290,6 +290,8 @@ function Today() {
   const [{ rows, error }] = useSection(fetchPeople);
   const loadDaily = useCallback(() => fetchPeopleDaily(CAL_SPAN + 2), []);
   const [daily] = useSection(loadDaily);
+  const loadGenerated = useCallback(() => fetchGeneratedDaily(CAL_SPAN + 2), []);
+  const [generated] = useSection(loadGenerated);
   const today = todayKey();
   const todayDate = parseDay(today);
   const earliest = useMemo(() => {
@@ -316,6 +318,18 @@ function Today() {
     return all;
   }, [daily.rows]);
 
+  /* London, same as the calendar this page is read on. A question written
+     just after midnight here is that day, not the UTC day before it. */
+  const generatedBy = useMemo(() => {
+    const all = new Map();
+    for (const r of generated.rows ?? []) {
+      const key = String(r.day).slice(0, 10);
+      if (!all.has(key)) all.set(key, new Map());
+      all.get(key).set(r.user_id, Number(r.questions) || 0);
+    }
+    return all;
+  }, [generated.rows]);
+
   /* A sign-up is finishing the first pop-up, not the moment the account
      row appeared. Until that column is on the people list, creation time
      is all there is. */
@@ -336,15 +350,16 @@ function Today() {
   }, [rows]);
 
   const used = useMemo(() => {
-    if (mode === "signed") {
-      return (signedUp.get(day) ?? []).map(p => ({ ...p, n: Number(p.answered) || 0 }));
-    }
-    const counts = byDay.get(day) ?? new Map();
-    return (rows ?? [])
+    const byCount = counts => (rows ?? [])
       .filter(p => counts.has(p.user_id))
       .map(p => ({ ...p, n: counts.get(p.user_id) }))
       .sort((a, b) => b.n - a.n || String(a.display_name || a.email).localeCompare(String(b.display_name || b.email)));
-  }, [rows, byDay, signedUp, day, mode]);
+    if (mode === "signed") {
+      return (signedUp.get(day) ?? []).map(p => ({ ...p, n: Number(p.answered) || 0 }));
+    }
+    if (mode === "generated") return byCount(generatedBy.get(day) ?? new Map());
+    return byCount(byDay.get(day) ?? new Map());
+  }, [rows, byDay, signedUp, generatedBy, day, mode]);
 
   if (error || daily.error) return <Empty>{error || daily.error}</Empty>;
   if (!rows || !daily.rows) return <Empty>&nbsp;</Empty>;
@@ -352,12 +367,13 @@ function Today() {
   const answers = used.reduce((sum, p) => sum + p.n, 0);
   const studiedSince = used.filter(p => p.n > 0).length;
   const signing = mode === "signed";
+  const making = mode === "generated";
 
   return (
     <section className="adm-panel adm-today">
       <div className="adm-cal">
         <div className="adm-seg adm-today__switch" role="tablist" aria-label="Show">
-          {[["studied", "Studied"], ["signed", "Signed up"]].map(([k, label]) => (
+          {[["studied", "Studied"], ["signed", "Signed up"], ["generated", "Generated"]].map(([k, label]) => (
             <button key={k} type="button" role="tab" aria-selected={mode === k}
               className={`adm-seg__btn${mode === k ? " is-on" : ""}`}
               onClick={() => setMode(k)}>
@@ -383,10 +399,14 @@ function Today() {
           {cells.map((key, i) => {
             if (!key) return <span key={`gap-${i}`} className="adm-cal__gap" />;
             const open = key >= earliestKey && key <= today;
-            const count = !open ? 0 : signing ? (signedUp.get(key)?.length ?? 0) : (byDay.get(key)?.size ?? 0);
-            const countLabel = signing
-              ? (count ? `, ${count} signed up` : ", nobody signed up")
-              : (count ? `, ${count} ${count === 1 ? "person" : "people"}` : ", nobody");
+            const count = !open ? 0
+              : signing ? (signedUp.get(key)?.length ?? 0)
+              : making ? (generatedBy.get(key)?.size ?? 0)
+              : (byDay.get(key)?.size ?? 0);
+            const countLabel = !count
+              ? (signing ? ", nobody signed up" : making ? ", nobody generated a question" : ", nobody")
+              : signing ? `, ${count} signed up`
+              : `, ${count} ${count === 1 ? "person" : "people"}`;
             return (
               <button
                 key={key}
@@ -409,21 +429,26 @@ function Today() {
       <div className="adm-today__day">
         <h3 className="adm-today__title">{day === today ? "Today" : dayTitle(day)}</h3>
         {day === today && <p className="adm-today__sub">{dayTitle(day)}</p>}
+        {making && generated.error ? <Empty>{generated.error}</Empty> : making && !generated.rows ? <Empty>&nbsp;</Empty> : (
+        <>
         <Stats items={signing ? [
           [used.length, used.length === 1 ? "Sign-up" : "Sign-ups"],
           [studiedSince.toLocaleString("en-GB"), studiedSince === 1 ? "Has studied" : "Have studied"],
+        ] : making ? [
+          [used.length, used.length === 1 ? "Person" : "People"],
+          [answers.toLocaleString("en-GB"), answers === 1 ? "Question generated" : "Questions generated"],
         ] : [
           [used.length, used.length === 1 ? "Person" : "People"],
           [answers.toLocaleString("en-GB"), answers === 1 ? "Question answered" : "Questions answered"],
         ]} />
         {used.length === 0 ? (
-          <Empty>{signing ? "Nobody signed up." : "Nobody answered a question."}</Empty>
+          <Empty>{signing ? "Nobody signed up." : making ? "Nobody generated a question." : "Nobody answered a question."}</Empty>
         ) : (
           <table className="adm-table adm-people">
             <thead>
               <tr>
                 <th>Person</th>
-                <th className="adm-num">{signing ? "Answered since" : "Answered"}</th>
+                <th className="adm-num">{signing ? "Answered since" : making ? "Generated" : "Answered"}</th>
               </tr>
             </thead>
             <tbody>
@@ -441,6 +466,8 @@ function Today() {
               ))}
             </tbody>
           </table>
+        )}
+        </>
         )}
       </div>
     </section>

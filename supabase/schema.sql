@@ -520,6 +520,18 @@ language sql stable security definer set search_path = 'public' as $$
   order by g.created_at::date desc
 $$;
 
+create or replace function public.admin_generated_daily(days integer default 180)
+returns table(user_id uuid, day date, questions bigint)
+language sql stable security definer set search_path = 'public' as $$
+  select g.user_id,
+         (g.created_at at time zone 'Europe/London')::date,
+         count(*)
+  from public.generated_questions g
+  where public.is_admin() and g.created_at >= (now() - make_interval(days => days))
+  group by g.user_id, (g.created_at at time zone 'Europe/London')::date
+  order by 2
+$$;
+
 create or replace function public.admin_tokens_totals()
 returns table(kind text, calls_all bigint, tokens_all bigint, calls_7d bigint, tokens_7d bigint, tokens_today bigint)
 language sql stable security definer set search_path = 'public' as $$
