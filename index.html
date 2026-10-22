@@ -32,10 +32,30 @@
           var fields = { "light": "#3562f5", "indigo": "#5b5aec", "sea": "#0374b0", "green": "#067d52", "orange": "#c4420c", "red": "#d52424", "rose": "#d71a45", "pink": "#d0216d", "purple": "#7c3aed", "dark": "#0b1220" };
           var t = localStorage.getItem('pq_theme') || 'light';
           if (alias[t]) t = alias[t];
-          if (!fields[t]) t = 'light';
-          document.documentElement.setAttribute('data-theme', t);
+          var custom = localStorage.getItem('pq_theme_color') || '';
           var meta = document.getElementById('theme-color-meta');
-          if (meta) meta.content = fields[t];
+          var root = document.documentElement;
+          if (t === 'custom' && /^#[0-9a-fA-F]{6}$/.test(custom)) {
+            custom = custom.toLowerCase();
+            var n = parseInt(custom.slice(1), 16);
+            function ch(v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+            var L = 0.2126 * ch(n >> 16) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+            var light = (1.05 / (L + 0.05)) < 4.6;
+            root.setAttribute('data-theme', 'custom');
+            root.setAttribute('data-field', light ? 'light' : 'dark');
+            root.style.setProperty('--c-bg', custom);
+            root.style.setProperty('--c-body-bg', custom);
+            if (light) {
+              root.style.setProperty('--c-on-field', '#1c1420');
+              root.style.setProperty('--c-on-field-soft', 'rgba(28, 20, 32, 0.82)');
+              root.style.setProperty('--c-on-field-faint', 'rgba(28, 20, 32, 0.64)');
+            }
+            if (meta) meta.content = custom;
+          } else {
+            if (!fields[t]) t = 'light';
+            root.setAttribute('data-theme', t);
+            if (meta) meta.content = fields[t];
+          }
         } catch(e) {
           document.documentElement.setAttribute('data-theme', 'light');
         }

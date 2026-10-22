@@ -39,7 +39,7 @@ function authProviders(user) {
 
 export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal, studyYear = null,
-  onProfileChange, onSignOut, theme, onThemeChange, onResetProgress,
+  onProfileChange, onSignOut, theme, customColor, onThemeChange, onCustomColor, onResetProgress,
   avatarV = null, onAvatarChange,
 }) {
   const { user, updatePassword, signOut } = useAuth();
@@ -312,6 +312,21 @@ export default function ProfileView({
                       </button>
                     );
                   })}
+                  <label className={`theme-dot theme-dot--custom${theme === "custom" ? " is-on" : ""}`}>
+                    <span
+                      className="theme-dot__chip"
+                      style={customColor ? { background: customColor } : undefined}
+                      aria-hidden="true"
+                    />
+                    <input
+                      type="color"
+                      className="theme-dot__input"
+                      value={customColor || "#3562f5"}
+                      aria-label="Custom colour"
+                      onChange={e => onCustomColor?.(e.target.value)}
+                    />
+                    Custom
+                  </label>
                 </div>
               </div>
             </div>

@@ -7,9 +7,9 @@ import { C } from "./theme";
 export default function GhostBtn({ children, onClick, onField = false }) {
   const surface = onField
     ? {
-        background: "rgba(255,255,255,0.14)",
-        color: "#fff",
-        border: "1.5px solid rgba(255,255,255,0.45)",
+        background: "var(--c-field-ghost)",
+        color: "var(--c-on-field)",
+        border: "1.5px solid var(--c-field-ghost-border)",
       }
     : {
         background: "transparent",

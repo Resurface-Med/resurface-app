@@ -24,8 +24,9 @@ export const THEMES = [
    should land on the colour that replaced it, not snap back to Day. */
 const ALIAS = { teal: "sea" };
 
-export function knownTheme(id) {
+export function knownTheme(id, color) {
   const next = ALIAS[id] || id;
+  if (next === "custom") return /^#[0-9a-fA-F]{6}$/.test(String(color ?? "").trim()) ? "custom" : "light";
   return THEMES.some(t => t.id === next) ? next : "light";
 }
 

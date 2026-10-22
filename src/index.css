@@ -163,6 +163,8 @@ html, body {
   /* Primary actions that sit on the blue field (not on a panel) */
   --c-field-object: #ffffff;
   --c-field-object-ink: #3562f5;
+  --c-field-ghost: rgba(255, 255, 255, 0.14);
+  --c-field-ghost-line: rgba(255, 255, 255, 0.32);
   --c-field-ghost-border: rgba(255, 255, 255, 0.5);
 }
 
@@ -1962,6 +1964,15 @@ select {
 .login-brand {
   background: var(--c-body-bg);
 }
+.login-brand-logo {
+  width: 210px;
+  height: auto;
+  display: block;
+}
+.login-brand-logo--ink { display: none; }
+/* A light custom colour cannot hold the white wordmark. */
+[data-field="light"] .login-brand-logo--white { display: none; }
+[data-field="light"] .login-brand-logo--ink { display: block; }
 
 /* Its contents arrive after the panel has opened, not with it. */
 .login-brand > div > * {
@@ -5331,6 +5342,38 @@ html.is-deck-dragging * {
   outline: none;
 }
 .theme-dot:focus-visible::before {
+  box-shadow:
+    0 0 0 2px var(--c-card-solid),
+    0 0 0 4px var(--c-accent);
+}
+.theme-dot--custom {
+  position: relative;
+}
+.theme-dot--custom::before { display: none; }
+.theme-dot__chip {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: conic-gradient(#d0216d, #7c3aed, #3562f5, #0374b0, #067d52, #c4420c, #d52424, #d0216d);
+  box-shadow: inset 0 0 0 1px rgba(15, 27, 61, 0.16);
+}
+.theme-dot__input {
+  position: absolute;
+  top: 0;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.theme-dot--custom.is-on .theme-dot__chip {
+  box-shadow:
+    0 0 0 2px var(--c-card-solid),
+    0 0 0 4px var(--c-text);
+}
+.theme-dot--custom:focus-within .theme-dot__chip {
   box-shadow:
     0 0 0 2px var(--c-card-solid),
     0 0 0 4px var(--c-accent);

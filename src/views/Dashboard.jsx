@@ -191,8 +191,8 @@ export default function Dashboard({
                 boxShadow: "0 4px 14px rgba(15,27,61,0.1)",
                 display: "flex", alignItems: "center", gap: 7,
               } : {
-                background: "rgba(255,255,255,0.12)", color: OF.text,
-                border: "1px solid rgba(255,255,255,0.22)",
+                background: "var(--c-field-ghost)", color: OF.text,
+                border: "1px solid var(--c-field-ghost-line)",
                 borderRadius: "var(--r-pill)", padding: "11px 20px",
                 fontFamily: "inherit", fontSize: 15, fontWeight: 500, cursor: "pointer",
               }) }}

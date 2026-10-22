@@ -25,8 +25,9 @@ class ErrorBoundary extends Component {
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
-import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
+import { themeStore, readCustomColor, writeCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { themeField } from "./lib/themes";
+import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
@@ -280,6 +281,7 @@ export default function App() {
   // Theme is the one thing still read locally, so the page doesn't paint the
   // wrong colour for a frame while auth resolves.
   const [theme, setTheme] = useState(() => themeStore.get());
+  const [customColor, setCustomColor] = useState(() => readCustomColor());
 
   /* The app rendered, so whatever reload may have happened worked. Clearing
      the guard here rather than never means a tab left open across two
@@ -287,11 +289,25 @@ export default function App() {
   useEffect(() => { chunkLoadedOk(); }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute("data-theme", theme);
     themeStore.set(theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = themeField(theme);
-  }, [theme]);
+    if (theme === "custom" && customColor) {
+      applyThemeColor(customColor);
+      if (meta) meta.content = customColor;
+    } else {
+      clearThemeColor();
+      if (meta) meta.content = themeField(theme);
+    }
+  }, [theme, customColor]);
+
+  function chooseCustom(hex) {
+    const v = normalizeHex(hex);
+    if (!v) return;
+    writeCustomColor(v);
+    setCustomColor(v);
+    setTheme("custom");
+  }
 
   /* Everything loadAll returns, onto the screen. Shared by sign-in and by
      pull-to-refresh, so a refresh cannot miss something the first load set. */
@@ -1341,7 +1357,9 @@ export default function App() {
               dailyGoal={dailyGoal}
               studyYear={studyYear}
               theme={theme}
+              customColor={customColor}
               onThemeChange={setTheme}
+              onCustomColor={chooseCustom}
               onProfileChange={p => {
                 if (p.displayName !== undefined) setDisplayName(p.displayName);
                 if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);

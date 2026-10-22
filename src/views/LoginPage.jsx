@@ -228,7 +228,13 @@ export default function LoginPage({ sentDeck = false }) {
             src="/logo-lockup-white.png"
             alt="Resurface"
             width="720" height="190"
-            style={{ width: 210, height: "auto", display: "block" }}
+            className="login-brand-logo login-brand-logo--white"
+          />
+          <img
+            src="/logo-lockup.png"
+            alt="Resurface"
+            width="720" height="190"
+            className="login-brand-logo login-brand-logo--ink"
           />
 
           <h2 style={{

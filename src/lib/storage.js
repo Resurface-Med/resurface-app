@@ -10,11 +10,29 @@ import { knownTheme } from "./themes";
 // it would strand the theme of anyone who has already set one.
 
 const THEME_KEY = "pq_theme";
+const CUSTOM_KEY = "pq_theme_color";
 
 export const themeStore = {
-  get: () => { try { return knownTheme(localStorage.getItem(THEME_KEY)); } catch { return "light"; } },
-  set: (t) => { try { localStorage.setItem(THEME_KEY, knownTheme(t)); } catch {} },
+  get: () => {
+    try { return knownTheme(localStorage.getItem(THEME_KEY), localStorage.getItem(CUSTOM_KEY)); }
+    catch { return "light"; }
+  },
+  set: (t) => {
+    try { localStorage.setItem(THEME_KEY, knownTheme(t, localStorage.getItem(CUSTOM_KEY))); }
+    catch { /* private mode */ }
+  },
 };
+
+export function readCustomColor() {
+  try {
+    const v = localStorage.getItem(CUSTOM_KEY) || "";
+    return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toLowerCase() : "";
+  } catch { return ""; }
+}
+
+export function writeCustomColor(hex) {
+  try { localStorage.setItem(CUSTOM_KEY, String(hex).toLowerCase()); } catch { /* private mode */ }
+}
 
 /** Local calendar day, YYYY-MM-DD. Not UTC: the heatmap is drawn where you are. */
 export function todayKey(d = new Date()) {

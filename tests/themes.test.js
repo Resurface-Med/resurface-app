@@ -13,6 +13,9 @@ describe("themes", () => {
     expect(knownTheme("nope")).toBe("light");
     expect(knownTheme(null)).toBe("light");
     expect(knownTheme("teal")).toBe("sea");
+    expect(knownTheme("custom")).toBe("light");
+    expect(knownTheme("custom", "#d0216d")).toBe("custom");
+    expect(knownTheme("custom", "pink")).toBe("light");
   });
 
   it("names a field colour for every theme", () => {
@@ -29,5 +32,7 @@ describe("themes", () => {
       expect(css).toContain(t.field);
       if (t.id !== "light") expect(css).toContain(`[data-theme="${t.id}"]`);
     }
+    expect(html).toContain("pq_theme_color");
+    expect(html).toContain("'custom'");
   });
 });

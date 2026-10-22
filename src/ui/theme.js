@@ -182,8 +182,8 @@ export const eyebrow = {
 /** The same pill sitting on the blue field. */
 export const eyebrowField = {
   ...eyebrow,
-  color: "#fff",
-  background: "rgba(255,255,255,0.16)",
+  color: OF.text,
+  background: "var(--c-field-ghost)",
 };
 
 /** Body copy inside a panel. */
@@ -214,8 +214,8 @@ export const pageSub = {
 
 /** Frosted object floating on the field — the landing's glass card. */
 export const glassCard = {
-  background: "rgba(255,255,255,0.14)",
-  border: "1.5px solid rgba(255,255,255,0.32)",
+  background: "var(--c-field-ghost)",
+  border: "1.5px solid var(--c-field-ghost-line)",
   borderRadius: "var(--r-panel)",
   padding: 24,
   boxShadow: "0 16px 36px rgba(15,27,61,0.18)",
