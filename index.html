@@ -29,7 +29,7 @@
         try {
           /* Keep in step with src/lib/themes.js. The test checks both. */
           var alias = { "teal": "sea", "rose": "pink", "orange": "red" };
-          var fields = { "light": "#3562f5", "indigo": "#6851ff", "sea": "#007b89", "green": "#00822f", "red": "#e00700", "pink": "#d2009a", "purple": "#9c2bff", "dark": "#0b1220" };
+          var fields = { "light": "#3562f5", "dark": "#0b1220", "indigo": "#6851ff", "sea": "#007b89", "green": "#00822f", "red": "#e00700", "pink": "#d2009a", "purple": "#9c2bff" };
           function ch(v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
           function lightField(hex) {
             var n = parseInt(hex.slice(1), 16);

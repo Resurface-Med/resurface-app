@@ -9,13 +9,13 @@
  */
 export const THEMES = [
   { id: "light", name: "Day", field: "#3562f5" },
+  { id: "dark", name: "Night", field: "#0b1220" },
   { id: "indigo", name: "Indigo", field: "#6851ff" },
   { id: "sea", name: "Sea", field: "#007b89" },
   { id: "green", name: "Green", field: "#00822f" },
   { id: "red", name: "Red", field: "#e00700" },
   { id: "pink", name: "Pink", field: "#d2009a" },
   { id: "purple", name: "Purple", field: "#9c2bff" },
-  { id: "dark", name: "Night", field: "#0b1220" },
 ];
 
 /* Retired ids. A saved choice lands on the colour that replaced it. */
