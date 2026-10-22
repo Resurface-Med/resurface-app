@@ -9,15 +9,15 @@
  */
 export const THEMES = [
   { id: "light", name: "Day", field: "#3562f5" },
-  { id: "indigo", name: "Indigo", field: "#5640f0" },
-  { id: "sea", name: "Sea", field: "#12b6c9" },
-  { id: "green", name: "Green", field: "#18b34f" },
-  { id: "gold", name: "Gold", field: "#f5b000" },
-  { id: "orange", name: "Orange", field: "#ff8a14" },
-  { id: "red", name: "Red", field: "#e2182d" },
-  { id: "rose", name: "Rose", field: "#ef3d6a" },
-  { id: "pink", name: "Pink", field: "#ee2a84" },
-  { id: "purple", name: "Purple", field: "#a44dff" },
+  { id: "indigo", name: "Indigo", field: "#6851ff" },
+  { id: "sea", name: "Sea", field: "#007b89" },
+  { id: "green", name: "Green", field: "#00822f" },
+  { id: "gold", name: "Gold", field: "#916800" },
+  { id: "orange", name: "Orange", field: "#b45400" },
+  { id: "red", name: "Red", field: "#e00700" },
+  { id: "rose", name: "Rose", field: "#dd0058" },
+  { id: "pink", name: "Pink", field: "#d2009a" },
+  { id: "purple", name: "Purple", field: "#9c2bff" },
   { id: "dark", name: "Night", field: "#0b1220" },
 ];
 
