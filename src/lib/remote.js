@@ -413,23 +413,28 @@ export async function loadFeatured() {
   /* `top` is what heads the list — a folder the deck is shown in, or the deck
      itself — and carries the byline; `id` is the real deck. */
   const roots = (data.roots ?? []).map(r => ({ ...r, top: r.top ?? r.id, name: names.get(r.top ?? r.id) ?? "" }));
-  /* One folder can hold more than one deck. The folder keeps the first
-     credit (Year 2 by Jacob); a deck with a different credit wears its own. */
+  /* One folder can hold more than one deck. A single credit stays on the
+     folder (Year 2 by Jacob). Two or more become "Jacob and Rayan" on the
+     folder, and each deck keeps its own. */
   const byRoot = new Map(roots.map(r => [r.id, r.byline]));
   const byTop = new Map();
   roots.forEach((r, i) => {
     const cur = byTop.get(r.top);
-    if (!cur) byTop.set(r.top, { byline: r.byline, at: i });
-    else cur.at = i;
+    if (!cur) byTop.set(r.top, { names: r.byline ? [r.byline] : [], at: i });
+    else {
+      cur.at = i;
+      if (r.byline && !cur.names.includes(r.byline)) cur.names.push(r.byline);
+    }
   });
+  const credit = names => names.length <= 1 ? (names[0] ?? null)
+    : names.length === 2 ? `${names[0]} and ${names[1]}`
+    : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
   return {
     roots,
     decks: (data.decks ?? []).map(d => {
       const own = d.id === d.root ? byRoot.get(d.id) : null;
-      const folderCredit = d.parentId ? byTop.get(d.parentId)?.byline : null;
-      const byline = d.parentId
-        ? (own && own !== folderCredit ? own : null)
-        : (byTop.get(d.id)?.byline ?? null);
+      const names = (d.parentId ? byTop.get(d.parentId) : byTop.get(d.id))?.names ?? [];
+      const byline = d.parentId ? (names.length > 1 && own ? own : null) : credit(names);
       return {
         id: d.id, name: d.name, parentId: d.parentId,
         position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),

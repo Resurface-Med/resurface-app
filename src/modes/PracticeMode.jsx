@@ -744,8 +744,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     };
 
     /* What a row's menu offers: your decks the lot. A ready-made folder can
-       be hidden. An admin also manages questions on every deck inside it —
-       the byline, and so the hide, live only on the folder. */
+       be hidden. An admin also manages questions on every deck inside it.
+       Credits can sit on the decks too, but the hide stays on the folder. */
     /* Rows carry the id drawn at the top (a folder, perhaps); hiding is
        keyed on the real deck. */
     const hideFeatured = topId => {
@@ -771,7 +771,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
-    ] : node.byline && onHideFeatured ? featuredMenu
+    ] : node.featured && node.depth === 0 && node.byline && onHideFeatured ? featuredMenu
       : node.featured && manageFeatured.length ? manageFeatured
       : null;
     const qNorm = topicQuery.trim().toLowerCase();
