@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { isOnline } from "../lib/online";
 import { exhibitText } from "../lib/exhibits";
-import aiBooks from "../assets/ai-books.png?inline"; // inline: see QuizShell
 import { supabase } from "../lib/supabase";
 import { splitMarks } from "../lib/formatExplain";
 
@@ -300,13 +299,6 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
     <aside className={`ai-dock${closing ? " is-closing" : ""}`} aria-label="Resurface AI">
       <header className="ai-dock__head">
         <h2 className="ai-dock__brand" aria-label="Resurface AI">
-          <img
-            src={aiBooks}
-            alt=""
-            width="96"
-            height="96"
-            className="ai-dock__mark"
-          />
           <span className="ai-dock__suffix">
             <span className="ai-dock__name">Resurface </span>
             <span className="ai-dock__ai">AI</span>
