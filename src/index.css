@@ -5894,13 +5894,6 @@ html.is-deck-dragging * {
   margin-left: 14px;
   background: var(--c-border);
 }
-.quiz-ai-toggle__mark {
-  display: block;
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-}
 .quiz-ai-toggle__label {
   display: inline-flex;
   align-items: baseline;
@@ -5944,7 +5937,6 @@ html.is-deck-dragging * {
     box-shadow: 0 8px 24px rgba(var(--c-shade), 0.16);
     transition: opacity 0.2s ease, transform 0.2s ease;
   }
-  .quiz-ai-toggle__mark { width: 28px; height: 28px; }
   .quiz-ai-toggle__name,
   .quiz-ai-toggle__ai { color: inherit; }
   .quiz-shell.is-ai .quiz-ai-toggle {
@@ -5956,10 +5948,13 @@ html.is-deck-dragging * {
 @media (max-width: 720px) {
   .quiz-ai-toggle {
     bottom: calc(84px + var(--safe-b));
-    padding: 8px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
     border-radius: 50%;
   }
-  .quiz-ai-toggle__label { display: none; }
+  .quiz-ai-toggle__name { display: none; }
 }
 .quiz-shell__progress-wrap {
   flex: 1;

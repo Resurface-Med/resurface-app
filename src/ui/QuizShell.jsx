@@ -1,11 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-/* Built into the bundle (?inline), not fetched from /public. These only
-   appear once a session or the tutor opens — usually long after the app
-   loaded — and on a network that blocks the app's domain (eduroam) that
-   later fetch was the one that failed, leaving a broken image on the
-   button. Inline, it arrives with the code that draws it. */
-import aiMark from "../assets/ai-mark.png?inline";
-
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
@@ -416,13 +409,6 @@ export default function QuizShell({
             title={aiOpen ? "Close Resurface AI" : "Open Resurface AI"}
             aria-pressed={aiOpen}
           >
-            <img
-              src={aiMark}
-              alt=""
-              width="96"
-              height="96"
-              className="quiz-ai-toggle__mark"
-            />
             <span className="quiz-ai-toggle__label">
               <span className="quiz-ai-toggle__name">Resurface</span>
               <span className="quiz-ai-toggle__ai">AI</span>

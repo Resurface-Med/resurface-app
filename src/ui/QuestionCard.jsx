@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import aiMark from "../assets/ai-mark.png?inline"; // inline: see QuizShell
+/* Inline so a blocked domain can't leave a broken image on the button. */
+import aiMark from "../assets/ai-mark.png?inline";
 import { usePref, setPref } from "../lib/prefs";
 import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
