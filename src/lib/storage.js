@@ -34,6 +34,10 @@ export function writeCustomColor(hex) {
   try { localStorage.setItem(CUSTOM_KEY, String(hex).toLowerCase()); } catch { /* private mode */ }
 }
 
+export function clearCustomColor() {
+  try { localStorage.removeItem(CUSTOM_KEY); } catch { /* private mode */ }
+}
+
 /** Local calendar day, YYYY-MM-DD. Not UTC: the heatmap is drawn where you are. */
 export function todayKey(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

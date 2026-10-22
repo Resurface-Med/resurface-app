@@ -25,7 +25,7 @@ class ErrorBoundary extends Component {
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
-import { themeStore, readCustomColor, writeCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
+import { themeStore, readCustomColor, writeCustomColor, clearCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { themeField, themeLight } from "./lib/themes";
 import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
@@ -308,6 +308,12 @@ export default function App() {
     writeCustomColor(v);
     setCustomColor(v);
     setTheme("custom");
+  }
+
+  function resetCustom() {
+    clearCustomColor();
+    setCustomColor("");
+    setTheme("light");
   }
 
   /* Everything loadAll returns, onto the screen. Shared by sign-in and by
@@ -1361,6 +1367,7 @@ export default function App() {
               customColor={customColor}
               onThemeChange={setTheme}
               onCustomColor={chooseCustom}
+              onResetColor={resetCustom}
               onProfileChange={p => {
                 if (p.displayName !== undefined) setDisplayName(p.displayName);
                 if (p.showOnLeaderboard !== undefined) setShowOnLeaderboard(p.showOnLeaderboard);

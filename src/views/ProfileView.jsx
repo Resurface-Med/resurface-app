@@ -61,7 +61,7 @@ function authProviders(user) {
 
 export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal, studyYear = null,
-  onProfileChange, onSignOut, theme, customColor, onThemeChange, onCustomColor, onResetProgress,
+  onProfileChange, onSignOut, theme, customColor, onThemeChange, onCustomColor, onResetColor, onResetProgress,
   avatarV = null, onAvatarChange,
 }) {
   const { user, updatePassword, signOut } = useAuth();
@@ -341,16 +341,22 @@ export default function ProfileView({
                       style={customColor ? { background: customColor } : undefined}
                       aria-hidden="true"
                     />
+                    {!customColor && <span className="theme-dot__plus" aria-hidden="true" />}
                     <input
                       type="color"
                       className="theme-dot__input"
                       value={customColor || "#3562f5"}
-                      aria-label="Custom colour"
+                      aria-label="Choose a colour"
                       onChange={e => onCustomColor?.(e.target.value)}
                     />
                     Custom
                   </label>
                 </div>
+                {theme === "custom" && (
+                  <button type="button" className="gen-link theme-reset" onClick={() => onResetColor?.()}>
+                    Reset
+                  </button>
+                )}
               </div>
             </div>
           </section>

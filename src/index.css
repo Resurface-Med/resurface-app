@@ -5366,16 +5366,51 @@ html.is-deck-dragging * {
   background: conic-gradient(#d2009a, #9c2bff, #6851ff, #3562f5, #007b89, #00822f, #e00700, #d2009a);
   box-shadow: inset 0 0 0 1px rgba(15, 27, 61, 0.16);
 }
+.theme-dot__plus {
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  pointer-events: none;
+}
+.theme-dot__plus::before,
+.theme-dot__plus::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #fff;
+  border-radius: 1px;
+  box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.18);
+}
+.theme-dot__plus::before {
+  width: 2px;
+  height: 14px;
+  margin: -7px 0 0 -1px;
+}
+.theme-dot__plus::after {
+  width: 14px;
+  height: 2px;
+  margin: -1px 0 0 -7px;
+}
 .theme-dot__input {
   position: absolute;
   top: 0;
+  left: 50%;
+  z-index: 1;
   width: 42px;
   height: 42px;
-  margin: 0;
+  margin: 0 0 0 -21px;
   padding: 0;
   border: 0;
   opacity: 0;
   cursor: pointer;
+}
+.theme-reset {
+  margin-top: 14px;
+  font-size: 13px;
 }
 .theme-dot--custom.is-on .theme-dot__chip {
   box-shadow:
