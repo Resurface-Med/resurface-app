@@ -26,7 +26,7 @@ import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, readCustomColor, writeCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
-import { themeField } from "./lib/themes";
+import { themeField, themeLight } from "./lib/themes";
 import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
@@ -297,6 +297,7 @@ export default function App() {
       if (meta) meta.content = customColor;
     } else {
       clearThemeColor();
+      if (themeLight(theme)) document.documentElement.setAttribute("data-field", "light");
       if (meta) meta.content = themeField(theme);
     }
   }, [theme, customColor]);

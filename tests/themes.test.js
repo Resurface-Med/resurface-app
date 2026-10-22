@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { THEMES, knownTheme, themeField } from "../src/lib/themes.js";
+import { THEMES, knownTheme, themeField, themeLight } from "../src/lib/themes.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -21,6 +21,13 @@ describe("themes", () => {
   it("names a field colour for every theme", () => {
     for (const t of THEMES) expect(themeField(t.id)).toBe(t.field);
     expect(themeField("nope")).toBe("#3562f5");
+    expect(themeLight("light")).toBe(false);
+    expect(themeLight("indigo")).toBe(false);
+    expect(themeLight("red")).toBe(false);
+    expect(themeLight("dark")).toBe(false);
+    expect(themeLight("sea")).toBe(true);
+    expect(themeLight("gold")).toBe(true);
+    expect(themeLight("pink")).toBe(true);
   });
 
   it("the first paint knows every theme", () => {

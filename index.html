@@ -29,7 +29,13 @@
         try {
           /* Keep in step with src/lib/themes.js. The test checks both. */
           var alias = { "teal": "sea" };
-          var fields = { "light": "#3562f5", "indigo": "#5b5aec", "sea": "#0374b0", "green": "#067d52", "orange": "#c4420c", "red": "#d52424", "rose": "#d71a45", "pink": "#d0216d", "purple": "#7c3aed", "dark": "#0b1220" };
+          var fields = { "light": "#3562f5", "indigo": "#5640f0", "sea": "#12b6c9", "green": "#18b34f", "gold": "#f5b000", "orange": "#ff8a14", "red": "#e2182d", "rose": "#ef3d6a", "pink": "#ee2a84", "purple": "#a44dff", "dark": "#0b1220" };
+          function ch(v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+          function lightField(hex) {
+            var n = parseInt(hex.slice(1), 16);
+            var L = 0.2126 * ch(n >> 16) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+            return (1.05 / (L + 0.05)) < 4.6;
+          }
           var t = localStorage.getItem('pq_theme') || 'light';
           if (alias[t]) t = alias[t];
           var custom = localStorage.getItem('pq_theme_color') || '';
@@ -37,10 +43,7 @@
           var root = document.documentElement;
           if (t === 'custom' && /^#[0-9a-fA-F]{6}$/.test(custom)) {
             custom = custom.toLowerCase();
-            var n = parseInt(custom.slice(1), 16);
-            function ch(v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
-            var L = 0.2126 * ch(n >> 16) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
-            var light = (1.05 / (L + 0.05)) < 4.6;
+            var light = lightField(custom);
             root.setAttribute('data-theme', 'custom');
             root.setAttribute('data-field', light ? 'light' : 'dark');
             root.style.setProperty('--c-bg', custom);
@@ -54,6 +57,7 @@
           } else {
             if (!fields[t]) t = 'light';
             root.setAttribute('data-theme', t);
+            if (lightField(fields[t])) root.setAttribute('data-field', 'light');
             if (meta) meta.content = fields[t];
           }
         } catch(e) {

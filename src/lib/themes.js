@@ -9,14 +9,15 @@
  */
 export const THEMES = [
   { id: "light", name: "Day", field: "#3562f5" },
-  { id: "indigo", name: "Indigo", field: "#5b5aec" },
-  { id: "sea", name: "Sea", field: "#0374b0" },
-  { id: "green", name: "Green", field: "#067d52" },
-  { id: "orange", name: "Orange", field: "#c4420c" },
-  { id: "red", name: "Red", field: "#d52424" },
-  { id: "rose", name: "Rose", field: "#d71a45" },
-  { id: "pink", name: "Pink", field: "#d0216d" },
-  { id: "purple", name: "Purple", field: "#7c3aed" },
+  { id: "indigo", name: "Indigo", field: "#5640f0" },
+  { id: "sea", name: "Sea", field: "#12b6c9" },
+  { id: "green", name: "Green", field: "#18b34f" },
+  { id: "gold", name: "Gold", field: "#f5b000" },
+  { id: "orange", name: "Orange", field: "#ff8a14" },
+  { id: "red", name: "Red", field: "#e2182d" },
+  { id: "rose", name: "Rose", field: "#ef3d6a" },
+  { id: "pink", name: "Pink", field: "#ee2a84" },
+  { id: "purple", name: "Purple", field: "#a44dff" },
   { id: "dark", name: "Night", field: "#0b1220" },
 ];
 
@@ -32,4 +33,16 @@ export function knownTheme(id, color) {
 
 export function themeField(id) {
   return (THEMES.find(t => t.id === id) ?? THEMES[0]).field;
+}
+
+/** White type on this field would fall short of Day, so the words go dark. */
+export function themeLight(id) {
+  const hex = themeField(id);
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (v) => {
+    v /= 255;
+    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  const L = 0.2126 * ch(n >> 16) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+  return 1.05 / (L + 0.05) < 4.6;
 }
