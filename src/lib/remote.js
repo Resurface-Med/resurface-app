@@ -413,14 +413,29 @@ export async function loadFeatured() {
   /* `top` is what heads the list — a folder the deck is shown in, or the deck
      itself — and carries the byline; `id` is the real deck. */
   const roots = (data.roots ?? []).map(r => ({ ...r, top: r.top ?? r.id, name: names.get(r.top ?? r.id) ?? "" }));
-  const byTop = new Map(roots.map((r, i) => [r.top, { byline: r.byline, at: i }]));
+  /* One folder can hold more than one deck. The folder keeps the first
+     credit (Year 2 by Jacob); a deck with a different credit wears its own. */
+  const byRoot = new Map(roots.map(r => [r.id, r.byline]));
+  const byTop = new Map();
+  roots.forEach((r, i) => {
+    const cur = byTop.get(r.top);
+    if (!cur) byTop.set(r.top, { byline: r.byline, at: i });
+    else cur.at = i;
+  });
   return {
     roots,
-    decks: (data.decks ?? []).map(d => ({
-      id: d.id, name: d.name, parentId: d.parentId,
-      position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
-      featured: true, root: d.root, byline: d.parentId ? null : byTop.get(d.id)?.byline ?? null,
-    })),
+    decks: (data.decks ?? []).map(d => {
+      const own = d.id === d.root ? byRoot.get(d.id) : null;
+      const folderCredit = d.parentId ? byTop.get(d.parentId)?.byline : null;
+      const byline = d.parentId
+        ? (own && own !== folderCredit ? own : null)
+        : (byTop.get(d.id)?.byline ?? null);
+      return {
+        id: d.id, name: d.name, parentId: d.parentId,
+        position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
+        featured: true, root: d.root, byline,
+      };
+    }),
     questions: (data.questions ?? []).map(r => {
       /* `gen` on a saved payload would mark a premade question as yours, and
          the card would offer Edit instead of Report. */
