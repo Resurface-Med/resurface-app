@@ -318,23 +318,42 @@ export default function ProfileView({
               <div>
                 <span className="profile-label">Appearance</span>
                 <div className="theme-picker" role="radiogroup" aria-label="Appearance">
-                  {THEMES.map(t => {
-                    const on = theme === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={on}
-                        className={`theme-dot btn-press${on ? " is-on" : ""}${t.id === "light" || t.id === "dark" ? " theme-dot--glyph" : ""}`}
-                        style={{ "--swatch": t.field }}
-                        onClick={() => onThemeChange?.(t.id)}
-                      >
-                        <ThemeGlyph id={t.id} />
-                        {t.name}
-                      </button>
-                    );
-                  })}
+                  <div className="theme-picker__row">
+                    {THEMES.filter(t => t.id === "light" || t.id === "dark").map(t => {
+                      const on = theme === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          className={`theme-dot btn-press${on ? " is-on" : ""} theme-dot--glyph`}
+                          style={{ "--swatch": t.field }}
+                          onClick={() => onThemeChange?.(t.id)}
+                        >
+                          <ThemeGlyph id={t.id} />
+                          {t.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="theme-picker__row">
+                    {THEMES.filter(t => t.id !== "light" && t.id !== "dark").map(t => {
+                      const on = theme === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          className={`theme-dot btn-press${on ? " is-on" : ""}`}
+                          style={{ "--swatch": t.field }}
+                          onClick={() => onThemeChange?.(t.id)}
+                        >
+                          {t.name}
+                        </button>
+                      );
+                    })}
                   <label className={`theme-dot theme-dot--custom${theme === "custom" ? " is-on" : ""}`}>
                     <span
                       className="theme-dot__chip"
@@ -351,6 +370,7 @@ export default function ProfileView({
                     />
                     Custom
                   </label>
+                  </div>
                 </div>
                 {theme === "custom" && (
                   <button type="button" className="gen-link theme-reset" onClick={() => onResetColor?.()}>

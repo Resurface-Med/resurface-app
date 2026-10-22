@@ -5294,11 +5294,20 @@ html.is-deck-dragging * {
   flex-wrap: wrap;
 }
 .theme-picker {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   margin-top: 14px;
-  max-width: 420px;
+}
+.theme-picker__row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 16px 6px;
+}
+@media (max-width: 520px) {
+  .theme-picker__row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 .theme-dot {
   display: flex;
