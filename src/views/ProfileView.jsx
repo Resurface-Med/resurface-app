@@ -295,7 +295,7 @@ export default function ProfileView({
             <div className="profile-stack">
               <div>
                 <span className="profile-label">Appearance</span>
-                <div className="profile-chips" role="radiogroup" aria-label="Appearance">
+                <div className="theme-picker" role="radiogroup" aria-label="Appearance">
                   {THEMES.map(t => {
                     const on = theme === t.id;
                     return (
@@ -304,11 +304,10 @@ export default function ProfileView({
                         type="button"
                         role="radio"
                         aria-checked={on}
-                        className="theme-choice btn-press"
+                        className={`theme-dot btn-press${on ? " is-on" : ""}`}
+                        style={{ "--swatch": t.field }}
                         onClick={() => onThemeChange?.(t.id)}
-                        style={on ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
                       >
-                        <span className="theme-swatch" style={{ "--swatch": t.field }} aria-hidden="true" />
                         {t.name}
                       </button>
                     );

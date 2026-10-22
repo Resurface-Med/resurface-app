@@ -28,8 +28,10 @@
       (function() {
         try {
           /* Keep in step with src/lib/themes.js. The test checks both. */
-          var fields = { "light": "#3562f5", "teal": "#107888", "green": "#1a7d4e", "purple": "#7348dc", "red": "#c23b45", "dark": "#0b1220" };
+          var alias = { "teal": "sea" };
+          var fields = { "light": "#3562f5", "indigo": "#5b5aec", "sea": "#0374b0", "green": "#067d52", "orange": "#c4420c", "red": "#d52424", "rose": "#d71a45", "pink": "#d0216d", "purple": "#7c3aed", "dark": "#0b1220" };
           var t = localStorage.getItem('pq_theme') || 'light';
+          if (alias[t]) t = alias[t];
           if (!fields[t]) t = 'light';
           document.documentElement.setAttribute('data-theme', t);
           var meta = document.getElementById('theme-color-meta');

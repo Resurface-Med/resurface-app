@@ -9,15 +9,24 @@
  */
 export const THEMES = [
   { id: "light", name: "Day", field: "#3562f5" },
-  { id: "teal", name: "Teal", field: "#107888" },
-  { id: "green", name: "Green", field: "#1a7d4e" },
-  { id: "purple", name: "Purple", field: "#7348dc" },
-  { id: "red", name: "Red", field: "#c23b45" },
+  { id: "indigo", name: "Indigo", field: "#5b5aec" },
+  { id: "sea", name: "Sea", field: "#0374b0" },
+  { id: "green", name: "Green", field: "#067d52" },
+  { id: "orange", name: "Orange", field: "#c4420c" },
+  { id: "red", name: "Red", field: "#d52424" },
+  { id: "rose", name: "Rose", field: "#d71a45" },
+  { id: "pink", name: "Pink", field: "#d0216d" },
+  { id: "purple", name: "Purple", field: "#7c3aed" },
   { id: "dark", name: "Night", field: "#0b1220" },
 ];
 
+/* The first set of extra colours used these ids for an hour. A saved choice
+   should land on the colour that replaced it, not snap back to Day. */
+const ALIAS = { teal: "sea" };
+
 export function knownTheme(id) {
-  return THEMES.some(t => t.id === id) ? id : "light";
+  const next = ALIAS[id] || id;
+  return THEMES.some(t => t.id === next) ? next : "light";
 }
 
 export function themeField(id) {

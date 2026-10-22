@@ -12,6 +12,7 @@ describe("themes", () => {
     expect(knownTheme("dark")).toBe("dark");
     expect(knownTheme("nope")).toBe("light");
     expect(knownTheme(null)).toBe("light");
+    expect(knownTheme("teal")).toBe("sea");
   });
 
   it("names a field colour for every theme", () => {
