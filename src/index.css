@@ -5344,6 +5344,17 @@ html.is-deck-dragging * {
     0 0 0 2px var(--c-card-solid),
     0 0 0 4px var(--c-accent);
 }
+.theme-dot--glyph { position: relative; }
+.theme-dot__glyph {
+  position: absolute;
+  top: 9px;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  color: #fff;
+  pointer-events: none;
+}
 .theme-dot--custom {
   position: relative;
 }

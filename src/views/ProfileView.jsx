@@ -21,6 +21,28 @@ const offline = () => !isOnline() || navigator.onLine === false;
  * Same blue → wave → white sheet as Home / Generate.
  */
 
+function ThemeGlyph({ id }) {
+  if (id === "light") {
+    return (
+      <svg className="theme-dot__glyph" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" fill="currentColor" />
+        <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M12 2.2v2.3M12 19.5v2.3M2.2 12h2.3M19.5 12h2.3" />
+          <path d="M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6" />
+        </g>
+      </svg>
+    );
+  }
+  if (id === "dark") {
+    return (
+      <svg className="theme-dot__glyph" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M9.53 1.72a.75.75 0 0 1 .16.82A8.97 8.97 0 0 0 9 6a9 9 0 0 0 9 9 8.97 8.97 0 0 0 3.46-.69.75.75 0 0 1 .98.98 10.5 10.5 0 0 1-9.69 6.46c-5.8 0-10.5-4.7-10.5-10.5 0-4.37 2.67-8.11 6.46-9.69a.75.75 0 0 1 .82.16z" />
+      </svg>
+    );
+  }
+  return null;
+}
+
 const band = {
   maxWidth: 1180,
   margin: "0 auto",
@@ -304,10 +326,11 @@ export default function ProfileView({
                         type="button"
                         role="radio"
                         aria-checked={on}
-                        className={`theme-dot btn-press${on ? " is-on" : ""}`}
+                        className={`theme-dot btn-press${on ? " is-on" : ""}${t.id === "light" || t.id === "dark" ? " theme-dot--glyph" : ""}`}
                         style={{ "--swatch": t.field }}
                         onClick={() => onThemeChange?.(t.id)}
                       >
+                        <ThemeGlyph id={t.id} />
                         {t.name}
                       </button>
                     );
