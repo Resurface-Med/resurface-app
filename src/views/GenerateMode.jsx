@@ -431,7 +431,7 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
     throw e;
   }
 
-  const { questions: parsed, removed } = await res.json();
+  const { questions: parsed, removed, givenAway } = await res.json();
   if (!Array.isArray(parsed)) throw new Error("The generator returned something unexpected. Try again.");
 
   const out = parsed.map(q => ({
@@ -442,8 +442,10 @@ async function generateQuestions({ file, pastedText, deckLabel, count, avoid, si
     exp: q.exp,
     optExp: q.optExp,
   }));
-  /* How many the server threw out for repeating the deck (lib/dedupe.js). */
+  /* How many the server threw out: a repeat of the deck, or a stem that
+     already contained the answer. */
   out.removed = Number(removed) || 0;
+  out.givenAway = Number(givenAway) || 0;
   return out;
 }
 
@@ -660,6 +662,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
   const [reviewJobs, setReviewJobs] = useState([]);
   /* Questions the server left out for repeating the deck, said on review. */
   const [repeatsRemoved, setRepeatsRemoved] = useState(0);
+  const [givenAway, setGivenAway] = useState(0);
   const [pastedText, setPastedText] = useState("");
   /* Where the questions go: an existing deck, or a new one (named, and
      placed under a parent or at the top). Came here from a deck's ＋ Add and
@@ -922,7 +925,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     return (
       <Shell
         title="Review"
-        sub={`Keeping ${keptList.length} of ${generated.length}. Untick any you don’t want.${repeatsRemoved ? ` ${repeatsRemoved} left out for repeating questions already in the deck.` : ""}`}
+        sub={`Keeping ${keptList.length} of ${generated.length}. Untick any you don’t want.${repeatsRemoved ? ` ${repeatsRemoved} left out for repeating questions already in the deck.` : ""}${givenAway ? ` ${givenAway} left out because the answer was written into the question.` : ""}`}
         footer={(
           <div className="gen-sticky">
             {saveError && (
@@ -1143,6 +1146,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
       });
       setGenerated(qs);
       setRepeatsRemoved(qs.removed || 0);
+      setGivenAway(qs.givenAway || 0);
       setKept(new Set(qs.map((_, i) => i)));
       setRevealed(new Set());
       setPhase("review");
@@ -1193,7 +1197,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
             signal: ctrl.signal,
           });
           /* Held, not saved: they go to review first, like a single lecture. */
-          update(i, { status: "done", n: qs.length, qs, removed: qs.removed || 0 });
+          update(i, { status: "done", n: qs.length, qs, removed: qs.removed || 0, givenAway: qs.givenAway || 0 });
         } catch (e) {
           if (e?.name === "AbortError") { update(i, { status: "waiting" }); return; }
           update(i, { status: "failed", error: e?.message || "Something went wrong." });
@@ -1212,6 +1216,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     const list = done.flatMap((j, ji) => j.qs.map(q => ({ ...q, _job: ji })));
     setReviewJobs(done.map(j => ({ name: j.name, n: j.qs.length })));
     setRepeatsRemoved(done.reduce((t, j) => t + (j.removed || 0), 0));
+    setGivenAway(done.reduce((t, j) => t + (j.givenAway || 0), 0));
     setGenerated(list);
     setKept(new Set(list.map((_, i) => i)));
     setRevealed(new Set());

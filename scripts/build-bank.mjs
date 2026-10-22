@@ -218,7 +218,7 @@ const normalise = s => String(s).toLowerCase().replace(/[^a-z0-9 ]/g, "").replac
  * answer is findable in the uploaded material, and this is what tells you
  * whether that was true rather than trusting that it was.
  */
-function check(q, { source, seen, exemplarWords }) {
+function check(q, { source, seen, exemplarWords, answerInStem }) {
   const bad = [];
   if (!q || typeof q.q !== "string" || !Array.isArray(q.opts)) return ["malformed"];
   if (q.opts.length !== 5) bad.push(`${q.opts.length} options, not 5`);
@@ -235,6 +235,7 @@ function check(q, { source, seen, exemplarWords }) {
 
   const stem = normalise(q.q);
   if (seen.has(stem)) bad.push("duplicate of a question already in the bank");
+  if (answerInStem?.(q)) bad.push("the answer is written into the stem");
 
   if (!q.exp || q.exp.length < 15) bad.push("no real explanation");
   return bad;
@@ -246,6 +247,7 @@ async function generate() {
   if (!existsSync(MANIFEST)) die("No manifest. Run ingest first.");
 
   const { systemPrompt } = await loadPrompt();
+  const { answerInStem } = await import(pathToFileURL(resolve(APP, "..", "resurface-backend", "lib/giveaway.js")).href);
   const { perLecture, lectures } = JSON.parse(readFileSync(MANIFEST, "utf8"));
   const todo = lectures.filter(l => !l.skip && l.subject);
   if (!todo.length) die("Nothing to do — every lecture is skipped or has no subject.");
@@ -272,7 +274,7 @@ async function generate() {
 
       let kept = 0;
       for (const q of items) {
-        const faults = check(q, { source: text, seen, exemplarWords });
+        const faults = check(q, { source: text, seen, exemplarWords, answerInStem });
         const row = {
           cat: `${lec.subject}: ${lec.topic}`,
           year: "Year 1",
