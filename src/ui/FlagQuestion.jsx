@@ -10,10 +10,11 @@ import { useAuth } from "../lib/auth";
  * generated question that is confidently, plausibly wrong, which is the failure
  * a fast model actually has.
  *
- * A short list of reasons rather than a text box. A picker gets used and a
- * textarea gets skipped, and categories are what make the flags countable
- * later. It appears only after answering, so it cannot be a hint that
- * something is off with the question you are still working on.
+ * A short list of reasons. The named ones send on a tap, which is what gets
+ * used. "Something else" asks for the problem in their own words — a blank
+ * note would arrive in Admin as a reason with nothing to act on. It appears
+ * only after answering, so it cannot be a hint that something is off with
+ * the question you are still working on.
  */
 
 const REASONS = [
@@ -28,6 +29,20 @@ export default function FlagQuestion({ questionId }) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  const [other, setOther] = useState(false);
+  const [note, setNote] = useState("");
+
+  function close() {
+    setOpen(false);
+    setOther(false);
+    setNote("");
+  }
+
+  function send(reason, text) {
+    remote.flag(user.id, questionId, reason, text || null);
+    setSent(true);
+    close();
+  }
 
   if (!user) return null;
 
@@ -48,7 +63,7 @@ export default function FlagQuestion({ questionId }) {
 
   if (!open) {
     return (
-      <button type="button" className="q-flag-open btn-press" onClick={() => setOpen(true)}>
+      <button type="button" className="q-flag-open btn-press" onClick={() => { setSent(false); setOpen(true); }}>
         Report a problem
       </button>
     );
@@ -62,21 +77,47 @@ export default function FlagQuestion({ questionId }) {
           <button
             key={r.k}
             type="button"
-            className="q-flag-reason btn-press"
+            className={`q-flag-reason btn-press${r.k === "other" && other ? " is-on" : ""}`}
+            aria-pressed={r.k === "other" ? other : undefined}
             onClick={() => {
+              if (r.k === "other") { setOther(true); return; }
               // Fire and forget: the write is queued and retried if the network
               // is out, and making someone wait to report a typo is worse than
               // losing the odd flag.
-              remote.flag(user.id, questionId, r.k);
-              setOpen(false);
-              setSent(true);
+              send(r.k);
             }}
           >
             {r.label}
           </button>
         ))}
       </div>
-      <button type="button" className="q-flag-cancel" onClick={() => setOpen(false)}>
+      {other && (
+        <form
+          className="q-flag-more"
+          onSubmit={e => {
+            e.preventDefault();
+            const text = note.trim();
+            if (!text) return;
+            send("other", text);
+          }}
+        >
+          <label className="q-flag-title" htmlFor={`flag-note-${questionId}`}>Describe the problem</label>
+          <textarea
+            id={`flag-note-${questionId}`}
+            className="q-flag-note"
+            value={note}
+            maxLength={500}
+            rows={3}
+            autoFocus
+            placeholder="What's wrong with this question?"
+            onChange={e => setNote(e.target.value)}
+          />
+          <button type="submit" className="q-flag-send btn-press" disabled={!note.trim()}>
+            Send
+          </button>
+        </form>
+      )}
+      <button type="button" className="q-flag-cancel" onClick={close}>
         Cancel
       </button>
     </div>

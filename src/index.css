@@ -1409,6 +1409,46 @@ body::after {
   color: var(--c-accent);
   border-color: var(--c-accent-brd);
 }
+.q-flag-reason.is-on {
+  color: var(--c-accent);
+  border-color: var(--c-accent-brd);
+  background: var(--c-accent-dim);
+}
+.q-flag-more { margin-top: 10px; }
+.q-flag-more .q-flag-title { margin-bottom: 6px; }
+.q-flag-note {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.q-flag-note:focus {
+  outline: none;
+  border-color: var(--c-accent-brd);
+}
+.q-flag-send {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--c-accent);
+  color: #fff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.q-flag-send:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 .q-flag-cancel {
   margin-top: 10px;
   padding: 0;
