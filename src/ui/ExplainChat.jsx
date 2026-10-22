@@ -8,11 +8,11 @@ import { splitMarks } from "../lib/formatExplain";
 
 /**
  * Inline tutor dock beside the question — no auto-explain, only what the
- * student asks (quick prompts or free text). Cap: 3 asks per question.
+ * student asks (quick prompts or free text). Cap: 10 asks per question.
  */
 
 
-const ASK_LIMIT = 3;
+const ASK_LIMIT = 10;
 const ASK_STORE = "rs_ai_asks";
 
 const QUICK = [
