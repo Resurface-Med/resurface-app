@@ -421,7 +421,12 @@ export async function loadFeatured() {
       position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
       featured: true, root: d.root, byline: d.parentId ? null : byTop.get(d.id)?.byline ?? null,
     })),
-    questions: (data.questions ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), featured: true, deckId: r.deckId })),
+    questions: (data.questions ?? []).map(r => {
+      /* `gen` on a saved payload would mark a premade question as yours, and
+         the card would offer Edit instead of Report. */
+      const { gen: _gen, ...payload } = r.payload ?? {};
+      return { ...payload, id: GEN_ID_BASE + Number(r.id), featured: true, deckId: r.deckId };
+    }),
   };
 }
 

@@ -470,11 +470,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 </svg>
               </span>
             </button>
-            {/* The bank's questions are reported; your own are corrected —
-                telling yourself a question is wrong helps nobody, changing
-                it does. Either way the control is in the same place, which
-                is where it went missing from when a deck was your own. */}
-            {q.gen || (q.featured && canEdit(q))
+            {/* A question that is not yours is reported. Yours is corrected
+                here instead — telling yourself it is wrong helps nobody.
+                A premade question stays reportable even for an admin: the
+                pencil in the header is how they edit it. */}
+            {q.gen && !q.featured
               ? <button type="button" className="q-fix" onClick={() => setEditing(true)}>Edit question</button>
               : <FlagQuestion questionId={q.id} />}
           </div>
