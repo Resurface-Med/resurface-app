@@ -572,6 +572,11 @@ export async function adminUnfeature(deck) {
   const { error } = await supabase.rpc("admin_unfeature", { deck });
   if (error) throw new Error(error.message);
 }
+/* An unlisted featured deck (migration 0040) becomes visible to every student. */
+export async function adminPublishFeatured(deck) {
+  const { error } = await supabase.rpc("admin_publish_featured", { deck });
+  if (error) throw new Error(error.message);
+}
 
 /* Who sent whose deck to whom, newest first (migration 0020). */
 export async function fetchShareLog(lim = 300) {

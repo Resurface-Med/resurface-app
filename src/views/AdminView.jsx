@@ -6,7 +6,7 @@ import {
   fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily, fetchGeneratedDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
   fetchAiQuota, fetchShareLog,
-  fetchAdminFeatured, fetchFeatureCandidates, adminSetFeatured, adminUnfeature, adminDeleteFeatured,
+  fetchAdminFeatured, fetchFeatureCandidates, adminSetFeatured, adminUnfeature, adminPublishFeatured, adminDeleteFeatured,
 } from "../lib/remote";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
@@ -35,7 +35,7 @@ const SECTIONS = [
   { k: "today", label: "Activity", title: "Activity", desc: "Who answered a question, who signed up, or who generated questions, on a day. Move through the last six months. Opening the app without answering is not recorded." },
   { k: "people", label: "People", title: "People", desc: "Everyone with an account, and how much they use Resurface." },
   { k: "sharing", label: "Sharing", title: "Sharing", desc: "Who sent whose deck to whom: every shared link opened, every deck added, and every copy brought up to date." },
-  { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "The decks every student sees, made by students. Choose which are featured and how they are named. Their questions are edited from the deck’s menu in Study." },
+  { k: "featured", label: "Resurface decks", title: "Resurface decks", desc: "Decks made by students and shown in Study. One can be limited to named people until you make it public. Their questions are edited from the deck’s menu in Study." },
   { k: "generating", label: "Generating", title: "Questions generated", desc: "How many questions the AI wrote each day over the last 30 days." },
   { k: "tokens", label: "AI usage", title: "AI usage", desc: "How much of the AI model each feature uses, in tokens." },
   { k: "mail", label: "Mailing list", title: "Mailing list", desc: "People who agreed to receive news and study emails." },
@@ -744,14 +744,31 @@ function FeaturedRow({ row, onChanged }) {
     setBusy(true);
     try { await adminUnfeature(row.deck_id); onChanged(); } finally { setBusy(false); }
   }
+  async function publish() {
+    if (!await confirm({
+      title: `Show ${row.name} to every student?`,
+      body: `It is shared only with ${row.shared_with || "nobody"} at the moment. Making it public puts it on everyone’s Study list.`,
+      action: "Make it public",
+    })) return;
+    setBusy(true);
+    try { await adminPublishFeatured(row.deck_id); onChanged(); } finally { setBusy(false); }
+  }
   return (
     <li className="feat-admin">
       <div className="feat-admin__head">
         <div>
           <p className="feat-admin__name">{row.name}</p>
           <p className="feat-admin__meta">{row.questions.toLocaleString("en-GB")} questions · {row.subdecks.length} sub-decks · made by {row.owner_name || row.owner_email}</p>
+          {row.listed === false && (
+            <p className="feat-admin__meta">Shared only with {row.shared_with || "nobody"}. Not public.</p>
+          )}
         </div>
-        <button type="button" className="gen-link adm-danger-link" onClick={stop} disabled={busy}>Stop featuring</button>
+        <span style={{ display: "flex", gap: 14 }}>
+          {row.listed === false && (
+            <button type="button" className="gen-link" onClick={publish} disabled={busy}>Make public</button>
+          )}
+          <button type="button" className="gen-link adm-danger-link" onClick={stop} disabled={busy}>Stop featuring</button>
+        </span>
       </div>
       <div className="feat-admin__fields">
         <label className="feat-admin__field">
