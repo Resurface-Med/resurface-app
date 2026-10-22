@@ -74,18 +74,18 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
       <aside ref={navRef} id="app-nav" className={`app-nav${open ? " is-open" : ""}`}>
         <div className="app-nav__brand">
           <img
-            src="/logo-lockup.png"
+            src="/logo-wordmark.png"
             alt="Resurface"
-            width="720"
-            height="190"
+            width="441"
+            height="131"
             className="nav-logo nav-logo-day app-nav__logo"
           />
           <img
-            src="/logo-lockup-white.png"
+            src="/logo-wordmark-white.png"
             alt=""
             aria-hidden="true"
-            width="720"
-            height="190"
+            width="441"
+            height="131"
             className="nav-logo nav-logo-night app-nav__logo"
           />
           {/* Wide screens: the bell sits in the brand row, right of the logo. */}
