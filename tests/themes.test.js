@@ -13,6 +13,9 @@ describe("themes", () => {
     expect(knownTheme("nope")).toBe("light");
     expect(knownTheme(null)).toBe("light");
     expect(knownTheme("teal")).toBe("sea");
+    expect(knownTheme("rose")).toBe("pink");
+    expect(knownTheme("orange")).toBe("red");
+    expect(knownTheme("gold")).toBe("light");
     expect(knownTheme("custom")).toBe("light");
     expect(knownTheme("custom", "#d0216d")).toBe("custom");
     expect(knownTheme("custom", "pink")).toBe("light");

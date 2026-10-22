@@ -12,18 +12,14 @@ export const THEMES = [
   { id: "indigo", name: "Indigo", field: "#6851ff" },
   { id: "sea", name: "Sea", field: "#007b89" },
   { id: "green", name: "Green", field: "#00822f" },
-  { id: "gold", name: "Gold", field: "#916800" },
-  { id: "orange", name: "Orange", field: "#b45400" },
   { id: "red", name: "Red", field: "#e00700" },
-  { id: "rose", name: "Rose", field: "#dd0058" },
   { id: "pink", name: "Pink", field: "#d2009a" },
   { id: "purple", name: "Purple", field: "#9c2bff" },
   { id: "dark", name: "Night", field: "#0b1220" },
 ];
 
-/* The first set of extra colours used these ids for an hour. A saved choice
-   should land on the colour that replaced it, not snap back to Day. */
-const ALIAS = { teal: "sea" };
+/* Retired ids. A saved choice lands on the colour that replaced it. */
+const ALIAS = { teal: "sea", rose: "pink", orange: "red" };
 
 export function knownTheme(id, color) {
   const next = ALIAS[id] || id;

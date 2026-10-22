@@ -347,80 +347,6 @@ html, body {
     radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
 }
 
-[data-theme="gold"] {
-  color-scheme: light;
-  --c-ink-rgb: 46, 39, 19;
-  --c-accent-rgb: 145, 104, 0;
-  --c-shade: 55, 40, 0;
-  --c-bg: #916800;
-  --c-body-bg: #916800;
-  --c-accent: #916800;
-  --c-accent-lt: #745300;
-  --c-text: #2e2713;
-  --c-sub: #706446;
-  --c-muted: #9d937b;
-  --c-muted-dim: #bab7ad;
-  --c-surface2: #f8f6f0;
-  --c-surface3: #f2ede0;
-  --c-card-bg: #f8f6f0;
-  --c-wash: #f2ede0;
-  --c-nav-text: #2e2713;
-  --c-nav-sub: #706446;
-  --c-nav-muted: #9d937b;
-  --c-nav-muted-dim: #bab7ad;
-  --c-field-object: #ffffff;
-  --c-field-object-ink: #916800;
-  --c-field-ghost: rgba(255, 255, 255, 0.14);
-  --c-field-ghost-line: rgba(255, 255, 255, 0.32);
-  --c-field-ghost-border: rgba(255, 255, 255, 0.5);
-  --c-on-field: #ffffff;
-  --c-on-field-soft: rgba(255, 255, 255, 0.94);
-  --c-on-field-faint: rgba(255, 255, 255, 0.82);
-  --c-scrollbar: rgba(255, 255, 255, 0.35);
-  --c-scrollbar-hover: rgba(255, 255, 255, 0.55);
-  --c-body-overlay-bg:
-    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(206, 187, 140, 0.42) 0%, transparent 68%),
-    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
-}
-
-[data-theme="orange"] {
-  color-scheme: light;
-  --c-ink-rgb: 51, 35, 21;
-  --c-accent-rgb: 180, 84, 0;
-  --c-shade: 68, 32, 0;
-  --c-bg: #b45400;
-  --c-body-bg: #b45400;
-  --c-accent: #b45400;
-  --c-accent-lt: #904300;
-  --c-text: #332315;
-  --c-sub: #775f4b;
-  --c-muted: #a29182;
-  --c-muted-dim: #bdb6b0;
-  --c-surface2: #fbf5f0;
-  --c-surface3: #f6eae0;
-  --c-card-bg: #fbf5f0;
-  --c-wash: #f6eae0;
-  --c-nav-text: #332315;
-  --c-nav-sub: #775f4b;
-  --c-nav-muted: #a29182;
-  --c-nav-muted-dim: #bdb6b0;
-  --c-field-object: #ffffff;
-  --c-field-object-ink: #b45400;
-  --c-field-ghost: rgba(255, 255, 255, 0.14);
-  --c-field-ghost-line: rgba(255, 255, 255, 0.32);
-  --c-field-ghost-border: rgba(255, 255, 255, 0.5);
-  --c-on-field: #ffffff;
-  --c-on-field-soft: rgba(255, 255, 255, 0.94);
-  --c-on-field-faint: rgba(255, 255, 255, 0.82);
-  --c-scrollbar: rgba(255, 255, 255, 0.35);
-  --c-scrollbar-hover: rgba(255, 255, 255, 0.55);
-  --c-body-overlay-bg:
-    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(221, 178, 140, 0.42) 0%, transparent 68%),
-    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
-}
-
 [data-theme="red"] {
   color-scheme: light;
   --c-ink-rgb: 64, 27, 26;
@@ -458,42 +384,6 @@ html, body {
     radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
 }
 
-[data-theme="rose"] {
-  color-scheme: light;
-  --c-ink-rgb: 64, 26, 41;
-  --c-accent-rgb: 221, 0, 88;
-  --c-shade: 84, 0, 33;
-  --c-bg: #dd0058;
-  --c-body-bg: #dd0058;
-  --c-accent: #dd0058;
-  --c-accent-lt: #b10046;
-  --c-text: #401a29;
-  --c-sub: #8a566b;
-  --c-muted: #aa8c98;
-  --c-muted-dim: #c0b3b8;
-  --c-surface2: #fdf0f5;
-  --c-surface3: #fbe0eb;
-  --c-card-bg: #fdf0f5;
-  --c-wash: #fbe0eb;
-  --c-nav-text: #401a29;
-  --c-nav-sub: #8a566b;
-  --c-nav-muted: #aa8c98;
-  --c-nav-muted-dim: #c0b3b8;
-  --c-field-object: #ffffff;
-  --c-field-object-ink: #dd0058;
-  --c-field-ghost: rgba(255, 255, 255, 0.14);
-  --c-field-ghost-line: rgba(255, 255, 255, 0.32);
-  --c-field-ghost-border: rgba(255, 255, 255, 0.5);
-  --c-on-field: #ffffff;
-  --c-on-field-soft: rgba(255, 255, 255, 0.94);
-  --c-on-field-faint: rgba(255, 255, 255, 0.82);
-  --c-scrollbar: rgba(255, 255, 255, 0.35);
-  --c-scrollbar-hover: rgba(255, 255, 255, 0.55);
-  --c-body-overlay-bg:
-    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(240, 140, 180, 0.42) 0%, transparent 68%),
-    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
-}
 
 [data-theme="pink"] {
   color-scheme: light;
@@ -5462,7 +5352,7 @@ html.is-deck-dragging * {
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: conic-gradient(#d2009a, #9c2bff, #6851ff, #3562f5, #007b89, #00822f, #916800, #b45400, #d2009a);
+  background: conic-gradient(#d2009a, #9c2bff, #6851ff, #3562f5, #007b89, #00822f, #e00700, #d2009a);
   box-shadow: inset 0 0 0 1px rgba(15, 27, 61, 0.16);
 }
 .theme-dot__input {
