@@ -254,6 +254,12 @@ export default function LoginPage({ sentDeck = false }) {
             width="560" height="131"
             className="login-form-logo"
           />
+          <img
+            src="/logo-lockup-white.png"
+            alt="Resurface"
+            width="560" height="131"
+            className="login-form-logo login-form-logo--night"
+          />
 
           <h1 className="auth-swap" style={{ fontSize: 26, fontWeight: 600, letterSpacing: -0.9, color: C.text }}>{heading}</h1>
           <p style={{ fontSize: 14.5, color: C.sub, marginTop: 7, lineHeight: 1.5 }}>
@@ -509,7 +515,7 @@ function PrimaryButton({ busy, label }) {
       color: "#fff", border: "none", borderRadius: "var(--r-pill)",
       fontWeight: 600, fontSize: 15, fontFamily: "inherit",
       cursor: busy ? "default" : "pointer",
-      boxShadow: "0 12px 30px rgba(20, 44, 130, 0.22)",
+      boxShadow: "0 12px 30px rgba(var(--c-shade), 0.22)",
     }}>
       {label}
     </button>

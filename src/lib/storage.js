@@ -1,3 +1,5 @@
+import { knownTheme } from "./themes";
+
 // What's left of local storage.
 //
 // Study data lives in Postgres now (see lib/remote.js). Two things stay local:
@@ -10,8 +12,8 @@
 const THEME_KEY = "pq_theme";
 
 export const themeStore = {
-  get: () => { try { return localStorage.getItem(THEME_KEY) || "light"; } catch { return "light"; } },
-  set: (t) => { try { localStorage.setItem(THEME_KEY, t); } catch {} },
+  get: () => { try { return knownTheme(localStorage.getItem(THEME_KEY)); } catch { return "light"; } },
+  set: (t) => { try { localStorage.setItem(THEME_KEY, knownTheme(t)); } catch {} },
 };
 
 /** Local calendar day, YYYY-MM-DD. Not UTC: the heatmap is drawn where you are. */

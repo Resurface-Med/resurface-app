@@ -1,0 +1,32 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+import { THEMES, knownTheme, themeField } from "../src/lib/themes.js";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+describe("themes", () => {
+  it("keeps an unknown choice on Day", () => {
+    expect(knownTheme("light")).toBe("light");
+    expect(knownTheme("dark")).toBe("dark");
+    expect(knownTheme("nope")).toBe("light");
+    expect(knownTheme(null)).toBe("light");
+  });
+
+  it("names a field colour for every theme", () => {
+    for (const t of THEMES) expect(themeField(t.id)).toBe(t.field);
+    expect(themeField("nope")).toBe("#3562f5");
+  });
+
+  it("the first paint knows every theme", () => {
+    const html = readFileSync(join(root, "index.html"), "utf8");
+    const css = readFileSync(join(root, "src/index.css"), "utf8");
+    for (const t of THEMES) {
+      expect(html).toContain(`"${t.id}"`);
+      expect(html).toContain(t.field);
+      expect(css).toContain(t.field);
+      if (t.id !== "light") expect(css).toContain(`[data-theme="${t.id}"]`);
+    }
+  });
+});

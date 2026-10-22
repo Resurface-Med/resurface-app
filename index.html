@@ -27,10 +27,13 @@
     <script>
       (function() {
         try {
+          /* Keep in step with src/lib/themes.js. The test checks both. */
+          var fields = { "light": "#3562f5", "teal": "#107888", "green": "#1a7d4e", "purple": "#7348dc", "red": "#c23b45", "dark": "#0b1220" };
           var t = localStorage.getItem('pq_theme') || 'light';
+          if (!fields[t]) t = 'light';
           document.documentElement.setAttribute('data-theme', t);
           var meta = document.getElementById('theme-color-meta');
-          if (meta) meta.content = t === 'dark' ? '#060a16' : '#3562f5';
+          if (meta) meta.content = fields[t];
         } catch(e) {
           document.documentElement.setAttribute('data-theme', 'light');
         }

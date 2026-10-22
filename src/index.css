@@ -51,10 +51,10 @@
   --r-card: 18px;
   --r-ctrl: 12px;
 
-  /* Semantic colours for text ON the blue field. The success/danger/warning
-     tokens are tuned for white panels and lose almost all contrast against
-     blue, so anything outside a card uses these light tints instead. Shared
-     by both themes, because the field stays blue in both. */
+  /* Semantic colours for text ON the coloured field. The success/danger/warning
+     tokens are tuned for white panels and lose almost all contrast against a
+     saturated field, so anything outside a card uses these light tints instead.
+     Shared by every theme: the field changes colour, the type on it stays light. */
   --c-of-pos: #7ff0b4;
   --c-of-warn: #ffd67e;
   --c-of-neg: #ffb0b0;
@@ -89,24 +89,30 @@ html, body {
 :root,
 [data-theme="light"] {
   color-scheme: light;
+  /* Components that tint a shadow or a rule with the theme read these,
+     rather than a hardcoded blue. A new theme sets the three and the
+     tints below follow. */
+  --c-ink-rgb: 15, 27, 61;
+  --c-accent-rgb: 53, 98, 245;
+  --c-shade: 20, 44, 130;
   --c-bg: #3562f5;
   --c-surface: #ffffff;
   --c-surface2: #f3f6fe;
   --c-surface3: #e9eefd;
-  --c-border: rgba(15, 27, 61, 0.08);
+  --c-border: rgba(var(--c-ink-rgb), 0.08);
   /* The selected row in the nav. Ink, not brand: a wash of the text colour
      reads as a surface, where a wash of the accent reads as a highlighter. */
-  --c-nav-on: rgba(15, 27, 61, 0.06);
-  --c-border-blu: rgba(53, 98, 245, 0.28);
+  --c-nav-on: rgba(var(--c-ink-rgb), 0.06);
+  --c-border-blu: rgba(var(--c-accent-rgb), 0.28);
   --c-text: #0f1b3d;
   --c-sub: #5a6485;
   --c-muted: #8a93ae;
   --c-muted-dim: #b0b8cc;
   --c-accent: #3562f5;
   --c-accent-lt: #2450e8;
-  --c-accent-dim: rgba(53, 98, 245, 0.1);
-  --c-accent-brd: rgba(53, 98, 245, 0.32);
-  --c-accent-glow: rgba(53, 98, 245, 0.14);
+  --c-accent-dim: rgba(var(--c-accent-rgb), 0.1);
+  --c-accent-brd: rgba(var(--c-accent-rgb), 0.32);
+  --c-accent-glow: rgba(var(--c-accent-rgb), 0.14);
   --c-success: #1f9d55;
   --c-success-dim: rgba(31, 157, 85, 0.12);
   --c-success-brd: rgba(31, 157, 85, 0.3);
@@ -123,9 +129,9 @@ html, body {
   --c-card-bg: #f3f6fe;
   --c-card-solid: #ffffff;
   /* Matches the landing exactly. Cards rest on the page; they don't hover. */
-  --c-card-shadow: 0 10px 28px rgba(20, 44, 130, 0.06);
-  --c-card-shadow-lift: 0 4px 16px rgba(20, 44, 130, 0.04), 0 24px 56px rgba(20, 44, 130, 0.1);
-  --c-cta-shadow: 0 12px 30px rgba(20, 44, 130, 0.22);
+  --c-card-shadow: 0 10px 28px rgba(var(--c-shade), 0.06);
+  --c-card-shadow-lift: 0 4px 16px rgba(var(--c-shade), 0.04), 0 24px 56px rgba(var(--c-shade), 0.1);
+  --c-cta-shadow: 0 12px 30px rgba(var(--c-shade), 0.22);
   /* The landing's rule is white objects floating on the blue field, and its
      nav is rgba(255,255,255,0.82). The sidebar was 0.12 — a blue pane, not a
      white object — which is what made the app read as a different product. */
@@ -135,7 +141,7 @@ html, body {
   --c-nav-sub: #5a6485;
   --c-nav-muted: #8a93ae;
   --c-nav-muted-dim: #b0b8cc;
-  --c-nav-shadow: 0 1px 2px rgba(15, 27, 61, 0.05), 0 8px 24px rgba(20, 44, 130, 0.12);
+  --c-nav-shadow: 0 1px 2px rgba(var(--c-ink-rgb), 0.05), 0 8px 24px rgba(var(--c-shade), 0.12);
   --c-on-field: #ffffff;
   /* 0.94, not 0.78. White on #3562f5 is only 4.98:1, so anything dimmer
      than this fails AA for small text — secondary text earns its rank from
@@ -164,6 +170,9 @@ html, body {
 /* Same elevation idea as before, but navy throughout — not charcoal grey. */
 [data-theme="dark"] {
   color-scheme: dark;
+  --c-ink-rgb: 232, 238, 248;
+  --c-accent-rgb: 77, 142, 245;
+  --c-shade: 0, 0, 0;
   --c-bg: #0b1220;
   --c-surface: #121a2b;
   --c-surface2: #1a2438;
@@ -219,6 +228,123 @@ html, body {
   --c-field-object: #e8eef8;
   --c-field-object-ink: #0b1220;
   --c-field-ghost-border: rgba(232, 238, 248, 0.32);
+}
+
+/* ─── Other fields ──────────────────────────────────────────────────── */
+/* Same objects as Day: white cards on a coloured field, the mark still blue
+   on the white nav. Only the field, the ink and the pale panel tint change.
+   Each one is dark enough that white type on it clears the same bar Day does. */
+
+[data-theme="teal"] {
+  color-scheme: light;
+  --c-ink-rgb: 16, 36, 40;
+  --c-accent-rgb: 16, 120, 136;
+  --c-shade: 10, 68, 78;
+  --c-bg: #107888;
+  --c-body-bg: #107888;
+  --c-accent: #107888;
+  --c-accent-lt: #0c6270;
+  --c-text: #102428;
+  --c-sub: #547078;
+  --c-muted: #7a949c;
+  --c-muted-dim: #a8b8bc;
+  --c-surface2: #f2f7f8;
+  --c-surface3: #e4f1f3;
+  --c-card-bg: #f2f7f8;
+  --c-wash: #e4f1f3;
+  --c-nav-text: #102428;
+  --c-nav-sub: #547078;
+  --c-nav-muted: #7a949c;
+  --c-nav-muted-dim: #a8b8bc;
+  --c-field-object-ink: #107888;
+  --c-body-overlay-bg:
+    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(143, 208, 220, 0.42) 0%, transparent 68%),
+    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
+}
+
+[data-theme="green"] {
+  color-scheme: light;
+  --c-ink-rgb: 18, 38, 26;
+  --c-accent-rgb: 26, 125, 78;
+  --c-shade: 16, 78, 44;
+  --c-bg: #1a7d4e;
+  --c-body-bg: #1a7d4e;
+  --c-accent: #1a7d4e;
+  --c-accent-lt: #14663f;
+  --c-text: #12261a;
+  --c-sub: #4e6d5e;
+  --c-muted: #7d968a;
+  --c-muted-dim: #a8b8ae;
+  --c-surface2: #f3f7f4;
+  --c-surface3: #e7f1eb;
+  --c-card-bg: #f3f7f4;
+  --c-wash: #e7f1eb;
+  --c-nav-text: #12261a;
+  --c-nav-sub: #4e6d5e;
+  --c-nav-muted: #7d968a;
+  --c-nav-muted-dim: #a8b8ae;
+  --c-field-object-ink: #1a7d4e;
+  --c-body-overlay-bg:
+    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(158, 217, 184, 0.4) 0%, transparent 68%),
+    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
+}
+
+[data-theme="purple"] {
+  color-scheme: light;
+  --c-ink-rgb: 28, 20, 48;
+  --c-accent-rgb: 115, 72, 220;
+  --c-shade: 58, 36, 130;
+  --c-bg: #7348dc;
+  --c-body-bg: #7348dc;
+  --c-accent: #7348dc;
+  --c-accent-lt: #5c38b8;
+  --c-text: #1c1430;
+  --c-sub: #6a5e82;
+  --c-muted: #9086a4;
+  --c-muted-dim: #b4aec0;
+  --c-surface2: #f6f4fb;
+  --c-surface3: #ece7f6;
+  --c-card-bg: #f6f4fb;
+  --c-wash: #ece7f6;
+  --c-nav-text: #1c1430;
+  --c-nav-sub: #6a5e82;
+  --c-nav-muted: #9086a4;
+  --c-nav-muted-dim: #b4aec0;
+  --c-field-object-ink: #7348dc;
+  --c-body-overlay-bg:
+    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(201, 182, 245, 0.42) 0%, transparent 68%),
+    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
+}
+
+[data-theme="red"] {
+  color-scheme: light;
+  --c-ink-rgb: 42, 18, 22;
+  --c-accent-rgb: 194, 59, 69;
+  --c-shade: 120, 28, 36;
+  --c-bg: #c23b45;
+  --c-body-bg: #c23b45;
+  --c-accent: #c23b45;
+  --c-accent-lt: #a02e38;
+  --c-text: #2a1216;
+  --c-sub: #845868;
+  --c-muted: #a08898;
+  --c-muted-dim: #c0aeb4;
+  --c-surface2: #fbf4f5;
+  --c-surface3: #f6e8ea;
+  --c-card-bg: #fbf4f5;
+  --c-wash: #f6e8ea;
+  --c-nav-text: #2a1216;
+  --c-nav-sub: #845868;
+  --c-nav-muted: #a08898;
+  --c-nav-muted-dim: #c0aeb4;
+  --c-field-object-ink: #c23b45;
+  --c-body-overlay-bg:
+    radial-gradient(ellipse 48% 42% at 12% 18%, rgba(255, 255, 255, 0.16) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 38% at 88% 12%, rgba(245, 180, 186, 0.4) 0%, transparent 68%),
+    radial-gradient(ellipse 55% 45% at 70% 88%, rgba(255, 255, 255, 0.1) 0%, transparent 72%);
 }
 
 /* Options need a step up from the card fill. */
@@ -424,7 +550,7 @@ body::after {
 }
 .hover-lift:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 14px 36px rgba(20, 44, 130, 0.18) !important;
+  box-shadow: 0 14px 36px rgba(var(--c-shade), 0.18) !important;
 }
 .hover-lift:active {
   transform: translateY(0) !important;
@@ -1022,7 +1148,7 @@ body::after {
      hand side of the page. */
   border: none;
   border-radius: var(--r-panel);
-  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
+  box-shadow: 0 1px 2px rgba(var(--c-shade), 0.03);
   overflow: hidden;
   /* Grows out of the question rather than sliding in beside it: the origin is
      the edge nearest the button that opened it, so the panel reads as coming
@@ -1724,6 +1850,11 @@ select {
   .login-split { grid-template-columns: 1fr; }
   .login-brand { display: none; }
   .login-form-logo { display: block; }
+  /* The day lockup is dark ink. On Night the form is navy, so the word
+     disappeared and only the books showed. The white lockup takes over. */
+  .login-form-logo--night { display: none; }
+  [data-theme="dark"] .login-form-logo:not(.login-form-logo--night) { display: none; }
+  [data-theme="dark"] .login-form-logo--night { display: block; }
 }
 
 /* ─── Auth motion ───────────────────────────────────────────────── */
@@ -5059,6 +5190,19 @@ html.is-deck-dragging * {
   margin-top: 8px;
   flex-wrap: wrap;
 }
+.theme-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.theme-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgba(15, 27, 61, 0.2), 0 0 0 1.5px #fff;
+  flex: none;
+}
 .profile-name-row {
   display: flex;
   gap: 10px;
@@ -5624,7 +5768,7 @@ html.is-deck-dragging * {
     font-size: 15px;
     font-weight: 700;
     letter-spacing: -0.3px;
-    box-shadow: 0 8px 24px rgba(20, 44, 130, 0.16);
+    box-shadow: 0 8px 24px rgba(var(--c-shade), 0.16);
     transition: opacity 0.2s ease, transform 0.2s ease;
   }
   .quiz-ai-toggle__mark { width: 28px; height: 28px; }
@@ -5982,7 +6126,7 @@ html.is-deck-dragging * {
      enough to hold the shape. */
   border: none;
   border-radius: var(--r-panel);
-  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
+  box-shadow: 0 1px 2px rgba(var(--c-shade), 0.03);
 }
 .quiz-shell .q-stem--focus {
   margin: 0 0 24px;
@@ -6170,7 +6314,7 @@ html.is-deck-dragging * {
     border-radius: 20px !important;
     /* The heavy desktop drop shadow is invisible against a card that nearly
        fills the screen, and it is the most expensive thing on it to paint. */
-    box-shadow: 0 6px 20px rgba(20, 44, 130, 0.08) !important;
+    box-shadow: 0 6px 20px rgba(var(--c-shade), 0.08) !important;
   }
 }
 
@@ -7206,7 +7350,7 @@ html.is-deck-dragging * {
   border: 1px solid var(--c-border);
   border-radius: var(--r-panel);
   padding: clamp(16px, 1.8vw, 22px);
-  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
+  box-shadow: 0 1px 2px rgba(var(--c-shade), 0.03);
 }
 .adm-panel + .adm-panel { margin-top: 14px; }
 .adm-panel__head {
@@ -7240,7 +7384,7 @@ html.is-deck-dragging * {
   border: 1.5px solid var(--c-border);
   border-radius: var(--r-card);
   background: var(--c-card-solid);
-  box-shadow: 0 1px 2px rgba(20, 44, 130, 0.03);
+  box-shadow: 0 1px 2px rgba(var(--c-shade), 0.03);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -7881,7 +8025,7 @@ html.is-deck-dragging * {
   border-radius: 50%;
   background: var(--c-accent);
   border: 3px solid var(--c-card-solid);
-  box-shadow: 0 2px 8px rgba(53, 98, 245, 0.4);
+  box-shadow: 0 2px 8px rgba(var(--c-accent-rgb), 0.4);
 }
 .gen-count-slider::-moz-range-thumb {
   width: 20px;
@@ -7889,7 +8033,7 @@ html.is-deck-dragging * {
   border-radius: 50%;
   background: var(--c-accent);
   border: 3px solid var(--c-card-solid);
-  box-shadow: 0 2px 8px rgba(53, 98, 245, 0.4);
+  box-shadow: 0 2px 8px rgba(var(--c-accent-rgb), 0.4);
 }
 .gen-count-slider:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--c-accent); outline-offset: 2px; }
 .gen-count-ends {
@@ -8151,7 +8295,7 @@ html.is-deck-dragging * {
   padding: 8px 8px 8px 24px;
   border-radius: 999px;
   background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-lt) 100%);
-  box-shadow: 0 10px 28px -10px rgba(53, 98, 245, 0.55);
+  box-shadow: 0 10px 28px -10px rgba(var(--c-accent-rgb), 0.55);
 }
 .setup-next-sel {
   margin: 0;
@@ -8377,7 +8521,7 @@ html.is-deck-dragging * {
   background: var(--c-accent); color: #fff;
   border: 1px solid transparent; border-radius: 999px;
   font: inherit; font-size: 15px; font-weight: 600; letter-spacing: -0.2px;
-  box-shadow: 0 6px 14px -6px rgba(53, 98, 245, 0.6);
+  box-shadow: 0 6px 14px -6px rgba(var(--c-accent-rgb), 0.6);
   cursor: pointer;
 }
 .dp2-lecture svg { flex: none; }
@@ -8479,7 +8623,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   border-radius: 999px;
   background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-lt) 100%);
   color: #fff;
-  box-shadow: 0 12px 28px -10px rgba(53, 98, 245, 0.6);
+  box-shadow: 0 12px 28px -10px rgba(var(--c-accent-rgb), 0.6);
   font-size: 14.5px;
 }
 .undo.is-in  { animation: undoIn 0.32s cubic-bezier(0.34, 1.3, 0.5, 1) both; }
@@ -8675,7 +8819,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   border-radius: 999px;
   background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-lt) 100%);
   color: #fff;
-  box-shadow: 0 12px 28px -10px rgba(53, 98, 245, 0.6);
+  box-shadow: 0 12px 28px -10px rgba(var(--c-accent-rgb), 0.6);
   transform: translate(-50%, 140%);
   opacity: 0;
   transition: transform 0.32s cubic-bezier(0.34, 1.3, 0.5, 1), opacity 0.2s ease;
@@ -8885,7 +9029,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
     animation-name: updateInPhone;
     background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-accent-lt) 100%);
     color: #fff;
-    box-shadow: 0 12px 28px -10px rgba(53, 98, 245, 0.6);
+    box-shadow: 0 12px 28px -10px rgba(var(--c-accent-rgb), 0.6);
   }
   .update-note-text { flex: 1; }
   .update-note-btn { background: #fff; color: var(--c-accent); }
@@ -9974,7 +10118,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
    rules are drawn from the top of the text, not the top of the paper. */
 .ruled {
   --lh: 28px;
-  --rule: rgba(53, 98, 245, 0.16);
+  --rule: rgba(var(--c-accent-rgb), 0.16);
   background-color: #fdfcf8;
   background-image: repeating-linear-gradient(to bottom,
     transparent 0, transparent calc(var(--lh) - 1px),
@@ -9995,7 +10139,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .note-tile__cue { color: var(--c-accent); }
 .note-tile:hover .note-tile__cue { color: var(--c-accent-lt, var(--c-accent)); text-decoration: underline; text-underline-offset: 3px; }
-.note-paper.ruled { --lh: 13px; --rule: rgba(53, 98, 245, 0.09); --margin: 18px; width: min(300px, 100%); padding: 13px 16px 13px 27px;
+.note-paper.ruled { --lh: 13px; --rule: rgba(var(--c-accent-rgb), 0.09); --margin: 18px; width: min(300px, 100%); padding: 13px 16px 13px 27px;
   box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.06), 0 14px 32px -14px rgba(15, 27, 61, 0.35); }
 .note-tile:hover .note-paper.ruled { box-shadow: 0 0 0 1px rgba(15, 27, 61, 0.06), 0 22px 40px -14px rgba(15, 27, 61, 0.4); }
 .note-paper.ruled .note-paper__title { margin: 0 0 var(--lh); font-size: 12.5px; line-height: var(--lh); }
@@ -10020,7 +10164,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .wr__note.ruled .wr__body a { color: var(--c-accent); }
 .wr__note.ruled .wr__sig { margin: 0; line-height: calc(var(--lh) * 2); color: #12182a; }
 .wr__note.ruled .wr__acts { margin-top: var(--lh); }
-.wr__note.ruled .wr__go { background: var(--c-accent); color: #fff; box-shadow: 0 12px 26px -12px rgba(53, 98, 245, 0.7); }
+.wr__note.ruled .wr__go { background: var(--c-accent); color: #fff; box-shadow: 0 12px 26px -12px rgba(var(--c-accent-rgb), 0.7); }
 .wr__note.ruled .wr__later { color: #5b6478; }
 .wr__note.ruled .wr__later:hover { color: #12182a; }
 @media (max-width: 600px) {
@@ -10071,7 +10215,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   display: grid; place-items: center;
   background: var(--c-accent); color: #fff;
   font-size: 12.5px; font-weight: 600; line-height: 1;
-  box-shadow: 0 3px 8px -3px rgba(53, 98, 245, 0.6);
+  box-shadow: 0 3px 8px -3px rgba(var(--c-accent-rgb), 0.6);
 }
 /* Home on a short wide window: the column is one screen, and the note
    scales into what is left under the greeting (Dashboard measures it). */
@@ -10097,7 +10241,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   max-width: 400px; padding: 26px 24px 18px; gap: 14px; overflow: hidden;
   border-radius: var(--r-panel);
   background: linear-gradient(160deg, #4a76ff 0%, var(--c-accent) 55%, #2c56e8 100%);
-  box-shadow: 0 18px 40px -22px rgba(53, 98, 245, 0.7);
+  box-shadow: 0 18px 40px -22px rgba(var(--c-accent-rgb), 0.7);
 }
 .note-tile .note-paper.ruled { box-shadow: 0 1px 2px rgba(10, 20, 60, 0.15), 0 16px 32px -14px rgba(10, 20, 60, 0.55); }
 .note-tile .note-tile__cue { color: #fff; font-size: 17px; }

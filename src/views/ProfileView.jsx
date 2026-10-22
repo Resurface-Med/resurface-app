@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
+import { THEMES } from "../lib/themes";
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
 import Reminders from "../ui/Reminders";
@@ -295,26 +296,23 @@ export default function ProfileView({
               <div>
                 <span className="profile-label">Appearance</span>
                 <div className="profile-chips" role="radiogroup" aria-label="Appearance">
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={theme !== "dark"}
-                    className="btn-press"
-                    onClick={() => onThemeChange?.("light")}
-                    style={theme !== "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                  >
-                    Day
-                  </button>
-                  <button
-                    type="button"
-                    role="radio"
-                    aria-checked={theme === "dark"}
-                    className="btn-press"
-                    onClick={() => onThemeChange?.("dark")}
-                    style={theme === "dark" ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
-                  >
-                    Night
-                  </button>
+                  {THEMES.map(t => {
+                    const on = theme === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        className="theme-choice btn-press"
+                        onClick={() => onThemeChange?.(t.id)}
+                        style={on ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                      >
+                        <span className="theme-swatch" style={{ "--swatch": t.field }} aria-hidden="true" />
+                        {t.name}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

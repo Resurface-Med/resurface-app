@@ -26,6 +26,7 @@ import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, todayKey, nextStreak, liveStreak } from "./lib/storage";
+import { themeField } from "./lib/themes";
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
@@ -289,7 +290,7 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     themeStore.set(theme);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.content = theme === 'dark' ? '#0b1220' : '#3562f5';
+    if (meta) meta.content = themeField(theme);
   }, [theme]);
 
   /* Everything loadAll returns, onto the screen. Shared by sign-in and by

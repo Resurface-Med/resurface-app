@@ -358,7 +358,7 @@ export const chipBtnActive = {
   background: "var(--c-accent)",
   border: "1.5px solid var(--c-accent)",
   color: "#fff",
-  boxShadow: "0 8px 20px rgba(20, 44, 130, 0.22)",
+  boxShadow: "0 8px 20px rgba(var(--c-shade), 0.22)",
   fontWeight: 600,
 };
 
