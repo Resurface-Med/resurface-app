@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
+import { Fragment, useEffect, useMemo, useState, useRef, useCallback, useLayoutEffect } from "react";
 import { C } from "./theme";
 import Popover, { MenuItems } from "./Popover";
 import MoveToPicker from "./MoveToPicker";
@@ -166,6 +166,11 @@ export default function DeckTree({
   quietNoMatch = false,
   /* A section heading over the rows ("Your decks"), under Everything. */
   heading = null,
+  /* A second section in the same tree: { ids, content } draws `content`
+     above the first top-level row in `ids`. The ready-made decks sit under
+     yours this way, in one tree, so a folder of yours can be dragged into
+     one (Rafil, 2026-10-23). */
+  sectionBefore = null,
   /* Something to show above the heading (the note on what the
      ready-made decks cover). */
   intro = null,
@@ -509,7 +514,12 @@ export default function DeckTree({
           No sub-decks — everything here is in the one deck.
         </p>
       )}
-      {shown.map((r, i) => renderRow(r, i === shown.length - 1))}
+      {shown.map((r, i) => {
+        const at = sectionBefore && shown.findIndex(x => sectionBefore.ids.has(x.id)) === i;
+        return at
+          ? <Fragment key={r.id}>{sectionBefore.content}{renderRow(r, i === shown.length - 1)}</Fragment>
+          : renderRow(r, i === shown.length - 1);
+      })}
       <div aria-live="polite" className="sr-only">{said}</div>
     </div>
   );

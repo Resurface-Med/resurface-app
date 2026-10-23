@@ -854,33 +854,35 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 )}
               </section>
             )}</div> : null;
+    /* Yours and the ready-made decks in one tree, the second under its own
+       heading: one tree so a folder of yours can be dragged into a
+       ready-made deck (Rafil, 2026-10-23). It was two, to keep drags off
+       decks that are not yours; that now rests on rows only being draggable
+       when they are yours (n.mine), and App's moveDeck refusing anything
+       that is not a deck you may put things in. */
+    const both = ownRoots.length > 0 && featRoots.length > 0;
     const deckList = ({ key, ...treeProps }) => (
       <>
-        {(ownRoots.length > 0 || featRoots.length === 0) && (
+        {both ? (
+          <DeckTree key={key} {...treeProps} forest={[...ownRoots, ...featRoots]}
+            allAvail={allCount} heading="Your decks"
+            sectionBefore={{
+              ids: new Set(featRoots.map(n => n.id)),
+              content: <div key="__feat" className="feat-tree">{soonNote}<h3 className="deck-section-h">Ready-made decks</h3></div>,
+            }} />
+        ) : (ownRoots.length > 0 || featRoots.length === 0) ? (
           <DeckTree key={key} {...treeProps} forest={activeRoot ? forest : ownRoots}
             allAvail={activeRoot ? treeProps.allAvail : allCount}
-            quietNoMatch={featRoots.length > 0 && featMatch}
-            heading={featRoots.length > 0 ? "Your decks" : null} />
-        )}
-        {featRoots.length > 0 && featMatch && (
-          <div className={ownRoots.length ? "feat-tree" : undefined}>
-            {ownRoots.length > 0 && soonNote}
-            {ownRoots.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
-
-            <DeckTree key="featured" forest={featRoots} value={filter}
-              onChange={next => setFilter(f => ({ ...f, ...next }))}
-              query={topicQuery} showAll={ownRoots.length === 0} allLabel="Everything" allAvail={allCount}
-              /* With no decks of their own, the heading comes from the tree
-                 itself, under Everything, as "Your decks" does — so a new
-                 account can see what these are (Rafil, 2026-10-20). */
-              heading={ownRoots.length === 0 ? "Ready-made decks" : null}
-              intro={ownRoots.length === 0 ? soonNote : null}
-              rowMenu={rowMenu}
-              /* Folders of yours inside these move like your own decks;
-                 the ready-made ones around them do not (n.mine). */
-              onMove={treeProps.onMove} allForest={fullForest} allowEmpty
-              renamingId={treeProps.renamingId} onRename={treeProps.onRename} />
-          </div>
+            heading={null} />
+        ) : featMatch && (
+          <DeckTree key="featured" forest={featRoots} value={filter}
+            onChange={next => setFilter(f => ({ ...f, ...next }))}
+            query={topicQuery} allLabel="Everything" allAvail={allCount}
+            /* With no decks of their own, the heading comes from the tree
+               itself, under Everything, as "Your decks" does — so a new
+               account can see what these are (Rafil, 2026-10-20). */
+            heading="Ready-made decks" intro={soonNote}
+            rowMenu={rowMenu} allowEmpty />
         )}
         {hiddenNotes}
       </>
