@@ -464,7 +464,7 @@ export default function DeckTree({
             onKeyDown={e => onRowKey(e, n)}
           >
             <Check state={st} />
-            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}><Marked text={n.name} q={q} />{n.byline && <span className="topic-by">by {n.byline}</span>}{n.yours && <span className="topic-by">Yours</span>}{n.suggestion && <span className="topic-by">{n.suggestion}</span>}</span>
+            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}><Marked text={n.name} q={q} />{n.byline && <span className="topic-by">by {n.byline}</span>}{n.yours && <span className="topic-by">{n.suggestion ? `Yours · ${n.suggestion}` : "Yours"}</span>}</span>
             {depth === 0
               ? <span className="topic-meta">{n.due > 0 && <Figure className="topic-due" n={n.due} unit="to review" title={`${n.due} due for review`} />}{n.total === 0 && n.mine ? <span className="topic-avail">empty</span> : <Figure className="topic-avail" n={n.avail} unit={n.avail === 1 ? "question" : "questions"} />}</span>
               : <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />}
