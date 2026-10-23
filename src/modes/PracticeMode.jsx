@@ -17,6 +17,7 @@ import { isOnline } from "../lib/online";
 import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
+import QuestionReviewer from "../ui/QuestionReviewer";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
 
@@ -218,6 +219,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [sharing, setSharing] = useState(null);
   /* The deck whose questions are open in the manager (ui/QuestionManager). */
   const [managing, setManaging] = useState(null);
+  const [reviewing, setReviewing] = useState(null);           // { id, name }: the reviewer is open
   const [shareCopied, setShareCopied] = useState(false);
   async function copyShareLink() {
     if (!sharing) return;
@@ -753,8 +755,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const r = featured.find(x => (x.top ?? x.id) === topId);
       if (r) onHideFeatured?.(r.id, true);
     };
+    /* Review questions (2026-10-23): the admin team's reviewer, on any deck. */
+    const reviewItem = isFeaturedAdmin()
+      ? [{ label: "Review questions", onSelect: n => setReviewing({ id: n.id, name: n.name }) }]
+      : [];
     const manageFeatured = isFeaturedAdmin() && featuredActions
-      ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }]
+      ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }, ...reviewItem]
       : [];
     const featuredMenu = [
       ...manageFeatured,
@@ -762,6 +768,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     ];
     const rowMenu = node => node.mine ? [
       { label: "Manage questions", onSelect: n => setManaging(n.id) },
+      ...reviewItem,
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
@@ -956,6 +963,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* Drawn by both layouts. It was only in the desktop one, so on a phone
        Share set the deck and nothing appeared. */
+    const reviewer = reviewing && (
+      featuredDecks.some(d => d.id === reviewing.id)
+        ? <QuestionReviewer deckId={reviewing.id} deckName={reviewing.name} actions={featuredActions}
+            editPersist={(updated, q) => persistFor(q)?.(updated)} onClose={() => setReviewing(null)} />
+        : <QuestionReviewer deckId={reviewing.id} deckName={reviewing.name} actions={deckActions} onClose={() => setReviewing(null)} />
+    );
     const manager = managing && (
       featuredDecks.some(d => d.id === managing)
         ? <QuestionManager deckId={managing} decks={listDecks} pStats={pStats} actions={featuredActions}
@@ -1119,6 +1132,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           {shareSheet}
           {pastSheet}
           {manager}
+          {reviewer}
         </div>
       );
     }
@@ -1279,6 +1293,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         {shareSheet}
         {pastSheet}
         {manager}
+        {reviewer}
       </div>
     );
   }

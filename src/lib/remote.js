@@ -610,6 +610,27 @@ export async function setAdmin(userId, make) {
   if (error) throw new Error(error.message);
 }
 
+/* Question review (2026-10-23, migration 0046): the admin team's status
+   and comment thread per question, keyed on the database id. */
+export async function fetchReviewState(dbIds) {
+  const { data, error } = await supabase.rpc("admin_review_state", { qids: dbIds });
+  if (error) throw new Error(error.message);
+  return data ?? { reviews: [], comments: [] };
+}
+export async function setReviewStatus(dbId, status) {
+  const { error } = await supabase.rpc("admin_review_set", { qid: dbId, new_status: status });
+  if (error) throw new Error(error.message);
+}
+export async function addReviewComment(dbId, body) {
+  const { data, error } = await supabase.rpc("admin_review_comment", { qid: dbId, body });
+  if (error) throw new Error(error.message);
+  return data;
+}
+export async function removeReviewComment(id) {
+  const { error } = await supabase.rpc("admin_review_uncomment", { cid: id });
+  if (error) throw new Error(error.message);
+}
+
 export async function fetchFlags() {
   const { data, error } = await supabase.rpc("admin_flags");
   if (error) throw new Error(error.message);
