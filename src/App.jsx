@@ -41,7 +41,7 @@ import { keepImagesOffline } from "./lib/questionImage";
 import OfflineBar, { NeedsConnection } from "./ui/OfflineBar";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { seedExhibitDeck } from "./lib/seedExhibitDeck";
-import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck } from "./lib/decks";
+import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck, shelve } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs, getPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
@@ -217,7 +217,8 @@ export default function App() {
        your questions' paths run through those decks too — or they would
        count as a deck of their own at the top. Not through a hidden one. */
     const hiddenIds = new Set(f.roots.filter(r => r.hidden).map(r => r.id));
-    const byId = indexDecks([...deckRows, ...f.decks.filter(d => !hiddenIds.has(d.root))]);
+    const shown = f.decks.filter(d => !hiddenIds.has(d.root));
+    const byId = indexDecks([...shelve(deckRows, shown), ...shown]);
     const decorated = rows.map(r => decorateUserQuestion(r, byId));
     const hidden = new Set(f.roots.filter(r => r.hidden).map(r => r.top ?? r.id));
     const fById = indexDecks(f.decks);
@@ -228,7 +229,7 @@ export default function App() {
     setGenerated(decorated);
   }
   /* Progress reads every deck you practise from, featured ones included. */
-  const progressDecks = useMemo(() => [...decks, ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
+  const progressDecks = useMemo(() => [...shelve(decks, featuredDecks), ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
   function applyFeatured(next) {
     const f = next ?? { roots: [], decks: [], questions: [] };
     featuredRef.current = f;
@@ -636,26 +637,41 @@ export default function App() {
      the render's decks, so two moves in quick succession build on each other. */
   function moveDeck(id, parentId = null, beforeId = null) {
     const prev = decksRef.current;
-    /* Into a ready-made deck (yours stays yours, inside it). Its own decks
-       are not yours to renumber, so yours goes after them, in one write.
-       A heading like "Year 2" has no deck behind it and takes nothing. */
-    const host = parentId && !prev.some(d => d.id === parentId)
-      ? featuredRef.current.decks.find(d => d.id === parentId) : null;
-    if (parentId && !prev.some(d => d.id === parentId) && (!host || host.folder)) return false;
-    const r = host
-      ? (() => {
-          const sibs = [...prev, ...featuredRef.current.decks].filter(d => d.parentId === parentId && d.id !== id);
-          const position = (sibs.length ? Math.max(...sibs.map(d => d.position ?? 0)) : 0) + 1024;
-          return { decks: prev.map(d => (d.id === id ? { ...d, parentId, position } : d)), changes: [{ id, patch: { parent_id: parentId, position } }] };
-        })()
-      : moveDeckTo(prev, id, parentId ?? null, beforeId ?? null);
+    /* Into a ready-made deck (yours stays yours, inside it), or under one
+       of their headings ("Year 2" — there is no deck behind it, so yours
+       stays at the top and remembers the heading: shelf). Their decks are
+       not yours to renumber, so yours goes after them, in one write. */
+    const feat = featuredRef.current.decks;
+    const own = parentId && prev.some(d => d.id === parentId);
+    const host = parentId && !own ? feat.find(d => d.id === parentId) : null;
+    if (parentId && !own && !host) return false;
+    const moving = prev.find(d => d.id === id);
+    let r;
+    if (host) {
+      const drawn = shelve(prev, feat);
+      const sibs = [...drawn, ...feat].filter(d => d.parentId === parentId && d.id !== id);
+      const position = (sibs.length ? Math.max(...sibs.map(d => d.position ?? 0)) : 0) + 1024;
+      const patch = { parent_id: host.folder ? null : parentId, position, shelf: host.folder ? host.name : null };
+      r = {
+        decks: prev.map(d => (d.id === id ? { ...d, parentId: patch.parent_id, position, shelf: patch.shelf } : d)),
+        changes: [{ id, patch }],
+      };
+    } else {
+      r = moveDeckTo(prev, id, parentId ?? null, beforeId ?? null);
+      /* Out from under a heading: it is no longer filed there. */
+      if (r && moving?.shelf) {
+        const c = r.changes.find(x => x.id === id) ?? (r.changes.push({ id, patch: {} }), r.changes[r.changes.length - 1]);
+        c.patch = { ...c.patch, shelf: null };
+        r.decks = r.decks.map(d => (d.id === id ? { ...d, shelf: null } : d));
+      }
+    }
     if (!r || r.changes.length === 0) return false;
     applyDecks(r.decks);
     for (const c of r.changes) remote.updateDeck(c.id, c.patch);
     /* Undone by writing back what each changed row held before. */
     const was = r.changes.map(c => {
       const d = prev.find(x => x.id === c.id);
-      return { id: c.id, parentId: d?.parentId ?? null, position: d?.position ?? null };
+      return { id: c.id, parentId: d?.parentId ?? null, position: d?.position ?? null, shelf: d?.shelf ?? null };
     });
     const name = prev.find(d => d.id === id)?.name ?? "deck";
     const into = parentId ? (prev.find(d => d.id === parentId) ?? host)?.name : null;
@@ -665,9 +681,9 @@ export default function App() {
       undo: () => {
         applyDecks(decksRef.current.map(d => {
           const w = was.find(x => x.id === d.id);
-          return w ? { ...d, parentId: w.parentId, position: w.position } : d;
+          return w ? { ...d, parentId: w.parentId, position: w.position, shelf: w.shelf } : d;
         }));
-        for (const w of was) remote.updateDeck(w.id, { parent_id: w.parentId, position: w.position });
+        for (const w of was) remote.updateDeck(w.id, { parent_id: w.parentId, position: w.position, shelf: w.shelf });
       },
     });
     return true;

@@ -441,11 +441,11 @@ export async function loadFeatured() {
  */
 export async function loadUserDecks() {
   const { data, error } = await selectAll(() => supabase.from("decks")
-    .select("id, name, parent_id, position, share_code, created_at"), "id");
+    .select("id, name, parent_id, position, share_code, created_at, shelf"), "id");
   if (error) throw error;
   return (data ?? []).map(r => ({
     id: r.id, name: r.name, parentId: r.parent_id, position: r.position,
-    shareCode: r.share_code, createdAt: r.created_at,
+    shareCode: r.share_code, createdAt: r.created_at, shelf: r.shelf ?? null,
   }));
 }
 

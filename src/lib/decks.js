@@ -13,6 +13,20 @@ import { compareDecks } from "./deckOrder";
 
 export { deckPath, decorateUserQuestion } from "./deckPaths";
 
+/**
+ * Your decks as drawn beside the ready-made ones: a deck filed under a
+ * ready-made heading ("Year 2" — shelf) hangs from that heading, which has
+ * no row of its own. Without the heading on screen (hidden, or gone) it is
+ * at the top, where it really is.
+ */
+export function shelve(decks, featuredDecks) {
+  const heads = new Map(featuredDecks.filter(d => d.folder).map(d => [d.name.toLowerCase(), d.id]));
+  return decks.map(d => {
+    const at = !d.parentId && d.shelf ? heads.get(d.shelf.toLowerCase()) : null;
+    return at ? { ...d, parentId: at } : d;
+  });
+}
+
 export function indexDecks(decks) {
   return new Map(decks.map(d => [d.id, d]));
 }
@@ -57,7 +71,7 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
     if (d.featured) { n.featured = true; n.byline = d.byline ?? null; if (d.folder) n.folder = true; }
     /* A folder of yours inside a ready-made deck: marked, since nobody
        else sees it. Only the top one; what is in it is plainly yours too. */
-    else if (parent?.featured) n.yours = true;
+    else if (parent?.featured) { n.yours = true; if (parent.folder) n.shelved = true; }
     return n;
   }
   for (const d of sorted) ensureDeck(d);

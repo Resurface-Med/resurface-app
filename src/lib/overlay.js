@@ -94,6 +94,7 @@ export function overlayOps(snap, ops) {
           ...(p.name !== undefined ? { name: p.name } : {}),
           ...(p.parent_id !== undefined ? { parentId: p.parent_id } : {}),
           ...(p.position !== undefined ? { position: p.position } : {}),
+          ...(p.shelf !== undefined ? { shelf: p.shelf } : {}),
         } : d));
         break;
       }

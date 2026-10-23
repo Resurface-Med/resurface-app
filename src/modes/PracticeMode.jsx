@@ -11,7 +11,7 @@ import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree, { prune } from "../ui/DeckTree";
 import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
-import { buildForest, leavesUnder, findNode, deckShareUrl, walk } from "../lib/decks";
+import { buildForest, leavesUnder, findNode, deckShareUrl, walk, shelve } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
 import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
@@ -278,7 +278,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const decksById = useMemo(() => new Map(decks.map(d => [d.id, d])), [decks]);
   /* Yours and the featured ones, for drawing the list; decksById stays
      yours alone, since everything that reads it renames, shares or deletes. */
-  const listDecks = useMemo(() => [...decks, ...featuredDecks], [decks, featuredDecks]);
+  const listDecks = useMemo(() => [...shelve(decks, featuredDecks), ...featuredDecks], [decks, featuredDecks]);
   const activeDeck = activeRootId ? decksById.get(activeRootId) ?? null : null;
   useEffect(() => { if (openDeckId) onOpenDeckConsumed?.(); }, []);
 
@@ -790,7 +790,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
       /* A folder of yours inside a ready-made deck can go to the reviewers,
          to be added for everyone. */
-      ...(node.yours ? [{ label: mySuggestions.some(s => s.deckId === node.id) ? "Your suggestion" : "Suggest for everyone", onSelect: n => setSuggesting(n.id) }] : []),
+      /* Not one filed under a heading ("Year 2"): there is no deck to add to. */
+      ...(node.yours && !node.shelved ? [{ label: mySuggestions.some(s => s.deckId === node.id) ? "Your suggestion" : "Suggest for everyone", onSelect: n => setSuggesting(n.id) }] : []),
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ] : node.byline && onHideFeatured ? featuredMenu
