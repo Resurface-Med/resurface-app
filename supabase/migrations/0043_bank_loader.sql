@@ -4,7 +4,8 @@
 -- them under Principles › Week › Subject › Lecture on one account, finding
 -- each deck by name under its parent before making it, so each week reuses
 -- what the last one made. A lecture deck that already holds questions is
--- left alone rather than filled twice.
+-- left alone rather than filled twice (0044 changes this to adding only
+-- the questions it does not have).
 --
 -- Callable only with the service role — through the bank-load edge
 -- function, which checks a one-off token against bank_loader first.

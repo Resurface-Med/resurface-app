@@ -13,6 +13,9 @@
  *
  *   node scripts/build-year1.mjs <manifest.json> <lectures dir> [--week 1] [--only w1-04] [--dry]
  *
+ * --topup asks again, once, for any lecture that came back short, telling
+ * the model what it already wrote (as Generate does for "add more").
+ *
  * --dry reads every lecture and reports how much text it found, with no
  * call to the model.
  *
@@ -145,9 +148,12 @@ async function backend() {
     });
   };
 
-  return async function generate({ apiKey, label, text, n }) {
+  return async function generate({ apiKey, label, text, n, existing = [] }) {
+    /* As the route: the newest 60 stems, each with its answer, in the prompt. */
+    const clip = (x, k) => (x.length > k ? `${x.slice(0, k)}…` : x);
+    const avoid = existing.slice(-60).map(x => (x.a ? `${clip(x.q, 160)} (answer: ${clip(x.a, 60)})` : clip(x.q, 160)));
     const result = await callGemini({
-      apiKey, model: MODEL, system: systemPrompt(n, []),
+      apiKey, model: MODEL, system: systemPrompt(n, avoid),
       input: [{ type: "text", text: `Topic: ${label}\n\n${text}` }],
       schema: QUESTION_SCHEMA, timeoutMs: ATTEMPT_MS,
     });
@@ -155,7 +161,7 @@ async function backend() {
     const parsed = parse(result.text);
     if (!parsed) return { error: "invalid JSON" };
     const fresh = dropGiveaways(parsed);
-    const { kept, removed } = dropRepeats(fresh.kept, []);
+    const { kept, removed } = dropRepeats(fresh.kept, existing);
     return { questions: kept, givenAway: fresh.removed, repeats: removed, usage: result.usage };
   };
 }
@@ -181,12 +187,16 @@ const failed = [];
 let made = 0, last = 0;
 for (const l of lectures) {
   const out = join(OUT, `${l.id}.json`);
-  if (existsSync(out)) { console.log(`· ${l.id} ${l.title}: already done`); continue; }
+  const topup = args.includes("--topup");
+  const prev = existsSync(out) ? JSON.parse(readFileSync(out, "utf8")) : null;
+  if (prev && !(topup && prev.questions.length < COUNT[l.weight])) { console.log(`· ${l.id} ${l.title}: already done`); continue; }
+  if (!prev && topup) continue;
 
   const path = findFile(lecturesDir, l.file);
   if (!path) { failed.push([l.id, "file not found"]); console.log(`✕ ${l.id} ${l.title}: file not found`); continue; }
   const text = await readLecture(path);
-  const n = COUNT[l.weight];
+  const existing = (prev?.questions ?? []).map(q => ({ q: q.q, a: q.opts[q.ans] }));
+  const n = COUNT[l.weight] - existing.length;
   if (dry) { console.log(`· ${l.id} ${l.title}: ${text.length} chars for ${n} questions`); continue; }
   const label = ["Principles", `Week ${l.week}`, l.subject, l.title].join(" › ");
 
@@ -195,16 +205,17 @@ for (const l of lectures) {
     const wait = last + 60_000 / PER_MINUTE - Date.now();
     if (wait > 0) await sleep(wait);
     last = Date.now();
-    res = await generate({ apiKey, label, text, n });
+    res = await generate({ apiKey, label, text, n, existing });
     if (!res.error) break;
     console.log(`  ${l.id} attempt ${attempt}: ${res.error}`);
     if (attempt < 3) await sleep(60_000);
   }
   if (res.error) { failed.push([l.id, res.error]); console.log(`✕ ${l.id} ${l.title}: ${res.error}`); continue; }
 
-  writeFileSync(out, JSON.stringify({ ...l, label, asked: n, model: MODEL, chars: text.length, ...res }, null, 1));
+  const questions = [...(prev?.questions ?? []), ...res.questions];
+  writeFileSync(out, JSON.stringify({ ...l, label, asked: COUNT[l.weight], model: MODEL, chars: text.length, ...res, questions }, null, 1));
   made += res.questions.length;
-  console.log(`✓ ${l.id} ${l.title}: ${res.questions.length}/${n}` +
+  console.log(`✓ ${l.id} ${l.title}: ${prev ? `+${res.questions.length}, now ${questions.length}` : res.questions.length}/${COUNT[l.weight]}` +
     (res.givenAway ? `, ${res.givenAway} gave the answer away` : "") + (res.repeats ? `, ${res.repeats} repeats` : ""));
 }
 
