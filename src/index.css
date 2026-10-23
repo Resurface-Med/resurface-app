@@ -10806,3 +10806,19 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .qr .pss-seg__b { padding: 7px 11px; }
 }
 .qr .pss-seg__b { white-space: nowrap; }
+
+/* ── Suggestions (2026-10-23) ─────────────────────────────────────────
+   A student's folder inside a ready-made deck, sent for everyone. The
+   reviewer's side reuses the report block; the student's is the NamePrompt
+   card. */
+.qr-sug { border-left-color: var(--c-accent); }
+.qr-sug p { margin: 6px 0 0; color: var(--c-sub); }
+.qr-keepout { display: grid; gap: 10px; margin-top: 18px; }
+.qr-keepout .qr-actions { margin-top: 0; }
+.sg-note { resize: vertical; min-height: 84px; font: inherit; line-height: 1.45; }
+.sg-kept { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-height: 40vh; overflow-y: auto; }
+.sg-kept li { display: grid; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--c-border); }
+.sg-kept li:last-child { border-bottom: 0; padding-bottom: 0; }
+.sg-kept__q { font-size: 14.5px; line-height: 1.45; color: var(--c-text); }
+.sg-kept__why { font-size: 13.5px; line-height: 1.45; color: var(--c-muted); }
+.qr-addall { margin-left: auto; }

@@ -11,13 +11,15 @@ import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree, { prune } from "../ui/DeckTree";
 import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
-import { buildForest, leavesUnder, findNode, deckShareUrl } from "../lib/decks";
+import { buildForest, leavesUnder, findNode, deckShareUrl, walk } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
 import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import QuestionReviewer from "../ui/QuestionReviewer";
+import SuggestPrompt from "../ui/SuggestPrompt";
+import { suggestDeck, withdrawSuggestion, fetchMySuggestions } from "../lib/remote";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
 
@@ -220,6 +222,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* The deck whose questions are open in the manager (ui/QuestionManager). */
   const [managing, setManaging] = useState(null);
   const [reviewing, setReviewing] = useState(null);           // { id, name }: the reviewer is open
+  /* Your folders inside ready-made decks that you suggested for everyone,
+     and the one whose suggestion pop-up is open (ui/SuggestPrompt). */
+  const [mySuggestions, setMySuggestions] = useState([]);
+  const [suggesting, setSuggesting] = useState(null);
+  const loadSuggestions = () => { if (isOnline()) fetchMySuggestions().then(setMySuggestions, () => {}); };
+  useEffect(loadSuggestions, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [shareCopied, setShareCopied] = useState(false);
   async function copyShareLink() {
     if (!sharing) return;
@@ -704,6 +712,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const eligibleSet = new Set(eligibleIds);
     const dueSet = new Set(QUESTIONS.filter(x => isReviewDue(srCards[x.id])).map(x => x.id));
     const fullForest = buildForest({ questions: QUESTIONS, decks: listDecks, pStats, eligible: eligibleSet, due: dueSet });
+    for (const s of mySuggestions) {
+      const n = findNode(fullForest, s.deckId);
+      if (n) n.suggestion = s.waiting > 0 ? "Suggested" : s.added > 0 ? `${s.added} added` : "Reviewed";
+    }
     const activeRoot = activeRootId ? findNode(fullForest, activeRootId) : null;
     /* Inside a tab, the tree is what is under the root — the tab itself is
        the heading, not a row. */
@@ -776,6 +788,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
          it used to live and why fourteen shareable decks had been shared
          exactly zero times. */
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
+      /* A folder of yours inside a ready-made deck can go to the reviewers,
+         to be added for everyone. */
+      ...(node.yours ? [{ label: mySuggestions.some(s => s.deckId === node.id) ? "Your suggestion" : "Suggest for everyone", onSelect: n => setSuggesting(n.id) }] : []),
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ] : node.byline && onHideFeatured ? featuredMenu
@@ -860,7 +875,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                  account can see what these are (Rafil, 2026-10-20). */
               heading={ownRoots.length === 0 ? "Ready-made decks" : null}
               intro={ownRoots.length === 0 ? soonNote : null}
-              rowMenu={rowMenu} />
+              rowMenu={rowMenu}
+              /* Folders of yours inside these move like your own decks;
+                 the ready-made ones around them do not (n.mine). */
+              onMove={treeProps.onMove} allForest={fullForest} allowEmpty
+              renamingId={treeProps.renamingId} onRename={treeProps.onRename} />
           </div>
         )}
         {hiddenNotes}
@@ -963,12 +982,31 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* Drawn by both layouts. It was only in the desktop one, so on a phone
        Share set the deck and nothing appeared. */
+    /* Every deck under the one being reviewed: a suggestion for any of them
+       shows in its Suggested tab. */
+    const reviewIds = reviewing ? new Set(walk(findNode(fullForest, reviewing.id) ?? { id: reviewing.id, children: [] }).map(n => n.id)) : null;
     const reviewer = reviewing && (
       featuredDecks.some(d => d.id === reviewing.id)
-        ? <QuestionReviewer deckId={reviewing.id} deckName={reviewing.name} actions={featuredActions}
+        ? <QuestionReviewer deckId={reviewing.id} deckName={reviewing.name} actions={featuredActions} deckIds={reviewIds}
             editPersist={(updated, q) => persistFor(q)?.(updated)} onClose={() => setReviewing(null)} />
-        : <QuestionReviewer deckId={reviewing.id} deckName={reviewing.name} actions={deckActions} onClose={() => setReviewing(null)} />
+        : <QuestionReviewer deckId={reviewing.id} deckName={reviewing.name} actions={deckActions} deckIds={reviewIds} onClose={() => setReviewing(null)} />
     );
+    const suggestPrompt = suggesting && (() => {
+      const host = featuredDecks.find(d => d.id === decksById.get(suggesting)?.parentId);
+      const sug = mySuggestions.find(s => s.deckId === suggesting) ?? null;
+      return (
+        <SuggestPrompt
+          folderName={decksById.get(suggesting)?.name ?? "This folder"}
+          deckName={host?.name ?? "this deck"}
+          owner={featured.find(r => r.id === host?.root)?.byline ?? null}
+          count={QUESTIONS.filter(x => x.gen && x.path?.some(p => p.id === suggesting)).length}
+          status={sug}
+          onSend={async note => { await suggestDeck(suggesting, note); loadSuggestions(); }}
+          onWithdraw={async () => { await withdrawSuggestion(suggesting); loadSuggestions(); }}
+          onClose={() => setSuggesting(null)}
+        />
+      );
+    })();
     const manager = managing && (
       featuredDecks.some(d => d.id === managing)
         ? <QuestionManager deckId={managing} decks={listDecks} pStats={pStats} actions={featuredActions}
@@ -1103,7 +1141,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                              its top level is the tab's deck, and Move to…
                              needs the whole tree to reach the other tabs. */
                           onMove: (id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId),
-                          allForest: fullForest.filter(n => !n.featured),
+                          allForest: fullForest,
                           rootParentId: activeRoot ? activeRootId : null,
                           ...renameProps,
                           allowEmpty: true,
@@ -1133,6 +1171,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           {pastSheet}
           {manager}
           {reviewer}
+          {suggestPrompt}
         </div>
       );
     }
@@ -1256,6 +1295,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   allAvail: null,
                   rowMenu,
                   onMove: (id, parentId, beforeId) => deckActions.moveDeck(id, parentId, beforeId),
+                  /* Move to… offers the ready-made decks as well: a folder of
+                     yours can go inside one, for you alone (2026-10-23). */
+                  allForest: fullForest,
                   ...renameProps,
                   allowEmpty: true,
                 })}
@@ -1294,6 +1336,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         {pastSheet}
         {manager}
         {reviewer}
+        {suggestPrompt}
       </div>
     );
   }

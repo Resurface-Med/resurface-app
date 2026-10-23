@@ -16,7 +16,8 @@ export default function MoveToPicker({ forest, node, currentParentId, rootLabel 
     (function walk(nodes, depth) {
       for (const n of nodes) {
         if (n.id === node.id) continue;
-        out.push({ id: n.id, name: n.name, depth });
+        /* A heading ("Year 2") is shown, for the shape, but takes nothing. */
+        out.push({ id: n.id, name: n.name, depth, heading: Boolean(n.folder) });
         walk(n.children, depth + 1);
       }
     })(forest, 0);
@@ -53,7 +54,7 @@ export default function MoveToPicker({ forest, node, currentParentId, rootLabel 
           return (
             <button key={o.id} type="button" role="option" aria-selected={here} className="pop-item move-pick__item"
               style={{ paddingLeft: 12 + (needle ? 0 : o.depth * 14) }}
-              disabled={here} onClick={() => onPick(o.id)}>
+              disabled={here || o.heading} onClick={() => onPick(o.id)}>
               <span className="move-pick__name">{o.name}</span>
               {here && <span className="move-pick__here">Here now</span>}
             </button>

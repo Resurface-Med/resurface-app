@@ -212,9 +212,13 @@ export default function App() {
   const featuredDecks = featured.decks.filter(d => !hiddenRoots.has(d.root));
   function applyGenerated(rows, deckRows = decksRef.current) {
     genRowsRef.current = rows;
-    const byId = indexDecks(deckRows);
-    const decorated = rows.map(r => decorateUserQuestion(r, byId));
     const f = featuredRef.current;
+    /* A folder of yours can sit inside a ready-made deck (2026-10-23), so
+       your questions' paths run through those decks too — or they would
+       count as a deck of their own at the top. Not through a hidden one. */
+    const hiddenIds = new Set(f.roots.filter(r => r.hidden).map(r => r.id));
+    const byId = indexDecks([...deckRows, ...f.decks.filter(d => !hiddenIds.has(d.root))]);
+    const decorated = rows.map(r => decorateUserQuestion(r, byId));
     const hidden = new Set(f.roots.filter(r => r.hidden).map(r => r.top ?? r.id));
     const fById = indexDecks(f.decks);
     const shared = f.questions
@@ -239,6 +243,8 @@ export default function App() {
       try { await adminDeleteFeatured(ids); } finally { await refreshData(); }
     },
     moveQuestions: null,
+    /* After a suggested question is added to a deck: it is in the deck now. */
+    refresh: () => refreshData(),
   };
   function hideFeatured(id, hide) {
     const f = featuredRef.current;
@@ -630,7 +636,19 @@ export default function App() {
      the render's decks, so two moves in quick succession build on each other. */
   function moveDeck(id, parentId = null, beforeId = null) {
     const prev = decksRef.current;
-    const r = moveDeckTo(prev, id, parentId ?? null, beforeId ?? null);
+    /* Into a ready-made deck (yours stays yours, inside it). Its own decks
+       are not yours to renumber, so yours goes after them, in one write.
+       A heading like "Year 2" has no deck behind it and takes nothing. */
+    const host = parentId && !prev.some(d => d.id === parentId)
+      ? featuredRef.current.decks.find(d => d.id === parentId) : null;
+    if (parentId && !prev.some(d => d.id === parentId) && (!host || host.folder)) return false;
+    const r = host
+      ? (() => {
+          const sibs = [...prev, ...featuredRef.current.decks].filter(d => d.parentId === parentId && d.id !== id);
+          const position = (sibs.length ? Math.max(...sibs.map(d => d.position ?? 0)) : 0) + 1024;
+          return { decks: prev.map(d => (d.id === id ? { ...d, parentId, position } : d)), changes: [{ id, patch: { parent_id: parentId, position } }] };
+        })()
+      : moveDeckTo(prev, id, parentId ?? null, beforeId ?? null);
     if (!r || r.changes.length === 0) return false;
     applyDecks(r.decks);
     for (const c of r.changes) remote.updateDeck(c.id, c.patch);
@@ -640,7 +658,7 @@ export default function App() {
       return { id: c.id, parentId: d?.parentId ?? null, position: d?.position ?? null };
     });
     const name = prev.find(d => d.id === id)?.name ?? "deck";
-    const into = parentId ? prev.find(d => d.id === parentId)?.name : null;
+    const into = parentId ? (prev.find(d => d.id === parentId) ?? host)?.name : null;
     const movedParent = (prev.find(d => d.id === id)?.parentId ?? null) !== (parentId ?? null);
     offerUndo({
       label: movedParent ? `Moved “${name}” ${into ? `into “${into}”` : "to the top"}` : `Moved “${name}”`,

@@ -420,6 +420,9 @@ export async function loadFeatured() {
       id: d.id, name: d.name, parentId: d.parentId,
       position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
       featured: true, root: d.root, byline: d.parentId ? null : byTop.get(d.id)?.byline ?? null,
+      /* A heading the decks are grouped under ("Year 2"), not a deck: there
+         is no row behind it, so nothing can be put in it. */
+      folder: roots.some(r => r.top === d.id && r.top !== r.id),
     })),
     questions: (data.questions ?? []).map(r => {
       /* `gen` on a saved payload would mark a premade question as yours, and
@@ -629,6 +632,51 @@ export async function addReviewComment(dbId, body) {
 export async function removeReviewComment(id) {
   const { error } = await supabase.rpc("admin_review_uncomment", { cid: id });
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Your folders inside a ready-made deck, suggested for everyone (migration
+ * 0048). A suggestion is the whole folder; reviewers add or keep out each
+ * question in it, and an added one moves into the deck, keeping its id.
+ */
+export async function suggestDeck(deckId, note) {
+  const { error } = await supabase.rpc("suggest_deck", { deck: deckId, note: note ?? null });
+  if (error) throw error;
+}
+
+export async function withdrawSuggestion(deckId) {
+  const { error } = await supabase.rpc("withdraw_suggestion", { deck: deckId });
+  if (error) throw error;
+}
+
+/** [{ deckId, at, note, added, waiting, kept: [{ qid, q, reason }] }] — qid is the app id. */
+export async function fetchMySuggestions() {
+  const { data, error } = await supabase.rpc("my_suggestions");
+  if (error) throw error;
+  return (data ?? []).map(s => ({ ...s, kept: (s.kept ?? []).map(k => ({ ...k, qid: GEN_ID_BASE + Number(k.qid) })) }));
+}
+
+/**
+ * Admins: every suggestion, with its questions still in the author's folder.
+ * [{ id, deckId, deckName, target, by, note, at, added, questions: [q] }],
+ * each q a question like the app's own, plus dbId, status ("kept" or null
+ * while waiting) and reason.
+ */
+export async function fetchSuggestions() {
+  const { data, error } = await supabase.rpc("admin_suggestions");
+  if (error) throw error;
+  return (data ?? []).map(s => ({
+    ...s,
+    questions: (s.questions ?? []).map(x => {
+      const { gen: _gen, ...payload } = x.payload ?? {};
+      return { ...payload, id: GEN_ID_BASE + Number(x.id), dbId: Number(x.id), status: x.status ?? null, reason: x.reason ?? null };
+    }),
+  }));
+}
+
+export async function decideSuggestion(dbId, accept, why) {
+  const { error } = await supabase.rpc("admin_suggestion_decide", { qid: dbId, accept, why: why ?? null });
+  if (error) throw error;
 }
 
 export async function fetchFlags() {

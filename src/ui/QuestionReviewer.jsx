@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { questionsInDeck } from "../lib/decks";
 import { GEN_ID_BASE } from "../data";
-import { fetchReviewState, setReviewStatus, addReviewComment, removeReviewComment, fetchFlags } from "../lib/remote";
+import { fetchReviewState, setReviewStatus, addReviewComment, removeReviewComment, fetchFlags, fetchSuggestions, decideSuggestion } from "../lib/remote";
 import { useAuth } from "../lib/auth";
 import { ago } from "../lib/pastSessions";
 import EditQuestionModal from "./EditQuestionModal";
@@ -23,6 +23,11 @@ import QuestionImage from "./QuestionImage";
  *
  * Keys: ↑/↓ or J/K move, A approves, F flags, E edits. Nothing fires while
  * typing a comment.
+ *
+ * Suggested: students' folders put inside this deck and sent for everyone
+ * (migration 0048). Each question is added — it moves into the deck, with
+ * their name on it, approved — or kept out with a reason they see. Only
+ * there while some are waiting.
  */
 const LETTERS = "ABCDE";
 const dbId = q => q.id - GEN_ID_BASE;
@@ -31,6 +36,7 @@ const FILTERS = [
   ["todo", "To review"],
   ["flagged", "Flagged"],
   ["reported", "Reported"],
+  ["suggested", "Suggested"],
 ];
 
 function Mark({ status, reported }) {
@@ -40,7 +46,7 @@ function Mark({ status, reported }) {
   return <span className="qr-mark" aria-label="Not reviewed">–</span>;
 }
 
-export default function QuestionReviewer({ deckId, deckName, actions, editPersist = null, onClose }) {
+export default function QuestionReviewer({ deckId, deckName, actions, editPersist = null, deckIds = null, onClose }) {
   const { user } = useAuth();
   const [version, setVersion] = useState(0);
   void version;
@@ -56,6 +62,8 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [showList, setShowList] = useState(false);              // phones
+  const [suggested, setSuggested] = useState([]);               // waiting questions, each with .sug
+  const [keepOut, setKeepOut] = useState(null);                 // the reason being written, or null
   const listRef = useRef(null);
   const detailRef = useRef(null);
 
@@ -63,7 +71,12 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   async function load() {
     try {
       const ids = idsKey ? idsKey.split(",").map(Number).map(id => id - GEN_ID_BASE) : [];
-      const [state, flags] = await Promise.all([fetchReviewState(ids), fetchFlags().catch(() => [])]);
+      const [state, flags, sugs] = await Promise.all([
+        fetchReviewState(ids), fetchFlags().catch(() => []), fetchSuggestions().catch(() => []),
+      ]);
+      setSuggested(sugs
+        .filter(s => s.target === deckId || deckIds?.has(s.target))
+        .flatMap(s => s.questions.filter(x => !x.status).map(x => ({ ...x, sug: s }))));
       setReviews(new Map((state.reviews ?? []).map(r => [r.qid, r])));
       setComments(state.comments ?? []);
       setReports(new Map((flags ?? []).map(f => [f.question_id, f])));
@@ -81,13 +94,14 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
     if (filter === "reported") return reports.has(q.id);
     return true;
   });
+  if (filter === "suggested") shown.splice(0, shown.length, ...suggested);
 
-  const q = all.find(x => x.id === cur) ?? shown[0] ?? null;
+  const q = (filter === "suggested" ? suggested : all).find(x => x.id === cur) ?? shown[0] ?? null;
   const idx = q ? shown.findIndex(x => x.id === q.id) : -1;
   const approved = all.filter(x => statusOf(x) === "approved").length;
   const flagged = all.filter(x => statusOf(x) === "flagged").length;
   const reportedN = all.filter(x => reports.has(x.id)).length;
-  const counts = { all: all.length, todo: all.length - approved, flagged, reported: reportedN };
+  const counts = { all: all.length, todo: all.length - approved, flagged, reported: reportedN, suggested: suggested.length };
 
   const go = step => {
     if (!shown.length) return;
@@ -121,6 +135,28 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
       const after = shown.slice(idx + 1).find(x => statusOf(x) !== "approved" && x.id !== q.id);
       if (after) setCur(after.id);
     }
+  }
+
+  /* A suggested question: added for everyone, or kept out (with a reason
+     the student sees). Either way it leaves this list. */
+  async function decide(x, accept, why = null) {
+    setBusy(true);
+    try { await decideSuggestion(x.dbId, accept, why); }
+    catch (e) { setLoadError(e.message || "That didn’t go through."); setBusy(false); return; }
+    setBusy(false);
+    setKeepOut(null);
+    const rest = suggested.filter(s => s.id !== x.id);
+    setSuggested(rest);
+    setCur(rest[Math.min(Math.max(idx, 0), rest.length - 1)]?.id ?? null);
+    if (accept) actions?.refresh?.();
+  }
+  async function addAll(s) {
+    setBusy(true);
+    try { for (const x of suggested.filter(y => y.sug.id === s.id)) await decideSuggestion(x.dbId, true); }
+    catch (e) { setLoadError(e.message || "That didn’t go through."); }
+    setBusy(false);
+    await load();
+    actions?.refresh?.();
   }
 
   async function post() {
@@ -159,6 +195,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
       const k = e.key.toLowerCase();
       if (k === "arrowdown" || k === "j") { e.preventDefault(); go(1); }
       else if (k === "arrowup" || k === "k") { e.preventDefault(); go(-1); }
+      else if (q?.sug) { if (k === "a" && !busy) decide(q, true); }
       else if (k === "a") setStatus("approved");
       else if (k === "f") setStatus("flagged");
       else if (k === "e" && q) setEditing(q);
@@ -168,6 +205,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   });
 
   const where = x => {
+    if (x.sug) return `From ${x.sug.by} · ${x.sug.deckName}`;
     const path = x.path ?? [];
     const at = path.findIndex(p => p.id === deckId);
     return path.slice(at + 1).map(p => p.name).join(" › ");
@@ -194,14 +232,14 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
           <div className="qr-progress" role="img" aria-label={`${pct}% approved`}><span style={{ width: `${pct}%` }} /></div>
           <div className="qr-toolbar">
             <div className="pss-seg" role="tablist" aria-label="Show">
-              {FILTERS.map(([k, label]) => (
+              {FILTERS.filter(([k]) => k !== "suggested" || suggested.length > 0 || filter === k).map(([k, label]) => (
                 <button key={k} type="button" role="tab" aria-selected={filter === k} className={`pss-seg__b${filter === k ? " is-on" : ""}`}
                   onClick={() => { setFilter(k); setShowList(true); }}>
                   {label}<span className="pss-seg__n">{counts[k]}</span>
                 </button>
               ))}
             </div>
-            <span className="qr-keys" aria-hidden="true">↑↓ move · A approve · F flag · E edit</span>
+            <span className="qr-keys" aria-hidden="true">{filter === "suggested" ? "↑↓ move · A add for everyone" : "↑↓ move · A approve · F flag · E edit"}</span>
           </div>
           {loadError && <p className="qr-error">{loadError} <button type="button" className="gen-link" onClick={load}>Try again</button></p>}
         </header>
@@ -214,17 +252,17 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                 <li key={x.id}>
                   <button type="button" className={`qr-item${q && x.id === q.id ? " is-on" : ""}`}
                     onClick={() => { setCur(x.id); setShowList(false); setConfirmDelete(false); }}>
-                    <span className="qr-item__n">{n}</span>
+                    <span className="qr-item__n">{x.sug ? shown.indexOf(x) + 1 : n}</span>
                     <span className="qr-item__text">
                       <span className="qr-item__stem">{x.q}</span>
                       <span className="qr-item__where">{where(x) || deckName}</span>
                     </span>
-                    <Mark status={statusOf(x)} reported={reports.has(x.id)} />
+                    {x.sug ? <span className="qr-mark" aria-hidden="true" /> : <Mark status={statusOf(x)} reported={reports.has(x.id)} />}
                   </button>
                 </li>
               );
             })}
-            {shown.length === 0 && <li className="pss-none">{filter === "todo" ? "Everything here is approved." : "Nothing here."}</li>}
+            {shown.length === 0 && <li className="pss-none">{filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
           </ol>
 
           <section className="qr-detail" ref={detailRef} aria-live="polite">
@@ -268,19 +306,49 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                   </div>
                 )}
 
-                <div className="qr-actions">
-                  <button type="button" className={`pss-btn btn-press${review?.status === "approved" ? " is-primary" : ""}`} onClick={() => setStatus("approved")}>
-                    {review?.status === "approved" ? "Approved ✓" : "Approve"}
-                  </button>
-                  <button type="button" className={`pss-btn btn-press${review?.status === "flagged" ? " is-flagged" : ""}`} onClick={() => setStatus("flagged")}>
-                    {review?.status === "flagged" ? "Flagged" : "Flag"}
-                  </button>
-                  <button type="button" className="pss-btn btn-press" onClick={() => setEditing(q)}>Edit</button>
-                  {confirmDelete
-                    ? <span className="qr-confirm">Delete for everyone? <button type="button" className="pss-btn btn-press is-danger" onClick={remove}>Delete</button> <button type="button" className="gen-link" onClick={() => setConfirmDelete(false)}>Cancel</button></span>
-                    : <button type="button" className="gen-link qr-delete" onClick={() => setConfirmDelete(true)}>Delete</button>}
-                </div>
-                {review && <p className="qr-who">{review.status === "approved" ? "Approved" : "Flagged"} by {review.name} · {ago(review.at)}</p>}
+                {q.sug ? (
+                  <>
+                    <div className="qr-report qr-sug">
+                      <span className="qr-label">Suggested by {q.sug.by} · {ago(q.sug.at)}</span>
+                      {q.sug.note && <p>“{q.sug.note}”</p>}
+                    </div>
+                    {keepOut !== null ? (
+                      <div className="qr-keepout">
+                        <textarea className="np__field qr-input" rows={2} maxLength={1000} autoFocus
+                          placeholder={`Why it isn’t going in (${q.sug.by} sees this)`}
+                          value={keepOut} onChange={e => setKeepOut(e.target.value)} />
+                        <div className="qr-actions">
+                          <button type="button" className="pss-btn btn-press" disabled={busy} onClick={() => decide(q, false, keepOut)}>Keep out</button>
+                          <button type="button" className="gen-link" onClick={() => setKeepOut(null)}>Cancel</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="qr-actions">
+                        <button type="button" className="pss-btn btn-press is-primary" disabled={busy} onClick={() => decide(q, true)}>Add for everyone</button>
+                        <button type="button" className="pss-btn btn-press" disabled={busy} onClick={() => setKeepOut("")}>Keep out</button>
+                        {suggested.filter(y => y.sug.id === q.sug.id).length > 1 && (
+                          <button type="button" className="gen-link qr-addall" disabled={busy} onClick={() => addAll(q.sug)}>
+                            Add all {suggested.filter(y => y.sug.id === q.sug.id).length}
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="qr-actions">
+                    <button type="button" className={`pss-btn btn-press${review?.status === "approved" ? " is-primary" : ""}`} onClick={() => setStatus("approved")}>
+                      {review?.status === "approved" ? "Approved ✓" : "Approve"}
+                    </button>
+                    <button type="button" className={`pss-btn btn-press${review?.status === "flagged" ? " is-flagged" : ""}`} onClick={() => setStatus("flagged")}>
+                      {review?.status === "flagged" ? "Flagged" : "Flag"}
+                    </button>
+                    <button type="button" className="pss-btn btn-press" onClick={() => setEditing(q)}>Edit</button>
+                    {confirmDelete
+                      ? <span className="qr-confirm">Delete for everyone? <button type="button" className="pss-btn btn-press is-danger" onClick={remove}>Delete</button> <button type="button" className="gen-link" onClick={() => setConfirmDelete(false)}>Cancel</button></span>
+                      : <button type="button" className="gen-link qr-delete" onClick={() => setConfirmDelete(true)}>Delete</button>}
+                  </div>
+                )}
+                {review && !q.sug && <p className="qr-who">{review.status === "approved" ? "Approved" : "Flagged"} by {review.name} · {ago(review.at)}</p>}
 
                 <div className="qr-thread">
                   <span className="qr-label">Comments{thread.length ? ` · ${thread.length}` : ""}</span>
