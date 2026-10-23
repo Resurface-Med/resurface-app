@@ -41,7 +41,7 @@ import { keepImagesOffline } from "./lib/questionImage";
 import OfflineBar, { NeedsConnection } from "./ui/OfflineBar";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
 import { seedExhibitDeck } from "./lib/seedExhibitDeck";
-import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck, shelve } from "./lib/decks";
+import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck, shelve, servedTree } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs, getPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
@@ -210,6 +210,9 @@ export default function App() {
   const featuredRef = useRef(featured);
   const hiddenRoots = new Set(featured.roots.filter(r => r.hidden).map(r => r.id));
   const featuredDecks = featured.decks.filter(d => !hiddenRoots.has(d.root));
+  /* Yours, less any served back to you as ready-made (lib/decks servedTree). */
+  const served = servedTree(decks, featured.roots);
+  const shownDecks = served.size ? decks.filter(d => !served.has(d.id)) : decks;
   function applyGenerated(rows, deckRows = decksRef.current) {
     genRowsRef.current = rows;
     const f = featuredRef.current;
@@ -219,7 +222,8 @@ export default function App() {
     const hiddenIds = new Set(f.roots.filter(r => r.hidden).map(r => r.id));
     const shown = f.decks.filter(d => !hiddenIds.has(d.root));
     const byId = indexDecks([...shelve(deckRows, shown), ...shown]);
-    const decorated = rows.map(r => decorateUserQuestion(r, byId));
+    const served = servedTree(deckRows, f.roots);
+    const decorated = rows.filter(r => !served.has(r.deckId)).map(r => decorateUserQuestion(r, byId));
     const hidden = new Set(f.roots.filter(r => r.hidden).map(r => r.top ?? r.id));
     const fById = indexDecks(f.decks);
     const shared = f.questions
@@ -229,7 +233,7 @@ export default function App() {
     setGenerated(decorated);
   }
   /* Progress reads every deck you practise from, featured ones included. */
-  const progressDecks = useMemo(() => [...shelve(decks, featuredDecks), ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
+  const progressDecks = useMemo(() => [...shelve(shownDecks, featuredDecks), ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
   function applyFeatured(next) {
     const f = next ?? { roots: [], decks: [], questions: [] };
     featuredRef.current = f;
@@ -1362,7 +1366,7 @@ export default function App() {
             pStats={pStats} srCards={srCards} bookmarks={bookmarks}
             onAnswer={recordAnswer} onToggleBookmark={toggleBookmark}
             launchFilter={launchFilter} onSessionActive={setPracticeSessionActive}
-            decks={decks} deckActions={deckActions}
+            decks={shownDecks} deckActions={deckActions}
             featured={featured.roots} featuredDecks={featuredDecks}
             onHideFeatured={hideFeatured}
             featuredActions={isAdmin ? featuredActions : null}
@@ -1422,7 +1426,7 @@ export default function App() {
           {v === V.GENERATE && <GenerateMode savedGenerated={generated} onGeneratedChange={applyGenerated}
             onBusyChange={setGenerateBusy}
             onPractise={ids => practise(ids)}
-            decks={decks} deckActions={deckActions}
+            decks={shownDecks} deckActions={deckActions}
             targetDeckId={generateInto}
             onTargetDeckChange={id => setGenerateInto(id)}
             onOpenDeck={id => { setOpenDeckId(id); go(V.STUDY); }}

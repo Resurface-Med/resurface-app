@@ -27,6 +27,23 @@ export function shelve(decks, featuredDecks) {
   });
 }
 
+/**
+ * Your own decks that are being served back to you as a ready-made deck
+ * (featured_decks.owner_sees — Rafil's Principles, 2026-10-23): the tree
+ * under each root marked `mine`. Hidden from your own list, or every deck
+ * and question in it would show twice. Not when you have hidden the
+ * ready-made one: then yours is all there is.
+ */
+export function servedTree(decks, roots) {
+  const out = new Set(roots.filter(r => r.mine && !r.hidden).map(r => r.id));
+  if (!out.size) return out;
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const d of decks) if (!out.has(d.id) && d.parentId && out.has(d.parentId)) { out.add(d.id); grew = true; }
+  }
+  return out;
+}
+
 export function indexDecks(decks) {
   return new Map(decks.map(d => [d.id, d]));
 }
