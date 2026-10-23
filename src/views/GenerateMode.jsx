@@ -875,7 +875,7 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
     if (!ids) return { rows: [], queued: true };
     return { rows: payloads.map((q, i) => ({ ...q, id: ids[i], gen: true, deckId })), queued: false };
   }
-  const [savedDeckId, setSavedDeckId] = useState(null);
+  const [, setSavedDeckId] = useState(null);
   /* Written, or only queued because the network was not there. */
   const [savedQueued, setSavedQueued] = useState(false);
   /* The ids of what was just saved, so Done can start a session on them. */
@@ -1066,22 +1066,21 @@ export default function GenerateMode({ savedGenerated = [], onGeneratedChange, d
             <button type="button" className="btn-press gen-done-main" style={primaryBtn} onClick={() => { onTargetDeckChange?.(null); onPractise(justSaved); }}>
               Practise {justSaved.length === 1 ? "it" : `these ${justSaved.length}`} now <span aria-hidden="true">→</span>
             </button>
-          ) : !(savedDeckId && onOpenDeck) ? (
+          ) : !onOpenDeck ? (
             <button type="button" className="btn-press gen-done-main" style={primaryBtn} onClick={() => window.location.reload()}>
               Reload app
             </button>
           ) : null}
           <div className="gen-done-row">
-            {savedDeckId && onOpenDeck && (
+            {/* Back to Study, the whole list (2026-10-23). It used to open
+                the deck you saved into as a tab, which hides the
+                Resurface decks; Rafil wanted the plain Study tab. */}
+            {onOpenDeck && (
               <button type="button" className={`btn-press ${justSaved.length > 0 && onPractise ? "gen-ghost gen-done-sec" : "gen-done-main"}`}
                 style={justSaved.length > 0 && onPractise ? undefined : primaryBtn}
-                onClick={() => {
-                  /* Study opens on the root tab holding this deck. */
-                  const root = deckPath(savedDeckId, decksById)[0]?.id ?? savedDeckId;
-                  onTargetDeckChange?.(null); onOpenDeck(root);
-                }}>
+                onClick={() => { onTargetDeckChange?.(null); onOpenDeck(null); }}>
                 <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.75 4.25a1 1 0 0 1 1-1h3.1l1.4 1.5h5.999a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H2.75a1 1 0 0 1-1-1v-8Z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /></svg>
-                <span>Open {deckPath(savedDeckId, decksById)[0]?.name ?? "deck"}</span>
+                <span>Back to Study</span>
               </button>
             )}
             <button
