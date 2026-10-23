@@ -189,15 +189,21 @@ for (const l of lectures) {
   const out = join(OUT, `${l.id}.json`);
   const topup = args.includes("--topup");
   const prev = existsSync(out) ? JSON.parse(readFileSync(out, "utf8")) : null;
-  if (prev && !(topup && prev.questions.length < COUNT[l.weight])) { console.log(`· ${l.id} ${l.title}: already done`); continue; }
-  if (!prev && topup) continue;
+  if (!dry && prev && !(topup && prev.questions.length < COUNT[l.weight])) { console.log(`· ${l.id} ${l.title}: already done`); continue; }
+  if (!dry && !prev && topup) continue;
 
   const path = findFile(lecturesDir, l.file);
   if (!path) { failed.push([l.id, "file not found"]); console.log(`✕ ${l.id} ${l.title}: file not found`); continue; }
   const text = await readLecture(path);
   const existing = (prev?.questions ?? []).map(q => ({ q: q.q, a: q.opts[q.ans] }));
   const n = COUNT[l.weight] - existing.length;
-  if (dry) { console.log(`· ${l.id} ${l.title}: ${text.length} chars for ${n} questions`); continue; }
+  if (dry) {
+    /* The text as the model saw it, for checking questions against later. */
+    mkdirSync(join(APP, ".bank", "text"), { recursive: true });
+    writeFileSync(join(APP, ".bank", "text", `${l.id}.txt`), text);
+    console.log(`· ${l.id} ${l.title}: ${text.length} chars for ${n} questions`);
+    continue;
+  }
   const label = ["Principles", `Week ${l.week}`, l.subject, l.title].join(" › ");
 
   let res;
