@@ -14,14 +14,14 @@ import { useOnline } from "../lib/online";
  * the metric: it rewards skipping hard topics. Volume this week is honest
  * work, with streak as a quiet secondary.
  *
- * All / Year 1 / Year 2 (2026-10-24): ranked within a year, so Year 1s are
+ * All / Year 1–5 (2026-10-24): ranked within a year, so Year 1s are
  * not measured against Year 2s who have had ready-made decks for longer.
  * The choice is remembered on this device.
  */
-const YEARS = [["all", "All"], [1, "Year 1"], [2, "Year 2"]];
+const YEARS = [["all", "All"], [1, "Year 1"], [2, "Year 2"], [3, "Year 3"], [4, "Year 4"], [5, "Year 5"]];
 const YEAR_KEY = "lb-year";
 function savedYear() {
-  try { const v = localStorage.getItem(YEAR_KEY); return v === "1" ? 1 : v === "2" ? 2 : "all"; } catch { return "all"; }
+  try { const v = Number(localStorage.getItem(YEAR_KEY)); return v >= 1 && v <= 5 ? v : "all"; } catch { return "all"; }
 }
 
 const band = {
