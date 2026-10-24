@@ -43,6 +43,7 @@ export default function QuizShell({
   onToggleBookmark,
   onSaveEdit,
   onRequestExit,
+  peerSplit = null,
 }) {
   const [railOpen, setRailOpen] = useState(false);
   const [railMounted, setRailMounted] = useState(false);
@@ -332,6 +333,7 @@ export default function QuizShell({
               aiOpen={aiOpen}
               onAiOpenChange={setAiOpen}
               onControlsChange={setControls}
+              peerSplit={peerSplit}
             />
           </div>
           {showAi && (

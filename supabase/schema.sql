@@ -35,8 +35,9 @@ create table if not exists public.practice_stats (
 create table if not exists public.option_picks (
   user_id uuid not null,
   question_id integer not null,
-  option_index smallint not null,
-  created_at timestamp with time zone not null default now()
+  option_index smallint,
+  created_at timestamp with time zone not null default now(),
+  option_text text
 );
 
 create table if not exists public.sr_cards (
@@ -546,20 +547,28 @@ language sql stable security definer set search_path = 'public' as $$
   order by 2
 $$;
 
--- Counts per option, once 20 people have answered. The app no longer reads this.
+-- Counts per option text, only for current options, once 10 people have
+-- answered. Keep the 10 in step with PEER_MIN in src/lib/peerSplit.js.
 create or replace function public.option_split(qid integer)
-returns table(option_index integer, n integer)
+returns table(option_text text, n integer)
 language sql stable security definer set search_path = public as $$
-  with picks as (
-    select p.option_index
-    from public.option_picks p
+  with q as (
+    select g.payload->'opts' as opts
+    from public.generated_questions g
+    where g.id = qid - 1000000
+  ),
+  picks as (
+    select p.option_text
+    from public.option_picks p, q
     where p.question_id = qid
+      and p.option_text is not null
+      and q.opts ? p.option_text
       and auth.uid() is not null
   )
-  select picks.option_index, count(*)::integer
+  select picks.option_text, count(*)::integer
   from picks
-  where (select count(*) from picks) >= 20
-  group by picks.option_index
+  where (select count(*) from picks) >= 10
+  group by picks.option_text
 $$;
 
 create or replace function public.admin_tokens_totals()

@@ -91,7 +91,7 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -352,6 +352,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             animClass += " option-btn";
           }
 
+          const pct = answered && Number.isInteger(peerSplit?.pcts?.[i]) ? peerSplit.pcts[i] : null;
           const wrongNote = answered && !ok && q.optExp?.[i];
           // Collapsed review shows two rows: what you said, and what was right.
           const hidden = answered && !showAll && !ok && !picked;
@@ -374,8 +375,14 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                   onMarked={() => { justMarked.current = true; }}
                 />
 
-                {answered && (ok || (picked && !ok)) && (
+                {answered && (ok || (picked && !ok) || pct != null) && (
                   <span className="q-opt-end">
+                    {pct != null && (
+                      <span className="q-opt-share">
+                        <span className="q-opt-track" style={{ "--share": pct / 100 }} aria-hidden="true"><span /></span>
+                        <span className="q-opt-pct" title={`${pct}% of ${peerSplit.total} people chose this`}>{pct}%</span>
+                      </span>
+                    )}
                     {ok && <span className="q-opt-mark ok anim-pop" aria-hidden="true">✓</span>}
                     {picked && !ok && <span className="q-opt-mark bad" aria-hidden="true">✗</span>}
                   </span>
@@ -471,6 +478,9 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
                 </svg>
               </span>
             </button>
+            {peerSplit && (
+              <span className="q-peer-n">{peerSplit.total} people have answered this</span>
+            )}
             {/* A question that is not yours is reported. Yours is corrected
                 here instead — telling yourself it is wrong helps nobody.
                 A premade question stays reportable even for an admin: the

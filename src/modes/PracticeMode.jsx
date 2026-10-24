@@ -19,7 +19,8 @@ import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import QuestionReviewer from "../ui/QuestionReviewer";
 import SuggestPrompt from "../ui/SuggestPrompt";
-import { suggestDeck, withdrawSuggestion, fetchMySuggestions } from "../lib/remote";
+import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit } from "../lib/remote";
+import { splitFor } from "../lib/peerSplit";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
 
@@ -360,6 +361,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [results, setResults] = useState({});
   const [sC, setSC] = useState(0);
   const [sT, setST] = useState(0);
+  /* question id → option_split rows ([] below 10 people). Fetched before the
+     answer so the numbers are there when the rows reveal, and not refetched
+     after, so they don't jump once your own pick lands. */
+  const [peer, setPeer] = useState({});
+  const peerRef = useRef({});
   const { user } = useAuth();
   const SESSION_KEY = sessionKey(user?.id);
   const [savedSession, setSavedSession] = useState(() => loadSaved(user?.id));
@@ -379,6 +385,29 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useEffect(() => {
     if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT, sid: sidRef.current, startedAt: startedRef.current }));
   }, [queue, idx, sels, sC, sT, SESSION_KEY]);
+
+  /* The split for this question and the next. A failed fetch, or one made
+     offline, shows nothing, the same as too few answers. */
+  useEffect(() => {
+    if (!queue?.length || !isOnline()) return;
+    const seen = peerRef.current;
+    const want = [idx, idx + 1].map(i => queue[i]).filter(q => q && seen[q.id] == null);
+    if (!want.length) return;
+    let cancel = false;
+    for (const item of want) {
+      seen[item.id] = "loading";
+      const done = rows => {
+        if (cancel) return;
+        seen[item.id] = rows;
+        setPeer(p => ({ ...p, [item.id]: rows }));
+      };
+      fetchOptionSplit(item.id).then(done, () => done([]));
+    }
+    return () => {
+      cancel = true;
+      for (const item of want) if (seen[item.id] === "loading") delete seen[item.id];
+    };
+  }, [queue, idx]);
 
   /* Saved to your past sessions as you answer — not on opening one, which
      would move it to the top of the list for being looked at. */
@@ -592,7 +621,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const correct = i === q.ans;
     setSels(prev => ({ ...prev, [idx]: i }));
     setST(t => t + 1); if (correct) setSC(c => c + 1);
-    onAnswer(q.id, correct);
+    onAnswer(q.id, correct, q.opts[i]);
 
     /*
      * Got it wrong: it comes back before you leave.
@@ -1347,6 +1376,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const q = queue[idx];
   const sel = sels[idx] ?? null;
   const isBookmarked = bookmarks.includes(q?.id);
+  const peerSplit = q && Array.isArray(peer[q.id]) ? splitFor(q.opts, peer[q.id]) : null;
 
   return (
     <QuizShell
@@ -1367,6 +1397,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         setQueue((prev) => prev.map((item, i) => (i === idx ? { ...item, ...updated } : item)))
       }
       onRequestExit={onRequestExit}
+      peerSplit={peerSplit}
     />
   );
 }

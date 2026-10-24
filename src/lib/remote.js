@@ -107,10 +107,11 @@ function apply(op) {
         correct: op.correct, total: op.total, updated_at: new Date().toISOString(),
       });
     case "pick":
-      /* No longer sent. A write already queued, from before the percentages
-         came off the options, still has somewhere to land. */
+      /* First answer only. A retry after the explanation is not another
+         vote. The text, not the index: options are shuffled per person. A
+         write queued before 0054 carries only an index and lands as one. */
       return supabase.from("option_picks").upsert(
-        { user_id: op.userId, question_id: op.questionId, option_index: op.optionIndex },
+        { user_id: op.userId, question_id: op.questionId, option_text: op.optionText ?? null, option_index: op.optionIndex ?? null },
         { onConflict: "user_id,question_id", ignoreDuplicates: true },
       );
     case "sr":
@@ -691,6 +692,13 @@ export async function clearFlags(questionId) {
 }
 
 /* year: 1, 2 … to rank within one study year; null for everyone. */
+/** How many people picked each option, by its text. Empty below 10 people. */
+export async function fetchOptionSplit(questionId) {
+  const { data, error } = await supabase.rpc("option_split", { qid: questionId });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchLeaderboardWeek(year = null) {
   const { data, error } = await supabase.rpc("leaderboard_week", year ? { yr: year } : {});
   if (error) throw error;
@@ -702,6 +710,7 @@ export async function fetchLeaderboardWeek(year = null) {
 
 export const remote = {
   practice: (userId, questionId, correct, total) => send({ kind: "practice", userId, questionId, correct, total }),
+  pick:     (userId, questionId, optionText)     => send({ kind: "pick", userId, questionId, optionText }),
   sr:       (userId, questionId, card)           => send({ kind: "sr", userId, questionId, card }),
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),

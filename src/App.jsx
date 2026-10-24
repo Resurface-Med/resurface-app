@@ -810,7 +810,11 @@ export default function App() {
    * engine — questions still resurface before you forget them — without asking
    * anyone to grade their own recall on a four-point scale.
    */
-  function recordAnswer(id, correct) {
+  function recordAnswer(id, correct, optionText) {
+    /* Which option, for how other people answered. Only the first time this
+       person has ever answered it: a second go, after the explanation, would
+       pile onto the right answer. Skips have no pick. */
+    if (typeof optionText === "string" && !(pStats[id]?.total > 0)) remote.pick(user.id, id, optionText);
     setPStats(prev => {
       const s = prev[id] || { correct: 0, total: 0 };
       const row = { correct: s.correct + (correct ? 1 : 0), total: s.total + 1 };
