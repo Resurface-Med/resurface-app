@@ -21,6 +21,10 @@
  *
  * The manifest is the weighting site's export: [{ id, week, title, file,
  * subject, weight }]. Skip is 0 questions, light 10, normal 20, heavy 30.
+ *
+ * From Anki (2026-10-24): a manifest whose lectures are .txt files of
+ * cards (Q:/A:) and carry their own count, `n`, with no week; --out names
+ * where the JSON goes (.bank/<out>). Made by .bank/anki's extract step.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from "node:fs";
@@ -32,7 +36,8 @@ import JSZip from "jszip";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APP = resolve(HERE, "..");
 const BACKEND = resolve(APP, "..", "resurface-backend");
-const OUT = join(APP, ".bank", "year1");
+const OUT_FLAG = process.argv.indexOf("--out");
+const OUT = join(APP, ".bank", OUT_FLAG > 0 ? process.argv[OUT_FLAG + 1] : "year1");
 
 const COUNT = { skip: 0, light: 10, normal: 20, heavy: 30 };
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
@@ -117,6 +122,7 @@ async function readLecture(path) {
   if (ext === "docx") return readDocx(path);
   if (ext === "pdf") return readPdf(path);
   if (ext === "ppt") return readPpt(path);
+  if (ext === "txt") return readFileSync(path, "utf8");
   throw new Error(`Can't read .${ext}`);
 }
 
@@ -181,7 +187,9 @@ mkdirSync(OUT, { recursive: true });
 let lectures = JSON.parse(readFileSync(manifestPath, "utf8"));
 if (flag("--week")) lectures = lectures.filter(l => String(l.week) === flag("--week"));
 if (flag("--only")) lectures = lectures.filter(l => l.id === flag("--only"));
-lectures = lectures.filter(l => COUNT[l.weight] > 0).sort((a, b) => a.week - b.week || a.order - b.order);
+/* A lecture's own count, from Anki, before its weight. */
+const want = l => l.n ?? COUNT[l.weight];
+lectures = lectures.filter(l => want(l) > 0).sort((a, b) => (a.week ?? 0) - (b.week ?? 0) || a.order - b.order);
 
 const failed = [];
 let made = 0, last = 0;
@@ -189,14 +197,14 @@ for (const l of lectures) {
   const out = join(OUT, `${l.id}.json`);
   const topup = args.includes("--topup");
   const prev = existsSync(out) ? JSON.parse(readFileSync(out, "utf8")) : null;
-  if (!dry && prev && !(topup && prev.questions.length < COUNT[l.weight])) { console.log(`· ${l.id} ${l.title}: already done`); continue; }
+  if (!dry && prev && !(topup && prev.questions.length < want(l))) { console.log(`· ${l.id} ${l.title}: already done`); continue; }
   if (!dry && !prev && topup) continue;
 
   const path = findFile(lecturesDir, l.file);
   if (!path) { failed.push([l.id, "file not found"]); console.log(`✕ ${l.id} ${l.title}: file not found`); continue; }
   const text = await readLecture(path);
   const existing = (prev?.questions ?? []).map(q => ({ q: q.q, a: q.opts[q.ans] }));
-  const n = COUNT[l.weight] - existing.length;
+  const n = want(l) - existing.length;
   if (dry) {
     /* The text as the model saw it, for checking questions against later. */
     mkdirSync(join(APP, ".bank", "text"), { recursive: true });
@@ -204,7 +212,7 @@ for (const l of lectures) {
     console.log(`· ${l.id} ${l.title}: ${text.length} chars for ${n} questions`);
     continue;
   }
-  const label = ["Principles", `Week ${l.week}`, l.subject, l.title].join(" › ");
+  const label = ["Principles", ...(l.week ? [`Week ${l.week}`] : []), l.subject, l.title].join(" › ");
 
   let res;
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -219,9 +227,9 @@ for (const l of lectures) {
   if (res.error) { failed.push([l.id, res.error]); console.log(`✕ ${l.id} ${l.title}: ${res.error}`); continue; }
 
   const questions = [...(prev?.questions ?? []), ...res.questions];
-  writeFileSync(out, JSON.stringify({ ...l, label, asked: COUNT[l.weight], model: MODEL, chars: text.length, ...res, questions }, null, 1));
+  writeFileSync(out, JSON.stringify({ ...l, label, asked: want(l), model: MODEL, chars: text.length, ...res, questions }, null, 1));
   made += res.questions.length;
-  console.log(`✓ ${l.id} ${l.title}: ${prev ? `+${res.questions.length}, now ${questions.length}` : res.questions.length}/${COUNT[l.weight]}` +
+  console.log(`✓ ${l.id} ${l.title}: ${prev ? `+${res.questions.length}, now ${questions.length}` : res.questions.length}/${want(l)}` +
     (res.givenAway ? `, ${res.givenAway} gave the answer away` : "") + (res.repeats ? `, ${res.repeats} repeats` : ""));
 }
 
