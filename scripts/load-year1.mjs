@@ -30,7 +30,8 @@ const items = readdirSync(dir).filter(f => f.endsWith(".json"))
   .sort((a, b) => all ? a.subject.localeCompare(b.subject) || a.order - b.order : a.week - b.week || a.order - b.order)
   .map(d => ({
     week: d.week, subject: d.subject, title: clean(d.title), order: d.order,
-    questions: d.questions.map(({ q, opts, ans, exp, optExp }) => ({ q, opts, ans, exp, optExp })),
+    /* Exhibits (an ABG table) and the line after one ride along. */
+    questions: d.questions.map(({ q, opts, ans, exp, optExp, exhibit, ask }) => ({ q, opts, ans, exp, optExp, ...(exhibit ? { exhibit } : {}), ...(ask ? { ask } : {}) })),
   }));
 
 const r = await fetch("https://uhqpljteohitvytwfadp.supabase.co/functions/v1/bank-load", {
