@@ -842,10 +842,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <div className="feat-soon__text">
                   <h3 className="feat-soon__title">We’re working hard to add more topics and years</h3>
                   <p className="feat-soon__body">
-                    The Year 2 deck covers the renal block in full so far. We’re adding the next
-                    topics as the year goes on, and working on decks for the other years. In the
-                    meantime, you can make questions from your own Anki decks, lecture slides,
-                    PDFs or notes.
+                    Year 1 has Principles and Respiratory, and Year 2 has Renal and Endocrine.
+                    We’re adding the next blocks as the year goes on, and working on the other
+                    years. In the meantime, you can make questions from your own Anki decks,
+                    lecture slides, PDFs or notes.
                   </p>
                 </div>
                 {onGenerateInto && (
