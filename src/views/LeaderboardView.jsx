@@ -104,14 +104,12 @@ export default function LeaderboardView({ userId }) {
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
-          <div className="pss-seg lb-years" role="tablist" aria-label="Year">
-            {YEARS.map(([k, label]) => (
-              <button key={k} type="button" role="tab" aria-selected={year === k}
-                className={`pss-seg__b${year === k ? " is-on" : ""}`} onClick={() => pickYear(k)}>
-                {label}
-              </button>
-            ))}
-          </div>
+          {/* A dropdown (Rafil, 2026-10-24): five years plus All was too wide
+              for a pill switch. The sign-up pop-up's year select, compact. */}
+          <select className="year-select lb-years" aria-label="Year" value={year}
+            onChange={e => pickYear(e.target.value === "all" ? "all" : Number(e.target.value))}>
+            {YEARS.map(([k, label]) => <option key={k} value={k}>{k === "all" ? "All years" : label}</option>)}
+          </select>
           {!rows && !online && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
               You’re offline. The board shows when you’re back online.
