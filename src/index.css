@@ -10822,3 +10822,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .sg-kept__q { font-size: 14.5px; line-height: 1.45; color: var(--c-text); }
 .sg-kept__why { font-size: 13.5px; line-height: 1.45; color: var(--c-muted); }
 .qr-addall { margin-left: auto; }
+
+/* Leaderboard year switch (2026-10-24): the Past sessions pill, above the podium. */
+.lb-years { margin: 0 0 22px; }

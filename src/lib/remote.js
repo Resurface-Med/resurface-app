@@ -690,8 +690,9 @@ export async function clearFlags(questionId) {
   if (error) throw new Error(error.message);
 }
 
-export async function fetchLeaderboardWeek() {
-  const { data, error } = await supabase.rpc("leaderboard_week");
+/* year: 1, 2 … to rank within one study year; null for everyone. */
+export async function fetchLeaderboardWeek(year = null) {
+  const { data, error } = await supabase.rpc("leaderboard_week", year ? { yr: year } : {});
   if (error) throw error;
   return data ?? [];
 }

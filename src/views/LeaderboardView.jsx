@@ -13,7 +13,16 @@ import { useOnline } from "../lib/online";
  * Default-on for anyone with a display name. Accuracy is deliberately not
  * the metric: it rewards skipping hard topics. Volume this week is honest
  * work, with streak as a quiet secondary.
+ *
+ * All / Year 1 / Year 2 (2026-10-24): ranked within a year, so Year 1s are
+ * not measured against Year 2s who have had ready-made decks for longer.
+ * The choice is remembered on this device.
  */
+const YEARS = [["all", "All"], [1, "Year 1"], [2, "Year 2"]];
+const YEAR_KEY = "lb-year";
+function savedYear() {
+  try { const v = localStorage.getItem(YEAR_KEY); return v === "1" ? 1 : v === "2" ? 2 : "all"; } catch { return "all"; }
+}
 
 const band = {
   maxWidth: 1180,
@@ -44,8 +53,14 @@ export function FounderGem() {
 }
 
 export default function LeaderboardView({ userId }) {
-  const [rows, setRows] = useState(null);
+  const [year, setYear] = useState(savedYear);
+  const [boards, setBoards] = useState({});   // year -> rows, fetched once each
   const [error, setError] = useState("");
+  const rows = boards[year] ?? null;
+  function pickYear(y) {
+    setYear(y);
+    try { localStorage.setItem(YEAR_KEY, String(y)); } catch { /* private mode */ }
+  }
 
   /* Everyone's numbers live on the server, so offline there is no board;
      it loads by itself when the connection is back. */
@@ -56,15 +71,15 @@ export default function LeaderboardView({ userId }) {
     setError("");
     (async () => {
       try {
-        const data = await fetchLeaderboardWeek();
-        if (!cancelled) setRows(data);
+        const data = await fetchLeaderboardWeek(year === "all" ? null : year);
+        if (!cancelled) setBoards(b => ({ ...b, [year]: data }));
       } catch (err) {
         if (!cancelled) setError(err.message || "Couldn’t load the board.");
       }
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [online]);
+  }, [online, year]);
 
 
   const podium = (rows ?? []).filter(r => r.week_count > 0 && r.rank <= 3).slice(0, 3);
@@ -89,6 +104,14 @@ export default function LeaderboardView({ userId }) {
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+          <div className="pss-seg lb-years" role="tablist" aria-label="Year">
+            {YEARS.map(([k, label]) => (
+              <button key={k} type="button" role="tab" aria-selected={year === k}
+                className={`pss-seg__b${year === k ? " is-on" : ""}`} onClick={() => pickYear(k)}>
+                {label}
+              </button>
+            ))}
+          </div>
           {!rows && !online && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
               You’re offline. The board shows when you’re back online.
@@ -105,7 +128,9 @@ export default function LeaderboardView({ userId }) {
 
           {rows && rows.length === 0 && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
-              Nobody on the board yet. Add a display name and answer a few questions.
+              {year === "all"
+                ? "Nobody on the board yet. Add a display name and answer a few questions."
+                : `Nobody from Year ${year} on the board yet.`}
             </p>
           )}
 
