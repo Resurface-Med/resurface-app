@@ -10877,7 +10877,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 /* Leaderboard controls (2026-10-25): two capsules, centred over the podium.
    The window's choice is a blue piece that slides. The year menu matches it. */
-.lb-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin: 4px 0 26px; }
+.lb-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin: 4px 0 56px; }
 .lb-span, .year-select.lb-years {
   height: 42px;
   box-sizing: border-box;
