@@ -45,6 +45,19 @@ export default function QuizShell({
   onRequestExit,
   peerSplit = null,
 }) {
+  /* Flags belong to this sitting. They mark a question to come back to,
+     and they leave with the session. */
+  const [flagged, setFlagged] = useState(() => new Set());
+  const flaggedHere = q ? flagged.has(q.id) : false;
+  function toggleFlag() {
+    if (!q) return;
+    setFlagged(prev => {
+      const next = new Set(prev);
+      if (next.has(q.id)) next.delete(q.id);
+      else next.add(q.id);
+      return next;
+    });
+  }
   const [railOpen, setRailOpen] = useState(false);
   const [railMounted, setRailMounted] = useState(false);
   /* The editor is opened from the header here rather than from the card. The
@@ -209,6 +222,20 @@ export default function QuizShell({
 
           <button
             type="button"
+            className={`quiz-shell__tool btn-press${flaggedHere ? " is-on" : ""}`}
+            onClick={toggleFlag}
+            title={flaggedHere ? "Remove flag" : "Flag question"}
+            aria-label={flaggedHere ? "Remove flag" : "Flag question"}
+            aria-pressed={flaggedHere}
+          >
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 2.2v11.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M4.6 3h7.4L10.2 5.7 12 8.4H4.6V3z" fill={flaggedHere ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
             className={`quiz-shell__tool btn-press${labsOpen ? " is-on" : ""}`}
             onClick={() => setLabsOpen(o => !o)}
             title="Lab values"
@@ -282,6 +309,7 @@ export default function QuizShell({
               idx={idx}
               sels={sels}
               results={results}
+              flagged={flagged}
               onJump={onJump}
             />
             <button
