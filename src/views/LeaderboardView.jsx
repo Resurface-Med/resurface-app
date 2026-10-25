@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import StreakFlame from "../ui/StreakFlame";
-import { h1, OF, C, chipBtn, chipBtnActive } from "../ui/theme";
+import { h1, OF, C } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { fetchLeaderboardWeek } from "../lib/remote";
 import Avatar from "../ui/Avatar";
@@ -117,15 +117,15 @@ export default function LeaderboardView({ userId }) {
           {/* A dropdown (Rafil, 2026-10-24): five years plus All was too wide
               for a pill switch. The sign-up pop-up's year select, compact. */}
           <div className="lb-tools">
-            <div className="profile-chips" role="group" aria-label="When">
+            <div className="lb-span" role="group" aria-label="When">
+              <span className={`lb-span__thumb${span === "day" ? " is-day" : ""}`} aria-hidden="true" />
               {[["week", "This week"], ["day", "Today"]].map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
-                  className="btn-press"
+                  className="lb-span__b"
                   aria-pressed={span === id}
                   onClick={() => setSpan(id)}
-                  style={span === id ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
                 >
                   {label}
                 </button>
