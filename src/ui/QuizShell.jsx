@@ -228,9 +228,9 @@ export default function QuizShell({
             aria-label={flaggedHere ? "Remove flag" : "Flag question"}
             aria-pressed={flaggedHere}
           >
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M4 2.2v11.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-              <path d="M4.6 3h7.4L10.2 5.7 12 8.4H4.6V3z" fill={flaggedHere ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 3.4v17.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M7 5.2h11.2L14.4 9.6l3.8 4.4H7V5.2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill={flaggedHere ? "currentColor" : "none"} />
             </svg>
           </button>
 

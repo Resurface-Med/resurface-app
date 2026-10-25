@@ -9,9 +9,9 @@ function rowState(i, idx, sels, results) {
 
 function FlagMark() {
   return (
-    <svg className="quiz-rail__flag" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M4 2.2v11.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M4.6 3h7.4L10.2 5.7 12 8.4H4.6V3z" fill="currentColor" />
+    <svg className="quiz-rail__flag" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M6.2 3.1a1.1 1.1 0 0 0-2.2 0v17.8a1.1 1.1 0 1 0 2.2 0V3.1z" />
+      <path fill="currentColor" d="M6.2 4.2h12.4c.8 0 1.2.9.7 1.5L15.6 9.4l3.7 4.1c.5.6.1 1.5-.7 1.5H6.2V4.2z" />
     </svg>
   );
 }

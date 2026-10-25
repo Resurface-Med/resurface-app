@@ -6225,7 +6225,7 @@ html.is-deck-dragging * {
   font-variant-numeric: tabular-nums;
 }
 .quiz-rail__label { flex: 1; min-width: 0; }
-.quiz-rail__flag { flex-shrink: 0; margin-left: auto; color: var(--c-warning); }
+.quiz-rail__flag { flex-shrink: 0; margin-left: auto; color: var(--c-danger); }
 .quiz-rail__row.is-ok .quiz-rail__mark { background: var(--c-success); color: #fff; }
 .quiz-rail__row.is-bad .quiz-rail__mark { background: var(--c-danger); color: #fff; }
 .quiz-rail__row.is-current .quiz-rail__mark { background: var(--c-accent); color: #fff; }
