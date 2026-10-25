@@ -10875,37 +10875,38 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .sg-kept__why { font-size: 13.5px; line-height: 1.45; color: var(--c-muted); }
 .qr-addall { margin-left: auto; }
 
-/* Leaderboard: one switch for the window, the year menu beside it.
-   The choice is a white piece that slides. The words stay put. */
-.lb-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 0 0 22px; }
+/* Leaderboard controls (2026-10-25): two capsules, centred over the podium.
+   The window's choice is a blue piece that slides. The year menu matches it. */
+.lb-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; margin: 4px 0 26px; }
+.lb-span, .year-select.lb-years {
+  height: 42px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 27, 61, 0.06);
+  background-color: #fff;
+  box-shadow: 0 8px 22px rgba(15, 27, 61, 0.06);
+}
 .lb-span {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  height: 40px;
-  padding: 3px;
-  box-sizing: border-box;
-  border-radius: 999px;
-  background: var(--c-surface3);
-  border: 1.5px solid var(--c-border);
+  padding: 4px;
 }
 .lb-span__thumb {
   position: absolute;
-  top: 3px; bottom: 3px; left: 3px;
-  width: calc((100% - 6px) / 2);
+  top: 4px; bottom: 4px; left: 4px;
+  width: calc((100% - 8px) / 2);
   border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 27, 61, 0.08);
+  background: var(--c-accent);
+  box-shadow: 0 4px 12px rgba(var(--c-accent-rgb), 0.35);
   transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .lb-span__thumb.is-day { transform: translateX(100%); }
-[data-theme="dark"] .lb-span { background: var(--c-surface2); }
-[data-theme="dark"] .lb-span__thumb { background: var(--c-surface3); box-shadow: none; }
 .lb-span__b {
   position: relative;
   z-index: 1;
   margin: 0;
-  padding: 0 16px;
+  padding: 0 18px;
   border: 0;
   border-radius: 999px;
   background: none;
@@ -10917,13 +10918,28 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   color: var(--c-muted);
   transition: color 160ms ease;
 }
-.lb-span__b[aria-pressed="true"] { color: var(--c-text); font-weight: 600; }
 .lb-span__b:hover { color: var(--c-text); }
-.lb-span__b:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+.lb-span__b[aria-pressed="true"],
+.lb-span__b[aria-pressed="true"]:hover { color: #fff; font-weight: 600; }
+.lb-span__b:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
+.year-select.lb-years {
+  display: block; width: auto; min-width: 148px; margin: 0;
+  padding: 0 36px 0 40px;
+  font-size: 14.5px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-text);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect x='2.2' y='3.2' width='11.6' height='10.6' rx='2' fill='none' stroke='%238a93ae' stroke-width='1.4'/%3E%3Cpath d='M2.2 6.4h11.6M5.2 1.8v2.6M10.8 1.8v2.6' fill='none' stroke='%238a93ae' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%238a93ae' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 14px center, right 14px center;
+}
+.year-select.lb-years:focus { border-color: var(--c-accent); background-color: #fff; }
+[data-theme="dark"] .lb-span,
+[data-theme="dark"] .year-select.lb-years {
+  background-color: var(--c-surface2);
+  border-color: var(--c-border);
+  box-shadow: none;
+}
+[data-theme="dark"] .year-select.lb-years:focus { background-color: var(--c-surface2); }
 @media (prefers-reduced-motion: reduce) {
   .lb-span__thumb, .lb-span__b { transition: none; }
-}
-.year-select.lb-years {
-  display: block; width: auto; min-width: 150px; height: 40px; margin: 0;
-  padding: 0 38px 0 14px; font-size: 15px; font-weight: 500;
 }
