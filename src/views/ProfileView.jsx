@@ -294,7 +294,7 @@ export default function ProfileView({
                   </button>
                 </div>
                 <p style={{ ...meta, marginTop: 8 }}>
-                  On by default. Hiding removes you from the weekly board.
+                  On by default. Hiding removes you from the board.
                   {prefSaved ? " · Saved" : ""}
                 </p>
               </div>

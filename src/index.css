@@ -10875,5 +10875,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .sg-kept__why { font-size: 13.5px; line-height: 1.45; color: var(--c-muted); }
 .qr-addall { margin-left: auto; }
 
-/* Leaderboard year dropdown (2026-10-24), above the podium. */
-.year-select.lb-years { display: block; width: auto; min-width: 150px; margin: 0 0 22px; padding: 9px 38px 9px 14px; font-size: 15px; font-weight: 500; }
+/* Leaderboard: This week / Today beside the year menu (2026-10-25). */
+.lb-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 0 22px; }
+.lb-tools .profile-chips { margin-top: 0; }
+.year-select.lb-years { display: block; width: auto; min-width: 150px; margin: 0; padding: 9px 38px 9px 14px; font-size: 15px; font-weight: 500; }

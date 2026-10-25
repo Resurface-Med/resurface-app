@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import StreakFlame from "../ui/StreakFlame";
-import { h1, OF, C } from "../ui/theme";
+import { h1, OF, C, chipBtn, chipBtnActive } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { fetchLeaderboardWeek } from "../lib/remote";
 import Avatar from "../ui/Avatar";
 import { avatarSrc } from "../lib/avatar";
 import { useOnline } from "../lib/online";
+import { todayKey } from "../lib/storage";
 
 /**
  * Cohort leaderboard — questions answered in the last 7 days.
@@ -17,6 +18,9 @@ import { useOnline } from "../lib/online";
  * All / Year 1–5 (2026-10-24): ranked within a year, so Year 1s are
  * not measured against Year 2s who have had ready-made decks for longer.
  * The choice is remembered on this device.
+ *
+ * Today / This week (2026-10-25): the same board, one day or seven. This
+ * week is what opens. A day is the phone's calendar day.
  */
 const YEARS = [["all", "All"], [1, "Year 1"], [2, "Year 2"], [3, "Year 3"], [4, "Year 4"], [5, "Year 5"]];
 const YEAR_KEY = "lb-year";
@@ -54,9 +58,12 @@ export function FounderGem() {
 
 export default function LeaderboardView({ userId }) {
   const [year, setYear] = useState(savedYear);
-  const [boards, setBoards] = useState({});   // year -> rows, fetched once each
+  const [span, setSpan] = useState("week");
+  const [boards, setBoards] = useState({});   // year + window -> rows, fetched once each
   const [error, setError] = useState("");
-  const rows = boards[year] ?? null;
+  const day = span === "day" ? todayKey() : null;
+  const boardKey = `${span}:${year}:${day ?? ""}`;
+  const rows = boards[boardKey] ?? null;
   function pickYear(y) {
     setYear(y);
     try { localStorage.setItem(YEAR_KEY, String(y)); } catch { /* private mode */ }
@@ -71,26 +78,29 @@ export default function LeaderboardView({ userId }) {
     setError("");
     (async () => {
       try {
-        const data = await fetchLeaderboardWeek(year === "all" ? null : year);
-        if (!cancelled) setBoards(b => ({ ...b, [year]: data }));
+        const data = await fetchLeaderboardWeek(year === "all" ? null : year, day);
+        if (!cancelled) setBoards(b => ({ ...b, [boardKey]: data }));
       } catch (err) {
         if (!cancelled) setError(err.message || "Couldn’t load the board.");
       }
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [online, year]);
+  }, [online, boardKey]);
 
 
-  const podium = (rows ?? []).filter(r => r.week_count > 0 && r.rank <= 3).slice(0, 3);
-  const rest = (rows ?? []).slice(podium.length);
+  /* A quiet day stays short: only people who answered something today.
+     The week still lists the rest, including a zero. */
+  const listed = span === "day" && rows ? rows.filter(r => r.week_count > 0) : rows;
+  const podium = (listed ?? []).filter(r => r.week_count > 0 && r.rank <= 3).slice(0, 3);
+  const rest = (listed ?? []).slice(podium.length);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Leaderboard</h1>
         <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em" }}>
-          Questions answered in the last seven days.
+          {span === "day" ? "Questions answered today." : "Questions answered in the last seven days."}
         </p>
         {/* Always rendered, blank until the board arrives. The wave sits
             directly under the band, so anything that grows the band after
@@ -106,10 +116,26 @@ export default function LeaderboardView({ userId }) {
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
           {/* A dropdown (Rafil, 2026-10-24): five years plus All was too wide
               for a pill switch. The sign-up pop-up's year select, compact. */}
-          <select className="year-select lb-years" aria-label="Year" value={year}
-            onChange={e => pickYear(e.target.value === "all" ? "all" : Number(e.target.value))}>
-            {YEARS.map(([k, label]) => <option key={k} value={k}>{k === "all" ? "All years" : label}</option>)}
-          </select>
+          <div className="lb-tools">
+            <div className="profile-chips" role="group" aria-label="When">
+              {[["week", "This week"], ["day", "Today"]].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className="btn-press"
+                  aria-pressed={span === id}
+                  onClick={() => setSpan(id)}
+                  style={span === id ? { ...chipBtnActive, boxShadow: "none" } : chipBtn}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <select className="year-select lb-years" aria-label="Year" value={year}
+              onChange={e => pickYear(e.target.value === "all" ? "all" : Number(e.target.value))}>
+              {YEARS.map(([k, label]) => <option key={k} value={k}>{k === "all" ? "All years" : label}</option>)}
+            </select>
+          </div>
           {!rows && !online && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
               You’re offline. The board shows when you’re back online.
@@ -124,18 +150,20 @@ export default function LeaderboardView({ userId }) {
             <p style={{ color: C.muted, fontSize: 14.5 }}>Loading the board…</p>
           )}
 
-          {rows && rows.length === 0 && (
+          {listed && listed.length === 0 && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
-              {year === "all"
-                ? "Nobody on the board yet. Add a display name and answer a few questions."
-                : `Nobody from Year ${year} on the board yet.`}
+              {span === "day"
+                ? "Nobody has answered anything today."
+                : year === "all"
+                  ? "Nobody on the board yet. Add a display name and answer a few questions."
+                  : `Nobody from Year ${year} on the board yet.`}
             </p>
           )}
 
           {/* The top three on a podium: second, first, third, left to right,
               first the tallest; gold, silver and bronze. Only people who
               answered something this week stand on it. */}
-          {rows && podium.length > 0 && (
+          {listed && podium.length > 0 && (
             <div className="lb-podium" data-in="rise" style={{ "--i": 1 }}>
               {[podium[1], podium[0], podium[2]].map((r, slot) => r && (
                 <div key={r.user_id} className={`lb-step is-${["silver", "gold", "bronze"][slot]}${r.user_id === userId ? " is-me" : ""}`}>
@@ -154,7 +182,7 @@ export default function LeaderboardView({ userId }) {
             </div>
           )}
 
-          {rows && rest.length > 0 && (
+          {listed && rest.length > 0 && (
             <ol className="lb-list">
               {rest.map((r, i) => {
                 const mine = r.user_id === userId;

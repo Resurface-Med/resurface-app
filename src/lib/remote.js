@@ -691,7 +691,6 @@ export async function clearFlags(questionId) {
   if (error) throw new Error(error.message);
 }
 
-/* year: 1, 2 … to rank within one study year; null for everyone. */
 /** How many people picked each option, by its text. Empty below 10 people. */
 export async function fetchOptionSplit(questionId) {
   const { data, error } = await supabase.rpc("option_split", { qid: questionId });
@@ -699,8 +698,13 @@ export async function fetchOptionSplit(questionId) {
   return data ?? [];
 }
 
-export async function fetchLeaderboardWeek(year = null) {
-  const { data, error } = await supabase.rpc("leaderboard_week", year ? { yr: year } : {});
+/* year: 1, 2 … to rank within one study year; null for everyone.
+   day: the phone's calendar day, for the today board; null is the week. */
+export async function fetchLeaderboardWeek(year = null, day = null) {
+  const args = {};
+  if (year) args.yr = year;
+  if (day) args.on_day = day;
+  const { data, error } = await supabase.rpc("leaderboard_week", args);
   if (error) throw error;
   return data ?? [];
 }
