@@ -54,6 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
+import InviteNotice from "./ui/InviteNotice";
 import { personalNote, yearFolder } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
@@ -1350,6 +1351,8 @@ export default function App() {
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
+    <InviteNotice userId={user?.id} sessionActive={practiceSessionActive}
+      studyDays={Object.values(activity).filter(n => Number(n) > 0).length} />
     <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
