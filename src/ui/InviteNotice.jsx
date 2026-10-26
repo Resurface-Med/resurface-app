@@ -13,7 +13,7 @@ import { logStep } from "../lib/remote";
  * When, and how often (agreed with Rafil, made pushier the same day):
  *  - once someone has studied on 2 or more days;
  *  - only right after they finish a session, never during one or on opening;
- *  - dismissed, it waits 5 days, and after 5 dismissals it never comes back;
+ *  - dismissed, it waits 5 days, and after 3 dismissals it never comes back;
  *  - shared, it waits 21 days;
  *  - never on top of another bar (the update notice).
  * Remembered per account on this device.
@@ -35,7 +35,7 @@ export default function InviteNotice({ userId, studyDays, sessionActive }) {
     was.current = sessionActive;
     if (!ended || !userId || studyDays < 2) return;
     const st = load(userId);
-    if ((st.dismissed ?? 0) >= 5 || Date.now() < (st.nextAt ?? 0)) return;
+    if ((st.dismissed ?? 0) >= 3 || Date.now() < (st.nextAt ?? 0)) return;
     const t = setTimeout(() => {
       if (document.querySelector(".update-note")) return;   // one bar at a time
       setOpen(true);
