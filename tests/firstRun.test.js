@@ -29,14 +29,14 @@ const featured = {
 };
 
 describe("first run", () => {
-  it("names your year's decks, and thanks whoever made them unless it's the note's writer", () => {
-    expect(decksLine(featured, 1, "Rafil")).toBe("Your Year 1 decks are ready: Principles and Respiratory.");
-    expect(decksLine(featured, 2, "Rafil")).toBe("Your Year 2 decks are ready: Renal and Endocrine, thanks to Jacob.");
+  it("says your year's decks are ready, and nothing more", () => {
+    expect(decksLine(featured, 1)).toBe("Your Year 1 decks are ready.");
+    expect(decksLine(featured, 2)).toBe("Your Year 2 decks are ready.");
   });
 
   it("lists every year for a year with no decks", () => {
-    expect(decksLine(featured, 4, "Rafil")).toBe("So far there are decks for Year 1 (Principles and Respiratory) and Year 2 (Renal and Endocrine), and we're working on the other years.");
-    expect(decksLine(featured, null, "Rafil")).toMatch(/^So far/);
+    expect(decksLine(featured, 4)).toBe("So far there are decks for Year 1 (Principles and Respiratory) and Year 2 (Renal and Endocrine), and we're working on the other years.");
+    expect(decksLine(featured, null)).toMatch(/^So far/);
   });
 
   it("leaves hidden decks out", () => {
@@ -45,7 +45,7 @@ describe("first run", () => {
 
   it("fills {decks} in the note and leaves a note without it alone", () => {
     const note = { title: "Welcome", body: "Hi.\n\n2. Use the decks. {decks}\n\nRafil" };
-    expect(personalNote(note, featured, 2).body).toBe("Hi.\n\n2. Use the decks. Your Year 2 decks are ready: Renal and Endocrine, thanks to Jacob.\n\nRafil");
+    expect(personalNote(note, featured, 2).body).toBe("Hi.\n\n2. Use the decks. Your Year 2 decks are ready.\n\nRafil");
     const plain = { title: "x", body: "No token." };
     expect(personalNote(plain, featured, 1)).toBe(plain);
   });

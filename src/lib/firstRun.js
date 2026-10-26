@@ -35,16 +35,13 @@ function allYears(featured) {
 }
 
 /**
- * The sentence that replaces {decks} in the welcome note. `signedBy` is the
- * note's signature, so its writer isn't thanked in their own letter.
+ * The sentence that replaces {decks} in the welcome note.
  */
-export function decksLine(featured, year, signedBy = null) {
+export function decksLine(featured, year) {
   const mine = yearDecks(featured, year);
-  if (mine.length) {
-    const others = [...new Set(mine.map(d => d.byline).filter(b => b && b !== signedBy))];
-    const thanks = others.length ? `, thanks to ${join(others)}` : "";
-    return `Your Year ${year} ${mine.length === 1 ? "deck is" : "decks are"} ready: ${join(mine.map(d => d.name))}${thanks}.`;
-  }
+  /* Just that, not the names or who made them: shorter and cleaner
+     (Rafil, 2026-10-26). The button names the deck it starts. */
+  if (mine.length) return `Your Year ${year} ${mine.length === 1 ? "deck is" : "decks are"} ready.`;
   const years = allYears(featured);
   if (!years.length) return "We're putting the first ones together now.";
   const list = join(years.map(y => `Year ${y.year} (${join(y.decks.map(d => d.name))})`));
@@ -54,10 +51,7 @@ export function decksLine(featured, year, signedBy = null) {
 /** The note with {decks} filled in. Unchanged if the text doesn't use it. */
 export function personalNote(note, featured, year) {
   if (!note || !String(note.body ?? "").includes("{decks}")) return note;
-  const blocks = String(note.body).trim().split(/\n{2,}/);
-  const last = blocks[blocks.length - 1]?.trim() ?? "";
-  const sig = blocks.length > 1 && last.length <= 24 && !/[.!?:]$/.test(last) ? last : null;
-  return { ...note, body: note.body.replaceAll("{decks}", decksLine(featured, year, sig)) };
+  return { ...note, body: note.body.replaceAll("{decks}", decksLine(featured, year)) };
 }
 
 /**
