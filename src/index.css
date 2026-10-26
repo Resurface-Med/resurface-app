@@ -11006,7 +11006,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ax-delta.is-down { color: var(--c-danger); }
 
 .ax-chart { padding: 26px 0 8px; }
-.ax-chart + .ax-metrics { margin-top: 18px; border-top: 1px solid var(--c-border); }
+.ax-limits + .ax-metrics { padding-top: 14px; border-bottom: 1px solid var(--c-border); }
+.ax-metric { cursor: default; }
+.ax-metric::before { display: none; }
+.ax-series { display: flex; gap: 4px; margin: -4px 0 18px -12px; overflow-x: auto; scrollbar-width: none; }
+.ax-series .ax-filter { white-space: nowrap; }
 .ax-chart__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
 .ax-chart__ph { height: 260px; }
 .ax-range { display: flex; gap: 4px; flex: none; }

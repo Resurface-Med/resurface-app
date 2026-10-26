@@ -114,13 +114,23 @@ function Delta({ now, before }) {
   );
 }
 
-function Overview({ goPeople }) {
+/* What the chart can show. Each is one line per day over the range;
+   "Answers per person" and "Total accounts" are worked out from the others. */
+const SERIES = [
+  { k: "active", label: "Studying", unit: "studying", title: "People studying per day" },
+  { k: "answers", label: "Answered", unit: "answered", title: "Questions answered per day" },
+  { k: "per", label: "Per person", unit: "per person", title: "Questions answered per person studying" },
+  { k: "accounts", label: "Sign-ups", unit: "sign-ups", title: "Sign-ups per day" },
+  { k: "total", label: "Total accounts", unit: "accounts", title: "Total accounts" },
+  { k: "generated", label: "Generated", unit: "generated", title: "Questions generated per day" },
+];
+
+function Overview() {
   const [totals] = useSection(fetchOverview);
   const [range, setRange] = useState(30);
   const loadDaily = useCallback(() => fetchOverviewDaily(range), [range]);
   const [daily] = useSection(loadDaily);
-  const [people] = useSection(fetchPeople);
-  const [metric, setMetric] = useState("answers");
+  const [show, setShow] = useState("active");
   const [picked, setPicked] = useState(null);
 
   const { days, series } = useMemo(() => {
@@ -131,26 +141,38 @@ function Overview({ goPeople }) {
       series.get(r.key).push(Number(r.value) || 0);
       if (r.key === "accounts") days.push(String(r.day).slice(0, 10));
     }
+    const active = series.get("active") ?? [], answers = series.get("answers") ?? [];
+    series.set("per", answers.map((n, i) => (active[i] ? Math.round((n / active[i]) * 10) / 10 : 0)));
+    /* Running total: everyone before the window, then each day's sign-ups. */
+    const signups = series.get("accounts") ?? [];
+    const all = Number((totals.rows ?? []).find(r => r.key === "accounts")?.total ?? 0);
+    let run = Math.max(0, all - signups.reduce((x, y) => x + y, 0));
+    series.set("total", signups.map(n => (run += n)));
     return { days, series };
-  }, [daily.rows]);
-  const points = series.get(metric) ?? [];
-
-  const students = (people.rows ?? []).filter(p => !p.is_admin);
-  const quiet = students.filter(p => statusOf(p) === "quiet").sort((a, b) => String(b.last_active).localeCompare(String(a.last_active)));
-  const notStarted = students.filter(p => statusOf(p) === "new" && Date.now() - new Date(p.joined) < 30 * DAY)
-    .sort((a, b) => String(b.joined).localeCompare(String(a.joined)));
+  }, [daily.rows, totals.rows]);
 
   if (totals.error) return <Empty>{totals.error}</Empty>;
   if (!totals.rows) return <Empty>&nbsp;</Empty>;
   const row = k => totals.rows.find(r => r.key === k) ?? { last7: 0, prev7: 0 };
-  const chosen = METRICS.find(m => m.k === metric);
+  const chosen = SERIES.find(x => x.k === show);
 
   return (
     <>
       <Limits />
+      <div className="ax-metrics">
+        {METRICS.map(m => (
+          <div key={m.k} className="ax-metric">
+            <span className="ax-metric__label">{m.label}</span>
+            <span className="ax-metric__value">{nf(row(m.k).last7)}</span>
+            <span className="ax-metric__sub">{m.sub}</span>
+            <Delta now={row(m.k).last7} before={row(m.k).prev7} />
+          </div>
+        ))}
+      </div>
+
       <section className="ax-chart">
         <div className="ax-chart__head">
-          <h3 className="ax-h3">{chosen.label} per day</h3>
+          <h3 className="ax-h3">{chosen.title}</h3>
           <div className="ax-range" role="group" aria-label="Range">
             {[30, 90].map(n => (
               <button key={n} type="button" aria-pressed={range === n}
@@ -158,63 +180,17 @@ function Overview({ goPeople }) {
             ))}
           </div>
         </div>
+        <div className="ax-series" role="tablist" aria-label="What the chart shows">
+          {SERIES.map(x => (
+            <button key={x.k} type="button" role="tab" aria-selected={show === x.k}
+              className={`ax-filter${show === x.k ? " is-on" : ""}`} onClick={() => { setShow(x.k); setPicked(null); }}>{x.label}</button>
+          ))}
+        </div>
         {daily.error ? <Empty>{daily.error}</Empty> : !daily.rows ? <div className="ax-chart__ph" /> : (
-          <TrendChart points={points} days={days} unit={chosen.unit} picked={picked != null && picked < days.length ? picked : null} onPick={setPicked} />
+          <TrendChart points={series.get(show) ?? []} days={days} unit={chosen.unit}
+            picked={picked != null && picked < days.length ? picked : null} onPick={setPicked} />
         )}
       </section>
-
-      <div className="ax-metrics" role="tablist" aria-label="What the chart shows">
-        {METRICS.map(m => (
-          <button key={m.k} type="button" role="tab" aria-selected={metric === m.k}
-            className={`ax-metric${metric === m.k ? " is-on" : ""}`} onClick={() => setMetric(m.k)}>
-            <span className="ax-metric__label">{m.label}</span>
-            <span className="ax-metric__value">{nf(row(m.k).last7)}</span>
-            <span className="ax-metric__sub">{m.sub}</span>
-            <Delta now={row(m.k).last7} before={row(m.k).prev7} />
-          </button>
-        ))}
-      </div>
-
-      <section className="ax-attention">
-        <div className="ax-attention__col">
-          <div className="ax-attention__head">
-            <h3 className="ax-h3">Gone quiet<span className="ax-count">{quiet.length}</span></h3>
-            <CopyEmails people={quiet} />
-          </div>
-          <p className="ax-note">Studied on two or more days, then nothing for a week.</p>
-          {quiet.length === 0 ? <p className="ax-quiet">Nobody. Everyone who got going is still going.</p> : (
-            <ul className="ax-rows">
-              {quiet.slice(0, 8).map(p => (
-                <li key={p.user_id}>
-                  <span className="ax-who">{nameOf(p)}{p.study_year ? <span className="ax-year">Y{p.study_year}</span> : null}</span>
-                  <span className="ax-meta">{ago(p.last_active)} · {nf(p.answered)} answered</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className="ax-attention__col">
-          <div className="ax-attention__head">
-            <h3 className="ax-h3">Not started<span className="ax-count">{notStarted.length}</span></h3>
-            <CopyEmails people={notStarted} />
-          </div>
-          <p className="ax-note">Signed up in the last 30 days and hasn’t answered a question.</p>
-          {notStarted.length === 0 ? <p className="ax-quiet">Nobody.</p> : (
-            <ul className="ax-rows">
-              {notStarted.slice(0, 8).map(p => (
-                <li key={p.user_id}>
-                  <span className="ax-who">{nameOf(p)}{p.study_year ? <span className="ax-year">Y{p.study_year}</span> : null}</span>
-                  <span className="ax-meta">Joined {ago(dayKey(p.joined)).toLowerCase()}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        {(quiet.length > 8 || notStarted.length > 8) && (
-          <button type="button" className="ax-link ax-attention__more" onClick={goPeople}>See everyone in People</button>
-        )}
-      </section>
-
     </>
   );
 }
@@ -651,7 +627,7 @@ export default function AdminView() {
             ))}
           </nav>
           <div key={tab} className="ax-body">
-            {tab === "overview" && <Overview goPeople={() => setTab("people")} />}
+            {tab === "overview" && <Overview />}
             {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
