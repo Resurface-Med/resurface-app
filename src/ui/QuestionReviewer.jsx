@@ -46,6 +46,15 @@ function Mark({ status, reported }) {
   return <span className="qr-mark" aria-label="Not reviewed">–</span>;
 }
 
+/* The searched words marked in a line. */
+function Hl({ text, words }) {
+  const t = String(text ?? "");
+  if (!words?.length) return t;
+  const esc = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const parts = t.split(new RegExp(`(${esc.join("|")})`, "ig"));
+  return parts.map((p, i) => (i % 2 ? <mark key={i} className="qr-hl">{p}</mark> : p));
+}
+
 export default function QuestionReviewer({ deckId, deckName, actions, editPersist = null, deckIds = null, onClose }) {
   const { user } = useAuth();
   const [version, setVersion] = useState(0);
@@ -56,6 +65,9 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const [reports, setReports] = useState(() => new Map());     // app id -> flag row
   const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState("all");
+  /* Search (2026-10-26): find a card by any of its words, to fix it. */
+  const [query, setQuery] = useState("");
+  const searchRef = useRef(null);
   const [cur, setCur] = useState(all[0]?.id ?? null);
   const [editing, setEditing] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -95,6 +107,18 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
     return true;
   });
   if (filter === "suggested") shown.splice(0, shown.length, ...suggested);
+  /* Every word typed must appear somewhere in the card: the stem, an
+     option, the explanation, a wrong option's note, or where it lives. */
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const textOf = x => [x.q, ...(x.opts ?? []), x.exp, ...(x.optExp ?? []), ...(x.path ?? []).map(p => p.name)]
+    .filter(t => typeof t === "string").join(" \n ").toLowerCase();
+  if (words.length) shown.splice(0, shown.length, ...shown.filter(x => { const t = textOf(x); return words.every(w => t.includes(w)); }));
+  /* For a card whose stem doesn't hold the words, the line that does. */
+  const hitLine = x => {
+    if (!words.length || words.some(w => String(x.q).toLowerCase().includes(w))) return null;
+    const lines = [...(x.opts ?? []).map(o => `Option: ${o}`), x.exp ? `Explanation: ${x.exp}` : null, ...(x.optExp ?? []).filter(Boolean).map(o => `Note: ${o}`)].filter(Boolean);
+    return lines.find(l => words.some(w => l.toLowerCase().includes(w))) ?? null;
+  };
 
   const q = (filter === "suggested" ? suggested : all).find(x => x.id === cur) ?? shown[0] ?? null;
   const idx = q ? shown.findIndex(x => x.id === q.id) : -1;
@@ -192,6 +216,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
       const t = e.target;
       if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.isContentEditable)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "/") { e.preventDefault(); searchRef.current?.focus(); return; }
       const k = e.key.toLowerCase();
       if (k === "arrowdown" || k === "j") { e.preventDefault(); go(1); }
       else if (k === "arrowup" || k === "k") { e.preventDefault(); go(-1); }
@@ -239,7 +264,17 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                 </button>
               ))}
             </div>
-            <span className="qr-keys" aria-hidden="true">{filter === "suggested" ? "↑↓ move · A add for everyone" : "↑↓ move · A approve · F flag · E edit"}</span>
+            <label className="qr-search">
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+              <input ref={searchRef} type="search" value={query} placeholder="Search questions" aria-label="Search questions"
+                onChange={e => { setQuery(e.target.value); setShowList(true); }}
+                onKeyDown={e => {
+                  if (e.key === "Escape" && query) { e.preventDefault(); e.stopPropagation(); setQuery(""); }
+                  if (e.key === "Enter" && shown[0]) { setCur(shown[0].id); setShowList(false); e.currentTarget.blur(); }
+                }} />
+              {words.length > 0 && <span className="qr-search__n">{shown.length} {shown.length === 1 ? "match" : "matches"}</span>}
+            </label>
+            <span className="qr-keys" aria-hidden="true">{filter === "suggested" ? "↑↓ move · A add for everyone" : "/ search · ↑↓ move · A approve · F flag · E edit"}</span>
           </div>
           {loadError && <p className="qr-error">{loadError} <button type="button" className="gen-link" onClick={load}>Try again</button></p>}
         </header>
@@ -254,7 +289,8 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                     onClick={() => { setCur(x.id); setShowList(false); setConfirmDelete(false); }}>
                     <span className="qr-item__n">{x.sug ? shown.indexOf(x) + 1 : n}</span>
                     <span className="qr-item__text">
-                      <span className="qr-item__stem">{x.q}</span>
+                      <span className="qr-item__stem"><Hl text={x.q} words={words} /></span>
+                      {hitLine(x) && <span className="qr-item__hit"><Hl text={hitLine(x)} words={words} /></span>}
                       <span className="qr-item__where">{where(x) || deckName}</span>
                     </span>
                     {x.sug ? <span className="qr-mark" aria-hidden="true" /> : <Mark status={statusOf(x)} reported={reports.has(x.id)} />}
@@ -262,7 +298,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                 </li>
               );
             })}
-            {shown.length === 0 && <li className="pss-none">{filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
+            {shown.length === 0 && <li className="pss-none">{words.length ? "No question matches that search." : filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
           </ol>
 
           <section className="qr-detail" ref={detailRef} aria-live="polite">
