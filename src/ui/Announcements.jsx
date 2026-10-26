@@ -160,10 +160,12 @@ function Composer({ initial = null, onSave, onCancel }) {
   );
 }
 
-/* `composing` (and onComposeDone) come from the page, whose band holds the
+/* `fill` turns a post into what it reads as (the welcome note's {decks}
+   filled in); an edit still opens the post as written.
+   `composing` (and onComposeDone) come from the page, whose band holds the
    New announcement button. An edit opens in the post's own place. */
 export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false, onPost, onUpdate, onDelete, onPublish, onSetWelcome,
-  composing = false, onComposeDone }) {
+  composing = false, onComposeDone, fill = null }) {
   const [editing, setEditing] = useState(null);
   async function remove(a) {
     if (!await confirm({ title: "Delete this announcement?", body: `“${a.title}” disappears for everyone.`, action: "Delete", danger: true })) return;
@@ -183,7 +185,7 @@ export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false,
   const render = (a, lead) => (editing === a.id
     ? <Composer key={a.id} initial={a} onCancel={() => setEditing(null)}
         onSave={async post => { await onUpdate(a.id, post); setEditing(null); }} />
-    : <Post key={a.id} a={a} lead={lead} isNew={isNew(a)} {...admin} />);
+    : <Post key={a.id} a={fill ? fill(a) : a} lead={lead} isNew={isNew(a)} {...admin} />);
   const [lead, ...rest] = items;
   return (
     <div className="ann-feed">

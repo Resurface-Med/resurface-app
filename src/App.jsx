@@ -1470,9 +1470,9 @@ export default function App() {
           {v === V.ADMIN && (online ? <AdminView /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView
-            /* Admins see the welcome post as written, {decks} and all, so an
-               edit saves the template, not one person's filled-in copy. */
-            items={isAdmin || !welcomeNote ? announcements : announcements.map(a => (a.id === welcomeNote.id ? welcomeNote : a))} newSince={annNewSince}
+            /* Everyone reads the welcome post filled in; an edit opens it as
+               written, {decks} and all, so the template is what gets saved. */
+            items={announcements} fill={a => (welcomeNote && a.id === welcomeNote.id ? welcomeNote : a)} newSince={annNewSince}
             isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} onSetWelcome={setWelcomeAnnouncement} />}
 
           {v === V.PROFILE && (
