@@ -121,23 +121,50 @@ export function LeaderNudge({ me, rival, rank, around = null, onAction, onClose,
 /* Milestones (2026-10-26): the number, big, counting up, with a deadpan
    line under it. No share button, on purpose. */
 export const MILESTONES = [
-  [100, "That’s more than the lecture had slides."],
+  [100, "And you said you’d start revising next week."],
   [250, "Your Anki deck is getting nervous."],
   [500, "At this point you’re basically the question bank."],
   [1000, "Your consultant would be proud. Probably."],
   [2500, "We’re running out of things to say."],
   [5000, "Go outside. Then come back."],
 ];
+/* An odometer: each digit a column of 0–9 that rolls up to its number,
+   the columns landing one after another. */
+function Odometer({ n }) {
+  const digits = n.toLocaleString("en-GB").split("");
+  let k = 0;
+  return (
+    <span className="odo" aria-label={n.toLocaleString("en-GB")}>
+      {digits.map((ch, i) => {
+        if (!/\d/.test(ch)) return <span key={i} className="odo__sep">{ch}</span>;
+        const d = Number(ch), at = k++;
+        return (
+          <span key={i} className="odo__col" aria-hidden="true">
+            <span className="odo__reel" style={{ "--to": d + 10, "--d": `${200 + at * 140}ms` }}>
+              {[...Array(20)].map((_, j) => <span key={j}>{j % 10}</span>)}
+            </span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 export function MilestoneNudge({ n, onAction, onClose, inline }) {
-  const shown = useCountUp(n, 1100, 250);
   const line = (MILESTONES.find(([m]) => m === n) ?? [n, "Keep going."])[1];
+  const next = MILESTONES.find(([m]) => m > n)?.[0] ?? null;
   return (
     <NudgeCard kind="milestone" inline={inline}
       art={
         <span className="nudge-mile" aria-hidden="true">
-          {[...Array(10)].map((_, i) => <span key={i} className="nudge-mile__spark" style={{ "--a": `${i * 36}deg`, "--d": `${1250 + (i % 3) * 60}ms` }} />)}
-          <span className="nudge-mile__n">{shown.toLocaleString("en-GB")}</span>
+          <Odometer n={n} />
           <span className="nudge-mile__label">questions answered</span>
+          {next && (
+            <span className="nudge-mile__next">
+              <span className="nudge-mile__bar"><span style={{ "--w": `${(n / next) * 100}%` }} /></span>
+              <span>Next: {next.toLocaleString("en-GB")}</span>
+            </span>
+          )}
         </span>
       }
       title={line}

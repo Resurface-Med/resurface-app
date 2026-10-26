@@ -11230,34 +11230,29 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge__art { width: 68px; height: 68px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .nudge, .nudge-board__row, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
+  .nudge, .nudge-board__row, .odo__reel, .nudge-mile__bar span, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
 }
 .ax-pops { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 28px 32px; margin-top: 18px; }
 .ax-pops.is-big { margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--c-border); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .ax-pop__head { display: flex; justify-content: space-between; align-items: baseline; }
 .ax-pop .nudge { margin-top: 6px; }
 
-/* Milestone: the number big on a deep blue tile, sparks flying off it once
-   the count lands. */
-.nudge.is-milestone { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+/* Milestone: no tile. The number in ink, its digits rolling up like an
+   odometer, then a thin line filling toward the next one. */
+.nudge.is-milestone { grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .nudge.is-milestone .nudge__text { padding-right: 0; }
-.nudge.is-milestone .nudge__art { width: 100%; height: auto; border-radius: 18px; display: block; justify-self: stretch; }
-.nudge-mile {
-  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
-  width: 100%; box-sizing: border-box; padding: 18px 20px 16px; border-radius: 18px; overflow: hidden;
-  background: radial-gradient(240px 140px at 85% 0%, #6f93ff 0%, rgba(111,147,255,0) 70%), linear-gradient(135deg, var(--c-accent), #2450e8);
-  color: #fff;
-}
-.nudge-mile__n { font-size: 46px; font-weight: 700; letter-spacing: -1.8px; line-height: 1; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
-.nudge-mile__label { font-size: 14px; font-weight: 500; opacity: .8; position: relative; z-index: 1; }
-.nudge-mile__spark {
-  position: absolute; left: 70px; top: 40px; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0;
-  animation: spark .9s var(--d) cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
-}
-.nudge-mile__spark:nth-child(3n) { background: #ffd66b; width: 5px; height: 5px; }
-.nudge-mile__spark:nth-child(3n+1) { background: #a9c1ff; }
-@keyframes spark { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scale(1); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(64px) scale(.4); } }
+.nudge.is-milestone .nudge__art { width: 100%; height: auto; border-radius: 0; display: block; justify-self: stretch; }
+.nudge-mile { display: flex; flex-direction: column; align-items: flex-start; width: 100%; box-sizing: border-box; padding-right: 28px; }
+.odo { display: inline-flex; align-items: flex-end; font-size: 58px; font-weight: 700; letter-spacing: -2px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.odo__col { display: inline-block; height: 1em; overflow: hidden; }
+.odo__reel { display: flex; flex-direction: column; transform: translateY(calc(var(--to) * -1em)); animation: odoRoll 1.1s var(--d) cubic-bezier(0.2, 0.9, 0.25, 1.05) both; }
+.odo__reel span { height: 1em; display: block; }
+.odo__sep { margin: 0 -0.02em 0 -0.16em; }
+@keyframes odoRoll { from { transform: translateY(0); } }
+.nudge-mile__label { margin-top: 6px; font-size: 14px; font-weight: 500; color: var(--c-muted); }
+.nudge-mile__next { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 14px; font-size: 12.5px; font-weight: 500; color: var(--c-muted); white-space: nowrap; }
+.nudge-mile__bar { flex: 1; height: 4px; border-radius: 4px; background: var(--c-surface3); overflow: hidden; }
+.nudge-mile__bar span { display: block; height: 100%; width: var(--w); border-radius: inherit; background: var(--c-accent); transform-origin: left; animation: raceIn 1s 1.1s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes raceIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .ax-pop__pick { margin: 0 0 8px; flex-wrap: wrap; }
-.nudge.is-milestone .nudge__x { top: 30px; right: 32px; z-index: 2; color: rgba(255,255,255,.85); }
-.nudge.is-milestone .nudge__x:hover { background: rgba(255,255,255,.16); color: #fff; }
-@media (prefers-reduced-motion: reduce) { .nudge-mile__spark { display: none; } }
+
