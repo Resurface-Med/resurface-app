@@ -54,8 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
-import { personalNote, yearFolder, yearDecks, tasterIds } from "./lib/firstRun";
-import TasterPrompt from "./ui/TasterPrompt";
+import { personalNote, yearFolder } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -250,22 +249,11 @@ export default function App() {
   const welcomeNote = useMemo(() => personalNote(rawWelcome, featured, studyYear), [rawWelcome, featured, studyYear]);
   useEffect(() => { if (reveal && welcomeNote && user) logStep(user.id, "note_shown"); }, [reveal, Boolean(welcomeNote)]); // eslint-disable-line react-hooks/exhaustive-deps
   const firstFolder = yearFolder(featured, studyYear);
-  /* The note's two ways in (2026-10-26). With ready-made decks for your
-     year: a taster, five questions from the blocks you've covered
-     (ui/TasterPrompt), or the deck list with your year open. Without: your
-     own notes, in Generate. */
-  const myYearDecks = useMemo(() => yearDecks(featured, studyYear), [featured, studyYear]);
-  const [tasterOpen, setTasterOpen] = useState(false);
-  const welcomeActions = myYearDecks.length
-    ? [
-        { label: `Try Year ${studyYear} questions`, primary: true, run: () => { if (user) logStep(user.id, "note_start"); setTasterOpen(true); } },
-        { label: "Choose my topics", primary: false, run: () => startFirst() },
-      ]
-    : [
-        { label: "Make questions from your notes", primary: true, run: () => { if (user) logStep(user.id, "note_generate"); go(V.GENERATE); } },
-      ];
+  /* The note's way in: Study, with your year's ready-made decks expanded
+     (Rafil, 2026-10-26, after trying a taster picker that muddied it). */
+  const welcomeStart = { label: firstFolder ? `Start Year ${studyYear} questions` : "Start practising", primary: true, run: () => startFirst() };
   function startFirst() {
-    if (user) logStep(user.id, "note_topics");
+    if (user) logStep(user.id, "note_start");
     const folder = firstFolder;
     setLaunchFilter({ deck: "All", cat: "All" });
     setStudyScope("all");
@@ -1349,20 +1337,9 @@ export default function App() {
     {reveal && welcomeNote && (
       <WelcomeReveal
         welcome={welcomeNote}
-        actions={welcomeActions}
+        actions={[welcomeStart]}
         onClose={() => setReveal(false)}
         onAction={a => { setReveal(false); a.run(); }}
-      />
-    )}
-    {tasterOpen && (
-      <TasterPrompt
-        decks={myYearDecks}
-        onClose={() => setTasterOpen(false)}
-        onStart={ids => {
-          setTasterOpen(false);
-          if (user) logStep(user.id, "taster_start");
-          practise(tasterIds(featured, ids, 5));
-        }}
       />
     )}
     <PullToRefresh onRefresh={refreshData} />
@@ -1444,7 +1421,7 @@ export default function App() {
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             welcome={welcomeNote}
-            welcomeActions={welcomeActions}
+            welcomeActions={[welcomeStart, { label: "Make my own questions", primary: false, run: () => go(V.GENERATE) }]}
             onReplayWelcome={() => setReveal(true)}
             activity={activity}
             srCards={srCards}

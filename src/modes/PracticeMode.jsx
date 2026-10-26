@@ -490,8 +490,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   }
 
   /* Someone who has never answered a question: the deck list explains
-     itself in one line (2026-10-26). Their first session is the taster from
-     the welcome note (ui/TasterPrompt), not anything here. */
+     itself in one line (2026-10-26). */
   const firstRun = Object.keys(pStats).length === 0;
   function goNext(phone) {
     if (phone) setCountOpt("All");

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decksLine, personalNote, yearFolder, yearDecks, tasterIds } from "../src/lib/firstRun.js";
+import { decksLine, personalNote, yearFolder, yearDecks } from "../src/lib/firstRun.js";
 
 const featured = {
   roots: [
@@ -56,12 +56,4 @@ describe("first run", () => {
     expect(yearFolder(featured, 5)).toBeNull();
   });
 
-  it("takes the taster in turn from each chosen deck", () => {
-    const f = { ...featured, questions: [...featured.questions, { id: 22, deckId: "rn" }, { id: 23, deckId: "rn" }, { id: 31, deckId: "en" }] };
-    const ids = tasterIds(f, ["rn", "en"], 5, () => 0);
-    expect(ids).toHaveLength(4);
-    expect(new Set(ids)).toEqual(new Set([21, 22, 23, 31]));
-    expect(ids.slice(0, 2).some(id => id === 31)).toBe(true);
-    expect(tasterIds(f, ["pr"], 5, () => 0)).toHaveLength(5);
-  });
 });

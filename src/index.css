@@ -10956,18 +10956,3 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 /* First visit to Study only (2026-10-26): how the deck list works, once. */
 .setup-hint { margin: -2px 0 12px; font-size: 14px; line-height: 1.45; color: var(--c-sub); }
-
-/* The taster's deck toggles (ui/TasterPrompt). */
-.tp-chips { display: flex; flex-wrap: wrap; gap: 10px; }
-.tp-chip {
-  display: inline-flex; align-items: center; gap: 10px;
-  padding: 13px 20px 13px 14px; border-radius: var(--r-pill);
-  border: 1.5px solid var(--c-border); background: var(--c-surface3);
-  color: var(--c-text); font: inherit; font-size: 16px; font-weight: 500; cursor: pointer;
-}
-.tp-chip.is-on { border-color: var(--c-accent); background: color-mix(in srgb, var(--c-accent) 10%, transparent); }
-.tp-chip__tick {
-  display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
-  border: 1.5px solid var(--c-border); font-size: 13px; color: #fff;
-}
-.tp-chip.is-on .tp-chip__tick { background: var(--c-accent); border-color: var(--c-accent); }
