@@ -3,7 +3,7 @@ import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
-  fetchOverview, fetchOverviewDaily, fetchPeople, fetchPeopleDaily, fetchGenerationDaily, fetchGeneratedDaily,
+  fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGenerationDaily, fetchGeneratedDaily,
   fetchMarketingList, fetchTokenTotals, fetchTokensDaily, setAdmin, fetchFlags, clearFlags,
   fetchAiQuota, fetchShareLog,
   fetchAdminFeatured, fetchFeatureCandidates, adminSetFeatured, adminUnfeature, adminPublishFeatured, adminDeleteFeatured,
@@ -140,6 +140,33 @@ function Allowance({ label, used, resets }) {
     </div>
   );
 }
+/* Storage (2026-10-26): the free plan stops accepting writes past 500 MB,
+   which would mean answers not saving. Red from 60% (300 MB), months before
+   it matters: time to shorten answer_log's history or move to Pro. */
+const STORAGE_LIMIT = 500 * 1024 * 1024;
+const STORAGE_WARN = 0.6;
+function Storage() {
+  const [size] = useSection(fetchStorage);
+  if (size.error || size.rows == null) return null;
+  const used = size.rows;
+  const mb = b => `${Math.round(b / 1024 / 1024).toLocaleString("en-GB")} MB`;
+  const pct = Math.min(100, (used / STORAGE_LIMIT) * 100);
+  const high = used >= STORAGE_LIMIT * STORAGE_WARN;
+  return (
+    <div className={`adm-allow${high ? " is-warn" : ""}`}>
+      <span className="adm-allow__label">Database storage</span>
+      <span className="adm-allow__n"><strong>{mb(used)}</strong> of 500 MB</span>
+      <span className="adm-meter" aria-hidden="true">
+        <span style={{ width: `${Math.max(pct, 1)}%` }} className={high ? "is-high" : ""} />
+      </span>
+      <span className="adm-allow__sub">
+        {high
+          ? "Over 60%: time to shorten the answer history or upgrade to Pro"
+          : `${mb(STORAGE_LIMIT - used)} left · warns at 300 MB`}
+      </span>
+    </div>
+  );
+}
 function AiCalls() {
   const [quota] = useSection(fetchAiQuota);
   if (quota.error) return null;
@@ -151,6 +178,7 @@ function AiCalls() {
     <section className="adm-allowances" aria-label="Daily AI allowance">
       <Allowance label="Generating questions" used={Number(q.generate ?? 0)} resets={resets} />
       <Allowance label="Resurface AI" used={Number(q.explain ?? 0)} resets={resets} />
+      <Storage />
     </section>
   );
 }

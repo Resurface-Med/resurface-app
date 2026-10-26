@@ -9650,7 +9650,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 /* Admin's headline: the two daily AI allowances, side by side. */
 .adm-allowances {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;
   margin: 0 0 22px;
 }
 .adm-allow {
@@ -9664,6 +9664,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .adm-allow__n strong { font-size: 44px; font-weight: 600; letter-spacing: -1.5px; color: var(--c-text); font-variant-numeric: tabular-nums; margin-right: 4px; }
 .adm-allow .adm-meter { height: 10px; margin: 4px 0 2px; }
 .adm-allow__sub { font-size: 14px; color: var(--c-muted); }
+.adm-allow.is-warn .adm-allow__sub { color: var(--c-danger); }
 @media (max-width: 640px) {
   .adm-allowances { grid-template-columns: 1fr; }
   .adm-allow__n strong { font-size: 38px; }

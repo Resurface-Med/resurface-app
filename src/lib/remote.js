@@ -482,6 +482,13 @@ export async function fetchOverview() {
   return data ?? [];
 }
 
+/** The database's size in bytes (admins only; migration 0057). */
+export async function fetchStorage() {
+  const { data, error } = await supabase.rpc("admin_storage");
+  if (error) throw new Error(error.message);
+  return Number(data) || 0;
+}
+
 export async function fetchOverviewDaily(days = 30) {
   const { data, error } = await supabase.rpc("admin_overview_daily", { days });
   if (error) throw new Error(error.message);
