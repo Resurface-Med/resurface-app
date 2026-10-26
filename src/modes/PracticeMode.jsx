@@ -185,7 +185,7 @@ function describeSession(s) {
 const NONE = ["none"];
 const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] === "none");
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, revealDeckId = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, onFirstStart = null, sessions = [], onSessionSave = null, onStudyTime = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, revealDeckId = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, sessions = [], onSessionSave = null, onStudyTime = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -489,17 +489,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
   }
 
-  /*
-   * Someone who has never answered a question (2026-10-26). Their Next starts
-   * ten questions at once instead of opening "How much?", which defaulted to
-   * every question ticked: one new person's first session was 100 long and
-   * left at 27. Ten is a session they can finish. After it, the options
-   * screen is back as it always was.
-   */
+  /* Someone who has never answered a question: the deck list explains
+     itself in one line (2026-10-26). Their first session is the taster from
+     the welcome note (ui/TasterPrompt), not anything here. */
   const firstRun = Object.keys(pStats).length === 0;
-  const FIRST_RUN_COUNT = 10;
   function goNext(phone) {
-    if (firstRun) { onFirstStart?.(); start(undefined, FIRST_RUN_COUNT); return; }
     if (phone) setCountOpt("All");
     setStep("options");
   }
@@ -1260,7 +1254,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     </div>
                   )}
                   {firstRun && !noQuestions && !creatingDeck && (
-                    <p className="setup-hint">Tick the topics you've covered, then press Start.</p>
+                    <p className="setup-hint">Tick the topics you've covered, then press Next.</p>
                   )}
                   {creatingDeck ? (
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
@@ -1332,7 +1326,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     >
                       {scoped === 0
                         ? nothingChosen ? "Choose what to revise" : "Nothing here — pick another deck"
-                        : firstRun ? `Start · ${Math.min(FIRST_RUN_COUNT, scoped)} question${Math.min(FIRST_RUN_COUNT, scoped) === 1 ? "" : "s"} →`
                         : `Next · ${scoped} question${scoped === 1 ? "" : "s"} →`}
                     </button>
                   </div>
@@ -1425,7 +1418,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 </div>
               )}
               {firstRun && !noQuestions && !creatingDeck && (
-                <p className="setup-hint">Tick the topics you've covered, then press Start.</p>
+                <p className="setup-hint">Tick the topics you've covered, then press Next.</p>
               )}
               {naming && !inlineRename && (
                 <DeckNameForm
@@ -1501,7 +1494,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 onClick={() => goNext(false)}
                 className="btn-press setup-next-btn"
               >
-                {firstRun ? `Start ${Math.min(FIRST_RUN_COUNT, scoped)}` : "Next"} <span aria-hidden="true">→</span>
+                Next <span aria-hidden="true">→</span>
               </button>
               </div>
             </div>

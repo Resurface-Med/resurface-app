@@ -65,3 +65,28 @@ export function yearFolder(featured, year) {
   const r = (featured.roots ?? []).find(x => !x.hidden && x.name === `Year ${year}`);
   return r ? (r.top ?? r.id) : null;
 }
+
+/**
+ * Five questions spread across the chosen ready-made decks, for the taster
+ * a new account starts from the welcome note (2026-10-26): taken in turn
+ * from each deck, at random within it, so no one deck fills the five.
+ */
+export function tasterIds(featured, deckIds, n = 5, rand = Math.random) {
+  const kids = new Map();
+  for (const d of featured?.decks ?? []) {
+    if (!d.parentId) continue;
+    if (!kids.has(d.parentId)) kids.set(d.parentId, []);
+    kids.get(d.parentId).push(d.id);
+  }
+  const under = id => { const out = new Set([id]); const stack = [id]; while (stack.length) for (const c of kids.get(stack.pop()) ?? []) { out.add(c); stack.push(c); } return out; };
+  const pools = deckIds.map(id => {
+    const ids = under(id);
+    const qs = (featured?.questions ?? []).filter(q => ids.has(q.deckId)).map(q => q.id);
+    for (let i = qs.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [qs[i], qs[j]] = [qs[j], qs[i]]; }
+    return qs;
+  }).filter(p => p.length);
+  const out = [];
+  for (let k = 0; out.length < n && pools.some(p => k < p.length); k++)
+    for (const p of pools) if (k < p.length && out.length < n) out.push(p[k]);
+  return out;
+}

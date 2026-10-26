@@ -50,7 +50,10 @@ function Words({ list, step, from }) {
   ));
 }
 
-export default function WelcomeReveal({ welcome, onStart, onClose, startLabel = "Start practising" }) {
+/* `actions`: the ways in, [{ label, primary }], the first one the main
+   button; pressed, onAction(action). "Look around first" is added when
+   there's only one. */
+export default function WelcomeReveal({ welcome, actions = [], onAction, onClose }) {
   const note = useMemo(() => parse(welcome?.title, welcome?.body), [welcome]);
   const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const [done, setDone] = useState(reduced);
@@ -148,12 +151,20 @@ export default function WelcomeReveal({ welcome, onStart, onClose, startLabel = 
       </article>
       {/* The way in, under the letter on the blue rather than on it. */}
       <div className="wr__acts is-below" data-d={endAt} style={{ "--d": `${endAt}ms` }}>
-        <button type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(onStart); }}>
-          {startLabel} <span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="wr__later" onClick={e => { e.stopPropagation(); leave(onClose); }}>
-          Look around first
-        </button>
+        {actions.map((a, i) => i === 0 ? (
+          <button key={i} type="button" className="wr__go btn-press" onClick={e => { e.stopPropagation(); leave(() => onAction(a)); }}>
+            {a.label} <span aria-hidden="true">→</span>
+          </button>
+        ) : (
+          <button key={i} type="button" className="wr__later" onClick={e => { e.stopPropagation(); leave(() => onAction(a)); }}>
+            {a.label}
+          </button>
+        ))}
+        {actions.length < 2 && (
+          <button type="button" className="wr__later" onClick={e => { e.stopPropagation(); leave(onClose); }}>
+            Look around first
+          </button>
+        )}
       </div>
       {/* Top right: another way out, always there; and while it writes,
           Skip beside it to show it all at once. */}
