@@ -2730,7 +2730,6 @@ html.is-deck-dragging * {
   justify-content: flex-start;
   gap: 8px;
 }
-.setup-col .topic-bar { display: none; }
 .setup-col .topic-due,
 .setup-col .topic-avail {
   gap: 3px;
@@ -5203,11 +5202,10 @@ html.is-deck-dragging * {
     grid-column: 2;
     grid-row: 2;
     justify-content: flex-start;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     padding-left: 0;
   }
-  .topic-bar { display: none; }
   .topic-due,
   .topic-avail {
     flex-direction: row;
