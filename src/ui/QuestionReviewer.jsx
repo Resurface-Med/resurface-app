@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { questionsInDeck } from "../lib/decks";
 import { GEN_ID_BASE } from "../data";
@@ -55,11 +55,39 @@ function Hl({ text, words }) {
   return parts.map((p, i) => (i % 2 ? <mark key={i} className="qr-hl">{p}</mark> : p));
 }
 
+/* For a card whose stem doesn't hold the words, the line that does. */
+function hitLine(x, words) {
+  if (!words.length || words.some(w => String(x.q).toLowerCase().includes(w))) return null;
+  const lines = [...(x.opts ?? []).map(o => `Option: ${o}`), x.exp ? `Explanation: ${x.exp}` : null, ...(x.optExp ?? []).filter(Boolean).map(o => `Note: ${o}`)].filter(Boolean);
+  return lines.find(l => words.some(w => l.toLowerCase().includes(w))) ?? null;
+}
+
+/* One row of the list. Memoised, so typing in the search re-renders only
+   the rows whose result changed, not a thousand of them per key. */
+const Row = memo(function Row({ x, n, on, words, where, status, reported, onPick }) {
+  const hit = hitLine(x, words);
+  return (
+    <li>
+      <button type="button" className={`qr-item${on ? " is-on" : ""}`} onClick={() => onPick(x.id)}>
+        <span className="qr-item__n">{n}</span>
+        <span className="qr-item__text">
+          <span className="qr-item__stem"><Hl text={x.q} words={words} /></span>
+          {hit && <span className="qr-item__hit"><Hl text={hit} words={words} /></span>}
+          <span className="qr-item__where">{where}</span>
+        </span>
+        {status === "sug" ? <span className="qr-mark" aria-hidden="true" /> : <Mark status={status} reported={reported} />}
+      </button>
+    </li>
+  );
+});
+
 export default function QuestionReviewer({ deckId, deckName, actions, editPersist = null, deckIds = null, onClose }) {
   const { user } = useAuth();
   const [version, setVersion] = useState(0);
-  void version;
-  const all = questionsInDeck(deckId).filter(q => q.id >= GEN_ID_BASE);
+  /* Once per deck and per edit, not per render: questionsInDeck walks every
+     question in the app, and this re-rendered on every key typed. */
+  const all = useMemo(() => questionsInDeck(deckId).filter(q => q.id >= GEN_ID_BASE), [deckId, version]); // eslint-disable-line react-hooks/exhaustive-deps
+  const numberOf = useMemo(() => new Map(all.map((x, i) => [x.id, i + 1])), [all]);
   const [reviews, setReviews] = useState(() => new Map());     // dbId -> {status, name, at, by}
   const [comments, setComments] = useState([]);                // [{id, qid, name, body, at, by}]
   const [reports, setReports] = useState(() => new Map());     // app id -> flag row
@@ -68,6 +96,8 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   /* Search (2026-10-26): find a card by any of its words, to fix it. */
   const [query, setQuery] = useState("");
   const searchRef = useRef(null);
+  /* The list follows the box a beat behind, so typing never waits on it. */
+  const deferredQuery = useDeferredValue(query);
   const [cur, setCur] = useState(all[0]?.id ?? null);
   const [editing, setEditing] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -109,18 +139,15 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   if (filter === "suggested") shown.splice(0, shown.length, ...suggested);
   /* Every word typed must appear somewhere in the card: the stem, an
      option, the explanation, a wrong option's note, or where it lives. */
-  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const textOf = x => [x.q, ...(x.opts ?? []), x.exp, ...(x.optExp ?? []), ...(x.path ?? []).map(p => p.name)]
-    .filter(t => typeof t === "string").join(" \n ").toLowerCase();
-  if (words.length) shown.splice(0, shown.length, ...shown.filter(x => { const t = textOf(x); return words.every(w => t.includes(w)); }));
-  /* For a card whose stem doesn't hold the words, the line that does. */
-  const hitLine = x => {
-    if (!words.length || words.some(w => String(x.q).toLowerCase().includes(w))) return null;
-    const lines = [...(x.opts ?? []).map(o => `Option: ${o}`), x.exp ? `Explanation: ${x.exp}` : null, ...(x.optExp ?? []).filter(Boolean).map(o => `Note: ${o}`)].filter(Boolean);
-    return lines.find(l => words.some(w => l.toLowerCase().includes(w))) ?? null;
-  };
+  const words = useMemo(() => deferredQuery.trim().toLowerCase().split(/\s+/).filter(Boolean), [deferredQuery]);
+  const textIndex = useMemo(() => new Map(all.map(x => [x.id,
+    [x.q, ...(x.opts ?? []), x.exp, ...(x.optExp ?? []), ...(x.path ?? []).map(p => p.name)]
+      .filter(t => typeof t === "string").join(" \n ").toLowerCase()])), [all]);
+  if (words.length) shown.splice(0, shown.length, ...shown.filter(x => { const t = textIndex.get(x.id) ?? ""; return words.every(w => t.includes(w)); }));
 
   const q = (filter === "suggested" ? suggested : all).find(x => x.id === cur) ?? shown[0] ?? null;
+  /* Setters only, so the same function every render and the rows stay memoised. */
+  const pick = useCallback(id => { setCur(id); setShowList(false); setConfirmDelete(false); }, []);
   const idx = q ? shown.findIndex(x => x.id === q.id) : -1;
   const approved = all.filter(x => statusOf(x) === "approved").length;
   const flagged = all.filter(x => statusOf(x) === "flagged").length;
@@ -281,23 +308,11 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
 
         <div className={`qr-body${showList ? " is-list" : ""}`}>
           <ol className="qr-list" ref={listRef} aria-label="Questions">
-            {shown.map(x => {
-              const n = all.indexOf(x) + 1;
-              return (
-                <li key={x.id}>
-                  <button type="button" className={`qr-item${q && x.id === q.id ? " is-on" : ""}`}
-                    onClick={() => { setCur(x.id); setShowList(false); setConfirmDelete(false); }}>
-                    <span className="qr-item__n">{x.sug ? shown.indexOf(x) + 1 : n}</span>
-                    <span className="qr-item__text">
-                      <span className="qr-item__stem"><Hl text={x.q} words={words} /></span>
-                      {hitLine(x) && <span className="qr-item__hit"><Hl text={hitLine(x)} words={words} /></span>}
-                      <span className="qr-item__where">{where(x) || deckName}</span>
-                    </span>
-                    {x.sug ? <span className="qr-mark" aria-hidden="true" /> : <Mark status={statusOf(x)} reported={reports.has(x.id)} />}
-                  </button>
-                </li>
-              );
-            })}
+            {shown.map((x, i) => (
+              <Row key={x.id} x={x} n={x.sug ? i + 1 : numberOf.get(x.id)} on={!!q && x.id === q.id} words={words}
+                where={where(x) || deckName} status={x.sug ? "sug" : statusOf(x)} reported={reports.has(x.id)}
+                onPick={pick} />
+            ))}
             {shown.length === 0 && <li className="pss-none">{words.length ? "No question matches that search." : filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
           </ol>
 
