@@ -54,6 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
+import { personalNote, starterFor } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -240,6 +241,20 @@ export default function App() {
       .filter(q => q.rootId !== "orphan" && !hidden.has(q.rootId));
     setUserQuestions([...decorated, ...shared]);
     setGenerated(decorated);
+  }
+  /* The welcome note with your year's decks named in it, and the five
+     questions its button starts (lib/firstRun). */
+  const rawWelcome = announcements.find(a => a.welcome && a.published_at) ?? null;
+  const welcomeNote = useMemo(() => personalNote(rawWelcome, featured, studyYear), [rawWelcome, featured, studyYear]);
+  const starter = useMemo(() => starterFor(featured, studyYear), [featured, studyYear]);
+  function startFirst() {
+    if (starter) practise(starter.ids);
+    else {
+      setLaunchFilter({ deck: "All", cat: "All" });
+      setStudyScope("all");
+      setAutoStart(false);
+      go(V.STUDY);
+    }
   }
   /* Progress reads every deck you practise from, featured ones included. */
   const progressDecks = useMemo(() => [...shelve(shownDecks, featuredDecks), ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1311,17 +1326,12 @@ export default function App() {
     {studyYear === null && nameChosen && !(isGoogleUser(user) && marketingOptIn === null) && !practiceSessionActive && (
       <YearPrompt onAnswer={y => { setStudyYear(y); remote.profile(user.id, { studyYear: y }); }} />
     )}
-    {reveal && announcements.some(a => a.welcome && a.published_at) && (
+    {reveal && welcomeNote && (
       <WelcomeReveal
-        welcome={announcements.find(a => a.welcome && a.published_at)}
+        welcome={welcomeNote}
+        startLabel={starter ? `Start with ${starter.name}` : "Start practising"}
         onClose={() => setReveal(false)}
-        onStart={() => {
-          setReveal(false);
-          setLaunchFilter({ deck: "All", cat: "All" });
-          setStudyScope("all");
-          setAutoStart(false);
-          go(V.STUDY);
-        }}
+        onStart={() => { setReveal(false); startFirst(); }}
       />
     )}
     <PullToRefresh onRefresh={refreshData} />
@@ -1402,7 +1412,9 @@ export default function App() {
               "Loading…" appearing and vanishing in a frame. */}
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
-            welcome={announcements.find(a => a.welcome && a.published_at) ?? null}
+            welcome={welcomeNote}
+            startLabel={starter ? `Start with ${starter.name}` : null}
+            onStartFirst={startFirst}
             onReplayWelcome={() => setReveal(true)}
             activity={activity}
             srCards={srCards}
@@ -1444,7 +1456,10 @@ export default function App() {
 
           {v === V.ADMIN && (online ? <AdminView /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
-          {v === V.NEWS && <AnnouncementsView items={announcements} newSince={annNewSince}
+          {v === V.NEWS && <AnnouncementsView
+            /* Admins see the welcome post as written, {decks} and all, so an
+               edit saves the template, not one person's filled-in copy. */
+            items={isAdmin || !welcomeNote ? announcements : announcements.map(a => (a.id === welcomeNote.id ? welcomeNote : a))} newSince={annNewSince}
             isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} onSetWelcome={setWelcomeAnnouncement} />}
 
           {v === V.PROFILE && (

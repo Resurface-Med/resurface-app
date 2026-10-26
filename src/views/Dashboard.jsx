@@ -50,6 +50,8 @@ export default function Dashboard({
   pStats, streak, dueCount, setView,
   activity = {}, srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
   welcome = null,
+  startLabel = null,
+  onStartFirst = null,
   onReplayWelcome = null,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
@@ -100,7 +102,7 @@ export default function Dashboard({
      start and nothing else — the note says the rest. */
   const actions = empty && welcome
     ? [
-        { scope: "all", label: "Start practising", primary: true },
+        { scope: "first", label: startLabel ?? "Start practising", primary: true },
         { scope: "generate", label: "Make my own questions", primary: false },
       ]
     : empty
@@ -182,7 +184,7 @@ export default function Dashboard({
           {actions.map((a, i) => (
             <button
               key={a.scope}
-              onClick={() => (a.scope === "generate" ? setView?.(V.GENERATE) : onStudy?.(a.scope))}
+              onClick={() => (a.scope === "generate" ? setView?.(V.GENERATE) : a.scope === "first" ? onStartFirst?.() : onStudy?.(a.scope))}
               className="btn-press"
               data-in="pop"
               style={{ "--i": 2 + i, ...(a.primary ? {
