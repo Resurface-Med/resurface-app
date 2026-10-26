@@ -1,0 +1,183 @@
+import { useEffect, useRef, useState } from "react";
+import StreakFlame from "./StreakFlame";
+import Avatar from "./Avatar";
+import { avatarSrc } from "../lib/avatar";
+import { fetchLeaderboardWeek, logStep } from "../lib/remote";
+import { todayKey, yesterdayKey } from "../lib/storage";
+import logoMark from "../assets/ai-mark.png";
+
+/**
+ * The nudges (2026-10-26): a streak to keep, a place on the leaderboard to
+ * take, and Resurface to pass on. Each a card in the corner, bigger than
+ * the update bar and drawn its own way, with one button and a way out.
+ *
+ * At most one a visit: whichever is due first takes the slot, and the
+ * others wait. Never on top of the update bar or during a session.
+ *
+ *   Streak       on opening the app, a streak of 2+ that today hasn't kept
+ *                yet; once a day.
+ *   Leaderboard  after a session, someone with a year on the board; once a
+ *                day.
+ *   Invite       after a session, someone who has studied on 2+ days; back
+ *                5 days after a ✕, gone after 3; 21 days after a share.
+ */
+const DAY = 864e5;
+const INVITE_LINK = "https://app.tryresurface.com/?ref=invite";
+const ordinal = n => `${n}${["th", "st", "nd", "rd"][(n % 100 > 10 && n % 100 < 14) ? 0 : (n % 10 < 4 ? n % 10 : 0)] || "th"}`;
+const first = name => String(name || "").trim().split(/\s+/)[0] || "someone";
+
+/* Remembered per account on this device. */
+const store = {
+  get(uid, k) { try { return JSON.parse(localStorage.getItem(`nudge:${k}:${uid}`)) ?? {}; } catch { return {}; } },
+  set(uid, k, v) { try { localStorage.setItem(`nudge:${k}:${uid}`, JSON.stringify(v)); } catch { /* fine */ } },
+};
+
+/* ── The card ─────────────────────────────────────────────────────── */
+
+export function NudgeCard({ kind, art, title, body, action, onAction, onClose, inline = false }) {
+  return (
+    <div className={`nudge is-${kind}${inline ? " is-inline" : ""}`} role="dialog" aria-live="polite" aria-label={title}>
+      <button type="button" className="nudge__x" onClick={onClose} aria-label="Close">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
+      </button>
+      <div className="nudge__art">{art}</div>
+      <div className="nudge__text">
+        <p className="nudge__title">{title}</p>
+        {body && <p className="nudge__body">{body}</p>}
+        <div className="nudge__acts">
+          <button type="button" className="nudge__go btn-press" onClick={onAction}>{action}</button>
+          <button type="button" className="nudge__later" onClick={onClose}>Not now</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function StreakNudge({ days, onAction, onClose, inline }) {
+  return (
+    <NudgeCard kind="streak" inline={inline}
+      art={<span className="nudge-streak"><StreakFlame days={days} size={58} /></span>}
+      title={`You’re on a ${days}-day streak, don’t lose it!`}
+      action="Start studying" onAction={onAction} onClose={onClose} />
+  );
+}
+
+/* Two bars that race in: theirs, and yours chasing it. */
+export function LeaderNudge({ me, rival, rank, year, onAction, onClose, inline }) {
+  const top = rank === 1;
+  const max = Math.max(me.week_count, rival?.week_count ?? 0, 1);
+  const gap = rival ? Math.abs(rival.week_count - me.week_count) : 0;
+  const rows = top ? [me, rival] : [rival, me];
+  return (
+    <NudgeCard kind="leader" inline={inline}
+      art={<span className="nudge-rank"><span className="nudge-rank__hash">#</span>{rank}</span>}
+      title={top ? `You’re top of ${year ? `Year ${year}` : "the leaderboard"} this week` : `You’re ${ordinal(rank)} in ${year ? `Year ${year}` : "the leaderboard"} this week`}
+      body={
+        <>
+          {rival && (
+            <span className="nudge-race">
+              {rows.map((r, i) => (
+                <span key={r.user_id} className={`nudge-race__row${r === me ? " is-me" : ""}`}>
+                  <Avatar className="nudge-race__av" src={avatarSrc(r.user_id, r.avatar)} name={r.display_name} />
+                  <span className="nudge-race__track">
+                    <span className="nudge-race__bar" style={{ "--w": `${Math.max(6, (r.week_count / max) * 100)}%`, "--d": `${i * 140}ms` }} />
+                  </span>
+                  <span className="nudge-race__n">{r.week_count}</span>
+                </span>
+              ))}
+            </span>
+          )}
+          <span className="nudge-race__line">
+            {!rival ? "Keep going." : top ? `${gap} ahead of ${first(rival.display_name)}. Keep it that way.` : `${gap + 1} more ${gap + 1 === 1 ? "question" : "questions"} to pass ${first(rival.display_name)}.`}
+          </span>
+        </>
+      }
+      action="Keep going" onAction={onAction} onClose={onClose} />
+  );
+}
+
+export function InviteNudge({ onAction, onClose, copied, inline }) {
+  return (
+    <NudgeCard kind="invite" inline={inline}
+      art={<span className="nudge-invite"><img src={logoMark} alt="" width="40" height="40" /><span className="nudge-invite__ring" /></span>}
+      title={copied ? "Link copied. Paste it to your friends." : "Resurface is better with your friends on it."}
+      action={copied ? "Copied" : "Share Resurface"} onAction={onAction} onClose={onClose} />
+  );
+}
+
+/* ── When they show ───────────────────────────────────────────────── */
+
+export default function NudgeCenter({ userId, ready, sessionActive, streak, activity, studyYear, onStudy }) {
+  const [shown, setShown] = useState(null);          // { kind, ...data }
+  const [copied, setCopied] = useState(false);
+  const usedVisit = useRef(false);
+  const was = useRef(sessionActive);
+  const today = todayKey();
+
+  const free = () => !usedVisit.current && !document.querySelector(".update-note") && !document.querySelector(".np-scrim, .wr");
+  function show(n) {
+    if (!free()) return false;
+    usedVisit.current = true;
+    setShown(n);
+    logStep(userId, `nudge_${n.kind}`);
+    return true;
+  }
+
+  /* On opening: a streak that today hasn't kept. */
+  useEffect(() => {
+    if (!ready || !userId || sessionActive) return;
+    const days = Number(streak?.streak) || 0;
+    const studiedToday = Number(activity?.[today]) > 0;
+    if (days < 2 || studiedToday || streak?.lastDate !== yesterdayKey()) return;
+    if (store.get(userId, "streak").day === today) return;
+    const t = setTimeout(() => { if (show({ kind: "streak", days })) store.set(userId, "streak", { day: today }); }, 1500);
+    return () => clearTimeout(t);
+  }, [ready, userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* After a session: the invite if it's due, otherwise the leaderboard. */
+  useEffect(() => {
+    const ended = was.current && !sessionActive;
+    was.current = sessionActive;
+    if (!ended || !userId) return;
+    let cancelled = false;
+    const studyDays = Object.values(activity ?? {}).filter(n => Number(n) > 0).length;
+    const inv = store.get(userId, "invite");
+    const inviteDue = studyDays >= 2 && (inv.dismissed ?? 0) < 3 && Date.now() >= (inv.nextAt ?? 0);
+    const t = setTimeout(async () => {
+      if (inviteDue) { show({ kind: "invite" }); return; }
+      if (store.get(userId, "leader").day === today) return;
+      try {
+        const rows = (await fetchLeaderboardWeek(studyYear || null)).filter(r => r.week_count > 0);
+        const i = rows.findIndex(r => r.user_id === userId);
+        if (cancelled || i < 0 || rows.length < 3) return;
+        const me = rows[i], rank = Number(me.rank) || i + 1;
+        const rival = rank === 1 ? rows[i + 1] : rows.slice(0, i).reverse().find(r => r.week_count > me.week_count) ?? rows[i - 1];
+        if (show({ kind: "leader", me, rival, rank, year: studyYear })) store.set(userId, "leader", { day: today });
+      } catch { /* offline: nothing */ }
+    }, 1400);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [sessionActive]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!shown) return null;
+  const close = () => {
+    if (shown.kind === "invite") {
+      const st = store.get(userId, "invite");
+      store.set(userId, "invite", { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 5 * DAY });
+    }
+    setShown(null); setCopied(false);
+  };
+  const study = () => { setShown(null); onStudy(); };
+
+  if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
+  if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
+  return (
+    <InviteNudge copied={copied} onClose={close} onAction={async () => {
+      logStep(userId, "invite_shared");
+      const st = store.get(userId, "invite");
+      const done = () => { store.set(userId, "invite", { ...st, nextAt: Date.now() + 21 * DAY }); setShown(null); setCopied(false); };
+      if (navigator.share) { try { await navigator.share({ url: INVITE_LINK }); done(); } catch { /* backed out */ } return; }
+      try { await navigator.clipboard.writeText(INVITE_LINK); } catch { window.prompt("Copy this link", INVITE_LINK); }
+      setCopied(true); setTimeout(done, 1800);
+    }} />
+  );
+}

@@ -54,7 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
-import InviteNotice from "./ui/InviteNotice";
+import NudgeCenter from "./ui/Nudges";
 import { personalNote, yearFolder } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
@@ -1351,8 +1351,9 @@ export default function App() {
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
-    <InviteNotice userId={user?.id} sessionActive={practiceSessionActive}
-      studyDays={Object.values(activity).filter(n => Number(n) > 0).length} />
+    <NudgeCenter userId={user?.id} ready={!dataLoading} sessionActive={practiceSessionActive}
+      streak={streak} activity={activity} studyYear={studyYear}
+      onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />
     <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
@@ -1470,7 +1471,7 @@ export default function App() {
 
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
-          {v === V.ADMIN && (online ? <AdminView /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
+          {v === V.ADMIN && (online ? <AdminView welcomeNote={welcomeNote} welcomeStart={welcomeStart} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView
             /* Everyone reads the welcome post filled in; an edit opens it as

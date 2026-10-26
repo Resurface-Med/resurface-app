@@ -10,6 +10,10 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
+import { StreakNudge, LeaderNudge, InviteNudge } from "../ui/Nudges";
+import ReminderPrompt from "../ui/ReminderPrompt";
+import NamePrompt from "../ui/NamePrompt";
+import WelcomeReveal from "../ui/WelcomeReveal";
 
 /**
  * Admin, redone for where Resurface is now (2026-10-26): a few dozen
@@ -591,14 +595,72 @@ function Flags({ onCount }) {
   );
 }
 
+/* ── Popups ─────────────────────────────────────────────────────────
+   Every popup a student can get, to look at without waiting for the
+   moment it's for. The nudges are drawn here as they appear; "Show" puts
+   the real one up over the page. Nothing here saves anything. */
+const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212 };
+const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249 };
+
+function Popups({ welcomeNote, welcomeStart }) {
+  const [open, setOpen] = useState(null);
+  const close = () => setOpen(null);
+  const nudges = [
+    { k: "streak", label: "Streak", when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
+      el: p => <StreakNudge days={6} onAction={close} onClose={close} {...p} /> },
+    { k: "leader", label: "Leaderboard", when: "After a session, for someone on their year’s leaderboard. Once a day, and not on a day the invite shows.",
+      el: p => <LeaderNudge me={SAMPLE_ME} rival={SAMPLE_RIVAL} rank={4} year={2} onAction={close} onClose={close} {...p} /> },
+    { k: "invite", label: "Invite", when: "After a session, from someone’s 2nd study day. Back 5 days after a ✕, gone after 3; 21 days after a share.",
+      el: p => <InviteNudge onAction={close} onClose={close} {...p} /> },
+  ];
+  const big = [
+    { k: "welcome", label: "Welcome note", when: "Once, straight after a new account picks its name and year." },
+    { k: "name", label: "Name and year", when: "Once, the first thing a new account sees." },
+    { k: "remind", label: "Reminder offer", when: "Once, at the end of someone’s first session." },
+  ];
+  return (
+    <>
+      <p className="ax-note">What each popup looks like, and when it shows. At most one nudge a visit, never during a session or over the update bar.</p>
+      <div className="ax-pops">
+        {nudges.map(n => (
+          <section key={n.k} className="ax-pop">
+            <div className="ax-pop__head">
+              <h3 className="ax-h3">{n.label}</h3>
+              <button type="button" className="ax-link" onClick={() => setOpen(n.k)}>Show</button>
+            </div>
+            <p className="ax-note">{n.when}</p>
+            {n.el({ inline: true })}
+          </section>
+        ))}
+      </div>
+      <div className="ax-pops is-big">
+        {big.map(b => (
+          <section key={b.k} className="ax-pop">
+            <div className="ax-pop__head">
+              <h3 className="ax-h3">{b.label}</h3>
+              <button type="button" className="ax-link" onClick={() => setOpen(b.k)}>Show</button>
+            </div>
+            <p className="ax-note">{b.when}</p>
+          </section>
+        ))}
+      </div>
+      {nudges.find(n => n.k === open)?.el({})}
+      {open === "remind" && <ReminderPrompt onDone={close} />}
+      {open === "name" && <NamePrompt suggestion="Preview" onSave={close} />}
+      {open === "welcome" && welcomeNote && <WelcomeReveal welcome={welcomeNote} actions={welcomeStart ? [welcomeStart] : []} onAction={close} onClose={close} />}
+    </>
+  );
+}
+
 const TABS = [
   { k: "overview", label: "Overview" },
   { k: "activity", label: "Activity" },
   { k: "people", label: "People" },
   { k: "flags", label: "Reported" },
+  { k: "popups", label: "Popups" },
 ];
 
-export default function AdminView() {
+export default function AdminView({ welcomeNote = null, welcomeStart = null }) {
   const [tab, setTab] = useState("overview");
   const [flagCount, setFlagCount] = useState(null);
   const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
@@ -631,6 +693,7 @@ export default function AdminView() {
             {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
+            {tab === "popups" && <Popups welcomeNote={welcomeNote} welcomeStart={welcomeStart} />}
           </div>
         </div>
       </div>
