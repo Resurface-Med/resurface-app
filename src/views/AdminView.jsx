@@ -10,7 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
-import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge } from "../ui/Nudges";
+import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge } from "../ui/Nudges";
 import NamePrompt from "../ui/NamePrompt";
 import WelcomeReveal from "../ui/WelcomeReveal";
 
@@ -630,6 +630,8 @@ function Popups({ welcomeNote, welcomeStart, me = null }) {
           {MILESTONES.map(([m]) => <button key={m} type="button" className={mile === m ? "is-on" : ""} onClick={() => setMile(m)}>{m.toLocaleString("en-GB")}</button>)}
         </div>
       ) },
+    { k: "improve", label: "Getting better", when: "After a session, when a deck is 10+ points better than their first 15 answers on it (30+ answers). Every 5 days at most; a deck again only after another 10 points.",
+      el: p => <ImproveNudge deck="Renal" before={54} after={78} onAction={close} onClose={close} {...p} /> },
     { k: "home", label: "Add to Home Screen", when: "After a session, on a phone browser, from someone’s 2nd study day. Back after 5 days, gone after 3 or once it’s added.",
       el: p => <HomeScreenNudge key={phone} forceKind={phone} onDone={close} onClose={close} {...p} />,
       extra: (

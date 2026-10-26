@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import StreakFlame from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
-import { fetchLeaderboardWeek, logStep } from "../lib/remote";
+import { fetchLeaderboardWeek, fetchMyRecentAnswers, logStep } from "../lib/remote";
+import { improvement } from "../lib/firstRun";
+import { QUESTIONS } from "../data";
 import { todayKey, yesterdayKey } from "../lib/storage";
 
 /**
@@ -19,6 +21,9 @@ import { todayKey, yesterdayKey } from "../lib/storage";
  *                day.
  *   Milestone    after a session that passes 100, 250, 500, 1,000, 2,500 or
  *                5,000 questions answered; each once. Goes before the others.
+ *   Improving    after a session, a deck 10+ points better now than their
+ *                first 15 answers on it; every 5 days at most, and a deck
+ *                again only after another 10 points.
  *   Home Screen  after a session, on a phone browser, from the 2nd study
  *                day; back after 5 days, gone after 3 or once added.
  *   Invite       after a session, someone who has studied on 2+ days; back
@@ -165,6 +170,24 @@ export function MilestoneNudge({ n, onAction, onClose, inline }) {
   );
 }
 
+/* Getting better (2026-10-26): where they started on a deck and where they
+   are now, the second number climbing from the first. */
+export function ImproveNudge({ deck, before, after, onAction, onClose, inline }) {
+  const now = useCountUp(after - before, 1000, 550);
+  return (
+    <NudgeCard kind="improve" inline={inline}
+      art={
+        <span className="nudge-up" aria-hidden="true">
+          <span className="nudge-up__col is-was"><span className="nudge-up__n">{before}%</span><span className="nudge-up__cap">when you started</span></span>
+          <svg className="nudge-up__arrow" viewBox="0 0 40 16"><path d="M2 8 H34 M27 2 L35 8 L27 14" /></svg>
+          <span className="nudge-up__col is-now"><span className="nudge-up__n">{before + now}%</span><span className="nudge-up__cap">now</span></span>
+        </span>
+      }
+      title={`You’re getting better at ${deck}.`}
+      action="Keep going" onAction={onAction} onClose={onClose} />
+  );
+}
+
 /* Add to Home Screen (2026-10-26). A phone's Home Screen with a gap, and
    the Resurface icon dropping into it. Android and Chrome can install in
    one tap; iPhone can't be asked to, so it shows the two steps. Inside an
@@ -285,6 +308,21 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       const seen = Number(store.get(userId, "milestone").n) || 0;
       const hit = [...MILESTONES].reverse().find(([m]) => answered >= m)?.[0] ?? 0;
       if (hit > seen) { if (show({ kind: "milestone", n: hit })) store.set(userId, "milestone", { n: hit }); return; }
+      /* Better at a deck than when they started: at most every 5 days, and a
+         deck only again after another 10 points. */
+      const imp = store.get(userId, "improve");
+      if (Date.now() >= (imp.nextAt ?? 0)) {
+        try {
+          const byId = new Map(QUESTIONS.map(q => [q.id, q]));
+          const deckOf = id => (byId.get(id)?.path ?? []).map(p => p.name).find(n => !/^Year \d/.test(n)) ?? null;
+          const got = improvement(await fetchMyRecentAnswers(90), deckOf, imp.decks ?? {});
+          if (cancelled) return;
+          if (got && show({ kind: "improve", ...got })) {
+            store.set(userId, "improve", { nextAt: Date.now() + 5 * DAY, decks: { ...(imp.decks ?? {}), [got.deck]: got.after } });
+            return;
+          }
+        } catch { /* offline: skip */ }
+      }
       /* On a phone, not installed, from the 2nd study day: Home Screen. */
       const home = store.get(userId, "home");
       if (onPhone() && !isInstalled() && studyDays >= 2 && (home.dismissed ?? 0) < 3 && Date.now() >= (home.nextAt ?? 0)) {
@@ -319,6 +357,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "milestone") return <MilestoneNudge n={shown.n} onAction={study} onClose={close} />;
+  if (shown.kind === "improve") return <ImproveNudge {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "home") {
     const after = days => { const st = store.get(userId, "home"); store.set(userId, "home", { dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + days * DAY }); setShown(null); };
     return <HomeScreenNudge onClose={() => after(5)} onDone={how => { logStep(userId, `home_${how}`); after(how === "added" ? 3650 : 5); }} />;

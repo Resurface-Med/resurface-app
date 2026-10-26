@@ -66,3 +66,30 @@ export function yearFolder(featured, year) {
   return r ? (r.top ?? r.id) : null;
 }
 
+
+/**
+ * The deck someone has got better at (2026-10-26): their first 15 answers
+ * on it against their latest 15, at least 30 in all, 10 points better and
+ * at 50% or more now. `shown` is what each deck was at when the card last
+ * showed, so the same deck only comes back after another 10 points.
+ * `deckOf(questionId)` names a question's deck. The biggest gain wins.
+ */
+export function improvement(answers, deckOf, shown = {}, n = 15) {
+  const by = new Map();
+  for (const a of answers ?? []) {
+    const deck = deckOf(a.question_id);
+    if (!deck) continue;
+    if (!by.has(deck)) by.set(deck, []);
+    by.get(deck).push(a.correct ? 1 : 0);
+  }
+  let best = null;
+  for (const [deck, xs] of by) {
+    if (xs.length < n * 2) continue;
+    const pct = arr => Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 100);
+    const before = pct(xs.slice(0, n)), after = pct(xs.slice(-n));
+    if (after - before < 10 || after < 50) continue;
+    if (shown[deck] != null && after < shown[deck] + 10) continue;
+    if (!best || after - before > best.after - best.before) best = { deck, before, after };
+  }
+  return best;
+}

@@ -718,6 +718,13 @@ export function logStep(userId, step) {
     .then(() => {}, () => {});
 }
 
+/** Your own answers over the last `days` (migration 0059), oldest first. */
+export async function fetchMyRecentAnswers(days = 90) {
+  const { data, error } = await supabase.rpc("my_recent_answers", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 /** How many people picked each option, by its text. Empty below 10 people. */
 export async function fetchOptionSplit(questionId) {
   const { data, error } = await supabase.rpc("option_split", { qid: questionId });

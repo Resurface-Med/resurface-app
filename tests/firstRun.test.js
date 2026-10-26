@@ -57,3 +57,24 @@ describe("first run", () => {
   });
 
 });
+
+import { improvement } from "../src/lib/firstRun.js";
+describe("improvement", () => {
+  const deckOf = id => (id < 100 ? "Renal" : "Endocrine");
+  const run = (wrongFirst, rightLater) => [
+    ...[...Array(15)].map((_, i) => ({ question_id: 1, correct: i >= wrongFirst })),
+    ...[...Array(15)].map((_, i) => ({ question_id: 2, correct: i < rightLater })),
+  ];
+  it("finds a deck that went from 40% to 80%", () => {
+    expect(improvement(run(9, 12), deckOf)).toEqual({ deck: "Renal", before: 40, after: 80 });
+  });
+  it("needs 30 answers, a 10-point gain and 50% now", () => {
+    expect(improvement(run(9, 12).slice(1), deckOf)).toBeNull();
+    expect(improvement(run(8, 8), deckOf)).toBeNull();
+    expect(improvement(run(12, 7), deckOf)).toBeNull();
+  });
+  it("only shows a deck again after another 10 points", () => {
+    expect(improvement(run(9, 12), deckOf, { Renal: 75 })).toBeNull();
+    expect(improvement(run(9, 13), deckOf, { Renal: 75 })).toEqual({ deck: "Renal", before: 40, after: 87 });
+  });
+});
