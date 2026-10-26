@@ -10,7 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
-import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES } from "../ui/Nudges";
+import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HourNudge, HomeScreenNudge } from "../ui/Nudges";
 import NamePrompt from "../ui/NamePrompt";
 import WelcomeReveal from "../ui/WelcomeReveal";
 
@@ -616,6 +616,8 @@ function Popups({ welcomeNote, welcomeStart, me = null }) {
   const around = real ? board.slice(Math.max(0, at - 1), at + 2) : [SAMPLE_RIVAL, meRow, SAMPLE_BEHIND];
   const [open, setOpen] = useState(null);
   const [mile, setMile] = useState(500);
+  const [hour, setHour] = useState(1);
+  const [phone, setPhone] = useState("ios");
   const close = () => setOpen(null);
   const nudges = [
     { k: "streak", label: "Streak", when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
@@ -627,6 +629,20 @@ function Popups({ welcomeNote, welcomeStart, me = null }) {
       extra: (
         <div className="ax-range ax-pop__pick">
           {MILESTONES.map(([m]) => <button key={m} type="button" className={mile === m ? "is-on" : ""} onClick={() => setMile(m)}>{m.toLocaleString("en-GB")}</button>)}
+        </div>
+      ) },
+    { k: "hour", label: "Night owl / early bird", when: "After a session finished after midnight or before 7am. At most once a week.",
+      el: p => <HourNudge key={hour} hour={hour} onClose={close} {...p} />,
+      extra: (
+        <div className="ax-range ax-pop__pick">
+          {[[1, "1am"], [3, "3am"], [6, "6am"]].map(([h, l]) => <button key={h} type="button" className={hour === h ? "is-on" : ""} onClick={() => setHour(h)}>{l}</button>)}
+        </div>
+      ) },
+    { k: "home", label: "Add to Home Screen", when: "After a session, on a phone browser, from someone’s 2nd study day. Back after 5 days, gone after 3 or once it’s added.",
+      el: p => <HomeScreenNudge key={phone} forceKind={phone} onDone={close} onClose={close} {...p} />,
+      extra: (
+        <div className="ax-range ax-pop__pick">
+          {[["ios", "iPhone"], ["prompt", "Android"], ["android", "Other Android"], ["inapp", "Instagram / WhatsApp"]].map(([k, l]) => <button key={k} type="button" className={phone === k ? "is-on" : ""} onClick={() => setPhone(k)}>{l}</button>)}
         </div>
       ) },
     { k: "invite", label: "Invite", when: "After a session, from someone’s 2nd study day. Back 5 days after a ✕, gone after 3; 21 days after a share.",

@@ -11256,3 +11256,31 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .ax-pop__pick { margin: 0 0 8px; flex-wrap: wrap; }
 
+
+/* Night owl / early bird: a small sky, drawn, on a soft tile. */
+.nudge.is-night .nudge__art { background: #1b2140; }
+.nudge.is-dawn .nudge__art { background: linear-gradient(180deg, #fff2e0, #ffe6c9); }
+.nudge-sky { width: 70px; height: 70px; overflow: visible; }
+.nudge-sky__moon { fill: #ffe9a8; transform-origin: 42px 42px; animation: seatIn .6s .1s cubic-bezier(0.34, 1.4, 0.5, 1) both; }
+.nudge-sky__star { fill: #fff; opacity: 0; animation: twinkle 1.8s var(--d) ease-out forwards; }
+@keyframes twinkle { 0% { opacity: 0; transform: scale(.3); } 40% { opacity: 1; transform: scale(1.4); } 100% { opacity: .85; transform: scale(1); } }
+.nudge-sky__star { transform-box: fill-box; transform-origin: center; }
+.nudge-sky__sun { animation: sunUp 1.1s .15s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.nudge-sky__sun circle { fill: #ffb547; }
+.nudge-sky__sun line { stroke: #ff8a2a; stroke-width: 2.5; stroke-linecap: round; }
+.nudge-sky__horizon { stroke: #e8590c; stroke-width: 2.5; stroke-linecap: round; opacity: .5; }
+@keyframes sunUp { from { transform: translateY(26px); } to { transform: none; } }
+.nudge.is-dawn .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
+
+/* Home Screen: a phone screen of app tiles, one gap, and the Resurface
+   icon dropping into it. */
+.nudge.is-home .nudge__art { background: var(--c-surface3); }
+@keyframes appDrop { 0% { opacity: 0; transform: translateY(-34px) scale(1.6); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+.nudge-phone { width: 52px; height: 74px; border-radius: 11px; border: 2px solid var(--c-text); padding: 9px 7px; box-sizing: border-box; display: block; background: var(--c-card-solid); position: relative; }
+.nudge-phone::before { content: ""; position: absolute; top: 3px; left: 50%; width: 12px; height: 2.5px; margin-left: -6px; border-radius: 2px; background: var(--c-text); opacity: .7; }
+.nudge-phone__grid { display: grid; grid-template-columns: repeat(2, 14px); grid-auto-rows: 14px; gap: 6px; justify-content: center; }
+.nudge-phone__tile { border-radius: 4px; background: var(--c-surface3); }
+.nudge-phone__app { width: 14px; height: 14px; border-radius: 4px; display: block; animation: appDrop .7s .4s cubic-bezier(0.34, 1.5, 0.5, 1) both; }
+.nudge-share-glyph { vertical-align: -2px; margin-right: 2px; }
+.nudge.is-home .nudge__body strong { color: var(--c-text); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .nudge-sky__moon, .nudge-sky__star, .nudge-sky__sun, .nudge-phone__app { animation: none; opacity: 1; } }

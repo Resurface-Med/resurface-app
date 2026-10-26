@@ -19,6 +19,9 @@ import { todayKey, yesterdayKey } from "../lib/storage";
  *                day.
  *   Milestone    after a session that passes 100, 250, 500, 1,000, 2,500 or
  *                5,000 questions answered; each once. Goes before the others.
+ *   Night owl    after a session past midnight or before 7am; once a week.
+ *   Home Screen  after a session, on a phone browser, from the 2nd study
+ *                day; back after 5 days, gone after 3 or once added.
  *   Invite       after a session, someone who has studied on 2+ days; back
  *                5 days after a ✕, gone after 3; 21 days after a share.
  */
@@ -35,7 +38,7 @@ const store = {
 
 /* ── The card ─────────────────────────────────────────────────────── */
 
-export function NudgeCard({ kind, art, title, body, action, onAction, onClose, inline = false }) {
+export function NudgeCard({ kind, art, title, body, action, onAction, onClose, inline = false, later = true }) {
   return (
     <div className={`nudge is-${kind}${inline ? " is-inline" : ""}`} role="dialog" aria-live="polite" aria-label={title}>
       <button type="button" className="nudge__x" onClick={onClose} aria-label="Close">
@@ -47,7 +50,7 @@ export function NudgeCard({ kind, art, title, body, action, onAction, onClose, i
         {body && <p className="nudge__body">{body}</p>}
         <div className="nudge__acts">
           <button type="button" className="nudge__go btn-press" onClick={onAction}>{action}</button>
-          <button type="button" className="nudge__later" onClick={onClose}>Not now</button>
+          {later && <button type="button" className="nudge__later" onClick={onClose}>Not now</button>}
         </div>
       </div>
     </div>
@@ -163,6 +166,98 @@ export function MilestoneNudge({ n, onAction, onClose, inline }) {
   );
 }
 
+/* Night owl and early bird (2026-10-26): a session finished after midnight
+   or before 7. A moon with stars coming out, or a sun coming up over a
+   line. A joke, so one button that just closes it. */
+const clock = h => `${h % 12 || 12}${h < 12 ? "am" : "pm"}`;
+export function HourNudge({ hour, onClose, inline }) {
+  const night = hour < 5;
+  return (
+    <NudgeCard kind={night ? "night" : "dawn"} inline={inline} later={false}
+      art={night ? (
+        <svg className="nudge-sky" viewBox="0 0 84 84" aria-hidden="true">
+          <path className="nudge-sky__moon" d="M50 18a24 24 0 1 0 16 40A20 20 0 1 1 50 18z" />
+          {[[22, 22, 2.2], [66, 16, 1.6], [70, 40, 2], [16, 54, 1.5]].map(([x, y, r], i) => (
+            <circle key={i} className="nudge-sky__star" cx={x} cy={y} r={r} style={{ "--d": `${450 + i * 160}ms` }} />
+          ))}
+        </svg>
+      ) : (
+        <svg className="nudge-sky" viewBox="0 0 84 84" aria-hidden="true">
+          <defs><clipPath id="nudge-horizon"><rect x="0" y="0" width="84" height="56" /></clipPath></defs>
+          <g clipPath="url(#nudge-horizon)">
+            <g className="nudge-sky__sun">
+              <circle cx="42" cy="56" r="15" />
+              {[...Array(7)].map((_, i) => {
+                const a = Math.PI + (i / 6) * Math.PI;
+                return <line key={i} x1={42 + Math.cos(a) * 21} y1={56 + Math.sin(a) * 21} x2={42 + Math.cos(a) * 28} y2={56 + Math.sin(a) * 28} />;
+              })}
+            </g>
+          </g>
+          <line className="nudge-sky__horizon" x1="10" y1="56" x2="74" y2="56" />
+        </svg>
+      )}
+      title={night ? `Revising at ${clock(hour)}. Respect.` : `Up before the sun. Who are you?`}
+      body={night ? "Also, go to sleep." : `Revising at ${clock(hour)}. Genuinely impressive.`}
+      action={night ? "Fair enough" : "I know"} onAction={onClose} onClose={onClose} />
+  );
+}
+
+/* Add to Home Screen (2026-10-26). A phone's Home Screen with a gap, and
+   the Resurface icon dropping into it. Android and Chrome can install in
+   one tap; iPhone can't be asked to, so it shows the two steps. Inside an
+   app's own browser (Instagram, WhatsApp…) neither works, so it says to
+   open the link in the real browser first. */
+let installEvent = null;
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvent = e; });
+}
+const ua = () => (typeof navigator === "undefined" ? "" : navigator.userAgent);
+const isIOSDevice = () => /iPad|iPhone|iPod/.test(ua()) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const inAppBrowser = () => /Instagram|FBAN|FBAV|Snapchat|Line\/|TikTok|LinkedInApp/i.test(ua());
+export const isInstalled = () => window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+export const onPhone = () => /iPhone|iPod|Android.*Mobile|Mobile.*Android/i.test(ua()) || (isIOSDevice() && window.matchMedia?.("(pointer: coarse)").matches);
+
+export function HomeScreenNudge({ onDone, onClose, inline, forceKind = null }) {
+  const kind = forceKind ?? (inAppBrowser() ? "inapp" : installEvent ? "prompt" : isIOSDevice() ? "ios" : "android");
+  const steps = {
+    ios: <>Tap <ShareGlyph /> <strong>Share</strong>, then <strong>Add to Home Screen</strong>.</>,
+    android: <>Tap the <strong>⋮</strong> menu, then <strong>Add to Home screen</strong>.</>,
+    inapp: <>Open this page in {isIOSDevice() ? "Safari" : "Chrome"} first: tap <strong>⋯</strong> and choose <strong>Open in browser</strong>.</>,
+  };
+  return (
+    <NudgeCard kind="home" inline={inline}
+      art={
+        <span className="nudge-phone" aria-hidden="true">
+          <span className="nudge-phone__grid">
+            {[...Array(6)].map((_, i) => i === 3
+              ? <img key={i} className="nudge-phone__app" src="/icon-192.png" alt="" />
+              : <span key={i} className="nudge-phone__tile" />)}
+          </span>
+        </span>
+      }
+      title="Put Resurface on your Home Screen"
+      body={kind === "prompt" ? "It opens like an app, full screen, one tap away." : steps[kind]}
+      action={kind === "prompt" ? "Add to Home Screen" : "Got it"}
+      onAction={async () => {
+        if (kind === "prompt" && installEvent) {
+          const ev = installEvent; installEvent = null;
+          try { await ev.prompt(); const { outcome } = await ev.userChoice; onDone(outcome === "accepted" ? "added" : "later"); }
+          catch { onDone("later"); }
+          return;
+        }
+        onDone("shown");
+      }}
+      onClose={onClose} />
+  );
+}
+function ShareGlyph() {
+  return (
+    <svg className="nudge-share-glyph" width="14" height="16" viewBox="0 0 14 16" aria-hidden="true">
+      <path d="M7 1v9M3.5 4.5L7 1l3.5 3.5M2 7.5v6.5h10V7.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /* You, then two empty places beside you that draw themselves in: the
    picture is the ask. Plays once; nothing loops. */
 export function InviteNudge({ me = null, onAction, onClose, copied, inline }) {
@@ -227,6 +322,17 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       const seen = Number(store.get(userId, "milestone").n) || 0;
       const hit = [...MILESTONES].reverse().find(([m]) => answered >= m)?.[0] ?? 0;
       if (hit > seen) { if (show({ kind: "milestone", n: hit })) store.set(userId, "milestone", { n: hit }); return; }
+      /* After midnight or before 7: the joke, at most once a week. */
+      const hour = new Date().getHours();
+      if ((hour < 5 || (hour >= 5 && hour < 7)) && Date.now() >= (Number(store.get(userId, "hour").nextAt) || 0)) {
+        if (show({ kind: "hour", hour })) store.set(userId, "hour", { nextAt: Date.now() + 7 * DAY });
+        return;
+      }
+      /* On a phone, not installed, from the 2nd study day: Home Screen. */
+      const home = store.get(userId, "home");
+      if (onPhone() && !isInstalled() && studyDays >= 2 && (home.dismissed ?? 0) < 3 && Date.now() >= (home.nextAt ?? 0)) {
+        if (show({ kind: "home" })) return;
+      }
       if (inviteDue) { show({ kind: "invite" }); return; }
       if (store.get(userId, "leader").day === today) return;
       try {
@@ -256,6 +362,11 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "milestone") return <MilestoneNudge n={shown.n} onAction={study} onClose={close} />;
+  if (shown.kind === "hour") return <HourNudge hour={shown.hour} onClose={close} />;
+  if (shown.kind === "home") {
+    const after = days => { const st = store.get(userId, "home"); store.set(userId, "home", { dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + days * DAY }); setShown(null); };
+    return <HomeScreenNudge onClose={() => after(5)} onDone={how => { logStep(userId, `home_${how}`); after(how === "added" ? 3650 : 5); }} />;
+  }
   return (
     <InviteNudge me={me} copied={copied} onClose={close} onAction={async () => {
       logStep(userId, "invite_shared");
