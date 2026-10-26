@@ -10,11 +10,11 @@ import { logStep } from "../lib/remote";
  * message: the link's preview card (index.html) does the explaining, and
  * people write their own words (Rafil: he never sends the canned ones).
  *
- * When, and how often (agreed with Rafil):
- *  - only once someone has studied on 3 or more days;
+ * When, and how often (agreed with Rafil, made pushier the same day):
+ *  - once someone has studied on 2 or more days;
  *  - only right after they finish a session, never during one or on opening;
- *  - dismissed, it waits 10 days, and after 3 dismissals it never comes back;
- *  - shared, it waits 30 days;
+ *  - dismissed, it waits 5 days, and after 5 dismissals it never comes back;
+ *  - shared, it waits 21 days;
  *  - never on top of another bar (the update notice).
  * Remembered per account on this device.
  */
@@ -33,9 +33,9 @@ export default function InviteNotice({ userId, studyDays, sessionActive }) {
   useEffect(() => {
     const ended = was.current && !sessionActive;
     was.current = sessionActive;
-    if (!ended || !userId || studyDays < 3) return;
+    if (!ended || !userId || studyDays < 2) return;
     const st = load(userId);
-    if ((st.dismissed ?? 0) >= 3 || Date.now() < (st.nextAt ?? 0)) return;
+    if ((st.dismissed ?? 0) >= 5 || Date.now() < (st.nextAt ?? 0)) return;
     const t = setTimeout(() => {
       if (document.querySelector(".update-note")) return;   // one bar at a time
       setOpen(true);
@@ -48,8 +48,8 @@ export default function InviteNotice({ userId, studyDays, sessionActive }) {
 
   function close(how) {
     const st = load(userId);
-    if (how === "dismiss") save(userId, { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 10 * DAY });
-    else save(userId, { ...st, nextAt: Date.now() + 30 * DAY });
+    if (how === "dismiss") save(userId, { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 5 * DAY });
+    else save(userId, { ...st, nextAt: Date.now() + 21 * DAY });
     setOpen(false);
   }
   async function share() {
