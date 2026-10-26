@@ -809,9 +809,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const r = featured.find(x => (x.top ?? x.id) === topId);
       if (r) onHideFeatured?.(r.id, true);
     };
-    /* A deck as a file (lib/deckFile): download it, let something correct
-       the questions, upload that same file back onto this deck. */
+    /* A deck as a file (lib/deckFile): an admin downloads it, lets something
+       correct the questions, and uploads that same file back onto this deck. */
     function downloadDeck(node) {
+      if (!isFeaturedAdmin()) return;
       const file = toDeckFile(node.name, questionsInDeck(node.id), node.id);
       const url = URL.createObjectURL(new Blob([serializeDeckFile(file)], { type: "application/json" }));
       const a = document.createElement("a");
@@ -823,6 +824,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       URL.revokeObjectURL(url);
     }
     function openDeckFile(node) {
+      if (!isFeaturedAdmin()) return;
       deckFileTarget.current = { id: node.id, name: node.name };
       if (deckFileRef.current) { deckFileRef.current.value = ""; deckFileRef.current.click(); }
     }
@@ -830,7 +832,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const chosen = e.target.files?.[0];
       const target = deckFileTarget.current;
       e.target.value = "";
-      if (!chosen || !target) return;
+      if (!isFeaturedAdmin() || !chosen || !target) return;
       let text;
       try { text = await chosen.text(); }
       catch { setDeckFile({ deckName: target.name, error: "That file couldn't be read." }); return; }
@@ -840,7 +842,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     }
     async function applyDeckCorrections() {
       const plan = deckFile?.plan;
-      if (!plan?.updates.length || !user || deckFileBusy.current) return;
+      if (!isFeaturedAdmin() || !plan?.updates.length || !user || deckFileBusy.current) return;
       deckFileBusy.current = true;
       setDeckFile(d => ({ ...d, busy: true }));
       const pending = [...plan.updates];
@@ -864,8 +866,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       setDeckFile(d => (d ? { ...d, busy: false, done: true, failed } : d));
     }
     function fileItems(node) {
-      if (!questionsInDeck(node.id).length) return [];
-      if (!node.mine && !isFeaturedAdmin()) return [];
+      if (!isFeaturedAdmin() || !questionsInDeck(node.id).length) return [];
       return [
         { label: "Download deck", onSelect: downloadDeck },
         { label: "Upload corrections", onSelect: openDeckFile },
