@@ -54,7 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
-import { personalNote, starterFor } from "./lib/firstRun";
+import { personalNote, yearFolder } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -242,19 +242,17 @@ export default function App() {
     setUserQuestions([...decorated, ...shared]);
     setGenerated(decorated);
   }
-  /* The welcome note with your year's decks named in it, and the five
-     questions its button starts (lib/firstRun). */
+  /* The welcome note with your year filled in, and where its button goes:
+     your year's ready-made decks, open (lib/firstRun). */
   const rawWelcome = announcements.find(a => a.welcome && a.published_at) ?? null;
   const welcomeNote = useMemo(() => personalNote(rawWelcome, featured, studyYear), [rawWelcome, featured, studyYear]);
-  const starter = useMemo(() => starterFor(featured, studyYear), [featured, studyYear]);
   function startFirst() {
-    if (starter) practise(starter.ids);
-    else {
-      setLaunchFilter({ deck: "All", cat: "All" });
-      setStudyScope("all");
-      setAutoStart(false);
-      go(V.STUDY);
-    }
+    const folder = yearFolder(featured, studyYear);
+    setLaunchFilter({ deck: "All", cat: "All" });
+    setStudyScope("all");
+    setAutoStart(false);
+    if (folder) setOpenDeckId(folder);
+    go(V.STUDY);
   }
   /* Progress reads every deck you practise from, featured ones included. */
   const progressDecks = useMemo(() => [...shelve(shownDecks, featuredDecks), ...featuredDecks], [decks, featured]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1329,7 +1327,6 @@ export default function App() {
     {reveal && welcomeNote && (
       <WelcomeReveal
         welcome={welcomeNote}
-        startLabel={starter ? `Start with ${starter.name}` : "Start practising"}
         onClose={() => setReveal(false)}
         onStart={() => { setReveal(false); startFirst(); }}
       />
@@ -1413,7 +1410,6 @@ export default function App() {
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             welcome={welcomeNote}
-            startLabel={starter ? `Start with ${starter.name}` : null}
             onStartFirst={startFirst}
             onReplayWelcome={() => setReveal(true)}
             activity={activity}

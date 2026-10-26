@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { decksLine, personalNote, firstQuestionIds, starterFor, yearDecks } from "../src/lib/firstRun.js";
+import { decksLine, personalNote, yearFolder, yearDecks } from "../src/lib/firstRun.js";
 
 const featured = {
   roots: [
@@ -50,9 +50,9 @@ describe("first run", () => {
     expect(personalNote(plain, featured, 1)).toBe(plain);
   });
 
-  it("starts at the top of the deck, in listed order", () => {
-    expect(firstQuestionIds(featured, "pr", 5)).toEqual([4, 1, 2, 3, 11]);
-    expect(starterFor(featured, 1)).toEqual({ name: "Principles", ids: [4, 1, 2, 3, 11] });
-    expect(starterFor(featured, 5)).toBeNull();
+  it("opens your year's heading, not a deck", () => {
+    expect(yearFolder(featured, 1)).toBe("y1");
+    expect(yearFolder(featured, 2)).toBe("y2");
+    expect(yearFolder(featured, 5)).toBeNull();
   });
 });

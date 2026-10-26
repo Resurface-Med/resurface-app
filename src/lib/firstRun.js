@@ -55,37 +55,12 @@ export function personalNote(note, featured, year) {
 }
 
 /**
- * The first `n` question ids of a ready-made deck, walking its decks in the
- * order they are listed and taking the first ones that have questions.
+ * Where "Start practising" takes a new account: the Year N heading in Study,
+ * open, so they pick the topic they're on. Not a deck chosen for them:
+ * people are at different stages of their revision (Rafil, 2026-10-26).
  */
-export function firstQuestionIds(featured, rootId, n = 5) {
-  const kids = new Map();
-  for (const d of featured?.decks ?? []) {
-    if (!d.parentId) continue;
-    if (!kids.has(d.parentId)) kids.set(d.parentId, []);
-    kids.get(d.parentId).push(d);
-  }
-  for (const list of kids.values()) list.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-  const byDeck = new Map();
-  for (const q of featured?.questions ?? []) {
-    if (!byDeck.has(q.deckId)) byDeck.set(q.deckId, []);
-    byDeck.get(q.deckId).push(q.id);
-  }
-  const out = [];
-  const walk = id => {
-    if (out.length >= n) return;
-    for (const qid of byDeck.get(id) ?? []) { if (out.length >= n) return; out.push(qid); }
-    for (const c of kids.get(id) ?? []) walk(c.id);
-  };
-  walk(rootId);
-  return out;
-}
-
-/** The deck a new account starts on, with its first questions, or null. */
-export function starterFor(featured, year, n = 5) {
-  for (const d of yearDecks(featured, year)) {
-    const ids = firstQuestionIds(featured, d.id, n);
-    if (ids.length) return { name: d.name, ids };
-  }
-  return null;
+export function yearFolder(featured, year) {
+  if (!featured || !Number.isInteger(year)) return null;
+  const r = (featured.roots ?? []).find(x => !x.hidden && x.name === `Year ${year}`);
+  return r ? (r.top ?? r.id) : null;
 }
