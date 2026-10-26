@@ -128,43 +128,34 @@ export const MILESTONES = [
   [2500, "We’re running out of things to say."],
   [5000, "Go outside. Then come back."],
 ];
-/* An odometer: each digit a column of 0–9 that rolls up to its number,
-   the columns landing one after another. */
-function Odometer({ n }) {
-  const digits = n.toLocaleString("en-GB").split("");
-  let k = 0;
-  return (
-    <span className="odo" aria-label={n.toLocaleString("en-GB")}>
-      {digits.map((ch, i) => {
-        if (!/\d/.test(ch)) return <span key={i} className="odo__sep">{ch}</span>;
-        const d = Number(ch), at = k++;
-        return (
-          <span key={i} className="odo__col" aria-hidden="true">
-            <span className="odo__reel" style={{ "--to": d + 10, "--d": `${200 + at * 140}ms` }}>
-              {[...Array(20)].map((_, j) => <span key={j}>{j % 10}</span>)}
-            </span>
-          </span>
-        );
-      })}
-    </span>
-  );
-}
+/* Confetti: pieces burst out from behind the number once the count lands,
+   then fall and fade. Fixed shapes and angles, so it looks the same every
+   time and never covers the line. */
+const CONFETTI = [...Array(22)].map((_, i) => ({
+  a: (i / 22) * 360 + (i % 3) * 7,
+  r: 70 + (i % 4) * 18,
+  c: ["#3562f5", "#ff8a2a", "#ffd23f", "#22c55e", "#a855f7", "#ef4444"][i % 6],
+  w: i % 3 === 0 ? 10 : 6, h: i % 3 === 0 ? 4 : 8,
+  spin: (i % 2 ? 1 : -1) * (180 + (i % 5) * 60),
+}));
 
 export function MilestoneNudge({ n, onAction, onClose, inline }) {
+  const shown = useCountUp(n, 1000, 200);
   const line = (MILESTONES.find(([m]) => m === n) ?? [n, "Keep going."])[1];
-  const next = MILESTONES.find(([m]) => m > n)?.[0] ?? null;
   return (
     <NudgeCard kind="milestone" inline={inline}
       art={
         <span className="nudge-mile" aria-hidden="true">
-          <Odometer n={n} />
+          <span className="nudge-mile__burst">
+            {CONFETTI.map((p, i) => (
+              <span key={i} className="nudge-mile__bit" style={{
+                "--x": `${Math.cos((p.a * Math.PI) / 180) * p.r}px`, "--y": `${Math.sin((p.a * Math.PI) / 180) * p.r * 0.6}px`,
+                "--spin": `${p.spin}deg`, "--c": p.c, width: p.w, height: p.h,
+              }} />
+            ))}
+          </span>
+          <span className="nudge-mile__n">{shown.toLocaleString("en-GB")}</span>
           <span className="nudge-mile__label">questions answered</span>
-          {next && (
-            <span className="nudge-mile__next">
-              <span className="nudge-mile__bar"><span style={{ "--w": `${(n / next) * 100}%` }} /></span>
-              <span>Next: {next.toLocaleString("en-GB")}</span>
-            </span>
-          )}
         </span>
       }
       title={line}
