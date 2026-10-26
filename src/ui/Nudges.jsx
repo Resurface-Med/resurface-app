@@ -121,7 +121,7 @@ export function LeaderNudge({ me, rival, rank, around = null, onAction, onClose,
 /* Milestones (2026-10-26): the number, big, counting up, with a deadpan
    line under it. No share button, on purpose. */
 export const MILESTONES = [
-  [100, "And you said you’d start revising next week."],
+  [100, "100 down. Only the entire curriculum to go."],
   [250, "Your Anki deck is getting nervous."],
   [500, "At this point you’re basically the question bank."],
   [1000, "Your consultant would be proud. Probably."],
