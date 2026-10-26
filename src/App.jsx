@@ -55,6 +55,8 @@ import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
 import NudgeCenter from "./ui/Nudges";
+
+const NUDGES_LIVE = false;
 import { personalNote, yearFolder } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
@@ -1351,10 +1353,12 @@ export default function App() {
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
-    <NudgeCenter userId={user?.id} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} ready={!dataLoading} sessionActive={practiceSessionActive}
+    {/* Off until the timings are settled (Rafil, 2026-10-26); every card can
+        still be previewed in Admin > Popups. Flip NUDGES_LIVE to turn on. */}
+    {NUDGES_LIVE && <NudgeCenter userId={user?.id} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} ready={!dataLoading} sessionActive={practiceSessionActive}
       streak={streak} activity={activity} studyYear={studyYear}
       answered={Object.values(pStats).reduce((a, x) => a + (Number(x?.total) || 0), 0)}
-      onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />
+      onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />}
     <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
