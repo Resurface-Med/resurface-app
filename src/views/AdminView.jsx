@@ -545,7 +545,7 @@ function FlagRow({ row, index, onCleared }) {
         <span className="flagq__count">{row.flags} {Number(row.flags) === 1 ? "report" : "reports"}</span>
         <span className="flagq__reasons">{(row.reasons ?? []).map(r => REASONS[r] ?? r).join(" · ")}</span>
         <span className="flagq__acts">
-          {q?.featured && <button type="button" className="gen-link" onClick={() => setEditing(true)} disabled={busy}>Edit question</button>}
+          {(q?.featured || q?.gen) && <button type="button" className="gen-link" onClick={() => setEditing(true)} disabled={busy}>Edit question</button>}
           {q?.featured && <button type="button" className="gen-link adm-danger-link" onClick={remove} disabled={busy}>Delete</button>}
           <button type="button" className="gen-link" onClick={clear} disabled={busy}>
             {busy ? "…" : "Mark as dealt with"}

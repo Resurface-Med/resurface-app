@@ -76,6 +76,10 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
   function record(updated) {
     applyQuestionEdit(q.id, updated);
     if (persist) Promise.resolve(persist(updated)).catch(() => setStatus("failed"));
+    /* Your own question: the question itself, so everyone who has it (a
+       shared or ready-made deck) gets the fix, not a personal correction
+       only you see (2026-10-26; the database enforces it too, 0060). */
+    else if (user && q.gen) remote.updateGenerated(user.id, { id: q.id, ...updated });
     else if (user) remote.questionEdit(user.id, q.id, updated);
   }
 
