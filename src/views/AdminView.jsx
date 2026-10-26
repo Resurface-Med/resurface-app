@@ -4,7 +4,7 @@ import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGeneratedDaily,
-  setAdmin, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured,
+  setAdmin, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured, fetchLeaderboardWeek,
 } from "../lib/remote";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
@@ -599,17 +599,26 @@ function Flags({ onCount }) {
    moment it's for. The nudges are drawn here as they appear; "Show" puts
    the real one up over the page. Nothing here saves anything. */
 const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212 };
-const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249 };
+const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249, rank: 3 };
 
 function Popups({ welcomeNote, welcomeStart, me = null }) {
-  const meRow = { ...SAMPLE_ME, display_name: me?.name || "You", src: me?.src ?? null };
+  /* The leaderboard card from this week's real board: you and whoever is
+     just ahead of you, photos and all. Made-up names until it loads, or if
+     you're not on it. */
+  const [board, setBoard] = useState(null);
+  useEffect(() => { fetchLeaderboardWeek().then(r => setBoard((r ?? []).filter(x => x.week_count > 0)), () => setBoard([])); }, []);
+  const at = (board ?? []).findIndex(r => r.user_id === me?.id);
+  const real = at >= 0 && board.length > 1;
+  const meRow = real ? { ...board[at], src: me?.src } : { ...SAMPLE_ME, display_name: me?.name || "You", src: me?.src ?? null };
+  const rivalRow = real ? (at === 0 ? board[1] : board[at - 1]) : SAMPLE_RIVAL;
+  const myRank = real ? Number(board[at].rank) || at + 1 : 4;
   const [open, setOpen] = useState(null);
   const close = () => setOpen(null);
   const nudges = [
     { k: "streak", label: "Streak", when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
       el: p => <StreakNudge days={6} onAction={close} onClose={close} {...p} /> },
     { k: "leader", label: "Leaderboard", when: "After a session, for someone on their year’s leaderboard. Once a day, and not on a day the invite shows.",
-      el: p => <LeaderNudge me={meRow} rival={SAMPLE_RIVAL} rank={4} year={2} onAction={close} onClose={close} {...p} /> },
+      el: p => <LeaderNudge key={real ? "real" : "sample"} me={meRow} rival={rivalRow} rank={myRank} onAction={close} onClose={close} {...p} /> },
     { k: "invite", label: "Invite", when: "After a session, from someone’s 2nd study day. Back 5 days after a ✕, gone after 3; 21 days after a share.",
       el: p => <InviteNudge me={me} onAction={close} onClose={close} {...p} /> },
   ];

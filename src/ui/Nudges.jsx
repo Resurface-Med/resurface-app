@@ -61,27 +61,55 @@ export function StreakNudge({ days, onAction, onClose, inline }) {
   );
 }
 
+/* Count up to `n` once, quickly, easing out. */
+function useCountUp(n, ms = 900, delay = 350) {
+  const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const [v, setV] = useState(reduce ? n : 0);
+  useEffect(() => {
+    if (reduce) return;
+    let raf, t0;
+    const step = t => {
+      t0 ??= t;
+      const k = Math.min(1, Math.max(0, (t - t0 - delay) / ms));
+      setV(Math.round(n * (1 - (1 - k) ** 3)));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [n]); // eslint-disable-line react-hooks/exhaustive-deps
+  return v;
+}
+
 /* Like the invite: the picture along the top, then one line that says it
-   all. You, a dashed line drawing itself towards the person ahead, and
-   them. First on the board, it points back at the one chasing you. */
+   all. You and your place, a dashed line drawing an arrow to the person
+   ahead and theirs. You lunge at them twice and they flinch; the gap
+   counts up in the line. First on the board, they're chasing you. */
 export function LeaderNudge({ me, rival, rank, onAction, onClose, inline }) {
   const top = rank === 1;
   const gap = rival ? Math.abs(rival.week_count - me.week_count) : 0;
+  const need = top ? gap : gap + 1;
+  const shown = useCountUp(need);
   const name = rival ? first(rival.display_name) : "";
+  const theirRank = rival ? Number(rival.rank) || (top ? 2 : rank - 1) : null;
   const title = !rival ? `You’re ${ordinal(rank)} on the leaderboard!`
-    : top ? `You’re 1st on the leaderboard, ${gap} ahead of ${name}!`
-    : `You’re ${ordinal(rank)} on the leaderboard, ${gap + 1} more to pass ${name}!`;
+    : top ? <>You’re 1st on the leaderboard, <span className="nudge-num">{shown}</span> ahead of {name}!</>
+    : <>You’re {ordinal(rank)} on the leaderboard, <span className="nudge-num">{shown}</span> more to pass {name}!</>;
   return (
     <NudgeCard kind="leader" inline={inline}
       art={rival && (
         <span className={`nudge-chase${top ? " is-top" : ""}`} aria-hidden="true">
-          <Avatar className="nudge-chase__av is-me" src={avatarSrc(me.user_id, me.avatar) || me.src} name={me.display_name} />
+          <span className="nudge-chase__who is-me">
+            <Avatar className="nudge-chase__av" src={avatarSrc(me.user_id, me.avatar) || me.src} name={me.display_name} />
+            <span className="nudge-chase__rank">{ordinal(rank)}</span>
+          </span>
           <svg className="nudge-chase__path" viewBox="0 0 120 20" preserveAspectRatio="none">
-            <path d="M4 10 H108" pathLength="100" />
+            <path d="M4 10 H108" />
             <path className="nudge-chase__head" d="M102 4 L110 10 L102 16" />
           </svg>
-          <Avatar className="nudge-chase__av is-them" src={avatarSrc(rival.user_id, rival.avatar)} name={rival.display_name} />
-          <span className="nudge-chase__rank">{ordinal(rank)}</span>
+          <span className="nudge-chase__who is-them">
+            <Avatar className="nudge-chase__av" src={avatarSrc(rival.user_id, rival.avatar) || rival.src} name={rival.display_name} />
+            <span className="nudge-chase__rank">{ordinal(theirRank)}</span>
+          </span>
         </span>
       )}
       title={title}
