@@ -246,8 +246,10 @@ export default function App() {
      your year's ready-made decks, open (lib/firstRun). */
   const rawWelcome = announcements.find(a => a.welcome && a.published_at) ?? null;
   const welcomeNote = useMemo(() => personalNote(rawWelcome, featured, studyYear), [rawWelcome, featured, studyYear]);
+  const firstFolder = yearFolder(featured, studyYear);
+  const startLabel = firstFolder ? `Start Year ${studyYear} questions` : "Start practising";
   function startFirst() {
-    const folder = yearFolder(featured, studyYear);
+    const folder = firstFolder;
     setLaunchFilter({ deck: "All", cat: "All" });
     setStudyScope("all");
     setAutoStart(false);
@@ -1327,6 +1329,7 @@ export default function App() {
     {reveal && welcomeNote && (
       <WelcomeReveal
         welcome={welcomeNote}
+        startLabel={startLabel}
         onClose={() => setReveal(false)}
         onStart={() => { setReveal(false); startFirst(); }}
       />
@@ -1410,6 +1413,7 @@ export default function App() {
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
             welcome={welcomeNote}
+            startLabel={startLabel}
             onStartFirst={startFirst}
             onReplayWelcome={() => setReveal(true)}
             activity={activity}
