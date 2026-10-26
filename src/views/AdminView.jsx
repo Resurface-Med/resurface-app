@@ -3,7 +3,7 @@ import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
 import {
-  fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily,
+  fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGeneratedDaily,
   setAdmin, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured,
 } from "../lib/remote";
 import EditQuestionModal from "../ui/EditQuestionModal";
@@ -22,8 +22,8 @@ import { confirm } from "../ui/Confirm";
  * (AI allowances, storage). People is everyone, filterable, with their
  * emails a click away. Reported is the questions students flagged.
  *
- * Sharing, Resurface decks, Generating, AI usage, Activity and Mailing list
- * were folded in or dropped. Everything reads SECURITY DEFINER functions
+ * Sharing, Resurface decks, Generating, AI usage and Mailing list were
+ * folded in or dropped. Activity is its own tab: the calendar of who did what. Everything reads SECURITY DEFINER functions
  * that check the admins table themselves; nothing here is a permission.
  */
 
@@ -120,8 +120,6 @@ function Overview({ goPeople }) {
   const loadDaily = useCallback(() => fetchOverviewDaily(range), [range]);
   const [daily] = useSection(loadDaily);
   const [people] = useSection(fetchPeople);
-  const loadPD = useCallback(() => fetchPeopleDaily(92), []);
-  const [pdaily] = useSection(loadPD);
   const [metric, setMetric] = useState("answers");
   const [picked, setPicked] = useState(null);
 
@@ -136,16 +134,6 @@ function Overview({ goPeople }) {
     return { days, series };
   }, [daily.rows]);
   const points = series.get(metric) ?? [];
-  const at = picked == null || picked >= days.length ? days.length - 1 : picked;
-  const day = days[at];
-
-  const byId = useMemo(() => new Map((people.rows ?? []).map(p => [p.user_id, p])), [people.rows]);
-  const studied = useMemo(() => (pdaily.rows ?? [])
-    .filter(r => String(r.day).slice(0, 10) === day && Number(r.answers) > 0)
-    .map(r => ({ p: byId.get(r.user_id), n: Number(r.answers) }))
-    .filter(x => x.p)
-    .sort((a, b) => b.n - a.n), [pdaily.rows, day, byId]);
-  const joined = useMemo(() => (people.rows ?? []).filter(p => dayKey(p.joined) === day), [people.rows, day]);
 
   const students = (people.rows ?? []).filter(p => !p.is_admin);
   const quiet = students.filter(p => statusOf(p) === "quiet").sort((a, b) => String(b.last_active).localeCompare(String(a.last_active)));
@@ -159,6 +147,7 @@ function Overview({ goPeople }) {
 
   return (
     <>
+      <Limits />
       <div className="ax-metrics" role="tablist" aria-label="What the chart shows">
         {METRICS.map(m => (
           <button key={m.k} type="button" role="tab" aria-selected={metric === m.k}
@@ -182,43 +171,9 @@ function Overview({ goPeople }) {
           </div>
         </div>
         {daily.error ? <Empty>{daily.error}</Empty> : !daily.rows ? <div className="ax-chart__ph" /> : (
-          <TrendChart points={points} days={days} unit={chosen.unit} picked={at} onPick={setPicked} />
+          <TrendChart points={points} days={days} unit={chosen.unit} picked={picked != null && picked < days.length ? picked : null} onPick={setPicked} />
         )}
       </section>
-
-      {day && (
-        <section className="ax-day">
-          <div className="ax-day__col">
-            <h3 className="ax-h3">
-              {at === days.length - 1 ? "Today" : new Date(day).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
-              <span className="ax-count">{studied.length} studied</span>
-            </h3>
-            {pdaily.rows && studied.length === 0 ? <p className="ax-quiet">Nobody answered a question.</p> : (
-              <ul className="ax-rows">
-                {studied.map(({ p, n }) => (
-                  <li key={p.user_id}>
-                    <span className="ax-who">{nameOf(p)}{p.study_year ? <span className="ax-year">Y{p.study_year}</span> : null}</span>
-                    <span className="ax-num">{nf(n)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div className="ax-day__col">
-            <h3 className="ax-h3">Signed up<span className="ax-count">{joined.length}</span></h3>
-            {joined.length === 0 ? <p className="ax-quiet">Nobody.</p> : (
-              <ul className="ax-rows">
-                {joined.map(p => (
-                  <li key={p.user_id}>
-                    <span className="ax-who">{nameOf(p)}{p.study_year ? <span className="ax-year">Y{p.study_year}</span> : null}</span>
-                    <span className="ax-meta">{Number(p.answered) ? `${nf(p.answered)} answered` : "Not started"}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
-      )}
 
       <section className="ax-attention">
         <div className="ax-attention__col">
@@ -260,22 +215,21 @@ function Overview({ goPeople }) {
         )}
       </section>
 
-      <Limits />
     </>
   );
 }
 
-/* What would stop the app if it ran out: the two daily AI allowances
-   (500 requests each, reset 8am here) and the free database's 500 MB. */
-function Meter({ label, used, of, fmt = nf, sub, warnAt = 0.8 }) {
+/* What would stop the app if it ran out, in one strip at the top: the two
+   daily AI allowances (500 requests each, reset 8am here) and the free
+   database's 500 MB. Red when one gets close. */
+function Meter({ label, used, of, fmt = nf, warnAt = 0.8, title }) {
   const pct = Math.min(100, (used / of) * 100);
   const high = used >= of * warnAt;
   return (
-    <div className={`ax-meter${high ? " is-high" : ""}`}>
+    <div className={`ax-meter${high ? " is-high" : ""}`} title={title}>
       <span className="ax-meter__label">{label}</span>
-      <span className="ax-meter__n"><strong>{fmt(used)}</strong> of {fmt(of)}</span>
-      <span className="ax-meter__bar" aria-hidden="true"><span style={{ width: `${Math.max(pct, 1)}%` }} /></span>
-      <span className="ax-meter__sub">{sub}</span>
+      <span className="ax-meter__n"><strong>{fmt(used)}</strong> / {fmt(of)}</span>
+      <span className="ax-meter__bar" aria-hidden="true"><span style={{ width: `${Math.max(pct, 1.5)}%` }} /></span>
     </div>
   );
 }
@@ -288,16 +242,149 @@ function Limits() {
   const mb = b => `${Math.round(b / MB)} MB`;
   return (
     <section className="ax-limits" aria-label="Limits">
-      <h3 className="ax-h3">Limits</h3>
-      <div className="ax-limits__row">
-        {!quota.error && <Meter label="Generating today" used={Number(q.generate ?? 0)} of={500} sub={`Resets at ${resets}`} />}
-        {!quota.error && <Meter label="Resurface AI today" used={Number(q.explain ?? 0)} of={500} sub={`Resets at ${resets}`} />}
-        {!size.error && size.rows != null && (
-          <Meter label="Database" used={size.rows} of={500 * MB} fmt={mb} warnAt={0.6}
-            sub={size.rows >= 300 * MB ? "Over 60%: shorten the answer history or move to Pro" : "Free plan. Warns at 300 MB"} />
-        )}
-      </div>
+      {!quota.error && <Meter label="Generating today" used={Number(q.generate ?? 0)} of={500} title={`Resets at ${resets}`} />}
+      {!quota.error && <Meter label="Resurface AI today" used={Number(q.explain ?? 0)} of={500} title={`Resets at ${resets}`} />}
+      {!size.error && size.rows != null && (
+        <Meter label="Database" used={size.rows} of={500 * MB} fmt={mb} warnAt={0.6}
+          title={size.rows >= 300 * MB ? "Over 60%: shorten the answer history or move to Pro" : "Free plan. Turns red at 300 MB"} />
+      )}
     </section>
+  );
+}
+
+/* ── Activity ─────────────────────────────────────────────────────────
+   Who studied, signed up or generated on a day: a month at a time, Monday
+   first, back through six months, with the day's people beside it. The
+   day is the student's own local day. Each day is shaded by how many it
+   had, so a busy week shows at a glance. */
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const CAL_SPAN = 180;
+const parseDay = key => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d); };
+function monthCells(year, month) {
+  const lead = (new Date(year, month, 1).getDay() + 6) % 7;
+  const count = new Date(year, month + 1, 0).getDate();
+  const cells = Array(lead).fill(null);
+  for (let d = 1; d <= count; d += 1) cells.push(dayKey(new Date(year, month, d)));
+  while (cells.length % 7) cells.push(null);
+  return cells;
+}
+const dayTitle = key => parseDay(key).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+const MODES = [
+  { k: "studied", label: "Studied", none: "Nobody answered a question.", col: "Answered" },
+  { k: "signed", label: "Signed up", none: "Nobody signed up.", col: "Answered since" },
+  { k: "generated", label: "Generated", none: "Nobody generated a question.", col: "Generated" },
+];
+
+function Activity() {
+  const [{ rows, error }] = useSection(fetchPeople);
+  const loadDaily = useCallback(() => fetchPeopleDaily(CAL_SPAN + 2), []);
+  const [daily] = useSection(loadDaily);
+  const loadGen = useCallback(() => fetchGeneratedDaily(CAL_SPAN + 2), []);
+  const [generated] = useSection(loadGen);
+  const today = dayKey(Date.now());
+  const todayDate = parseDay(today);
+  const earliest = parseDay(dayKey(Date.now() - (CAL_SPAN - 1) * DAY));
+  const earliestKey = dayKey(earliest);
+  const [cursor, setCursor] = useState({ y: todayDate.getFullYear(), m: todayDate.getMonth() });
+  const [day, setDay] = useState(today);
+  const [mode, setMode] = useState("studied");
+  const cells = useMemo(() => monthCells(cursor.y, cursor.m), [cursor]);
+  const at = cursor.y * 12 + cursor.m;
+  const canPrev = at > earliest.getFullYear() * 12 + earliest.getMonth();
+  const canNext = at < todayDate.getFullYear() * 12 + todayDate.getMonth();
+
+  const index = rowsIn => {
+    const all = new Map();
+    for (const r of rowsIn ?? []) {
+      const key = String(r.day).slice(0, 10);
+      if (!all.has(key)) all.set(key, new Map());
+      all.get(key).set(r.user_id, Number(r.answers ?? r.questions) || 0);
+    }
+    return all;
+  };
+  const studiedBy = useMemo(() => index(daily.rows), [daily.rows]);
+  const generatedBy = useMemo(() => index(generated.rows), [generated.rows]);
+  const signedBy = useMemo(() => {
+    const all = new Map();
+    for (const p of rows ?? []) {
+      const key = dayKey(p.joined);
+      if (!all.has(key)) all.set(key, new Map());
+      all.get(key).set(p.user_id, Number(p.answered) || 0);
+    }
+    return all;
+  }, [rows]);
+  const source = mode === "signed" ? signedBy : mode === "generated" ? generatedBy : studiedBy;
+  const countOn = key => source.get(key)?.size ?? 0;
+  const monthPeak = Math.max(1, ...cells.filter(Boolean).map(countOn));
+
+  const byId = useMemo(() => new Map((rows ?? []).map(p => [p.user_id, p])), [rows]);
+  const list = [...(source.get(day) ?? new Map())]
+    .map(([id, n]) => ({ p: byId.get(id), n })).filter(x => x.p)
+    .sort((a, b) => b.n - a.n || nameOf(a.p).localeCompare(nameOf(b.p)));
+  const total = list.reduce((a, x) => a + x.n, 0);
+  const m = MODES.find(x => x.k === mode);
+
+  if (error || daily.error) return <Empty>{error || daily.error}</Empty>;
+  if (!rows || !daily.rows) return <Empty>&nbsp;</Empty>;
+
+  return (
+    <>
+      <div className="ax-filters" role="tablist" aria-label="Show">
+        {MODES.map(x => (
+          <button key={x.k} type="button" role="tab" aria-selected={mode === x.k}
+            className={`ax-filter${mode === x.k ? " is-on" : ""}`} onClick={() => setMode(x.k)}>{x.label}</button>
+        ))}
+      </div>
+      <div className="ax-act">
+        <section className="ax-cal">
+          <div className="ax-cal__bar">
+            <h3 className="ax-cal__month">{new Date(cursor.y, cursor.m, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</h3>
+            <span className="ax-cal__nav">
+              <button type="button" aria-label="Previous month" disabled={!canPrev}
+                onClick={() => setCursor(c => { const d = new Date(c.y, c.m - 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>‹</button>
+              <button type="button" aria-label="Next month" disabled={!canNext}
+                onClick={() => setCursor(c => { const d = new Date(c.y, c.m + 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>›</button>
+            </span>
+          </div>
+          <div className="ax-cal__grid" role="listbox" aria-label="Day">
+            {WEEKDAYS.map(w => <span key={w} className="ax-cal__wd">{w}</span>)}
+            {cells.map((key, i) => {
+              if (!key) return <span key={`gap-${i}`} />;
+              const open = key >= earliestKey && key <= today;
+              const n = open ? countOn(key) : 0;
+              return (
+                <button key={key} type="button" role="option" aria-selected={key === day} disabled={!open}
+                  aria-label={`${dayTitle(key)}, ${n}`}
+                  className={`ax-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${!open ? " is-out" : ""}`}
+                  style={n ? { "--heat": 0.12 + 0.55 * (n / monthPeak) } : undefined}
+                  onClick={() => open && setDay(key)}>
+                  <span className="ax-cal__n">{parseDay(key).getDate()}</span>
+                  {n > 0 && <span className="ax-cal__c">{n}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+        <section className="ax-act__day">
+          <h3 className="ax-act__title">{day === today ? "Today" : dayTitle(day)}</h3>
+          {day === today && <p className="ax-note">{dayTitle(day)}</p>}
+          <div className="ax-act__stats">
+            <span><strong>{list.length}</strong> {mode === "signed" ? (list.length === 1 ? "sign-up" : "sign-ups") : list.length === 1 ? "person" : "people"}</span>
+            {mode !== "signed" && <span><strong>{nf(total)}</strong> {mode === "generated" ? "generated" : "answered"}</span>}
+          </div>
+          {mode === "generated" && generated.error ? <Empty>{generated.error}</Empty> : list.length === 0 ? <p className="ax-quiet">{m.none}</p> : (
+            <ul className="ax-rows">
+              {list.map(({ p, n }) => (
+                <li key={p.user_id}>
+                  <span className="ax-who">{nameOf(p)}{p.study_year ? <span className="ax-year">Y{p.study_year}</span> : null}</span>
+                  <span className={mode === "signed" && !n ? "ax-meta" : "ax-num"}>{mode === "signed" && !n ? "Not started" : nf(n)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </>
   );
 }
 
@@ -532,6 +619,7 @@ function Flags({ onCount }) {
 
 const TABS = [
   { k: "overview", label: "Overview" },
+  { k: "activity", label: "Activity" },
   { k: "people", label: "People" },
   { k: "flags", label: "Reported" },
 ];
@@ -566,6 +654,7 @@ export default function AdminView() {
           </nav>
           <div key={tab} className="ax-body">
             {tab === "overview" && <Overview goPeople={() => setTab("people")} />}
+            {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
           </div>
