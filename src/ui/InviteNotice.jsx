@@ -13,7 +13,7 @@ import { logStep } from "../lib/remote";
  * When, and how often (agreed with Rafil):
  *  - only once someone has studied on 3 or more days;
  *  - only right after they finish a session, never during one or on opening;
- *  - dismissed, it waits 14 days, and after 3 dismissals it never comes back;
+ *  - dismissed, it waits 10 days, and after 3 dismissals it never comes back;
  *  - shared, it waits 30 days;
  *  - never on top of another bar (the update notice).
  * Remembered per account on this device.
@@ -48,7 +48,7 @@ export default function InviteNotice({ userId, studyDays, sessionActive }) {
 
   function close(how) {
     const st = load(userId);
-    if (how === "dismiss") save(userId, { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 14 * DAY });
+    if (how === "dismiss") save(userId, { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 10 * DAY });
     else save(userId, { ...st, nextAt: Date.now() + 30 * DAY });
     setOpen(false);
   }
