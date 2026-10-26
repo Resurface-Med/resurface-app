@@ -28,12 +28,12 @@ function Figure({ n, unit, className, title }) {
   );
 }
 
-function Coverage({ seen, total, avail, due = 0, dim, empty = false }) {
+function Coverage({ seen, total, avail, due = 0, dim, empty = false, bar = true }) {
   const pct = total > 0 ? Math.min(100, Math.round((seen / total) * 100)) : 0;
   const covered = `${seen} of ${total} seen`;
   return (
     <span className="topic-meta" style={{ opacity: dim ? 0.45 : 1 }}>
-      {total > 0 && (
+      {bar && total > 0 && (
         <span className="topic-bar" role="img" title={covered} aria-label={covered}>
           <span className="topic-bar-fill" style={{ width: `${pct}%` }} />
         </span>
@@ -473,7 +473,7 @@ export default function DeckTree({
           >
             <Check state={st} />
             <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}><Marked text={n.name} q={q} />{n.byline && <span className="topic-by">by {n.byline}</span>}{n.yours && <span className="topic-by">{n.suggestion ? `Yours · ${n.suggestion}` : "Yours"}</span>}</span>
-            <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} />
+            <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} bar={depth !== 0} />
           </button>
           )}
           {menu ? <RowMenu node={n} items={menu} renderPicker={pickerFor(n)} /> : <span className="topic-menu-slot" aria-hidden="true" />}
