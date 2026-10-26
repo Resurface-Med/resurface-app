@@ -9796,7 +9796,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .feat-admin__field span { font-size: 14px; font-weight: 500; color: var(--c-sub); }
 .feat-admin input, .feat-admin-search {
   width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1.5px solid transparent; border-radius: 12px;
-  background: var(--c-surface3); color: var(--c-text); font: inherit; font-size: 15px; outline: none;
+  background: var(--c-card-solid); box-shadow: inset 0 0 0 1px var(--c-border); color: var(--c-text); font: inherit; font-size: 15px; outline: none;
 }
 .feat-admin input:focus, .feat-admin-search:focus { border-color: var(--c-accent-brd); background: var(--c-card-solid); }
 .feat-admin > .gen-link { align-self: flex-start; font-size: 14.5px; }
@@ -11005,7 +11005,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ax-delta.is-up { color: var(--c-success); }
 .ax-delta.is-down { color: var(--c-danger); }
 
-.ax-chart { padding: 26px 0 8px; border-top: 1px solid var(--c-border); margin-top: 10px; }
+.ax-chart { padding: 26px 0 8px; }
+.ax-chart + .ax-metrics { margin-top: 18px; border-top: 1px solid var(--c-border); }
 .ax-chart__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 12px; }
 .ax-chart__ph { height: 260px; }
 .ax-range { display: flex; gap: 4px; flex: none; }
@@ -11047,19 +11048,18 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ax-attention__head { display: flex; justify-content: space-between; align-items: baseline; }
 .ax-attention__more { grid-column: 1 / -1; justify-self: start; margin-top: 12px; }
 
-/* Limits: one slim strip above everything on Overview. */
-.ax-limits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; padding: 0 0 22px; margin-bottom: 6px; border-bottom: 1px solid var(--c-border); }
-.ax-meter { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 6px 10px; }
-.ax-meter__label { font-size: 13px; font-weight: 500; color: var(--c-muted); }
-.ax-meter__n { font-size: 13px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
-.ax-meter__n strong { font-size: 15px; font-weight: 600; color: var(--c-text); }
-.ax-meter__bar { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: var(--c-surface3); overflow: hidden; }
-.ax-meter__bar span { display: block; height: 100%; border-radius: inherit; background: var(--c-text); opacity: .6; }
-.ax-meter.is-high .ax-meter__bar span { background: var(--c-danger); opacity: 1; }
-.ax-meter.is-high .ax-meter__n strong { color: var(--c-danger); }
+/* Limits: the top row of Overview, in the same type as the weekly numbers,
+   each with a thin bar that turns red when it gets close. */
+.ax-limits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-bottom: 22px; border-bottom: 1px solid var(--c-border); }
+.ax-limit { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 4px 24px 0; border-left: 1px solid var(--c-border); }
+.ax-limit:first-child { border-left: 0; padding-left: 0; }
+.ax-limit .ax-metric__value { font-size: 36px; }
+.ax-limit__bar { align-self: stretch; height: 5px; margin-top: 12px; border-radius: 5px; background: var(--c-surface3); overflow: hidden; }
+.ax-limit__bar span { display: block; height: 100%; border-radius: inherit; background: var(--c-accent); }
+.ax-limit.is-high .ax-limit__bar span { background: var(--c-danger); }
+.ax-limit.is-high .ax-metric__value, .ax-limit.is-high .ax-metric__sub { color: var(--c-danger); }
 
-/* Activity: a big calendar, shaded by how busy each day was, beside the
-   day's people. */
+/* Activity: a big calendar beside the day's people. */
 .ax-act { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 56px; align-items: start; margin-top: 8px; }
 .ax-cal__bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .ax-cal__month { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
@@ -11071,12 +11071,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ax-cal__wd { padding: 0 0 6px; font-size: 12.5px; font-weight: 500; color: var(--c-muted); text-align: center; }
 .ax-cal__day {
   position: relative; aspect-ratio: 1 / 0.86; border: 0; border-radius: 12px; cursor: pointer;
-  background: rgba(var(--c-accent-rgb), var(--heat, 0)); color: var(--c-text); font: inherit;
+  background: var(--c-card-solid); box-shadow: inset 0 0 0 1px var(--c-border); color: var(--c-text); font: inherit;
   display: flex; flex-direction: column; justify-content: space-between; padding: 8px 10px; text-align: left;
 }
-.ax-cal__day:not([style]) { background: var(--c-surface3); }
-.ax-cal__day:hover:not(:disabled) { box-shadow: inset 0 0 0 1.5px rgba(var(--c-accent-rgb), .5); }
-.ax-cal__day.is-out { background: transparent; color: var(--c-muted); opacity: .4; cursor: default; }
+.ax-cal__day:hover:not(:disabled) { box-shadow: inset 0 0 0 1.5px var(--c-muted); }
+.ax-cal__day.is-zero .ax-cal__n { color: var(--c-muted); }
+.ax-cal__day.is-out { background: transparent; box-shadow: none; color: var(--c-muted); opacity: .4; cursor: default; }
 .ax-cal__day.is-on { box-shadow: inset 0 0 0 2px var(--c-text); }
 .ax-cal__n { font-size: 13.5px; font-weight: 500; }
 .ax-cal__day.is-today .ax-cal__n { color: var(--c-accent); font-weight: 600; }
@@ -11131,7 +11131,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .ax-metric:nth-child(3)::before { left: 0; }
   .ax-metric__value { font-size: 32px; }
   .ax-attention, .ax-act { grid-template-columns: 1fr; gap: 26px; }
-  .ax-limits { grid-template-columns: 1fr; gap: 14px; }
+  .ax-limits { grid-template-columns: 1fr; gap: 18px; }
+  .ax-limit { border-left: 0; padding-left: 0; }
   .ax-cal__day { padding: 5px 6px; border-radius: 9px; }
   .ax-cal__c { font-size: 14px; }
   .ax-table thead th:nth-child(2), .ax-table tbody td:nth-child(2),

@@ -148,18 +148,6 @@ function Overview({ goPeople }) {
   return (
     <>
       <Limits />
-      <div className="ax-metrics" role="tablist" aria-label="What the chart shows">
-        {METRICS.map(m => (
-          <button key={m.k} type="button" role="tab" aria-selected={metric === m.k}
-            className={`ax-metric${metric === m.k ? " is-on" : ""}`} onClick={() => setMetric(m.k)}>
-            <span className="ax-metric__label">{m.label}</span>
-            <span className="ax-metric__value">{nf(row(m.k).last7)}</span>
-            <span className="ax-metric__sub">{m.sub}</span>
-            <Delta now={row(m.k).last7} before={row(m.k).prev7} />
-          </button>
-        ))}
-      </div>
-
       <section className="ax-chart">
         <div className="ax-chart__head">
           <h3 className="ax-h3">{chosen.label} per day</h3>
@@ -174,6 +162,18 @@ function Overview({ goPeople }) {
           <TrendChart points={points} days={days} unit={chosen.unit} picked={picked != null && picked < days.length ? picked : null} onPick={setPicked} />
         )}
       </section>
+
+      <div className="ax-metrics" role="tablist" aria-label="What the chart shows">
+        {METRICS.map(m => (
+          <button key={m.k} type="button" role="tab" aria-selected={metric === m.k}
+            className={`ax-metric${metric === m.k ? " is-on" : ""}`} onClick={() => setMetric(m.k)}>
+            <span className="ax-metric__label">{m.label}</span>
+            <span className="ax-metric__value">{nf(row(m.k).last7)}</span>
+            <span className="ax-metric__sub">{m.sub}</span>
+            <Delta now={row(m.k).last7} before={row(m.k).prev7} />
+          </button>
+        ))}
+      </div>
 
       <section className="ax-attention">
         <div className="ax-attention__col">
@@ -222,14 +222,15 @@ function Overview({ goPeople }) {
 /* What would stop the app if it ran out, in one strip at the top: the two
    daily AI allowances (500 requests each, reset 8am here) and the free
    database's 500 MB. Red when one gets close. */
-function Meter({ label, used, of, fmt = nf, warnAt = 0.8, title }) {
+function Meter({ label, used, of, fmt = nf, sub, warnAt = 0.8 }) {
   const pct = Math.min(100, (used / of) * 100);
   const high = used >= of * warnAt;
   return (
-    <div className={`ax-meter${high ? " is-high" : ""}`} title={title}>
-      <span className="ax-meter__label">{label}</span>
-      <span className="ax-meter__n"><strong>{fmt(used)}</strong> / {fmt(of)}</span>
-      <span className="ax-meter__bar" aria-hidden="true"><span style={{ width: `${Math.max(pct, 1.5)}%` }} /></span>
+    <div className={`ax-limit${high ? " is-high" : ""}`}>
+      <span className="ax-metric__label">{label}</span>
+      <span className="ax-metric__value">{fmt(used)}</span>
+      <span className="ax-metric__sub">of {fmt(of)}{sub ? ` · ${sub}` : ""}</span>
+      <span className="ax-limit__bar" aria-hidden="true"><span style={{ width: `${Math.max(pct, 1.5)}%` }} /></span>
     </div>
   );
 }
@@ -242,11 +243,11 @@ function Limits() {
   const mb = b => `${Math.round(b / MB)} MB`;
   return (
     <section className="ax-limits" aria-label="Limits">
-      {!quota.error && <Meter label="Generating today" used={Number(q.generate ?? 0)} of={500} title={`Resets at ${resets}`} />}
-      {!quota.error && <Meter label="Resurface AI today" used={Number(q.explain ?? 0)} of={500} title={`Resets at ${resets}`} />}
+      {!quota.error && <Meter label="Generating today" used={Number(q.generate ?? 0)} of={500} sub={`resets ${resets}`} />}
+      {!quota.error && <Meter label="Resurface AI today" used={Number(q.explain ?? 0)} of={500} sub={`resets ${resets}`} />}
       {!size.error && size.rows != null && (
         <Meter label="Database" used={size.rows} of={500 * MB} fmt={mb} warnAt={0.6}
-          title={size.rows >= 300 * MB ? "Over 60%: shorten the answer history or move to Pro" : "Free plan. Turns red at 300 MB"} />
+          sub={size.rows >= 300 * MB ? "over 60%: shorten history or move to Pro" : "free plan"} />
       )}
     </section>
   );
@@ -255,8 +256,7 @@ function Limits() {
 /* ── Activity ─────────────────────────────────────────────────────────
    Who studied, signed up or generated on a day: a month at a time, Monday
    first, back through six months, with the day's people beside it. The
-   day is the student's own local day. Each day is shaded by how many it
-   had, so a busy week shows at a glance. */
+   day is the student's own local day. */
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const CAL_SPAN = 180;
 const parseDay = key => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d); };
@@ -315,7 +315,6 @@ function Activity() {
   }, [rows]);
   const source = mode === "signed" ? signedBy : mode === "generated" ? generatedBy : studiedBy;
   const countOn = key => source.get(key)?.size ?? 0;
-  const monthPeak = Math.max(1, ...cells.filter(Boolean).map(countOn));
 
   const byId = useMemo(() => new Map((rows ?? []).map(p => [p.user_id, p])), [rows]);
   const list = [...(source.get(day) ?? new Map())]
@@ -355,8 +354,7 @@ function Activity() {
               return (
                 <button key={key} type="button" role="option" aria-selected={key === day} disabled={!open}
                   aria-label={`${dayTitle(key)}, ${n}`}
-                  className={`ax-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${!open ? " is-out" : ""}`}
-                  style={n ? { "--heat": 0.12 + 0.55 * (n / monthPeak) } : undefined}
+                  className={`ax-cal__day${key === day ? " is-on" : ""}${key === today ? " is-today" : ""}${!open ? " is-out" : n ? "" : " is-zero"}`}
                   onClick={() => open && setDay(key)}>
                   <span className="ax-cal__n">{parseDay(key).getDate()}</span>
                   {n > 0 && <span className="ax-cal__c">{n}</span>}
