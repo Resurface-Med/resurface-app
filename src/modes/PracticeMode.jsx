@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import CountField from "../ui/CountField";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
-import { QUESTIONS } from "../data";
+import { QUESTIONS, applyQuestionEdit } from "../data";
 import { isReviewDue } from "../lib/sm2";
 import { reask, reaskAt, shiftFrom, refreshSaved } from "../lib/session";
 import { useAuth } from "../lib/auth";
@@ -11,16 +11,18 @@ import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
 import DeckTree, { prune } from "../ui/DeckTree";
 import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
-import { buildForest, leavesUnder, findNode, deckShareUrl, walk, shelve } from "../lib/decks";
+import { buildForest, leavesUnder, findNode, deckShareUrl, walk, shelve, questionsInDeck } from "../lib/decks";
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
 import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
 import { useStudyClock } from "../lib/studyTime";
+import { toDeckFile, serializeDeckFile, deckFileName, parseDeckFile, planDeckUpdate } from "../lib/deckFile";
+import DeckFileSheet from "../ui/DeckFileSheet";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import QuestionReviewer from "../ui/QuestionReviewer";
 import SuggestPrompt from "../ui/SuggestPrompt";
-import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit } from "../lib/remote";
+import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit, adminEditFeatured, remote } from "../lib/remote";
 import { splitFor } from "../lib/peerSplit";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
@@ -231,6 +233,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const loadSuggestions = () => { if (isOnline()) fetchMySuggestions().then(setMySuggestions, () => {}); };
   useEffect(loadSuggestions, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [shareCopied, setShareCopied] = useState(false);
+  /* A deck downloaded for another model to correct, then put back
+     (lib/deckFile). The target is which deck the file is being laid onto. */
+  const [deckFile, setDeckFile] = useState(null);
+  const deckFileRef = useRef(null);
+  const deckFileTarget = useRef(null);
+  const deckFileBusy = useRef(false);
   async function copyShareLink() {
     if (!sharing) return;
     try {
@@ -801,6 +809,68 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const r = featured.find(x => (x.top ?? x.id) === topId);
       if (r) onHideFeatured?.(r.id, true);
     };
+    /* A deck as a file (lib/deckFile): download it, let something correct
+       the questions, upload that same file back onto this deck. */
+    function downloadDeck(node) {
+      const file = toDeckFile(node.name, questionsInDeck(node.id), node.id);
+      const url = URL.createObjectURL(new Blob([serializeDeckFile(file)], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = deckFileName(node.name);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+    function openDeckFile(node) {
+      deckFileTarget.current = { id: node.id, name: node.name };
+      if (deckFileRef.current) { deckFileRef.current.value = ""; deckFileRef.current.click(); }
+    }
+    async function onDeckFile(e) {
+      const chosen = e.target.files?.[0];
+      const target = deckFileTarget.current;
+      e.target.value = "";
+      if (!chosen || !target) return;
+      let text;
+      try { text = await chosen.text(); }
+      catch { setDeckFile({ deckName: target.name, error: "That file couldn't be read." }); return; }
+      const parsed = parseDeckFile(text);
+      if (parsed.error) { setDeckFile({ deckName: target.name, error: parsed.error }); return; }
+      setDeckFile({ deckName: target.name, plan: planDeckUpdate(parsed, questionsInDeck(target.id)) });
+    }
+    async function applyDeckCorrections() {
+      const plan = deckFile?.plan;
+      if (!plan?.updates.length || !user || deckFileBusy.current) return;
+      deckFileBusy.current = true;
+      setDeckFile(d => ({ ...d, busy: true }));
+      const pending = [...plan.updates];
+      let failed = 0;
+      async function one() {
+        for (;;) {
+          const u = pending.shift();
+          if (!u) return;
+          try {
+            if (u.featured) await adminEditFeatured(u.id, u.payload);
+            else {
+              await remote.updateGenerated(user.id, { id: u.id, ...u.payload });
+              await remote.questionEdit(user.id, u.id, u.payload);
+            }
+            applyQuestionEdit(u.id, u.payload);
+          } catch { failed += 1; }
+        }
+      }
+      await Promise.all([one(), one(), one(), one(), one(), one()]);
+      deckFileBusy.current = false;
+      setDeckFile(d => (d ? { ...d, busy: false, done: true, failed } : d));
+    }
+    function fileItems(node) {
+      if (!questionsInDeck(node.id).length) return [];
+      if (!node.mine && !isFeaturedAdmin()) return [];
+      return [
+        { label: "Download deck", onSelect: downloadDeck },
+        { label: "Upload corrections", onSelect: openDeckFile },
+      ];
+    }
     /* Review questions (2026-10-23): the admin team's reviewer, on any deck. */
     const reviewItem = isFeaturedAdmin()
       ? [{ label: "Review questions", onSelect: n => setReviewing({ id: n.id, name: n.name }) }]
@@ -808,8 +878,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const manageFeatured = isFeaturedAdmin() && featuredActions
       ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }, ...reviewItem]
       : [];
-    const featuredMenu = [
+    const featuredMenu = node => [
       ...manageFeatured,
+      ...fileItems(node),
       { label: "Hide from my decks", onSelect: n => hideFeatured(n.id) },
     ];
     const rowMenu = node => node.mine ? [
@@ -822,14 +893,15 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
          it used to live and why fourteen shareable decks had been shared
          exactly zero times. */
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
+      ...fileItems(node),
       /* A folder of yours inside a ready-made deck can go to the reviewers,
          to be added for everyone. */
       /* Not one filed under a heading ("Year 2"): there is no deck to add to. */
       ...(node.yours && !node.shelved ? [{ label: mySuggestions.some(s => s.deckId === node.id) ? "Your suggestion" : "Suggest for everyone", onSelect: n => setSuggesting(n.id) }] : []),
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
-    ] : node.byline && onHideFeatured ? featuredMenu
-      : node.featured && manageFeatured.length ? manageFeatured
+    ] : node.byline && onHideFeatured ? featuredMenu(node)
+      : node.featured && (manageFeatured.length || fileItems(node).length) ? [...manageFeatured, ...fileItems(node)]
       : null;
     const qNorm = topicQuery.trim().toLowerCase();
     /* A featured deck you hid can be brought back. (An old copy of one is
@@ -1059,6 +1131,23 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         {({ due: "Due", wrong: "Wrong", saved: "Saved" })[scope] ?? scope} only · show all
       </button>
     ) : null;
+    const deckFileSheet = (
+      <>
+        <input ref={deckFileRef} type="file" accept=".json,.txt,application/json,text/plain" style={{ display: "none" }} onChange={onDeckFile} />
+        {deckFile && (
+          <DeckFileSheet
+            deckName={deckFile.deckName}
+            plan={deckFile.plan}
+            error={deckFile.error}
+            busy={Boolean(deckFile.busy)}
+            done={Boolean(deckFile.done)}
+            failed={deckFile.failed || 0}
+            onApply={applyDeckCorrections}
+            onClose={() => { if (!deckFile.busy) setDeckFile(null); }}
+          />
+        )}
+      </>
+    );
     const shareSheet = sharing && (
       <ShareSheet
         deck={sharing}
@@ -1205,6 +1294,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             </div>
           </div>
           {shareSheet}
+          {deckFileSheet}
           {pastSheet}
           {manager}
           {reviewer}
@@ -1370,6 +1460,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           </div>
         </div>
         {shareSheet}
+        {deckFileSheet}
         {pastSheet}
         {manager}
         {reviewer}
