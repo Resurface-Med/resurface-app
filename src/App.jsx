@@ -885,7 +885,12 @@ export default function App() {
    * engine — questions still resurface before you forget them — without asking
    * anyone to grade their own recall on a four-point scale.
    */
-  function recordAnswer(id, correct, optionText) {
+  function recordAnswer(id, correct, optionText, ms) {
+    /* Skips (marked wrong for leaving them) are not answers, so not logged. */
+    if (typeof optionText === "string") {
+      const t = Number.isFinite(ms) ? Math.min(3600000, Math.max(0, Math.round(ms))) : null;
+      remote.answer(user.id, id, correct, t);
+    }
     /* Which option, for how other people answered. Only the first time this
        person has ever answered it: a second go, after the explanation, would
        pile onto the right answer. Skips have no pick. */

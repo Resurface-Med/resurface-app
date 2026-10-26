@@ -377,6 +377,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      after, so they don't jump once your own pick lands. */
   const [peer, setPeer] = useState({});
   const peerRef = useRef({});
+  /* When the question on screen appeared, for how long an answer took. */
+  const shownAt = useRef(0);
+  useEffect(() => { shownAt.current = queue?.[idx] && sels[idx] === undefined ? Date.now() : 0; }, [queue, idx]);   // eslint-disable-line react-hooks/exhaustive-deps
   /* Whether the session on screen is someone's first, and the reminder
      offer at its end (ui/ReminderPrompt): once per account on this device,
      and not where notifications can't work at all. */
@@ -653,7 +656,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const correct = i === q.ans;
     setSels(prev => ({ ...prev, [idx]: i }));
     setST(t => t + 1); if (correct) setSC(c => c + 1);
-    onAnswer(q.id, correct, q.opts[i]);
+    onAnswer(q.id, correct, q.opts[i], shownAt.current ? Date.now() - shownAt.current : null);
 
     /*
      * Got it wrong: it comes back before you leave.

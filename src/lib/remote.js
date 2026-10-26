@@ -114,6 +114,12 @@ function apply(op) {
         { user_id: op.userId, question_id: op.questionId, option_text: op.optionText ?? null, option_index: op.optionIndex ?? null },
         { onConflict: "user_id,question_id", ignoreDuplicates: true },
       );
+    case "answer":
+      /* Every answer, as its own row (migration 0056). `at` is when it was
+         given, so one answered offline isn't dated when the queue drains. */
+      return supabase.from("answer_log").insert({
+        user_id: op.userId, question_id: op.questionId, correct: op.correct, ms: op.ms, at: op.at,
+      });
     case "sr":
       return supabase.from("sr_cards").upsert({
         user_id: op.userId, question_id: op.questionId,
@@ -729,6 +735,7 @@ export async function fetchLeaderboardWeek(year = null, day = null) {
 export const remote = {
   practice: (userId, questionId, correct, total) => send({ kind: "practice", userId, questionId, correct, total }),
   pick:     (userId, questionId, optionText)     => send({ kind: "pick", userId, questionId, optionText }),
+  answer:   (userId, questionId, correct, ms)    => send({ kind: "answer", userId, questionId, correct, ms, at: new Date().toISOString() }),
   sr:       (userId, questionId, card)           => send({ kind: "sr", userId, questionId, card }),
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),
