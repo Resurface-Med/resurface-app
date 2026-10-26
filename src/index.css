@@ -11246,7 +11246,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-mile__burst { position: absolute; left: 60px; top: 34px; width: 0; height: 0; }
 .nudge-mile__bit { position: absolute; left: 0; top: 0; border-radius: 2px; background: var(--c); opacity: 0; animation: confetti 1.6s 1.15s cubic-bezier(0.15, 0.75, 0.3, 1) both; }
 @keyframes confetti {
-  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  0% { opacity: 0; transform: translate(0, 0) rotate(0); }
+  6% { opacity: 1; }
   45% { opacity: 1; transform: translate(var(--x), var(--y)) rotate(calc(var(--spin) * .5)); }
   100% { opacity: 0; transform: translate(calc(var(--x) * 1.15), calc(var(--y) + 70px)) rotate(var(--spin)); }
 }
