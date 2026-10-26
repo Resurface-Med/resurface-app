@@ -19,7 +19,6 @@ import { todayKey, yesterdayKey } from "../lib/storage";
  *                day.
  *   Milestone    after a session that passes 100, 250, 500, 1,000, 2,500 or
  *                5,000 questions answered; each once. Goes before the others.
- *   Night owl    after a session past midnight or before 7am; once a week.
  *   Home Screen  after a session, on a phone browser, from the 2nd study
  *                day; back after 5 days, gone after 3 or once added.
  *   Invite       after a session, someone who has studied on 2+ days; back
@@ -166,42 +165,6 @@ export function MilestoneNudge({ n, onAction, onClose, inline }) {
   );
 }
 
-/* Night owl and early bird (2026-10-26): a session finished after midnight
-   or before 7. A moon with stars coming out, or a sun coming up over a
-   line. A joke, so one button that just closes it. */
-const clock = h => `${h % 12 || 12}${h < 12 ? "am" : "pm"}`;
-export function HourNudge({ hour, onClose, inline }) {
-  const night = hour < 5;
-  return (
-    <NudgeCard kind={night ? "night" : "dawn"} inline={inline} later={false}
-      art={night ? (
-        <svg className="nudge-sky" viewBox="0 0 84 84" aria-hidden="true">
-          <path className="nudge-sky__moon" d="M50 18a24 24 0 1 0 16 40A20 20 0 1 1 50 18z" />
-          {[[22, 22, 2.2], [66, 16, 1.6], [70, 40, 2], [16, 54, 1.5]].map(([x, y, r], i) => (
-            <circle key={i} className="nudge-sky__star" cx={x} cy={y} r={r} style={{ "--d": `${450 + i * 160}ms` }} />
-          ))}
-        </svg>
-      ) : (
-        <svg className="nudge-sky" viewBox="0 0 84 84" aria-hidden="true">
-          <defs><clipPath id="nudge-horizon"><rect x="0" y="0" width="84" height="56" /></clipPath></defs>
-          <g clipPath="url(#nudge-horizon)">
-            <g className="nudge-sky__sun">
-              <circle cx="42" cy="56" r="15" />
-              {[...Array(7)].map((_, i) => {
-                const a = Math.PI + (i / 6) * Math.PI;
-                return <line key={i} x1={42 + Math.cos(a) * 21} y1={56 + Math.sin(a) * 21} x2={42 + Math.cos(a) * 28} y2={56 + Math.sin(a) * 28} />;
-              })}
-            </g>
-          </g>
-          <line className="nudge-sky__horizon" x1="10" y1="56" x2="74" y2="56" />
-        </svg>
-      )}
-      title={night ? `Revising at ${clock(hour)}. Respect.` : `Up before the sun. Who are you?`}
-      body={night ? "Also, go to sleep." : `Revising at ${clock(hour)}. Genuinely impressive.`}
-      action={night ? "Fair enough" : "I know"} onAction={onClose} onClose={onClose} />
-  );
-}
-
 /* Add to Home Screen (2026-10-26). A phone's Home Screen with a gap, and
    the Resurface icon dropping into it. Android and Chrome can install in
    one tap; iPhone can't be asked to, so it shows the two steps. Inside an
@@ -322,12 +285,6 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       const seen = Number(store.get(userId, "milestone").n) || 0;
       const hit = [...MILESTONES].reverse().find(([m]) => answered >= m)?.[0] ?? 0;
       if (hit > seen) { if (show({ kind: "milestone", n: hit })) store.set(userId, "milestone", { n: hit }); return; }
-      /* After midnight or before 7: the joke, at most once a week. */
-      const hour = new Date().getHours();
-      if ((hour < 5 || (hour >= 5 && hour < 7)) && Date.now() >= (Number(store.get(userId, "hour").nextAt) || 0)) {
-        if (show({ kind: "hour", hour })) store.set(userId, "hour", { nextAt: Date.now() + 7 * DAY });
-        return;
-      }
       /* On a phone, not installed, from the 2nd study day: Home Screen. */
       const home = store.get(userId, "home");
       if (onPhone() && !isInstalled() && studyDays >= 2 && (home.dismissed ?? 0) < 3 && Date.now() >= (home.nextAt ?? 0)) {
@@ -362,7 +319,6 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "milestone") return <MilestoneNudge n={shown.n} onAction={study} onClose={close} />;
-  if (shown.kind === "hour") return <HourNudge hour={shown.hour} onClose={close} />;
   if (shown.kind === "home") {
     const after = days => { const st = store.get(userId, "home"); store.set(userId, "home", { dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + days * DAY }); setShown(null); };
     return <HomeScreenNudge onClose={() => after(5)} onDone={how => { logStep(userId, `home_${how}`); after(how === "added" ? 3650 : 5); }} />;
