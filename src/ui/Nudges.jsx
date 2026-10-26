@@ -61,28 +61,30 @@ export function StreakNudge({ days, onAction, onClose, inline }) {
   );
 }
 
-/* One track: you sliding along it toward the person ahead, who sits at
-   the end. Ahead of everyone, they're the one behind you instead. */
-export function LeaderNudge({ me, rival, rank, year, onAction, onClose, inline }) {
+/* Like the invite: the picture along the top, then one line that says it
+   all. You, a dashed line drawing itself towards the person ahead, and
+   them. First on the board, it points back at the one chasing you. */
+export function LeaderNudge({ me, rival, rank, onAction, onClose, inline }) {
   const top = rank === 1;
-  const where = year ? `Year ${year}` : "the leaderboard";
   const gap = rival ? Math.abs(rival.week_count - me.week_count) : 0;
-  const lead = top ? me : rival, chase = top ? rival : me;
-  const pct = lead && chase ? Math.max(8, Math.min(92, (chase.week_count / Math.max(1, lead.week_count)) * 100)) : 100;
+  const name = rival ? first(rival.display_name) : "";
+  const title = !rival ? `You’re ${ordinal(rank)} on the leaderboard!`
+    : top ? `You’re 1st on the leaderboard, ${gap} ahead of ${name}!`
+    : `You’re ${ordinal(rank)} on the leaderboard, ${gap + 1} more to pass ${name}!`;
   return (
     <NudgeCard kind="leader" inline={inline}
-      art={null}
-      title={<><span className="nudge-rank">{ordinal(rank)}</span> in {where} this week</>}
-      body={rival && (
-        <span className="nudge-track" style={{ "--p": `${pct}%`, "--pn": pct / 100 }}>
-          <span className="nudge-track__line"><span className="nudge-track__fill" /></span>
-          <Avatar className={`nudge-track__dot is-chase${chase === me ? " is-me" : ""}`} src={avatarSrc(chase.user_id, chase.avatar)} name={chase.display_name} />
-          <Avatar className={`nudge-track__dot is-lead${lead === me ? " is-me" : ""}`} src={avatarSrc(lead.user_id, lead.avatar)} name={lead.display_name} />
-          <span className="nudge-track__line-text">
-            {top ? `${gap} ahead of ${first(rival.display_name)}` : `${gap + 1} more to pass ${first(rival.display_name)}`}
-          </span>
+      art={rival && (
+        <span className={`nudge-chase${top ? " is-top" : ""}`} aria-hidden="true">
+          <Avatar className="nudge-chase__av is-me" src={avatarSrc(me.user_id, me.avatar) || me.src} name={me.display_name} />
+          <svg className="nudge-chase__path" viewBox="0 0 120 20" preserveAspectRatio="none">
+            <path d="M4 10 H108" pathLength="100" />
+            <path className="nudge-chase__head" d="M102 4 L110 10 L102 16" />
+          </svg>
+          <Avatar className="nudge-chase__av is-them" src={avatarSrc(rival.user_id, rival.avatar)} name={rival.display_name} />
+          <span className="nudge-chase__rank">{ordinal(rank)}</span>
         </span>
       )}
+      title={title}
       action="Keep going" onAction={onAction} onClose={onClose} />
   );
 }

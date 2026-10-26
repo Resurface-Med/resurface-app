@@ -601,16 +601,17 @@ function Flags({ onCount }) {
 const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212 };
 const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249 };
 
-function Popups({ welcomeNote, welcomeStart }) {
+function Popups({ welcomeNote, welcomeStart, me = null }) {
+  const meRow = { ...SAMPLE_ME, display_name: me?.name || "You", src: me?.src ?? null };
   const [open, setOpen] = useState(null);
   const close = () => setOpen(null);
   const nudges = [
     { k: "streak", label: "Streak", when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
       el: p => <StreakNudge days={6} onAction={close} onClose={close} {...p} /> },
     { k: "leader", label: "Leaderboard", when: "After a session, for someone on their year’s leaderboard. Once a day, and not on a day the invite shows.",
-      el: p => <LeaderNudge me={SAMPLE_ME} rival={SAMPLE_RIVAL} rank={4} year={2} onAction={close} onClose={close} {...p} /> },
+      el: p => <LeaderNudge me={meRow} rival={SAMPLE_RIVAL} rank={4} year={2} onAction={close} onClose={close} {...p} /> },
     { k: "invite", label: "Invite", when: "After a session, from someone’s 2nd study day. Back 5 days after a ✕, gone after 3; 21 days after a share.",
-      el: p => <InviteNudge onAction={close} onClose={close} {...p} /> },
+      el: p => <InviteNudge me={me} onAction={close} onClose={close} {...p} /> },
   ];
   const big = [
     { k: "welcome", label: "Welcome note", when: "Once, straight after a new account picks its name and year." },
@@ -657,7 +658,7 @@ const TABS = [
   { k: "popups", label: "Popups" },
 ];
 
-export default function AdminView({ welcomeNote = null, welcomeStart = null }) {
+export default function AdminView({ welcomeNote = null, welcomeStart = null, me = null }) {
   const [tab, setTab] = useState("overview");
   const [flagCount, setFlagCount] = useState(null);
   const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
@@ -690,7 +691,7 @@ export default function AdminView({ welcomeNote = null, welcomeStart = null }) {
             {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
-            {tab === "popups" && <Popups welcomeNote={welcomeNote} welcomeStart={welcomeStart} />}
+            {tab === "popups" && <Popups welcomeNote={welcomeNote} welcomeStart={welcomeStart} me={me} />}
           </div>
         </div>
       </div>

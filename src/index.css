@@ -11184,29 +11184,25 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-streak .streak__n { font-size: 22px; font-weight: 700; color: #e8590c; line-height: 1; margin-top: -2px; }
 .nudge.is-streak .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
 
-/* Leaderboard: one column, slim. The rank in the title, then one track
-   with you sliding toward the person ahead. */
-.nudge.is-leader { grid-template-columns: minmax(0, 1fr); gap: 0; width: min(360px, calc(100vw - 32px)); padding: 18px 20px 16px; border-radius: 20px; }
-.nudge.is-leader .nudge__art { display: none; }
-.nudge.is-leader .nudge__title { font-size: 16.5px; }
-.nudge-rank { display: inline-block; color: var(--c-accent); font-weight: 700; animation: rankPop .55s .1s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
-@keyframes rankPop { from { opacity: 0; transform: translateY(6px) scale(.6); } to { opacity: 1; transform: none; } }
-.nudge.is-leader .nudge__acts { margin-top: 12px; }
-.nudge.is-leader .nudge__go { padding: 9px 18px; font-size: 14px; }
-.nudge-track { position: relative; display: block; height: 52px; margin: 6px 0 0; }
-.nudge-track__line { position: absolute; left: 14px; right: 14px; top: 13px; height: 4px; border-radius: 4px; background: var(--c-surface3); overflow: hidden; }
-.nudge-track__fill { display: block; height: 100%; width: var(--p); background: var(--c-accent); border-radius: inherit; transform-origin: left; animation: trackFill .9s .2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.nudge-track__dot {
-  position: absolute; top: 0; width: 30px; height: 30px; margin-left: -15px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 10.5px; font-weight: 600;
-  background: var(--c-card-solid); color: var(--c-sub); box-shadow: 0 0 0 2px var(--c-border);
-}
-.nudge-track__dot.is-me { background: var(--c-accent); color: #fff; box-shadow: 0 0 0 3px var(--c-card-solid), 0 2px 8px rgba(var(--c-accent-rgb), .4); }
-.nudge-track__dot.is-lead { left: calc(100% - 15px); }
-.nudge-track__dot.is-chase { left: calc(14px + (100% - 28px) * var(--pn)); animation: dotSlide .9s .2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.nudge-track__line-text { position: absolute; left: 0; bottom: 0; font-size: 13px; color: var(--c-muted); }
-@keyframes trackFill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes dotSlide { from { left: 14px; } }
+/* Leaderboard: one column like the invite. You, a dashed line drawing
+   itself across with an arrow, the person ahead popping in at the end,
+   and your place under your photo. */
+.nudge.is-leader, .nudge.is-invite { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.nudge.is-leader .nudge__art { width: auto; height: auto; border-radius: 0; display: flex; justify-content: flex-start; }
+.nudge.is-leader .nudge__text { padding-right: 0; }
+.nudge-chase { position: relative; display: flex; align-items: center; gap: 8px; padding-bottom: 18px; }
+.nudge-chase__av { width: 44px; height: 44px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
+.nudge-chase__av.is-me { background: var(--c-accent); color: #fff; animation: seatIn .45s cubic-bezier(0.34, 1.4, 0.5, 1) both; }
+.nudge-chase__av.is-them { background: var(--c-surface3); color: var(--c-sub); animation: seatIn .45s .75s cubic-bezier(0.34, 1.4, 0.5, 1) both; }
+.nudge-chase__path { width: 96px; height: 20px; overflow: visible; }
+.nudge-chase__path path { fill: none; stroke: var(--c-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nudge-chase__path path:first-child { stroke-dasharray: 4 5; opacity: .55; transform-box: fill-box; transform-origin: left center; animation: drawLine .7s .25s ease-out both; }
+.nudge-chase__head { transform-box: fill-box; transform-origin: center; animation: plusIn .3s .85s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
+.nudge-chase.is-top .nudge-chase__path { transform: scaleX(-1); }
+.nudge-chase.is-top { flex-direction: row; }
+.nudge-chase__rank { position: absolute; left: 22px; bottom: 0; transform: translateX(-50%); font-size: 12px; font-weight: 700; color: var(--c-accent); white-space: nowrap; animation: rankPop .5s .15s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
+@keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes rankPop { from { opacity: 0; transform: translate(-50%, 6px) scale(.6); } to { opacity: 1; transform: translateX(-50%); } }
 
 /* Invite: one column. You, and two empty places beside you that draw
    their outlines in, a plus settling in each. Plays once. */
@@ -11232,7 +11228,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge__art { width: 68px; height: 68px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .nudge, .nudge-rank, .nudge-track__fill, .nudge-track__dot, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
+  .nudge, .nudge-chase__av, .nudge-chase__path path, .nudge-chase__head, .nudge-chase__rank, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
 }
 .ax-pops { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 28px 32px; margin-top: 18px; }
 .ax-pops.is-big { margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--c-border); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }

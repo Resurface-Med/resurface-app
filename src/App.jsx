@@ -1471,7 +1471,7 @@ export default function App() {
 
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
-          {v === V.ADMIN && (online ? <AdminView welcomeNote={welcomeNote} welcomeStart={welcomeStart} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
+          {v === V.ADMIN && (online ? <AdminView welcomeNote={welcomeNote} welcomeStart={welcomeStart} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView
             /* Everyone reads the welcome post filled in; an edit opens it as
