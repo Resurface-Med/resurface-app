@@ -17,6 +17,8 @@ import { todayKey, yesterdayKey } from "../lib/storage";
  *                yet; once a day.
  *   Leaderboard  after a session, someone with a year on the board; once a
  *                day.
+ *   Milestone    after a session that passes 100, 250, 500, 1,000, 2,500 or
+ *                5,000 questions answered; each once. Goes before the others.
  *   Invite       after a session, someone who has studied on 2+ days; back
  *                5 days after a ✕, gone after 3; 21 days after a share.
  */
@@ -80,39 +82,65 @@ function useCountUp(n, ms = 900, delay = 350) {
   return v;
 }
 
-/* Like the invite: the picture along the top, then one line that says it
-   all. You and your place, a dashed line drawing an arrow to the person
-   ahead and theirs. You lunge at them twice and they flinch; the gap
-   counts up in the line. First on the board, they're chasing you. */
-export function LeaderNudge({ me, rival, rank, onAction, onClose, inline }) {
+/* A mini leaderboard: the person ahead, you, the person behind, sliding in
+   one after another with their counts ticking up, your row marked. The
+   line under it says what it takes to move up. */
+function BoardRow({ r, me, i, delay }) {
+  const n = useCountUp(Number(r.week_count) || 0, 800, delay + 150);
+  return (
+    <li className={`nudge-board__row${me ? " is-me" : ""}`} style={{ "--d": `${delay}ms` }}>
+      <span className="nudge-board__rank">{ordinal(Number(r.rank) || i)}</span>
+      <Avatar className="nudge-board__av" src={avatarSrc(r.user_id, r.avatar) || r.src} name={r.display_name} />
+      <span className="nudge-board__name">{me ? "You" : first(r.display_name)}</span>
+      <span className="nudge-board__n">{n.toLocaleString("en-GB")}</span>
+    </li>
+  );
+}
+
+export function LeaderNudge({ me, rival, rank, around = null, onAction, onClose, inline }) {
   const top = rank === 1;
   const gap = rival ? Math.abs(rival.week_count - me.week_count) : 0;
-  const need = top ? gap : gap + 1;
-  const shown = useCountUp(need);
   const name = rival ? first(rival.display_name) : "";
-  const theirRank = rival ? Number(rival.rank) || (top ? 2 : rank - 1) : null;
+  const rows = (around && around.length ? around : (top ? [me, rival] : [rival, me]).filter(Boolean))
+    .map(r => ({ ...r, rank: r.rank ?? (r === me ? rank : r === rival ? (top ? 2 : rank - 1) : null) }));
   const title = !rival ? `You’re ${ordinal(rank)} on the leaderboard!`
-    : top ? <>You’re 1st on the leaderboard, <span className="nudge-num">{shown}</span> ahead of {name}!</>
-    : <>You’re {ordinal(rank)} on the leaderboard, <span className="nudge-num">{shown}</span> more to pass {name}!</>;
+    : top ? `You’re 1st on the leaderboard, ${gap} ahead of ${name}!`
+    : `You’re ${ordinal(rank)} on the leaderboard, ${gap + 1} more to pass ${name}!`;
   return (
     <NudgeCard kind="leader" inline={inline}
-      art={rival && (
-        <span className={`nudge-chase${top ? " is-top" : ""}`} aria-hidden="true">
-          <span className="nudge-chase__who is-me">
-            <Avatar className="nudge-chase__av" src={avatarSrc(me.user_id, me.avatar) || me.src} name={me.display_name} />
-            <span className="nudge-chase__rank">{ordinal(rank)}</span>
-          </span>
-          <svg className="nudge-chase__path" viewBox="0 0 120 20" preserveAspectRatio="none">
-            <path d="M4 10 H108" />
-            <path className="nudge-chase__head" d="M102 4 L110 10 L102 16" />
-          </svg>
-          <span className="nudge-chase__who is-them">
-            <Avatar className="nudge-chase__av" src={avatarSrc(rival.user_id, rival.avatar) || rival.src} name={rival.display_name} />
-            <span className="nudge-chase__rank">{ordinal(theirRank)}</span>
-          </span>
-        </span>
-      )}
+      art={
+        <ol className="nudge-board" aria-hidden="true">
+          {rows.map((r, i) => <BoardRow key={r.user_id} r={r} me={r.user_id === me.user_id} i={rank - rows.findIndex(x => x.user_id === me.user_id) + i} delay={120 + i * 110} />)}
+        </ol>
+      }
       title={title}
+      action="Keep going" onAction={onAction} onClose={onClose} />
+  );
+}
+
+/* Milestones (2026-10-26): the number, big, counting up, with a deadpan
+   line under it. No share button, on purpose. */
+export const MILESTONES = [
+  [100, "That’s more than the lecture had slides."],
+  [250, "Your Anki deck is getting nervous."],
+  [500, "At this point you’re basically the question bank."],
+  [1000, "Your consultant would be proud. Probably."],
+  [2500, "We’re running out of things to say."],
+  [5000, "Go outside. Then come back."],
+];
+export function MilestoneNudge({ n, onAction, onClose, inline }) {
+  const shown = useCountUp(n, 1100, 250);
+  const line = (MILESTONES.find(([m]) => m === n) ?? [n, "Keep going."])[1];
+  return (
+    <NudgeCard kind="milestone" inline={inline}
+      art={
+        <span className="nudge-mile" aria-hidden="true">
+          {[...Array(10)].map((_, i) => <span key={i} className="nudge-mile__spark" style={{ "--a": `${i * 36}deg`, "--d": `${1250 + (i % 3) * 60}ms` }} />)}
+          <span className="nudge-mile__n">{shown.toLocaleString("en-GB")}</span>
+          <span className="nudge-mile__label">questions answered</span>
+        </span>
+      }
+      title={line}
       action="Keep going" onAction={onAction} onClose={onClose} />
   );
 }
@@ -140,7 +168,7 @@ export function InviteNudge({ me = null, onAction, onClose, copied, inline }) {
 
 /* ── When they show ───────────────────────────────────────────────── */
 
-export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, onStudy }) {
+export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, answered = 0, onStudy }) {
   const [shown, setShown] = useState(null);          // { kind, ...data }
   const [copied, setCopied] = useState(false);
   const usedVisit = useRef(false);
@@ -177,6 +205,10 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
     const inv = store.get(userId, "invite");
     const inviteDue = studyDays >= 2 && (inv.dismissed ?? 0) < 3 && Date.now() >= (inv.nextAt ?? 0);
     const t = setTimeout(async () => {
+      /* A milestone just passed goes first: it only happens a handful of times. */
+      const seen = Number(store.get(userId, "milestone").n) || 0;
+      const hit = [...MILESTONES].reverse().find(([m]) => answered >= m)?.[0] ?? 0;
+      if (hit > seen) { if (show({ kind: "milestone", n: hit })) store.set(userId, "milestone", { n: hit }); return; }
       if (inviteDue) { show({ kind: "invite" }); return; }
       if (store.get(userId, "leader").day === today) return;
       try {
@@ -185,7 +217,9 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
         if (cancelled || i < 0 || rows.length < 3) return;
         const me = rows[i], rank = Number(me.rank) || i + 1;
         const rival = rank === 1 ? rows[i + 1] : rows.slice(0, i).reverse().find(r => r.week_count > me.week_count) ?? rows[i - 1];
-        if (show({ kind: "leader", me, rival, rank, year: studyYear })) store.set(userId, "leader", { day: today });
+        const around = rows.slice(Math.max(0, i - 1), i + 2);
+        if (around.length < 3 && i === 0) around.push(...rows.slice(around.length, 3).filter(r => !around.includes(r)));
+        if (show({ kind: "leader", me, rival, rank, around, year: studyYear })) store.set(userId, "leader", { day: today });
       } catch { /* offline: nothing */ }
     }, 1400);
     return () => { cancelled = true; clearTimeout(t); };
@@ -203,6 +237,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
 
   if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
+  if (shown.kind === "milestone") return <MilestoneNudge n={shown.n} onAction={study} onClose={close} />;
   return (
     <InviteNudge me={me} copied={copied} onClose={close} onAction={async () => {
       logStep(userId, "invite_shared");

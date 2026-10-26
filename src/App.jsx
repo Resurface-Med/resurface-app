@@ -1353,6 +1353,7 @@ export default function App() {
     <UpdateNotice hold={practiceSessionActive} />
     <NudgeCenter userId={user?.id} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} ready={!dataLoading} sessionActive={practiceSessionActive}
       streak={streak} activity={activity} studyYear={studyYear}
+      answered={Object.values(pStats).reduce((a, x) => a + (Number(x?.total) || 0), 0)}
       onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />
     <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>

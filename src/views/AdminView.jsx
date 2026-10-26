@@ -10,7 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
-import { StreakNudge, LeaderNudge, InviteNudge } from "../ui/Nudges";
+import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES } from "../ui/Nudges";
 import NamePrompt from "../ui/NamePrompt";
 import WelcomeReveal from "../ui/WelcomeReveal";
 
@@ -598,8 +598,9 @@ function Flags({ onCount }) {
    Every popup a student can get, to look at without waiting for the
    moment it's for. The nudges are drawn here as they appear; "Show" puts
    the real one up over the page. Nothing here saves anything. */
-const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212 };
+const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212, rank: 4 };
 const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249, rank: 3 };
+const SAMPLE_BEHIND = { user_id: "behind", display_name: "Zain A", week_count: 168, rank: 5 };
 
 function Popups({ welcomeNote, welcomeStart, me = null }) {
   /* The leaderboard card from this week's real board: you and whoever is
@@ -612,13 +613,22 @@ function Popups({ welcomeNote, welcomeStart, me = null }) {
   const meRow = real ? { ...board[at], src: me?.src } : { ...SAMPLE_ME, display_name: me?.name || "You", src: me?.src ?? null };
   const rivalRow = real ? (at === 0 ? board[1] : board[at - 1]) : SAMPLE_RIVAL;
   const myRank = real ? Number(board[at].rank) || at + 1 : 4;
+  const around = real ? board.slice(Math.max(0, at - 1), at + 2) : [SAMPLE_RIVAL, meRow, SAMPLE_BEHIND];
   const [open, setOpen] = useState(null);
+  const [mile, setMile] = useState(500);
   const close = () => setOpen(null);
   const nudges = [
     { k: "streak", label: "Streak", when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
       el: p => <StreakNudge days={6} onAction={close} onClose={close} {...p} /> },
     { k: "leader", label: "Leaderboard", when: "After a session, for someone on their year’s leaderboard. Once a day, and not on a day the invite shows.",
-      el: p => <LeaderNudge key={real ? "real" : "sample"} me={meRow} rival={rivalRow} rank={myRank} onAction={close} onClose={close} {...p} /> },
+      el: p => <LeaderNudge key={real ? "real" : "sample"} me={meRow} rival={rivalRow} rank={myRank} around={around.map(r => (r.user_id === meRow.user_id ? meRow : r))} onAction={close} onClose={close} {...p} /> },
+    { k: "milestone", label: "Milestone", when: "After the session that passes 100, 250, 500, 1,000, 2,500 or 5,000 questions answered. Each once; goes before the others.",
+      el: p => <MilestoneNudge key={mile} n={mile} onAction={close} onClose={close} {...p} />,
+      extra: (
+        <div className="ax-range ax-pop__pick">
+          {MILESTONES.map(([m]) => <button key={m} type="button" className={mile === m ? "is-on" : ""} onClick={() => setMile(m)}>{m.toLocaleString("en-GB")}</button>)}
+        </div>
+      ) },
     { k: "invite", label: "Invite", when: "After a session, from someone’s 2nd study day. Back 5 days after a ✕, gone after 3; 21 days after a share.",
       el: p => <InviteNudge me={me} onAction={close} onClose={close} {...p} /> },
   ];
@@ -637,6 +647,7 @@ function Popups({ welcomeNote, welcomeStart, me = null }) {
               <button type="button" className="ax-link" onClick={() => setOpen(n.k)}>Show</button>
             </div>
             <p className="ax-note">{n.when}</p>
+            {n.extra}
             {n.el({ inline: true })}
           </section>
         ))}

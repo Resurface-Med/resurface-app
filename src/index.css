@@ -11184,36 +11184,27 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-streak .streak__n { font-size: 22px; font-weight: 700; color: #e8590c; line-height: 1; margin-top: -2px; }
 .nudge.is-streak .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
 
-/* Leaderboard: one column like the invite. You, a dashed line drawing
-   itself across with an arrow, the person ahead popping in at the end,
-   and your place under your photo. */
+/* Leaderboard: a mini board, three rows sliding up into place one after
+   another, counts ticking, your row marked by a blue edge and bold type. */
 .nudge.is-leader, .nudge.is-invite { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-.nudge.is-leader .nudge__art { width: auto; height: auto; border-radius: 0; display: flex; justify-content: flex-start; }
+.nudge.is-leader .nudge__art { width: 100%; height: auto; border-radius: 0; display: block; justify-self: stretch; }
 .nudge.is-leader .nudge__text { padding-right: 0; }
-.nudge-chase { position: relative; display: flex; align-items: flex-start; gap: 8px; }
-.nudge-chase__who { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
-.nudge-chase__av { width: 46px; height: 46px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
-.nudge-chase__who.is-me .nudge-chase__av { background: var(--c-accent); color: #fff; box-shadow: 0 0 0 3px var(--c-card-solid), 0 0 0 5px rgba(var(--c-accent-rgb), .35); }
-.nudge-chase__who.is-them .nudge-chase__av { background: var(--c-surface3); color: var(--c-sub); }
-.nudge-chase__rank { font-size: 12px; font-weight: 700; color: var(--c-muted); white-space: nowrap; }
-.nudge-chase__who.is-me .nudge-chase__rank { color: var(--c-accent); }
-.nudge-chase__path { width: 96px; height: 20px; margin-top: 13px; overflow: visible; }
-.nudge-chase__path path { fill: none; stroke: var(--c-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.nudge-chase__path path:first-child { stroke-dasharray: 4 5; opacity: .55; transform-box: fill-box; transform-origin: left center; animation: drawLine .7s .25s ease-out both; }
-.nudge-chase__head { transform-box: fill-box; transform-origin: center; animation: plusIn .3s .85s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
-/* The sequence: you pop in, the line draws, they pop in, then you lunge at
-   them twice and they flinch each time. */
-.nudge-chase__who.is-me { z-index: 2; animation: seatIn .45s cubic-bezier(0.34, 1.4, 0.5, 1) both, lunge 1.5s 1.15s cubic-bezier(0.5, 0, 0.3, 1) both; }
-.nudge-chase__who.is-them { animation: seatIn .45s .75s cubic-bezier(0.34, 1.4, 0.5, 1) both, flinch 1.5s 1.15s ease-in-out both; }
-.nudge-chase.is-top .nudge-chase__path { transform: scaleX(-1); }
-.nudge-chase.is-top .nudge-chase__who.is-me { animation: seatIn .45s cubic-bezier(0.34, 1.4, 0.5, 1) both, flinch 1.5s 1.15s ease-in-out both; }
-.nudge-chase.is-top .nudge-chase__who.is-them { animation: seatIn .45s .75s cubic-bezier(0.34, 1.4, 0.5, 1) both, lungeBack 1.5s 1.15s cubic-bezier(0.5, 0, 0.3, 1) both; }
-@keyframes lunge { 0% { transform: none; } 20% { transform: translateX(52px); } 32% { transform: translateX(8px); } 52% { transform: translateX(70px) scale(1.06); } 70%, 100% { transform: none; } }
-@keyframes lungeBack { 0% { transform: none; } 20% { transform: translateX(-52px); } 32% { transform: translateX(-8px); } 52% { transform: translateX(-70px) scale(1.06); } 70%, 100% { transform: none; } }
-@keyframes flinch { 0%, 14% { transform: none; } 20% { transform: translateX(5px) rotate(6deg); } 26% { transform: translateX(-2px) rotate(-3deg); } 32%, 46% { transform: none; } 52% { transform: translateX(8px) rotate(9deg); } 58% { transform: translateX(-3px) rotate(-5deg); } 64% { transform: translateX(2px) rotate(2deg); } 70%, 100% { transform: none; } }
-.nudge-num { color: var(--c-accent); font-variant-numeric: tabular-nums; display: inline-block; min-width: 1.4ch; text-align: right; }
-@keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes rankPop { from { opacity: 0; transform: translate(-50%, 6px) scale(.6); } to { opacity: 1; transform: translateX(-50%); } }
+.nudge-board { list-style: none; margin: 0; padding: 0 28px 0 0; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; }
+.nudge-board__row {
+  position: relative; display: grid; grid-template-columns: 34px 28px minmax(0, 1fr) auto; align-items: center; gap: 10px;
+  padding: 8px 12px 8px 10px; border-radius: 12px; font-size: 14.5px;
+  animation: rowIn .5s var(--d) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.nudge-board__row.is-me { background: var(--c-surface3); font-weight: 600; }
+.nudge-board__row.is-me::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--c-accent); }
+.nudge-board__rank { font-size: 13px; font-weight: 600; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.nudge-board__row.is-me .nudge-board__rank { color: var(--c-accent); }
+.nudge-board__av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; background: var(--c-surface3); color: var(--c-sub); }
+.nudge-board__row.is-me .nudge-board__av { background: var(--c-accent); color: #fff; }
+.nudge-board__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nudge-board__n { font-variant-numeric: tabular-nums; color: var(--c-sub); }
+.nudge-board__row.is-me .nudge-board__n { color: var(--c-text); }
+@keyframes rowIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* Invite: one column. You, and two empty places beside you that draw
    their outlines in, a plus settling in each. Plays once. */
@@ -11239,9 +11230,34 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge__art { width: 68px; height: 68px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .nudge, .nudge-chase__who, .nudge-chase__path path, .nudge-chase__head, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
+  .nudge, .nudge-board__row, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
 }
 .ax-pops { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 28px 32px; margin-top: 18px; }
 .ax-pops.is-big { margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--c-border); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .ax-pop__head { display: flex; justify-content: space-between; align-items: baseline; }
 .ax-pop .nudge { margin-top: 6px; }
+
+/* Milestone: the number big on a deep blue tile, sparks flying off it once
+   the count lands. */
+.nudge.is-milestone { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.nudge.is-milestone .nudge__text { padding-right: 0; }
+.nudge.is-milestone .nudge__art { width: 100%; height: auto; border-radius: 18px; display: block; justify-self: stretch; }
+.nudge-mile {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  width: 100%; box-sizing: border-box; padding: 18px 20px 16px; border-radius: 18px; overflow: hidden;
+  background: radial-gradient(240px 140px at 85% 0%, #6f93ff 0%, rgba(111,147,255,0) 70%), linear-gradient(135deg, var(--c-accent), #2450e8);
+  color: #fff;
+}
+.nudge-mile__n { font-size: 46px; font-weight: 700; letter-spacing: -1.8px; line-height: 1; font-variant-numeric: tabular-nums; position: relative; z-index: 1; }
+.nudge-mile__label { font-size: 14px; font-weight: 500; opacity: .8; position: relative; z-index: 1; }
+.nudge-mile__spark {
+  position: absolute; left: 70px; top: 40px; width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0;
+  animation: spark .9s var(--d) cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.nudge-mile__spark:nth-child(3n) { background: #ffd66b; width: 5px; height: 5px; }
+.nudge-mile__spark:nth-child(3n+1) { background: #a9c1ff; }
+@keyframes spark { 0% { opacity: 1; transform: rotate(var(--a)) translateX(0) scale(1); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(64px) scale(.4); } }
+.ax-pop__pick { margin: 0 0 8px; flex-wrap: wrap; }
+.nudge.is-milestone .nudge__x { top: 30px; right: 32px; z-index: 2; color: rgba(255,255,255,.85); }
+.nudge.is-milestone .nudge__x:hover { background: rgba(255,255,255,.16); color: #fff; }
+@media (prefers-reduced-motion: reduce) { .nudge-mile__spark { display: none; } }
