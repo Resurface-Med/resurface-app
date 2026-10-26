@@ -11,7 +11,6 @@ import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
 import { StreakNudge, LeaderNudge, InviteNudge } from "../ui/Nudges";
-import ReminderPrompt from "../ui/ReminderPrompt";
 import NamePrompt from "../ui/NamePrompt";
 import WelcomeReveal from "../ui/WelcomeReveal";
 
@@ -616,7 +615,6 @@ function Popups({ welcomeNote, welcomeStart }) {
   const big = [
     { k: "welcome", label: "Welcome note", when: "Once, straight after a new account picks its name and year." },
     { k: "name", label: "Name and year", when: "Once, the first thing a new account sees." },
-    { k: "remind", label: "Reminder offer", when: "Once, at the end of someone’s first session." },
   ];
   return (
     <>
@@ -645,7 +643,6 @@ function Popups({ welcomeNote, welcomeStart }) {
         ))}
       </div>
       {nudges.find(n => n.k === open)?.el({})}
-      {open === "remind" && <ReminderPrompt onDone={close} />}
       {open === "name" && <NamePrompt suggestion="Preview" onSave={close} />}
       {open === "welcome" && welcomeNote && <WelcomeReveal welcome={welcomeNote} actions={welcomeStart ? [welcomeStart] : []} onAction={close} onClose={close} />}
     </>

@@ -26,8 +26,6 @@ import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit, 
 import { splitFor } from "../lib/peerSplit";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
-import ReminderPrompt from "../ui/ReminderPrompt";
-import { support as pushSupport } from "../lib/push";
 
 const resumeBtn = { ...fieldBtn, padding: "9px 18px", fontSize: 14 };
 const resumeGhostBtn = { ...fieldGhostBtn, padding: "9px 16px", fontSize: 14 };
@@ -380,11 +378,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* When the question on screen appeared, for how long an answer took. */
   const shownAt = useRef(0);
   useEffect(() => { shownAt.current = queue?.[idx] && sels[idx] === undefined ? Date.now() : 0; }, [queue, idx]);   // eslint-disable-line react-hooks/exhaustive-deps
-  /* Whether the session on screen is someone's first, and the reminder
-     offer at its end (ui/ReminderPrompt): once per account on this device,
-     and not where notifications can't work at all. */
+  /* Whether the session on screen is someone's first, for the onboarding
+     steps. (The reminder offer that used to end it was taken off, 2026-10-26;
+     reminders are in Profile.) */
   const firstSessRef = useRef(false);
-  const [remindOpen, setRemindOpen] = useState(false);
   const { user } = useAuth();
   const SESSION_KEY = sessionKey(user?.id);
   const [savedSession, setSavedSession] = useState(() => loadSaved(user?.id));
@@ -744,11 +741,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     if (!summaryUp || !firstSessRef.current) return;
     firstSessRef.current = false;
     logStep(user?.id, "first_done");
-    const kind = pushSupport();
-    if (kind === "none" || kind === "blocked") return;
-    const remindKey = `remind-asked:${user?.id ?? ""}`;
-    try { if (localStorage.getItem(remindKey)) return; localStorage.setItem(remindKey, "1"); } catch { /* still ask */ }
-    setRemindOpen(true);
   }, [summaryUp]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Session summary
@@ -773,7 +765,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         onChangeSettings={() => { setResults({}); setStep("topic"); setScope("all"); }}
         onOpenPast={onSessionSave ? () => setPastOpen(true) : null}
       />
-      {remindOpen && <ReminderPrompt onDone={how => { logStep(user?.id, `remind_${how}`); setRemindOpen(false); }} />}
       </>
     );
   }
