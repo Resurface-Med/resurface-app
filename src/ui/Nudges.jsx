@@ -4,7 +4,6 @@ import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
 import { fetchLeaderboardWeek, logStep } from "../lib/remote";
 import { todayKey, yesterdayKey } from "../lib/storage";
-import logoMark from "../assets/ai-mark.png";
 
 /**
  * The nudges (2026-10-26): a streak to keep, a place on the leaderboard to
@@ -62,44 +61,48 @@ export function StreakNudge({ days, onAction, onClose, inline }) {
   );
 }
 
-/* Two bars that race in: theirs, and yours chasing it. */
+/* One track: you sliding along it toward the person ahead, who sits at
+   the end. Ahead of everyone, they're the one behind you instead. */
 export function LeaderNudge({ me, rival, rank, year, onAction, onClose, inline }) {
   const top = rank === 1;
-  const max = Math.max(me.week_count, rival?.week_count ?? 0, 1);
+  const where = year ? `Year ${year}` : "the leaderboard";
   const gap = rival ? Math.abs(rival.week_count - me.week_count) : 0;
-  const rows = top ? [me, rival] : [rival, me];
+  const lead = top ? me : rival, chase = top ? rival : me;
+  const pct = lead && chase ? Math.max(8, Math.min(92, (chase.week_count / Math.max(1, lead.week_count)) * 100)) : 100;
   return (
     <NudgeCard kind="leader" inline={inline}
-      art={<span className="nudge-rank"><span className="nudge-rank__hash">#</span>{rank}</span>}
-      title={top ? `You’re top of ${year ? `Year ${year}` : "the leaderboard"} this week` : `You’re ${ordinal(rank)} in ${year ? `Year ${year}` : "the leaderboard"} this week`}
-      body={
-        <>
-          {rival && (
-            <span className="nudge-race">
-              {rows.map((r, i) => (
-                <span key={r.user_id} className={`nudge-race__row${r === me ? " is-me" : ""}`}>
-                  <Avatar className="nudge-race__av" src={avatarSrc(r.user_id, r.avatar)} name={r.display_name} />
-                  <span className="nudge-race__track">
-                    <span className="nudge-race__bar" style={{ "--w": `${Math.max(6, (r.week_count / max) * 100)}%`, "--d": `${i * 140}ms` }} />
-                  </span>
-                  <span className="nudge-race__n">{r.week_count}</span>
-                </span>
-              ))}
-            </span>
-          )}
-          <span className="nudge-race__line">
-            {!rival ? "Keep going." : top ? `${gap} ahead of ${first(rival.display_name)}. Keep it that way.` : `${gap + 1} more ${gap + 1 === 1 ? "question" : "questions"} to pass ${first(rival.display_name)}.`}
+      art={null}
+      title={<><span className="nudge-rank">{ordinal(rank)}</span> in {where} this week</>}
+      body={rival && (
+        <span className="nudge-track" style={{ "--p": `${pct}%`, "--pn": pct / 100 }}>
+          <span className="nudge-track__line"><span className="nudge-track__fill" /></span>
+          <Avatar className={`nudge-track__dot is-chase${chase === me ? " is-me" : ""}`} src={avatarSrc(chase.user_id, chase.avatar)} name={chase.display_name} />
+          <Avatar className={`nudge-track__dot is-lead${lead === me ? " is-me" : ""}`} src={avatarSrc(lead.user_id, lead.avatar)} name={lead.display_name} />
+          <span className="nudge-track__line-text">
+            {top ? `${gap} ahead of ${first(rival.display_name)}` : `${gap + 1} more to pass ${first(rival.display_name)}`}
           </span>
-        </>
-      }
+        </span>
+      )}
       action="Keep going" onAction={onAction} onClose={onClose} />
   );
 }
 
-export function InviteNudge({ onAction, onClose, copied, inline }) {
+/* You, then two empty places beside you that draw themselves in: the
+   picture is the ask. Plays once; nothing loops. */
+export function InviteNudge({ me = null, onAction, onClose, copied, inline }) {
   return (
     <NudgeCard kind="invite" inline={inline}
-      art={<span className="nudge-invite"><img src={logoMark} alt="" width="40" height="40" /><span className="nudge-invite__ring" /></span>}
+      art={
+        <span className="nudge-invite" aria-hidden="true">
+          <Avatar className="nudge-invite__me" src={me?.src} name={me?.name || "You"} />
+          {[0, 1].map(i => (
+            <svg key={i} className="nudge-invite__seat" style={{ "--d": `${260 + i * 160}ms` }} viewBox="0 0 44 44">
+              <circle cx="22" cy="22" r="20" pathLength="100" />
+              <path d="M22 15v14M15 22h14" />
+            </svg>
+          ))}
+        </span>
+      }
       title={copied ? "Link copied. Paste it to your friends." : "Resurface is better with your friends on it."}
       action={copied ? "Copied" : "Share Resurface"} onAction={onAction} onClose={onClose} />
   );
@@ -107,7 +110,7 @@ export function InviteNudge({ onAction, onClose, copied, inline }) {
 
 /* ── When they show ───────────────────────────────────────────────── */
 
-export default function NudgeCenter({ userId, ready, sessionActive, streak, activity, studyYear, onStudy }) {
+export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, onStudy }) {
   const [shown, setShown] = useState(null);          // { kind, ...data }
   const [copied, setCopied] = useState(false);
   const usedVisit = useRef(false);
@@ -171,7 +174,7 @@ export default function NudgeCenter({ userId, ready, sessionActive, streak, acti
   if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
   return (
-    <InviteNudge copied={copied} onClose={close} onAction={async () => {
+    <InviteNudge me={me} copied={copied} onClose={close} onAction={async () => {
       logStep(userId, "invite_shared");
       const st = store.get(userId, "invite");
       const done = () => { store.set(userId, "invite", { ...st, nextAt: Date.now() + 21 * DAY }); setShown(null); setCopied(false); };

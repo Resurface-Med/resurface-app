@@ -1351,7 +1351,7 @@ export default function App() {
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
-    <NudgeCenter userId={user?.id} ready={!dataLoading} sessionActive={practiceSessionActive}
+    <NudgeCenter userId={user?.id} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} ready={!dataLoading} sessionActive={practiceSessionActive}
       streak={streak} activity={activity} studyYear={studyYear}
       onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />
     <OfflineBar hold={practiceSessionActive} />
