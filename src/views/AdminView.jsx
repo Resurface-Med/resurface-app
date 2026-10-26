@@ -10,9 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
-import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge } from "../ui/Nudges";
-import NamePrompt from "../ui/NamePrompt";
-import WelcomeReveal from "../ui/WelcomeReveal";
+import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, showPreview } from "../ui/Nudges";
 
 /**
  * Admin, redone for where Resurface is now (2026-10-26): a few dozen
@@ -602,7 +600,7 @@ const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212, rank: 4
 const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249, rank: 3 };
 const SAMPLE_BEHIND = { user_id: "behind", display_name: "Zain A", week_count: 168, rank: 5 };
 
-function Popups({ welcomeNote, welcomeStart, me = null }) {
+function Popups({ me = null }) {
   /* The leaderboard card from this week's real board: you and whoever is
      just ahead of you, photos and all. Made-up names until it loads, or if
      you're not on it. */
@@ -613,70 +611,75 @@ function Popups({ welcomeNote, welcomeStart, me = null }) {
   const meRow = real ? { ...board[at], src: me?.src } : { ...SAMPLE_ME, display_name: me?.name || "You", src: me?.src ?? null };
   const rivalRow = real ? (at === 0 ? board[1] : board[at - 1]) : SAMPLE_RIVAL;
   const myRank = real ? Number(board[at].rank) || at + 1 : 4;
-  const around = real ? board.slice(Math.max(0, at - 1), at + 2) : [SAMPLE_RIVAL, meRow, SAMPLE_BEHIND];
-  const [open, setOpen] = useState(null);
-  const [mile, setMile] = useState(500);
-  const [phone, setPhone] = useState("ios");
-  const close = () => setOpen(null);
-  const nudges = [
-    { k: "streak", label: "Streak", when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
-      el: p => <StreakNudge days={6} onAction={close} onClose={close} {...p} /> },
-    { k: "leader", label: "Leaderboard", when: "After a session, for someone on their year’s leaderboard. Once a day, and not on a day the invite shows.",
-      el: p => <LeaderNudge key={real ? "real" : "sample"} me={meRow} rival={rivalRow} rank={myRank} around={around.map(r => (r.user_id === meRow.user_id ? meRow : r))} onAction={close} onClose={close} {...p} /> },
-    { k: "milestone", label: "Milestone", when: "After the session that passes 100, 250, 500, 1,000, 2,500 or 5,000 questions answered. Each once; goes before the others.",
-      el: p => <MilestoneNudge key={mile} n={mile} onAction={close} onClose={close} {...p} />,
-      extra: (
-        <div className="ax-range ax-pop__pick">
-          {MILESTONES.map(([m]) => <button key={m} type="button" className={mile === m ? "is-on" : ""} onClick={() => setMile(m)}>{m.toLocaleString("en-GB")}</button>)}
-        </div>
-      ) },
-    { k: "improve", label: "Getting better", when: "After a session, when a deck is 10+ points better than their first 15 answers on it (30+ answers). Every 5 days at most; a deck again only after another 10 points.",
-      el: p => <ImproveNudge deck="Renal" before={54} after={78} onAction={close} onClose={close} {...p} /> },
-    { k: "home", label: "Add to Home Screen", when: "After a session, on a phone browser, from someone’s 2nd study day. Back after 5 days, gone after 3 or once it’s added.",
-      el: p => <HomeScreenNudge key={phone} forceKind={phone} onDone={close} onClose={close} {...p} />,
-      extra: (
-        <div className="ax-range ax-pop__pick">
-          {[["ios", "iPhone"], ["prompt", "Android"], ["android", "Other Android"], ["inapp", "Instagram / WhatsApp"]].map(([k, l]) => <button key={k} type="button" className={phone === k ? "is-on" : ""} onClick={() => setPhone(k)}>{l}</button>)}
-        </div>
-      ) },
-    { k: "invite", label: "Invite", when: "After a session, from someone’s 2nd study day. Back 5 days after a ✕, gone after 3; 21 days after a share.",
-      el: p => <InviteNudge me={me} onAction={close} onClose={close} {...p} /> },
+  const around = (real ? board.slice(Math.max(0, at - 1), at + 2) : [SAMPLE_RIVAL, meRow, SAMPLE_BEHIND]).map(r => (r.user_id === meRow.user_id ? meRow : r));
+
+  const [pick, setPick] = useState("milestone");
+  const [variant, setVariant] = useState({ milestone: 500, home: "ios" });
+  const noop = () => {};
+  const ITEMS = [
+    { group: "Cards" },
+    { k: "milestone", label: "Milestone", short: "100, 250, 500… questions answered",
+      when: "After the session that passes 100, 250, 500, 1,000, 2,500 or 5,000 questions answered. Each one once.",
+      variants: MILESTONES.map(([m]) => [m, m.toLocaleString("en-GB")]),
+      props: v => ({ n: v }), El: MilestoneNudge },
+    { k: "improve", label: "Getting better", short: "A deck 10+ points better",
+      when: "After a session, when someone’s latest 15 answers on a deck are 10+ points better than their first 15 (30+ answers, 50%+ now). Every 5 days at most; the same deck only again after another 10 points.",
+      props: () => ({ deck: "Renal", before: 54, after: 78 }), El: ImproveNudge },
+    { k: "streak", label: "Streak", short: "Opening the app on a streak",
+      when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
+      props: () => ({ days: 6 }), El: StreakNudge },
+    { k: "leader", label: "Leaderboard", short: "After a session",
+      when: "After a session, for someone on their year’s leaderboard. Once a day. Uses this week’s real board here.",
+      props: () => ({ me: meRow, rival: rivalRow, rank: myRank, around }), El: LeaderNudge },
+    { k: "home", label: "Add to Home Screen", short: "Phone browser, not installed",
+      when: "After a session, on a phone browser that hasn’t installed Resurface, from someone’s 2nd study day. Back after 5 days; gone after 3, or once it’s added.",
+      variants: [["ios", "iPhone"], ["prompt", "Android"], ["android", "Other Android"], ["inapp", "In-app browser"]],
+      props: v => ({ forceKind: v }), El: HomeScreenNudge },
+    { k: "invite", label: "Invite", short: "After a session",
+      when: "After a session, from someone’s 2nd study day. Back 5 days after ✕, gone after 3; 21 days after a share.",
+      props: () => ({ me }), El: InviteNudge },
+    { group: "Once, for new accounts" },
+    { k: "name", label: "Name and year", short: "The first thing they see", when: "Once, the first thing a new account sees. Full screen.", full: true },
+    { k: "welcome", label: "Welcome note", short: "Straight after name and year", when: "Once, straight after a new account picks its name and year. Full screen.", full: true },
   ];
-  const big = [
-    { k: "welcome", label: "Welcome note", when: "Once, straight after a new account picks its name and year." },
-    { k: "name", label: "Name and year", when: "Once, the first thing a new account sees." },
-  ];
+  const item = ITEMS.find(x => x.k === pick);
+  const v = variant[pick] ?? item.variants?.[0]?.[0];
+  const props = item.props ? item.props(v) : {};
+
   return (
-    <>
-      <p className="ax-note">What each popup looks like, and when it shows. At most one nudge a visit, never during a session or over the update bar.</p>
-      <div className="ax-pops">
-        {nudges.map(n => (
-          <section key={n.k} className="ax-pop">
-            <div className="ax-pop__head">
-              <h3 className="ax-h3">{n.label}</h3>
-              <button type="button" className="ax-link" onClick={() => setOpen(n.k)}>Show</button>
-            </div>
-            <p className="ax-note">{n.when}</p>
-            {n.extra}
-            {n.el({ inline: true })}
-          </section>
-        ))}
-      </div>
-      <div className="ax-pops is-big">
-        {big.map(b => (
-          <section key={b.k} className="ax-pop">
-            <div className="ax-pop__head">
-              <h3 className="ax-h3">{b.label}</h3>
-              <button type="button" className="ax-link" onClick={() => setOpen(b.k)}>Show</button>
-            </div>
-            <p className="ax-note">{b.when}</p>
-          </section>
-        ))}
-      </div>
-      {nudges.find(n => n.k === open)?.el({})}
-      {open === "name" && <NamePrompt suggestion="Preview" onSave={close} />}
-      {open === "welcome" && welcomeNote && <WelcomeReveal welcome={welcomeNote} actions={welcomeStart ? [welcomeStart] : []} onAction={close} onClose={close} />}
-    </>
+    <div className="pp">
+      <nav className="pp-list" aria-label="Popups">
+        {ITEMS.map((x, i) => x.group
+          ? <p key={`g${i}`} className="pp-group">{x.group}</p>
+          : (
+            <button key={x.k} type="button" className={`pp-item${pick === x.k ? " is-on" : ""}`} onClick={() => setPick(x.k)}>
+              <span className="pp-item__name">{x.label}</span>
+              <span className="pp-item__short">{x.short}</span>
+            </button>
+          ))}
+      </nav>
+
+      <section className="pp-detail">
+        <div className="pp-head">
+          <h3 className="pp-title">{item.label}</h3>
+          <button type="button" className="pp-show btn-press" onClick={() => showPreview({ kind: pick, props })}>Show over the app</button>
+        </div>
+        <p className="pp-when">{item.when}</p>
+        {item.variants && (
+          <div className="ax-range pp-variants" role="group" aria-label="Version">
+            {item.variants.map(([k, l]) => (
+              <button key={k} type="button" className={v === k ? "is-on" : ""} onClick={() => setVariant(x => ({ ...x, [pick]: k }))}>{l}</button>
+            ))}
+          </div>
+        )}
+        <div className="pp-stage">
+          {item.full
+            ? <p className="pp-stage__note">This one fills the screen. Press <strong>Show over the app</strong> to see it.</p>
+            : <item.El key={`${pick}-${v}-${real}`} {...props} inline onAction={noop} onClose={noop} onDone={noop} />}
+        </div>
+        <p className="pp-foot">These cards are switched off for students right now.</p>
+      </section>
+    </div>
   );
 }
 
@@ -688,7 +691,7 @@ const TABS = [
   { k: "popups", label: "Popups" },
 ];
 
-export default function AdminView({ welcomeNote = null, welcomeStart = null, me = null }) {
+export default function AdminView({ me = null }) {
   const [tab, setTab] = useState("overview");
   const [flagCount, setFlagCount] = useState(null);
   const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
@@ -721,7 +724,7 @@ export default function AdminView({ welcomeNote = null, welcomeStart = null, me 
             {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
-            {tab === "popups" && <Popups welcomeNote={welcomeNote} welcomeStart={welcomeStart} me={me} />}
+            {tab === "popups" && <Popups me={me} />}
           </div>
         </div>
       </div>

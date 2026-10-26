@@ -11233,10 +11233,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge-mile__burst { display: none; }
   .nudge, .nudge-board__row, .nudge-mile__n, .nudge-invite__me, .nudge-invite__seat, .nudge-invite__seat path { animation: none; }
 }
-.ax-pops { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 28px 32px; margin-top: 18px; }
-.ax-pops.is-big { margin-top: 36px; padding-top: 26px; border-top: 1px solid var(--c-border); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-.ax-pop__head { display: flex; justify-content: space-between; align-items: baseline; }
-.ax-pop .nudge { margin-top: 6px; }
 
 /* Milestone: the number counting up, and a burst of confetti from behind
    it as the count lands. */
@@ -11284,3 +11280,38 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-up__arrow path { fill: none; stroke: var(--c-muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 60; stroke-dashoffset: 60; animation: arrowDraw .5s .25s ease-out forwards; }
 @keyframes arrowDraw { to { stroke-dashoffset: 0; } }
 @media (prefers-reduced-motion: reduce) { .nudge-up__arrow path { animation: none; stroke-dashoffset: 0; } .nudge-up__n { animation: none; } }
+
+/* Admin > Popups (redone 2026-10-26): a list on the left, one popup on a
+   plain stage on the right, and what decides when it shows. */
+.pp { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 40px; align-items: start; }
+.pp-list { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 16px; }
+.pp-group { margin: 18px 0 6px 12px; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: var(--c-muted); }
+.pp-group:first-child { margin-top: 0; }
+.pp-item { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 0; border-radius: 12px; background: none; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.pp-item:hover { background: color-mix(in srgb, var(--c-surface3) 60%, transparent); }
+.pp-item.is-on { background: var(--c-surface3); }
+.pp-item__name { font-size: 15px; font-weight: 600; }
+.pp-item__short { font-size: 13px; color: var(--c-muted); }
+.pp-detail { min-width: 0; }
+.pp-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.pp-title { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+.pp-show { padding: 9px 16px; border: 1px solid var(--c-border); border-radius: 999px; background: var(--c-card-solid); color: var(--c-text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.pp-show:hover { border-color: var(--c-text); }
+.pp-when { margin: 8px 0 0; max-width: 60ch; font-size: 14.5px; line-height: 1.5; color: var(--c-sub); }
+.pp-variants { margin-top: 16px; flex-wrap: wrap; margin-left: -10px; }
+.pp-stage {
+  margin-top: 18px; min-height: 340px; border-radius: 20px; padding: 40px 24px;
+  background: var(--c-surface3); display: grid; place-items: center;
+}
+.pp-stage .nudge { width: min(420px, 100%); box-shadow: 0 24px 60px -24px rgba(15, 27, 61, 0.35), 0 0 0 1px color-mix(in srgb, var(--c-border) 70%, transparent); }
+.pp-stage__note { margin: 0; font-size: 14.5px; color: var(--c-muted); text-align: center; }
+.pp-stage__note strong { color: var(--c-text); font-weight: 600; }
+.pp-foot { margin: 12px 0 0; font-size: 13px; color: var(--c-muted); }
+@media (max-width: 900px) {
+  .pp { grid-template-columns: 1fr; gap: 20px; }
+  .pp-list { position: static; flex-direction: row; overflow-x: auto; gap: 4px; scrollbar-width: none; }
+  .pp-group { display: none; }
+  .pp-item { flex: none; padding: 8px 12px; }
+  .pp-item__short { display: none; }
+  .pp-stage { padding: 24px 12px; min-height: 0; }
+}

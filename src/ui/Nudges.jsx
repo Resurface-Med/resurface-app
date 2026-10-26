@@ -265,6 +265,20 @@ export function InviteNudge({ me = null, onAction, onClose, copied, inline }) {
   );
 }
 
+/* ── Admin previews ───────────────────────────────────────────────
+   "Show" in Admin > Popups puts a card up for real. It lives here, above
+   every page, so it stays while you move between tabs, until you close it
+   or press one of its buttons. */
+let previewNow = null;
+const previewers = new Set();
+export function showPreview(p) { previewNow = p; previewers.forEach(f => f(p)); }
+export function PreviewHost({ render }) {
+  const [p, setP] = useState(previewNow);
+  useEffect(() => { previewers.add(setP); return () => previewers.delete(setP); }, []);
+  if (!p) return null;
+  return render(p, () => showPreview(null));
+}
+
 /* ── When they show ───────────────────────────────────────────────── */
 
 export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, answered = 0, onStudy }) {

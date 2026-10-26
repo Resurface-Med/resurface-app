@@ -54,7 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
-import NudgeCenter from "./ui/Nudges";
+import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge } from "./ui/Nudges";
 
 const NUDGES_LIVE = false;
 import { personalNote, yearFolder } from "./lib/firstRun";
@@ -1359,6 +1359,14 @@ export default function App() {
       streak={streak} activity={activity} studyYear={studyYear}
       answered={Object.values(pStats).reduce((a, x) => a + (Number(x?.total) || 0), 0)}
       onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />}
+    {/* Admin > Popups' "Show over the app": stays up across pages until closed. */}
+    {isAdmin && <PreviewHost render={(p, close) => {
+      const C = { streak: StreakNudge, leader: LeaderNudge, milestone: MilestoneNudge, improve: ImproveNudge, home: HomeScreenNudge, invite: InviteNudge }[p.kind];
+      if (C) return <C {...p.props} onAction={close} onClose={close} onDone={close} />;
+      if (p.kind === "welcome" && welcomeNote) return <WelcomeReveal welcome={welcomeNote} actions={[welcomeStart]} onAction={close} onClose={close} />;
+      if (p.kind === "name") return <NamePrompt suggestion={displayName || "Preview"} onSave={close} />;
+      return null;
+    }} />}
     <OfflineBar hold={practiceSessionActive} />
     <div className={`app-shell${practiceSessionActive ? " is-session" : ""}${navReturning ? " is-nav-returning" : ""}`}>
       <Sidebar {...nav} />
@@ -1476,7 +1484,7 @@ export default function App() {
 
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
-          {v === V.ADMIN && (online ? <AdminView welcomeNote={welcomeNote} welcomeStart={welcomeStart} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
+          {v === V.ADMIN && (online ? <AdminView me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView
             /* Everyone reads the welcome post filled in; an edit opens it as
