@@ -162,6 +162,9 @@ export function prune(nodes, q) {
 
 export default function DeckTree({
   forest, value, onChange, query = "",
+  /* A deck to show open, with everything above it: where "Start Year 2
+     questions" lands, the list as usual with that year expanded. */
+  revealId = null,
   allLabel = "Everything", showAll = true, allAvail = null,
   rowMenu = null, allowEmpty = false,
   /* When another tree sits beside this one (featured decks), its matches
@@ -221,6 +224,15 @@ export default function DeckTree({
       return s;
     }
     if (forest[0]) s.add(forest[0].id);
+    if (revealId) {
+      (function find(nodes, trail) {
+        for (const n of nodes) {
+          if (n.id === revealId) { [...trail, n.id].forEach(id => s.add(id)); return true; }
+          if (find(n.children, [...trail, n.id])) return true;
+        }
+        return false;
+      })(forest, []);
+    }
     const first = (value.leaves ?? []).find(l => l && l !== "All");
     if (first) {
       (function find(nodes, trail) {

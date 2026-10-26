@@ -22,10 +22,12 @@ import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import QuestionReviewer from "../ui/QuestionReviewer";
 import SuggestPrompt from "../ui/SuggestPrompt";
-import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit, adminEditFeatured, remote } from "../lib/remote";
+import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit, adminEditFeatured, remote, logStep } from "../lib/remote";
 import { splitFor } from "../lib/peerSplit";
 import { isFeaturedAdmin, persistFor } from "../lib/adminFeatured";
 import SessionSummary from "../ui/SessionSummary";
+import ReminderPrompt from "../ui/ReminderPrompt";
+import { support as pushSupport } from "../lib/push";
 
 const resumeBtn = { ...fieldBtn, padding: "9px 18px", fontSize: 14 };
 const resumeGhostBtn = { ...fieldGhostBtn, padding: "9px 16px", fontSize: 14 };
@@ -183,7 +185,7 @@ function describeSession(s) {
 const NONE = ["none"];
 const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] === "none");
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, sessions = [], onSessionSave = null, onStudyTime = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, revealDeckId = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, onFirstStart = null, sessions = [], onSessionSave = null, onStudyTime = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -375,6 +377,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      after, so they don't jump once your own pick lands. */
   const [peer, setPeer] = useState({});
   const peerRef = useRef({});
+  /* Whether the session on screen is someone's first, and the reminder
+     offer at its end (ui/ReminderPrompt): once per account on this device,
+     and not where notifications can't work at all. */
+  const firstSessRef = useRef(false);
+  const [remindOpen, setRemindOpen] = useState(false);
   const { user } = useAuth();
   const SESSION_KEY = sessionKey(user?.id);
   const [savedSession, setSavedSession] = useState(() => loadSaved(user?.id));
@@ -467,16 +474,34 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   }
 
 
-  function start(filterOverride) {
+  function start(filterOverride, countOverride) {
     const f = effective(filterOverride ?? filter);
     const base = applyScope(filteredQuestions(f, pStats));
     if (base.length === 0) return; // nothing matches current filter — stay on setup
     const shuffled = shuffle(base);
-    const q = (countOpt === "All" ? shuffled : shuffled.slice(0, Math.min(countOpt, shuffled.length))).map(shuffleOptions);
+    const n = countOverride ?? countOpt;
+    const q = (n === "All" ? shuffled : shuffled.slice(0, Math.min(n, shuffled.length))).map(shuffleOptions);
+    firstSessRef.current = Object.keys(pStats).length === 0;
+    if (firstSessRef.current) logStep(user?.id, "first_start");
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
     setSessionFilter(f);
     newSid();
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
+  }
+
+  /*
+   * Someone who has never answered a question (2026-10-26). Their Next starts
+   * ten questions at once instead of opening "How much?", which defaulted to
+   * every question ticked: one new person's first session was 100 long and
+   * left at 27. Ten is a session they can finish. After it, the options
+   * screen is back as it always was.
+   */
+  const firstRun = Object.keys(pStats).length === 0;
+  const FIRST_RUN_COUNT = 10;
+  function goNext(phone) {
+    if (firstRun) { onFirstStart?.(); start(undefined, FIRST_RUN_COUNT); return; }
+    if (phone) setCountOpt("All");
+    setStep("options");
   }
 
   /*
@@ -491,6 +516,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     let qs = shuffle(QUESTIONS.filter(q => want.has(q.id)));
     if (!qs.length) return;
     if (limit) qs = qs.slice(0, limit);
+    firstSessRef.current = Object.keys(pStats).length === 0;
+    if (firstSessRef.current) logStep(user?.id, "first_start");
     localStorage.removeItem(SESSION_KEY); setSavedSession(null);
     setSessionFilter(null);
     newSid();
@@ -611,8 +638,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         if (creatingDeck || naming || isNone(filter.leaves) || scopedCount(filter) === 0) return;
         e.preventDefault();
         el?.blur?.();
-        if (isPhone) setCountOpt("All");   // as each layout's Next does
-        setStep("options");
+        goNext(isPhone);   // as each layout's Next does
       } else if (step === "options") {
         if (scopedCount(filter) === 0) return;
         e.preventDefault();
@@ -717,6 +743,18 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     if (idx > 0) setIdx(i => i - 1);
   }
 
+  const summaryUp = !queue && Object.keys(results).length > 0;
+  useEffect(() => {
+    if (!summaryUp || !firstSessRef.current) return;
+    firstSessRef.current = false;
+    logStep(user?.id, "first_done");
+    const kind = pushSupport();
+    if (kind === "none" || kind === "blocked") return;
+    const remindKey = `remind-asked:${user?.id ?? ""}`;
+    try { if (localStorage.getItem(remindKey)) return; localStorage.setItem(remindKey, "1"); } catch { /* still ask */ }
+    setRemindOpen(true);
+  }, [summaryUp]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   // Session summary
   if (!queue && Object.keys(results).length > 0) {
     return (
@@ -739,6 +777,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         onChangeSettings={() => { setResults({}); setStep("topic"); setScope("all"); }}
         onOpenPast={onSessionSave ? () => setPastOpen(true) : null}
       />
+      {remindOpen && <ReminderPrompt onDone={how => { logStep(user?.id, `remind_${how}`); setRemindOpen(false); }} />}
       </>
     );
   }
@@ -969,7 +1008,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        when they are yours (n.mine), and App's moveDeck refusing anything
        that is not a deck you may put things in. */
     const both = ownRoots.length > 0 && featRoots.length > 0;
-    const deckList = ({ key, ...treeProps }) => (
+    const deckList = ({ key, ...rest }) => {
+      const treeProps = { ...rest, revealId: revealDeckId };
+      return (
       <>
         {both ? (
           <DeckTree key={key} {...treeProps} forest={[...ownRoots, ...featRoots]}
@@ -990,11 +1031,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                itself, under Everything, as "Your decks" does — so a new
                account can see what these are (Rafil, 2026-10-20). */
             heading="Ready-made decks" intro={soonNote}
-            rowMenu={rowMenu} allowEmpty />
+            rowMenu={rowMenu} allowEmpty revealId={revealDeckId} />
         )}
         {hiddenNotes}
       </>
-    );
+      );
+    };
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
     /* One topic names itself; several are counted. Spelling out four topic
        names would not fit the button this ends up on, and a list that gets
@@ -1217,6 +1259,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       </span>
                     </div>
                   )}
+                  {firstRun && !noQuestions && !creatingDeck && (
+                    <p className="setup-hint">Tick the topics you've covered, then press Start.</p>
+                  )}
                   {creatingDeck ? (
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
                   ) : naming && !inlineRename ? (
@@ -1282,11 +1327,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     <button
                       className="btn-press"
                       disabled={scoped === 0}
-                      onClick={() => { setCountOpt("All"); setStep("options"); }}
+                      onClick={() => goNext(true)}
                       style={{ ...primaryBtn, ...lg, width: "100%", opacity: scoped === 0 ? 0.5 : 1 }}
                     >
                       {scoped === 0
                         ? nothingChosen ? "Choose what to revise" : "Nothing here — pick another deck"
+                        : firstRun ? `Start · ${Math.min(FIRST_RUN_COUNT, scoped)} question${Math.min(FIRST_RUN_COUNT, scoped) === 1 ? "" : "s"} →`
                         : `Next · ${scoped} question${scoped === 1 ? "" : "s"} →`}
                     </button>
                   </div>
@@ -1378,6 +1424,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                   </span>
                 </div>
               )}
+              {firstRun && !noQuestions && !creatingDeck && (
+                <p className="setup-hint">Tick the topics you've covered, then press Start.</p>
+              )}
               {naming && !inlineRename && (
                 <DeckNameForm
                   initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
@@ -1449,10 +1498,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               </p>
               <button
                 disabled={scoped === 0}
-                onClick={() => setStep("options")}
+                onClick={() => goNext(false)}
                 className="btn-press setup-next-btn"
               >
-                Next <span aria-hidden="true">→</span>
+                {firstRun ? `Start ${Math.min(FIRST_RUN_COUNT, scoped)}` : "Next"} <span aria-hidden="true">→</span>
               </button>
               </div>
             </div>

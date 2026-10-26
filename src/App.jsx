@@ -31,7 +31,7 @@ import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor
 import { useAuth } from "./lib/auth";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
-  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite } from "./lib/remote";
+  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
 import { mergeSessions } from "./lib/pastSessions";
@@ -191,6 +191,7 @@ export default function App() {
   const [decks, setDecks] = useState([]);
   /* A deck to land on in Study — after a share link, or after Generate. */
   const [openDeckId, setOpenDeckId] = useState(null);
+  const [revealDeckId, setRevealDeckId] = useState(null);
   /* The deck Generate should file its next questions into. */
   const [generateInto, setGenerateInto] = useState(null);
   /* Set only by the dashboard's own button, so Study reached from the
@@ -246,14 +247,19 @@ export default function App() {
      your year's ready-made decks, open (lib/firstRun). */
   const rawWelcome = announcements.find(a => a.welcome && a.published_at) ?? null;
   const welcomeNote = useMemo(() => personalNote(rawWelcome, featured, studyYear), [rawWelcome, featured, studyYear]);
+  useEffect(() => { if (reveal && welcomeNote && user) logStep(user.id, "note_shown"); }, [reveal, Boolean(welcomeNote)]); // eslint-disable-line react-hooks/exhaustive-deps
   const firstFolder = yearFolder(featured, studyYear);
   const startLabel = firstFolder ? `Start Year ${studyYear} questions` : "Start practising";
   function startFirst() {
+    if (user) logStep(user.id, "note_start");
     const folder = firstFolder;
     setLaunchFilter({ deck: "All", cat: "All" });
     setStudyScope("all");
     setAutoStart(false);
-    if (folder) setOpenDeckId(folder);
+    /* The whole list, with your year expanded: opening the year on its own
+       hid everything else, which confused more than it saved (Rafil). */
+    setRevealDeckId(folder ?? null);
+    setStartNonce(n => n + 1);
     go(V.STUDY);
   }
   /* Progress reads every deck you practise from, featured ones included. */
@@ -1440,6 +1446,7 @@ export default function App() {
             onHideFeatured={hideFeatured}
             featuredActions={isAdmin ? featuredActions : null}
             openDeckId={openDeckId} onOpenDeckConsumed={() => setOpenDeckId(null)}
+            revealDeckId={revealDeckId}
             autoStart={autoStart} onAutoStartConsumed={() => setAutoStart(false)}
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             sessions={sessions}

@@ -696,6 +696,15 @@ export async function clearFlags(questionId) {
   if (error) throw new Error(error.message);
 }
 
+/** A new account reaching an onboarding step (migration 0055). First time
+    only; never queued or retried, since a lost one costs nothing. */
+export function logStep(userId, step) {
+  if (!userId) return;
+  supabase.from("onboarding_steps")
+    .upsert({ user_id: userId, step }, { onConflict: "user_id,step", ignoreDuplicates: true })
+    .then(() => {}, () => {});
+}
+
 /** How many people picked each option, by its text. Empty below 10 people. */
 export async function fetchOptionSplit(questionId) {
   const { data, error } = await supabase.rpc("option_split", { qid: questionId });
