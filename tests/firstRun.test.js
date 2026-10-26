@@ -30,8 +30,8 @@ const featured = {
 
 describe("first run", () => {
   it("names your year, and no topic", () => {
-    expect(decksLine(featured, 1)).toBe("Use the ready-made Year 1 decks.");
-    expect(decksLine(featured, 2)).toBe("Use the ready-made Year 2 decks.");
+    expect(decksLine(featured, 1)).toBe("Use the ready-made Year 1 deck.");
+    expect(decksLine(featured, 2)).toBe("Use the ready-made Year 2 deck.");
   });
 
   it("lists every year for a year with no decks", () => {
@@ -45,7 +45,7 @@ describe("first run", () => {
 
   it("fills {decks} in the note and leaves a note without it alone", () => {
     const note = { title: "Welcome", body: "Hi.\n\n2. Use the decks. {decks}\n\nRafil" };
-    expect(personalNote(note, featured, 2).body).toBe("Hi.\n\n2. Use the decks. Use the ready-made Year 2 decks.\n\nRafil");
+    expect(personalNote(note, featured, 2).body).toBe("Hi.\n\n2. Use the decks. Use the ready-made Year 2 deck.\n\nRafil");
     const plain = { title: "x", body: "No token." };
     expect(personalNote(plain, featured, 1)).toBe(plain);
   });

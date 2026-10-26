@@ -42,7 +42,8 @@ export function decksLine(featured, year) {
   /* The whole first step, as plain as the second. No topics, since people
      are at different stages; and not "Your decks are ready", which read like
      a waiter (Rafil, 2026-10-26). */
-  if (mine.length) return `Use the ready-made Year ${year} ${mine.length === 1 ? "deck" : "decks"}.`;
+  /* "deck", even with several under it: the year is one thing you open. */
+  if (mine.length) return `Use the ready-made Year ${year} deck.`;
   const years = allYears(featured);
   if (!years.length) return "Use the ready-made decks, as they're added.";
   return `Use the ready-made decks. So far there are decks for ${join(years.map(y => `Year ${y.year}`))}, and we're working on the other years.`;
