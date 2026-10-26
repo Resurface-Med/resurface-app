@@ -54,6 +54,11 @@ export function overlayOps(snap, ops) {
       case "goal":
         s.dailyGoal = op.goal;
         break;
+      case "study-time":
+        /* Absolute, like the others, but a stale smaller total must not
+           undo time already on the snapshot. */
+        s.studySeconds = Math.max(s.studySeconds || 0, Number(op.seconds) || 0);
+        break;
       case "profile":
         if (op.displayName !== undefined) s.displayName = op.displayName;
         if (op.nameChosen !== undefined) s.nameChosen = op.nameChosen;

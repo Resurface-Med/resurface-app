@@ -147,6 +147,15 @@ export default function App() {
   const [streak, setStreak] = useState({ streak: 0, longest: 0, lastDate: null });
   const [activity, setActivity] = useState({});
   const [dailyGoal, setDailyGoal] = useState(20);
+  /* Seconds studied (migration 0056). The ref is the total writes use, so a
+     flush during unload is not waiting on a render. Trusted once a snapshot
+     that actually has the number has been applied — a copy from before the
+     column existed must not be saved back as zero. */
+  const [studySeconds, setStudySeconds] = useState(0);
+  const [studyReady, setStudyReady] = useState(false);
+  const studyTotal = useRef(0);
+  const studyTrusted = useRef(false);
+  const studyPending = useRef(0);
   const [displayName, setDisplayName] = useState("");
   /* False while the name is still the one invented from their email address,
      which is the only case the welcome prompt is for. */
@@ -336,6 +345,7 @@ export default function App() {
     setStreak(liveStreak(d.streak));
     setActivity(d.activity);
     setDailyGoal(d.dailyGoal);
+    applyStudySeconds(d);
     setDisplayName(d.displayName || "");
     setAvatarV(d.avatarV ?? null);
     setAnnouncements(d.announcements ?? []);
@@ -368,6 +378,42 @@ export default function App() {
         applyGenerated(extra.generated, extra.decks);
       }).catch(() => {});
     }
+  }
+
+  /* A snapshot that carries study seconds is the base. One that does not
+     (a copy saved before the column existed) is ignored, and any time
+     studied since this open is added on top once a real base arrives. */
+  function applyStudySeconds(d) {
+    const has = typeof d.studySeconds === "number" && Number.isFinite(d.studySeconds);
+    if (!studyTrusted.current) {
+      if (!has) return;
+      const extra = studyPending.current;
+      studyPending.current = 0;
+      studyTrusted.current = true;
+      studyTotal.current = d.studySeconds + extra;
+      setStudySeconds(studyTotal.current);
+      setStudyReady(true);
+      if (extra > 0 && user?.id) remote.studyTime(user.id, studyTotal.current);
+      return;
+    }
+    if (has && d.studySeconds > studyTotal.current) {
+      studyTotal.current = d.studySeconds;
+      setStudySeconds(studyTotal.current);
+    }
+  }
+
+  function addStudySeconds(n) {
+    const add = Math.round(Number(n) || 0);
+    if (add < 1) return;
+    if (!studyTrusted.current) {
+      studyPending.current += add;
+      studyTotal.current = studyPending.current;
+      setStudySeconds(studyTotal.current);
+      return;
+    }
+    studyTotal.current += add;
+    setStudySeconds(studyTotal.current);
+    if (user?.id) remote.studyTime(user.id, studyTotal.current);
   }
 
   /* Pull-to-refresh on a phone: the same fetch, without the loading screen.
@@ -465,6 +511,11 @@ export default function App() {
     if (!user?.id || recovering) { setDataLoading(false); return; }
     let cancelled = false;
     sourceRef.current = null;
+    studyTrusted.current = false;
+    studyPending.current = 0;
+    studyTotal.current = 0;
+    setStudySeconds(0);
+    setStudyReady(false);
     setDataLoading(true);
     setLoadError(null);
     setQueueOwner(user.id);
@@ -526,6 +577,7 @@ export default function App() {
   snapshotRef.current = () => ({
     pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
     announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear,
+    ...(studyTrusted.current ? { studySeconds: studyTotal.current } : {}),
     showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
     decks: decksRef.current, featured: featuredRef.current, sessions,
@@ -544,7 +596,7 @@ export default function App() {
     saveSoon();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
-    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, generated, decks, featured, sessions]);
+    announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, studySeconds, generated, decks, featured, sessions]);
   useEffect(() => {
     if (!user?.id) return;
     const off = onWrite(() => saveSoon(1200));
@@ -1355,6 +1407,7 @@ export default function App() {
             activity={activity}
             srCards={srCards}
             dailyGoal={dailyGoal}
+            studySeconds={studyReady ? studySeconds : null}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
             onStudy={s => {
               setLaunchFilter({ deck: "All", cat: "All" });
@@ -1379,6 +1432,7 @@ export default function App() {
             onGenerateInto={id => { setGenerateInto(id); go(V.GENERATE); }}
             sessions={sessions}
             onSessionSave={rec => { setSessions(list => mergeSessions(list, rec)); remote.saveSession(user.id, rec); }}
+            onStudyTime={addStudySeconds}
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {v === V.PROGRESS && <ProgressView pStats={pStats} decks={progressDecks} setView={go}

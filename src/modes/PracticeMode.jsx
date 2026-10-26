@@ -15,6 +15,7 @@ import { buildForest, leavesUnder, findNode, deckShareUrl, walk, shelve } from "
 import { confirm } from "../ui/Confirm";
 import { isOnline } from "../lib/online";
 import { toRecord, fromRecord, sessionLabel, wrongIds } from "../lib/pastSessions";
+import { useStudyClock } from "../lib/studyTime";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
 import QuestionReviewer from "../ui/QuestionReviewer";
@@ -180,7 +181,7 @@ function describeSession(s) {
 const NONE = ["none"];
 const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] === "none");
 
-export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, sessions = [], onSessionSave = null }) {
+export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, sessions = [], onSessionSave = null, onStudyTime = null }) {
   const [scope, setScope] = useState(initialScope);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
@@ -385,6 +386,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   useEffect(() => {
     if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT, sid: sidRef.current, startedAt: startedRef.current }));
   }, [queue, idx, sels, sC, sT, SESSION_KEY]);
+
+  /* Time studied: only while a question is up. The setup screen and the
+     summary are not part of it. */
+  useStudyClock(queue != null, onStudyTime);
 
   /* The split for this question and the next. A failed fetch, or one made
      offline, shows nothing, the same as too few answers. */

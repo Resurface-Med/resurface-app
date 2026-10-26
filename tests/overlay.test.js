@@ -38,11 +38,18 @@ describe("overlayOps", () => {
       { kind: "sr", questionId: 1, card: { interval: 1, repetitions: 1 } },
       { kind: "activity", day: "2026-10-19", count: 5 },
       { kind: "streak", current: 2, longest: 4, lastDate: "2026-10-19" },
+      { kind: "study-time", seconds: 90 },
     ]);
     expect(out.pStats).toEqual({ 1: { correct: 2, total: 3 }, 9: { correct: 0, total: 1 } });
     expect(out.srCards[1]).toEqual({ interval: 1, repetitions: 1 });
     expect(out.activity["2026-10-19"]).toBe(5);
     expect(out.streak).toEqual({ streak: 2, longest: 4, lastDate: "2026-10-19" });
+    expect(out.studySeconds).toBe(90);
+    expect(overlayOps(out, [{ kind: "study-time", seconds: 40 }]).studySeconds).toBe(90);
+    expect(overlayOps(out, [{ kind: "study-time", seconds: 120 }]).studySeconds).toBe(120);
+    expect(out.studySeconds).toBe(90);
+    expect(overlayOps(out, [{ kind: "study-time", seconds: 40 }]).studySeconds).toBe(90);
+    expect(overlayOps(out, [{ kind: "study-time", seconds: 120 }]).studySeconds).toBe(120);
     /* The input is not changed. */
     expect(s.pStats[1].total).toBe(2);
   });

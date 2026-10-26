@@ -138,6 +138,8 @@ function apply(op) {
       });
     case "goal":
       return supabase.from("profiles").update({ daily_goal: op.goal, updated_at: new Date().toISOString() }).eq("id", op.userId);
+    case "study-time":
+      return supabase.rpc("set_study_seconds", { secs: op.seconds });
     case "profile":
       return supabase.from("profiles").update({
         ...(op.displayName !== undefined ? { display_name: op.displayName } : {}),
@@ -359,6 +361,9 @@ export async function loadAll(userId) {
       ? { streak: streak.data.current, longest: streak.data.longest, lastDate: streak.data.last_date }
       : { streak: 0, longest: 0, lastDate: null },
     dailyGoal: profile.data?.daily_goal ?? 20,
+    /* Seconds a question has been on screen (migration 0056). Absent on a
+       copy saved before the column existed, which must not read as zero. */
+    studySeconds: profile.data?.study_seconds == null ? undefined : Number(profile.data.study_seconds),
     displayName: profile.data?.display_name ?? "",
     /* Profile photo version (lib/avatar): null, 0, or an upload's number. */
     avatarV: profile.data?.avatar_v ?? null,
@@ -719,6 +724,7 @@ export const remote = {
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),
   activity: (userId, day, count)  => send({ kind: "activity", userId, day, count }),
+  studyTime: (userId, seconds) => send({ kind: "study-time", userId, seconds }),
   streak:   (userId, s)           => send({ kind: "streak", userId, current: s.streak, longest: s.longest, lastDate: s.lastDate }),
   goal:     (userId, goal)        => send({ kind: "goal", userId, goal }),
   profile:  (userId, patch)       => send({

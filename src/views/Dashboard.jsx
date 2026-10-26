@@ -6,6 +6,7 @@ import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
 import { Rich } from "../ui/Announcements";
 import { seenCount, masteredCount, share } from "../lib/progress";
+import { formatStudyTime } from "../lib/studyTime";
 
 /**
  * The home screen.
@@ -47,7 +48,7 @@ function StatRow({ label, value, strong = false, top = false, i = 0 }) {
 
 export default function Dashboard({
   pStats, streak, dueCount, setView,
-  activity = {}, srCards = {}, dailyGoal = 20, onGoalChange, onStudy,
+  activity = {}, srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
   welcome = null,
   onReplayWelcome = null,
 }) {
@@ -299,7 +300,8 @@ export default function Dashboard({
                 />
 
                 <StatRow i={10} top label="Questions answered" value={totalT.toLocaleString()} />
-                <StatRow i={11} label="Accuracy" value={acc === null ? "—" : `${acc}%`} />
+                <StatRow i={11} label="Time studied" value={studySeconds == null ? "—" : formatStudyTime(studySeconds)} />
+                <StatRow i={12} label="Accuracy" value={acc === null ? "—" : `${acc}%`} />
               </div>
 
               <button
