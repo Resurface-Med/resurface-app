@@ -281,33 +281,22 @@ export function DayOneNudge({ onAction, onClose, inline }) {
    the question area, under the wave — out of the header, so the progress
    bar and the tools keep their row (Rafil, 2026-10-27). Shown from 3; a
    wrong answer clears it. The number pops each time it goes up. */
-/* A target with an arrow landing in the bull, again each time the number
-   goes up (it is keyed on the number): the arrow flies in, the board gives
-   a little under the hit. Hitting it every time is what a run is. */
-const Target = () => (
-  <svg className="combo__target" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-    <defs>
-      <radialGradient id="combo-red" cx="0.4" cy="0.35" r="0.75">
-        <stop offset="0" stopColor="#ff7a6b" /><stop offset="1" stopColor="#e5383b" />
-      </radialGradient>
-    </defs>
-    <g className="combo__board">
-      <circle cx="10.5" cy="13.5" r="9" fill="url(#combo-red)" />
-      <circle cx="10.5" cy="13.5" r="6.2" fill="#fff" />
-      <circle cx="10.5" cy="13.5" r="3.6" fill="url(#combo-red)" />
-      <circle cx="10.5" cy="13.5" r="1.3" fill="#fff" />
-    </g>
-    <g className="combo__arrow">
-      <path d="M10.8 13.2 20.6 3.4" stroke="#1d2a4d" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M19.4 4.6l.1-2.9 1.8-1.4-.1 2.9zM19.4 4.6l2.9-.1 1.4-1.8-2.9.1z" fill="#f5a524" />
-    </g>
+/* A green tick that draws itself, again each time the number goes up (it
+   is keyed on the number): the circle pops, then the stroke draws in one
+   go. Green already means right in this app, so it needs no explaining.
+   A target was tried first and dropped (Rafil, 2026-10-27); the flame stays
+   the daily streak's alone. */
+const Tick = () => (
+  <svg className="combo__tick" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+    <circle className="combo__disc" cx="11" cy="11" r="11" />
+    <path className="combo__check" d="M6.4 11.4l3.1 3.1 6.1-6.4" pathLength="1" />
   </svg>
 );
 export function ComboMark({ n }) {
   if (n < 3) return null;
   return (
     <span className="combo" role="status" aria-label={`${n} right in a row`}>
-      <Target key={`t${n}`} />
+      <Tick key={`t${n}`} />
       <span key={n} className="combo__n">{n}</span>
       <span className="combo__words">right in a row</span>
     </span>
