@@ -89,6 +89,7 @@ export default function LoginPage({ sentDeck = false }) {
     return () => clearTimeout(t);
   }, [resendIn]);
 
+  const uniBlocked = BLOCK_UNI_SIGNUP && mode === "signup" && UNI.test(email.trim());
   const uniWait = step === "code" && UNI.test(email.trim()) && sentAt > 0;
   useEffect(() => {
     if (!uniWait) return;
@@ -122,7 +123,7 @@ export default function LoginPage({ sentDeck = false }) {
   async function submitForm(e) {
     e.preventDefault();
     /* The note under the field already says why; back to the field. */
-    if (BLOCK_UNI_SIGNUP && mode === "signup" && UNI.test(email.trim())) { document.getElementById("email")?.focus(); return; }
+    if (uniBlocked) { document.getElementById("email")?.focus(); return; }
     setError(""); setNotice(""); setBusy(true);
     try {
       const trimmed = email.trim();
@@ -345,14 +346,16 @@ export default function LoginPage({ sentDeck = false }) {
                 <label htmlFor="email" style={labelStyle}>Email</label>
                 <input id="email" type="email" required autoComplete="email" autoFocus={mode !== "signup"}
                   value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com" style={field} />
+                  placeholder="you@example.com"
+                  aria-invalid={uniBlocked || undefined}
+                  style={uniBlocked ? { ...field, borderColor: "var(--c-danger)", background: "color-mix(in srgb, var(--c-danger) 6%, var(--c-card-solid))" } : field} />
                 {/* Codes to ARU student email can take a long time or never
                     arrive: 3 of the first 4 never confirmed, against 0 of 13
                     on Gmail at a median of 18 seconds (2026-10-27). Only
                     where a code is sent: sign-up and reset. */}
                 {mode !== "signin" && UNI.test(email.trim()) && (
-                  BLOCK_UNI_SIGNUP && mode === "signup" ? (
-                    <p style={{ fontSize: 13.5, fontWeight: 500, color: C.text, lineHeight: 1.5, margin: "8px 2px 0" }}>
+                  uniBlocked ? (
+                    <p role="alert" style={{ fontSize: 13.5, fontWeight: 500, color: "var(--c-danger)", lineHeight: 1.5, margin: "8px 2px 0" }}>
                       {UNI_BLOCKED_MSG}
                     </p>
                   ) : (
