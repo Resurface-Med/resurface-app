@@ -296,7 +296,6 @@ export default function QuizShell({
       />
 
       <div className="quiz-shell__stage">
-        {!showAi && <ComboMark n={run} />}
         {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">
             {/* Fixed-width inner, clipped by the aside. Without it the content
@@ -440,6 +439,8 @@ export default function QuizShell({
               <NavChevron />
             </button>
           </div>
+          {/* Right answers in a row, in the empty middle of the bar. */}
+          <ComboMark n={run} />
           {/* The dock's name, ruled off and set just left of Next. The
               stretch of bar before it stays empty. */}
           <button

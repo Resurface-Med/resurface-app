@@ -277,9 +277,8 @@ export function DayOneNudge({ onAction, onClose, inline }) {
   );
 }
 
-/* Combo: the run of right answers, as a white pill in the top right of
-   the question area, under the wave — out of the header, so the progress
-   bar and the tools keep their row (Rafil, 2026-10-27). Shown from 3; a
+/* Combo: the run of right answers, centred in the session's bottom bar
+   (Rafil, 2026-10-27, after the header and a floating pill). Shown from 3; a
    wrong answer clears it. The number pops each time it goes up. */
 /* A green tick that draws itself, again each time the number goes up (it
    is keyed on the number): the circle pops, then the stroke draws in one
@@ -311,7 +310,6 @@ export function ComboPreview() {
     <div className="combo-demo">
       <div className="combo-demo__stage">
         <ComboMark n={run} />
-        <span className="combo-demo__card" />
       </div>
       <div className="combo-demo__btns">
         <button type="button" className="pp-show btn-press" onClick={() => answer(true)}>Get one right</button>
