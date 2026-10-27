@@ -38,7 +38,13 @@ const RESEND_SECS = 60;
    that is still on its way, so the old one fails when it lands — which is
    how most university sign-ups were being lost. Longer wait, and say so. */
 const UNI = /\.(ac\.uk|edu)$/i;
-const resendSecsFor = email => (UNI.test(String(email).trim()) ? 120 : RESEND_SECS);
+/* University mail is held by ARU's Check Point scan for about 2½ minutes
+   (headers, 2026-10-27). A resend at 2:00 cancelled the code 30 seconds
+   from arriving, so the wait is 3 minutes there. */
+const resendSecsFor = email => (UNI.test(String(email).trim()) ? 180 : RESEND_SECS);
+/* After this long with no code, offer a way out. */
+const UNI_GIVE_UP_SECS = 240;
+const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 /* `sentDeck`: they followed a link to someone's deck (lib/pendingShare).
    Nearly always a new person, so it opens on sign-up, and says the deck is
@@ -63,6 +69,9 @@ export default function LoginPage({ sentDeck = false }) {
   const [notice, setNotice] = useState("");
   const [leaving, setLeaving] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  /* When the latest code went out, and seconds since, for "Sent 1:12 ago". */
+  const [sentAt, setSentAt] = useState(0);
+  const [, setTick] = useState(0);
   const codeBoxRef = useRef(null);
   // Last code auto-submitted, so a wrong one is not retried on every keystroke.
   const lastTried = useRef("");
@@ -72,6 +81,14 @@ export default function LoginPage({ sentDeck = false }) {
     const t = setTimeout(() => setResendIn((n) => n - 1), 1000);
     return () => clearTimeout(t);
   }, [resendIn]);
+
+  const uniWait = step === "code" && UNI.test(email.trim()) && sentAt > 0;
+  useEffect(() => {
+    if (!uniWait) return;
+    const t = setInterval(() => setTick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [uniWait]);
+  const sentAgo = sentAt ? Math.max(0, Math.floor((Date.now() - sentAt) / 1000)) : 0;
 
   useEffect(() => {
     if (step === "code") codeBoxRef.current?.focus();
@@ -106,7 +123,7 @@ export default function LoginPage({ sentDeck = false }) {
         setEmail(trimmed);
         setStep("code");
         setCode("");
-        setResendIn(resendSecsFor(trimmed));
+        setResendIn(resendSecsFor(trimmed)); setSentAt(Date.now());
         setNotice("");
       } else if (mode === "signup") {
         /* No name is passed: handle_new_user falls back to the Google
@@ -119,7 +136,7 @@ export default function LoginPage({ sentDeck = false }) {
         if (!data.session) {
           setStep("code");
           setCode("");
-          setResendIn(resendSecsFor(trimmed));
+          setResendIn(resendSecsFor(trimmed)); setSentAt(Date.now());
           setNotice("");
         } else {
           setLeaving(true);
@@ -184,7 +201,7 @@ export default function LoginPage({ sentDeck = false }) {
         const { error: err } = await resetPassword(email);
         if (err) throw err;
       }
-      setResendIn(resendSecsFor(email));
+      setResendIn(resendSecsFor(email)); setSentAt(Date.now());
       setNotice("Sent a new code. Use the newest one; earlier codes stop working.");
       setCode("");
     } catch (err) {
@@ -201,8 +218,8 @@ export default function LoginPage({ sentDeck = false }) {
 
   const sub = step === "code"
     ? (UNI.test(email)
-      ? `We sent a 6-digit code to ${email}. University email can take a few minutes to arrive, and sometimes lands in Junk.`
-      : `We sent a 6-digit code to ${email}.`)
+      ? `We sent a 6-digit code to ${email}. University email takes about 3 minutes to arrive. Keep this page open; the code will still work when it lands.`
+      : `We sent a 6-digit code to ${email}.`) + " It’s in the subject line, so you can read it from the notification."
     : mode === "reset"
         ? "We'll email you a code to set a new one."
       : sentDeck
@@ -372,6 +389,22 @@ export default function LoginPage({ sentDeck = false }) {
             <form onSubmit={submitCode} style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 13 }}>
               <CodeBoxes ref={codeBoxRef} value={code} onChange={setCode} />
 
+              {/* University mail: that it is still on its way, and after four
+                  minutes a way out. */}
+              {uniWait && (
+                <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: "0 2px", fontVariantNumeric: "tabular-nums" }}>
+                  Sent {mmss(sentAgo)} ago.
+                  {sentAgo >= UNI_GIVE_UP_SECS && (
+                    <> Still nothing? Check Junk, or{" "}
+                      <button type="button" style={{ ...linkBtn, padding: 0, fontSize: 13 }}
+                        onClick={() => { setStep("form"); setCode(""); setError(""); setNotice(""); setEmail(""); setSentAt(0); }}>
+                        use a personal email instead
+                      </button>.
+                    </>
+                  )}
+                </p>
+              )}
+
               {error && <Alert kind="error">{error}</Alert>}
               {notice && <Alert kind="ok">{notice}</Alert>}
 
@@ -391,7 +424,7 @@ export default function LoginPage({ sentDeck = false }) {
                     cursor: resendIn > 0 || busy ? "default" : "pointer",
                   }}
                 >
-                  {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+                  {resendIn > 0 ? `Resend in ${resendIn >= 60 ? mmss(resendIn) : `${resendIn}s`}` : "Resend code"}
                 </button>
               </div>
             </form>
