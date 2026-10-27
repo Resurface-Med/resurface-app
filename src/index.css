@@ -11228,6 +11228,15 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge:not(.is-inline) { left: 12px; right: 12px; width: auto; bottom: calc(92px + var(--safe-b, 0px)); }
   .nudge { grid-template-columns: 68px minmax(0, 1fr); gap: 14px; padding: 18px; }
   .nudge__art { width: 68px; height: 68px; }
+  .nudge { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; }
+  .nudge__art { width: 56px; height: 56px; border-radius: 16px; }
+  .nudge-streak .streak__flame { width: 34px; height: 42px; }
+  .nudge-streak .streak__n { font-size: 18px; }
+  .nudge__text { padding-right: 24px; }
+  .nudge__title { font-size: 16.5px; }
+  .nudge__go, .nudge__later { white-space: nowrap; }
+  .nudge__go { padding: 10px 18px; font-size: 14.5px; }
+  .nudge__x { top: 10px; right: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .nudge-mile__burst { display: none; }
