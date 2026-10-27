@@ -10,7 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
-import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, DayOneNudge, ComboToast, PassedNudge, BestNudge, showPreview } from "../ui/Nudges";
+import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, DayOneNudge, ComboPreview, PassedNudge, BestNudge, showPreview } from "../ui/Nudges";
 
 /**
  * Admin, redone for where Resurface is now (2026-10-26): a few dozen
@@ -642,10 +642,9 @@ function Popups({ me = null }) {
     { k: "dayone", label: "Day 1", short: "End of the very first session",
       when: "Draft. Meant for the end of someone’s first session: the flame lights for day 1. Not connected to anything yet.",
       props: () => ({}), El: DayOneNudge },
-    { k: "combo", label: "Combo", short: "5, 10, 20 right in a row",
-      when: "Draft. Meant for during a session: a small pill at the top, gone by itself in two seconds. Never covers a question. Not connected to anything yet.",
-      variants: [[5, "5"], [10, "10"], [20, "20"]],
-      props: v => ({ n: v }), El: ComboToast },
+    { k: "combo", label: "Combo", short: "Right answers in a row",
+      when: "Draft. Meant for the session header, beside the count: shows from 3 right in a row, goes up with each one, and clears on a wrong answer. Not connected to anything yet.",
+      noShow: true, props: () => ({}), El: ComboPreview },
     { k: "passed", label: "Passed someone", short: "A session moved you up the board",
       when: "Draft. Meant for after a session that moved someone up their year’s leaderboard. Not connected to anything yet.",
       props: () => ({ me: { ...meRow, week_count: Number(rivalRow.week_count) + 6 }, them: rivalRow, rank: Math.max(1, myRank - 1) }), El: PassedNudge },
@@ -676,7 +675,7 @@ function Popups({ me = null }) {
       <section className="pp-detail">
         <div className="pp-head">
           <h3 className="pp-title">{item.label}</h3>
-          <button type="button" className="pp-show btn-press" onClick={() => showPreview({ kind: pick, props })}>Show over the app</button>
+          {!item.noShow && <button type="button" className="pp-show btn-press" onClick={() => showPreview({ kind: pick, props })}>Show over the app</button>}
         </div>
         <p className="pp-when">{item.when}</p>
         {item.variants && (

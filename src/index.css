@@ -11333,19 +11333,16 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @keyframes ignite { 0% { filter: grayscale(1) brightness(1.2); transform: scale(.85); opacity: .6; } 45% { filter: grayscale(1) brightness(1.2); transform: scale(.85); opacity: .6; } 70% { filter: none; transform: scale(1.18); opacity: 1; } 100% { filter: none; transform: none; opacity: 1; } }
 .nudge.is-dayone .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
 
-/* Combo: a pill at the top, in and out by itself. */
-.combo {
-  position: fixed; z-index: 1300; top: 18px; left: 50%; transform: translateX(-50%);
-  display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px 9px 13px; border-radius: 999px;
-  background: var(--c-text); color: var(--c-card-solid); font-size: 15px; font-weight: 600; white-space: nowrap;
-  box-shadow: 0 12px 30px -10px rgba(15, 27, 61, .45);
-  animation: comboIn 2.2s cubic-bezier(0.34, 1.5, 0.5, 1) both;
-}
-.combo.is-inline { position: relative; top: auto; left: auto; transform: none; animation-name: comboInInline; animation-iteration-count: infinite; animation-duration: 2.6s; }
-.combo__bolt { fill: #ffd23f; }
-.combo__n { font-variant-numeric: tabular-nums; }
-@keyframes comboIn { 0% { opacity: 0; transform: translate(-50%, -16px) scale(.7); } 12% { opacity: 1; transform: translate(-50%, 0) scale(1.08); } 20%, 80% { opacity: 1; transform: translate(-50%, 0) scale(1); } 100% { opacity: 0; transform: translate(-50%, -8px) scale(.95); } }
-@keyframes comboInInline { 0% { opacity: 0; transform: translateY(-12px) scale(.7); } 12% { opacity: 1; transform: scale(1.08); } 20%, 75% { opacity: 1; transform: none; } 90%, 100% { opacity: 0; transform: translateY(-6px) scale(.95); } }
+/* Combo: in the session header, on the blue. No box. */
+.combo { flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--c-on-field-soft); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.combo__bolt { fill: #ffd23f; animation: comboBolt .5s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
+.combo__n { font-size: 18px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; display: inline-block; animation: comboPop .45s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
+@keyframes comboPop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.35); opacity: 1; } 100% { transform: none; } }
+@keyframes comboBolt { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
+@media (max-width: 560px) { .combo__words { display: none; } }
+.combo-demo { width: 100%; display: flex; flex-direction: column; gap: 14px; align-self: stretch; }
+.combo-demo__head { border-radius: 16px; padding: 14px 18px; }
+.combo-demo__btns { display: flex; gap: 8px; justify-content: center; }
 
 /* Passed someone: your row slides up over theirs. */
 .nudge.is-passed { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -11374,7 +11371,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-best__bar.is-new { background: color-mix(in srgb, var(--c-success) 22%, transparent); }
 .nudge-best__bar em { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 12px; font-weight: 600; color: var(--c-sub); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
-  .nudge-ignite .streak__flame, .combo, .nudge-pass__row, .nudge-best__bar { animation: none; }
+  .nudge-ignite .streak__flame, .combo__n, .combo__bolt, .nudge-pass__row, .nudge-best__bar { animation: none; }
 }
 @keyframes raceIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* The ranks show the new order, so they wait until the rows have swapped. */
