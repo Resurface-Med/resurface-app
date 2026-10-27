@@ -277,12 +277,15 @@ export function DayOneNudge({ onAction, onClose, inline }) {
   );
 }
 
-/* Combo: the run of right answers, in the session header beside the
-   count, on the blue. No box: a yellow bolt and the number in white, which
-   pops each time it goes up. "right in a row" drops on a phone, where the
-   header has no room. Shown from 3 in a row; a wrong answer clears it. */
+/* Combo: the run of right answers, as a white pill in the top right of
+   the question area, under the wave — out of the header, so the progress
+   bar and the tools keep their row (Rafil, 2026-10-27). Shown from 3; a
+   wrong answer clears it. The number pops each time it goes up. */
 const Bolt = () => (
-  <svg className="combo__bolt" width="15" height="17" viewBox="0 0 16 18" aria-hidden="true"><path d="M9.5 1 2 10.2h5L5.8 17 14 7.4H8.9L9.5 1z" /></svg>
+  <svg className="combo__bolt" width="13" height="15" viewBox="0 0 16 18" aria-hidden="true">
+    <defs><linearGradient id="combo-bolt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffc93d" /><stop offset="1" stopColor="#ff8a1f" /></linearGradient></defs>
+    <path d="M9.5 1 2 10.2h5L5.8 17 14 7.4H8.9L9.5 1z" fill="url(#combo-bolt)" />
+  </svg>
 );
 export function ComboMark({ n }) {
   if (n < 3) return null;
@@ -298,20 +301,13 @@ export function ComboMark({ n }) {
 /* For Admin: the session header as it is, with buttons to answer. */
 export function ComboPreview() {
   const [run, setRun] = useState(5);
-  const [pos, setPos] = useState(12);
-  const answer = right => { setRun(r => (right ? r + 1 : 0)); setPos(p => Math.min(20, p + 1)); };
+  const answer = right => setRun(r => (right ? r + 1 : 0));
   return (
     <div className="combo-demo">
-      <header className="quiz-shell__header combo-demo__head">
-        <span className="quiz-shell__close" aria-hidden="true">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-        </span>
-        <div className="quiz-shell__progress-wrap">
-          <div className="quiz-shell__progress"><div className="quiz-shell__progress-fill" style={{ transform: `scaleX(${pos / 20})` }} /></div>
-          <span className="quiz-shell__count">{pos}/20</span>
-          <ComboMark n={run} />
-        </div>
-      </header>
+      <div className="combo-demo__stage">
+        <ComboMark n={run} />
+        <span className="combo-demo__card" />
+      </div>
       <div className="combo-demo__btns">
         <button type="button" className="pp-show btn-press" onClick={() => answer(true)}>Get one right</button>
         <button type="button" className="pp-show btn-press" onClick={() => answer(false)}>Get one wrong</button>

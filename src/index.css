@@ -11342,18 +11342,32 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @keyframes ignite { 0% { filter: grayscale(1) brightness(1.2); transform: scale(.85); opacity: .6; } 45% { filter: grayscale(1) brightness(1.2); transform: scale(.85); opacity: .6; } 70% { filter: none; transform: scale(1.18); opacity: 1; } 100% { filter: none; transform: none; opacity: 1; } }
 .nudge.is-dayone .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
 
-/* Combo: in the session header, on the blue. No box. */
-.combo { flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; color: var(--c-on-field-soft); font-size: 13px; font-weight: 600; white-space: nowrap; }
-.combo__bolt { fill: #ffd23f; animation: comboBolt .5s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
-.combo__n { font-size: 18px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; display: inline-block; animation: comboPop .45s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
-@keyframes comboPop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.35); opacity: 1; } 100% { transform: none; } }
-@keyframes comboBolt { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
-/* On a phone the header has no room for both: the run takes the count's
-   place while it lasts (the bar still shows where you are). Flag and lab
-   values stay put. */
-@media (max-width: 560px) { .combo__words, .quiz-shell__count.has-combo { display: none; } }
+/* Combo: a white pill, top right of the question area, lined up with the
+   header's right edge. White and a soft shadow on the pale surface; the
+   bolt is the only colour. */
+.combo {
+  position: absolute; z-index: 4;
+  top: clamp(6px, 1.4vh, 14px);
+  right: max(clamp(16px, 3vw, 28px), calc((100% - 1180px) / 2));
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 13px 6px 10px; border-radius: 999px;
+  background: var(--c-card-solid);
+  box-shadow: 0 1px 2px rgba(15, 27, 61, .06), 0 8px 20px -8px rgba(15, 27, 61, .22);
+  color: var(--c-sub); font-size: 13px; font-weight: 500; white-space: nowrap;
+  pointer-events: none;
+  animation: comboIn .5s cubic-bezier(0.34, 1.4, 0.5, 1) both;
+}
+.combo__bolt { flex-shrink: 0; }
+/* On a phone a long question starts right under the wave, so the pill sits
+   on the wave's edge instead of over the stem. */
+@media (max-width: 560px) { .quiz-shell__stage > .combo { top: -26px; } }
+.combo__n { font-size: 15px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; display: inline-block; animation: comboPop .45s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
+@keyframes comboIn { from { opacity: 0; transform: translateY(-6px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes comboPop { 0% { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.3); opacity: 1; } 100% { transform: none; } }
 .combo-demo { width: 100%; display: flex; flex-direction: column; gap: 14px; align-self: stretch; }
-.combo-demo__head { border-radius: 16px; padding: 14px 18px; }
+.combo-demo__stage { position: relative; height: 150px; border-radius: 16px; background: var(--c-surface2); overflow: hidden; }
+.combo-demo__stage .combo { right: 16px; top: 12px; }
+.combo-demo__card { position: absolute; left: 50%; top: 52px; width: min(60%, 420px); height: 140px; transform: translateX(-50%); border-radius: 18px; background: var(--c-card-solid); }
 .combo-demo__btns { display: flex; gap: 8px; justify-content: center; }
 
 /* Passed someone: your row slides up over theirs. */
@@ -11383,7 +11397,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-best__bar.is-new { background: color-mix(in srgb, var(--c-success) 22%, transparent); }
 .nudge-best__bar em { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 12px; font-weight: 600; color: var(--c-sub); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
-  .nudge-ignite .streak__flame, .combo__n, .combo__bolt, .nudge-pass__row, .nudge-best__bar { animation: none; }
+  .nudge-ignite .streak__flame, .combo, .combo__n, .nudge-pass__row, .nudge-best__bar { animation: none; }
 }
 @keyframes raceIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* The ranks show the new order, so they wait until the rows have swapped. */

@@ -225,10 +225,9 @@ export default function QuizShell({
               style={{ transform: `scaleX(${progress})` }}
             />
           </div>
-          <span className={`quiz-shell__count${run >= 3 ? " has-combo" : ""}`}>
+          <span className="quiz-shell__count">
             {position}/{total}
           </span>
-          <ComboMark n={run} />
 
           <button
             type="button"
@@ -297,6 +296,7 @@ export default function QuizShell({
       />
 
       <div className="quiz-shell__stage">
+        {!showAi && <ComboMark n={run} />}
         {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">
             {/* Fixed-width inner, clipped by the aside. Without it the content
