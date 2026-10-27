@@ -480,10 +480,10 @@ function People() {
                       </span>
                     </span>
                   </th>
-                  <td className="ax-dim">{dmy(p.joined)}</td>
-                  <td className={p.last_active ? "" : "ax-dim"}>{ago(p.last_active)}</td>
-                  <td className="ax-num">{nf(week.get(p.user_id) ?? 0)}</td>
-                  <td className="ax-num ax-dim">{nf(p.answered)}</td>
+                  <td className="ax-dim" data-label="Joined">{dmy(p.joined)}</td>
+                  <td className={p.last_active ? "" : "ax-dim"} data-label="Last studied">{ago(p.last_active)}</td>
+                  <td className="ax-num" data-label="This week">{nf(week.get(p.user_id) ?? 0)}</td>
+                  <td className="ax-num ax-dim" data-label="Answered">{nf(p.answered)}</td>
                   <td className="ax-trend"><Spark points={trend.get(p.user_id) ?? Array(30).fill(0)} /></td>
                   <td className="ax-row-act">
                     <button type="button" className="ax-link" disabled={busy === p.user_id} onClick={() => toggleAdmin(p)}>
