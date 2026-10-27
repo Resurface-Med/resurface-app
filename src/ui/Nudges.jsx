@@ -283,7 +283,7 @@ export function DayOneNudge({ onAction, onClose, inline }) {
    just under the blue, holds, and lifts away (moved up from above the
    bottom bar, where it covered the options and Next). Nothing on screen in between. */
 export const isComboMilestone = n => n === 3 || n === 5 || (n >= 10 && n % 5 === 0);
-export const COMBO_POP_MS = 1900;
+export const COMBO_POP_MS = 2600;
 
 /* A green tick that draws itself, again each time the number goes up (it
    is keyed on the number): the circle pops, then the stroke draws in one

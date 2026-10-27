@@ -11355,7 +11355,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   box-shadow: 0 14px 34px -10px rgba(var(--c-shade), 0.32);
   color: var(--c-sub); font-size: 17px; font-weight: 500; white-space: nowrap;
   pointer-events: none;
-  animation: comboDrop 1.9s cubic-bezier(0.34, 1.4, 0.5, 1) both;
+  animation: comboDrop 2.6s cubic-bezier(0.34, 1.4, 0.5, 1) both;
 }
 .combo.is-inline { top: 18px; }
 /* A phone's card starts right under the blue: the pill rides the blue's
@@ -11363,9 +11363,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @media (max-width: 720px) { .quiz-shell__stage > .combo { top: -34px; } }
 @keyframes comboDrop {
   0% { opacity: 0; transform: translateY(-18px) scale(.88); }
-  14% { opacity: 1; transform: translateY(0) scale(1.04); }
-  22% { transform: none; }
-  80% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.4, 0, 1, 1); }
+  10% { opacity: 1; transform: translateY(0) scale(1.04); }
+  16% { transform: none; }
+  86% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(0.4, 0, 1, 1); }
   100% { opacity: 0; transform: translateY(-16px); }
 }
 .combo__tick { flex-shrink: 0; display: block; }
