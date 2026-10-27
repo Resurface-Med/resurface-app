@@ -444,6 +444,9 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
 
   const free = () => !usedVisit.current && !document.querySelector(".update-note") && !document.querySelector(".np-scrim, .wr");
   function show(n) {
+    /* Off on phones for now (Rafil, 2026-10-27), until they're redone for
+       the small screen. The combo, in the session, stays. */
+    if (window.matchMedia?.("(max-width: 720px)").matches) return false;
     if (!free()) return false;
     usedVisit.current = true;
     setShown(n);
