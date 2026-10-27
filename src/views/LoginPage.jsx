@@ -48,7 +48,7 @@ const resendSecsFor = email => (UNI.test(String(email).trim()) ? 180 : RESEND_SE
    Existing accounts still sign in and reset. Set false once ARU IT has
    allow-listed hello@tryresurface.com. */
 const BLOCK_UNI_SIGNUP = true;
-const UNI_BLOCKED_MSG = "University email can’t be used to sign up for now, because its codes are being held up. Use a personal email, or Continue with Google.";
+const UNI_BLOCKED_MSG = "University email can’t be used to sign up for now. We’re working on a fix. Please use a personal email, or Continue with Google.";
 /* After this long with no code, offer a way out. */
 const UNI_GIVE_UP_SECS = 240;
 const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
