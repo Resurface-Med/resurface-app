@@ -285,7 +285,7 @@ export function ComboToast({ n = 5, inline = false, onDone }) {
     <div className={`combo${inline ? " is-inline" : ""}`} role="status" aria-live="polite"
       onAnimationEnd={inline ? undefined : onDone}>
       <svg className="combo__bolt" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M9.5 1 2 10.2h5L5.8 17 14 7.4H8.9L9.5 1z" /></svg>
-      <span className="combo__n">{n}</span>in a row
+      <span className="combo__n">{n}</span>right in a row
     </div>
   );
 }

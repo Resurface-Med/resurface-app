@@ -642,7 +642,7 @@ function Popups({ me = null }) {
     { k: "dayone", label: "Day 1", short: "End of the very first session",
       when: "Draft. Meant for the end of someone’s first session: the flame lights for day 1. Not connected to anything yet.",
       props: () => ({}), El: DayOneNudge },
-    { k: "combo", label: "Combo", short: "5, 10, 15… right in a row",
+    { k: "combo", label: "Combo", short: "5, 10, 20 right in a row",
       when: "Draft. Meant for during a session: a small pill at the top, gone by itself in two seconds. Never covers a question. Not connected to anything yet.",
       variants: [[5, "5"], [10, "10"], [20, "20"]],
       props: v => ({ n: v }), El: ComboToast },
