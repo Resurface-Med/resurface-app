@@ -15,6 +15,8 @@ import { compareDecks } from "../lib/deckOrder";
  * arrow to look inside, back to go up, and a new folder at the bottom. The
  * deck row is renamed in place. A lecture always gets its own deck — never
  * questions loose in a folder (Rafil, 2026-10-17); a batch gets one each.
+ * Picking a deck with nothing inside it chooses it as that lecture's deck
+ * (2026-10-27): the questions go straight in.
  *
  * Third version on 2026-10-17: a "::" field, then a big tree with a flying
  * card, then chips that wrapped onto two lines and still read as a puzzle.
@@ -82,6 +84,17 @@ export default function DeckPath({ decks, folderPath, onFolderPath, lectureName,
   const into = id => { setDir(1); setAt(id); };
   const up = () => { setDir(-1); setAt(byId.get(at)?.parentId ?? null); };
   const choose = path => { onFolderPath(path.join("::")); setOpen(false); setDraft(""); };
+  /* A deck with nothing inside it is a lecture's deck, not a folder: the
+     questions go straight into it, as "Generate into this" has always done
+     (2026-10-27). Picking an empty "Perianal conditions" used to make
+     "Perianal conditions › Perianal". A batch still treats it as the
+     folder its lectures' decks go in. */
+  const chooseDeck = d => {
+    if (batchCount > 1) { choose(pathOf(d.id)); return; }
+    onFolderPath(pathOf(d.id).slice(0, -1).join("::"));
+    onLectureName(d.name);
+    setOpen(false); setDraft("");
+  };
 
   const level = kids.get(at) ?? [];
 
@@ -153,8 +166,8 @@ export default function DeckPath({ decks, folderPath, onFolderPath, lectureName,
                    chosen. Tapping Year 2 used to choose it outright, when what
                    was wanted was a deck inside it (Rafil, 2026-10-17). */
                 <span key={d.id} className={`dp2-opt-row${folderId === d.id ? " is-here" : ""}`}>
-                  <button type="button" className="dp2-opt" onClick={() => (sub ? into(d.id) : choose(pathOf(d.id)))}>
-                    <span className="dp2-opt-icon"><FolderIcon /></span>
+                  <button type="button" className="dp2-opt" onClick={() => (sub ? into(d.id) : chooseDeck(d))}>
+                    <span className="dp2-opt-icon">{sub || batchCount > 1 ? <FolderIcon /> : <DocIcon />}</span>
                     <span className="dp2-opt-name">{d.name}</span>
                     {sub > 0 && <span className="dp2-in"><Chevron /></span>}
                   </button>
