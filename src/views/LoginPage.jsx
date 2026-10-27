@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import PasswordField from "../ui/PasswordField";
 import { C, OF } from "../ui/theme";
 import { useAuth } from "../lib/auth";
 
@@ -359,7 +360,7 @@ export default function LoginPage({ sentDeck = false }) {
               <div className={`auth-collapse${hidePassword ? " is-out" : ""}`} aria-hidden={hidePassword}>
                 <div>
                   <label htmlFor="password" style={labelStyle}>Password</label>
-                  <input id="password" type="password" required={!hidePassword} minLength={6}
+                  <PasswordField id="password" required={!hidePassword} minLength={6}
                     disabled={hidePassword}
                     autoComplete={mode === "signup" ? "new-password" : "current-password"}
                     value={password} onChange={e => setPassword(e.target.value)}
