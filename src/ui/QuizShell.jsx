@@ -6,6 +6,7 @@ import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 import LabValues, { BeakerIcon } from "./LabValues";
+import { ComboMark } from "./Nudges";
 import SideVideos, { useSideVideos } from "./SubwaySurfers";
 
 /**
@@ -174,6 +175,14 @@ export default function QuizShell({
   /* Questions behind you, so the bar is empty on the first and fills as the
      last one is answered rather than arriving full before it. */
   const progress = total > 0 ? idx / total : 0;
+  /* Right answers in a row (2026-10-27): back from the furthest one
+     answered, counting until a wrong one. A session only moves forwards,
+     so queue order is answer order. Skipped questions don't break it. */
+  let run = 0;
+  for (const k of Object.keys(results ?? {}).map(Number).sort((a, b) => b - a)) {
+    if (!results[k]?.correct) break;
+    run++;
+  }
   const answered = Object.keys(sels).length;
   const answeredThis = sel !== null;
   /* The dock is a window you keep open, not a reaction to being wrong: it
@@ -216,9 +225,10 @@ export default function QuizShell({
               style={{ transform: `scaleX(${progress})` }}
             />
           </div>
-          <span className="quiz-shell__count">
+          <span className={`quiz-shell__count${run >= 3 ? " has-combo" : ""}`}>
             {position}/{total}
           </span>
+          <ComboMark n={run} />
 
           <button
             type="button"

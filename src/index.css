@@ -11339,7 +11339,10 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .combo__n { font-size: 18px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; display: inline-block; animation: comboPop .45s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
 @keyframes comboPop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.35); opacity: 1; } 100% { transform: none; } }
 @keyframes comboBolt { from { transform: scale(0) rotate(-30deg); } to { transform: none; } }
-@media (max-width: 560px) { .combo__words { display: none; } }
+/* On a phone the header has no room for both: the run takes the count's
+   place while it lasts (the bar still shows where you are). Flag and lab
+   values stay put. */
+@media (max-width: 560px) { .combo__words, .quiz-shell__count.has-combo { display: none; } }
 .combo-demo { width: 100%; display: flex; flex-direction: column; gap: 14px; align-self: stretch; }
 .combo-demo__head { border-radius: 16px; padding: 14px 18px; }
 .combo-demo__btns { display: flex; gap: 8px; justify-content: center; }
