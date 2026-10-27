@@ -6,7 +6,7 @@ import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 import LabValues, { BeakerIcon } from "./LabValues";
-import { ComboMark } from "./Nudges";
+import { ComboPop, isComboMilestone, COMBO_POP_MS } from "./Nudges";
 import SideVideos, { useSideVideos } from "./SubwaySurfers";
 
 /**
@@ -183,6 +183,19 @@ export default function QuizShell({
     if (!results[k]?.correct) break;
     run++;
   }
+  /* Pops when the run climbs onto a milestone — not on opening a session
+     that is already on one. */
+  const [comboPop, setComboPop] = useState(null);
+  const lastRun = useRef(run);
+  useEffect(() => {
+    if (run > lastRun.current && isComboMilestone(run)) setComboPop({ n: run, at: Date.now() });
+    lastRun.current = run;
+  }, [run]);
+  useEffect(() => {
+    if (!comboPop) return;
+    const t = setTimeout(() => setComboPop(null), COMBO_POP_MS);
+    return () => clearTimeout(t);
+  }, [comboPop]);
   const answered = Object.keys(sels).length;
   const answeredThis = sel !== null;
   /* The dock is a window you keep open, not a reaction to being wrong: it
@@ -398,6 +411,7 @@ export default function QuizShell({
         />
       )}
 
+      {comboPop && !showAi && <ComboPop key={comboPop.at} n={comboPop.n} />}
       <footer className="quiz-shell__footer">
         <div className="quiz-shell__footer-bar">
           {/* Arrows flank the rail toggle rather than sitting by the primary:
@@ -439,8 +453,6 @@ export default function QuizShell({
               <NavChevron />
             </button>
           </div>
-          {/* Right answers in a row, in the empty middle of the bar. */}
-          <ComboMark n={run} />
           {/* The dock's name, ruled off and set just left of Next. The
               stretch of bar before it stays empty. */}
           <button

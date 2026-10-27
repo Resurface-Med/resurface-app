@@ -277,9 +277,13 @@ export function DayOneNudge({ onAction, onClose, inline }) {
   );
 }
 
-/* Combo: the run of right answers, centred in the session's bottom bar
-   (Rafil, 2026-10-27, after the header and a floating pill). Shown from 3; a
-   wrong answer clears it. The number pops each time it goes up. */
+/* Combo (Rafil, 2026-10-27, after the header, a floating pill and the
+   bottom bar all felt like fixtures): a reward, not a readout. At 3, 5,
+   10, 15, 20 … right in a row a white pill springs up just above the
+   bottom bar, holds, and floats away. Nothing on screen in between. */
+export const isComboMilestone = n => n === 3 || n === 5 || (n >= 10 && n % 5 === 0);
+export const COMBO_POP_MS = 1900;
+
 /* A green tick that draws itself, again each time the number goes up (it
    is keyed on the number): the circle pops, then the stroke draws in one
    go. Green already means right in this app, so it needs no explaining.
@@ -291,25 +295,35 @@ const Tick = () => (
     <path className="combo__check" d="M6.4 11.4l3.1 3.1 6.1-6.4" pathLength="1" />
   </svg>
 );
-export function ComboMark({ n }) {
-  if (n < 3) return null;
+export function ComboPop({ n, inline = false }) {
   return (
-    <span className="combo" role="status" aria-label={`${n} right in a row`}>
-      <Tick key={`t${n}`} />
-      <span key={n} className="combo__n">{n}</span>
+    <span className={`combo${inline ? " is-inline" : ""}`} role="status">
+      <Tick />
+      <span className="combo__n">{n}</span>
       <span className="combo__words">right in a row</span>
     </span>
   );
 }
 
-/* For Admin: the session header as it is, with buttons to answer. */
+/* For Admin: answer right or wrong and see it pop at the milestones. */
 export function ComboPreview() {
-  const [run, setRun] = useState(5);
-  const answer = right => setRun(r => (right ? r + 1 : 0));
+  const [run, setRun] = useState(2);
+  const [pop, setPop] = useState(null);
+  useEffect(() => {
+    if (!pop) return;
+    const t = setTimeout(() => setPop(null), COMBO_POP_MS);
+    return () => clearTimeout(t);
+  }, [pop]);
+  const answer = right => {
+    const next = right ? run + 1 : 0;
+    setRun(next);
+    if (right && isComboMilestone(next)) setPop({ n: next, at: Date.now() });
+  };
   return (
     <div className="combo-demo">
       <div className="combo-demo__stage">
-        <ComboMark n={run} />
+        {pop && <ComboPop key={pop.at} n={pop.n} inline />}
+        <span className="combo-demo__run">{run} right in a row so far · pops at 3, 5, 10, 15, 20…</span>
       </div>
       <div className="combo-demo__btns">
         <button type="button" className="pp-show btn-press" onClick={() => answer(true)}>Get one right</button>

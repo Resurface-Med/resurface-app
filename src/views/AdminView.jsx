@@ -639,7 +639,7 @@ function Popups({ me = null }) {
       when: "After a session, from someone’s 2nd study day. Back 5 days after ✕, gone after 3; 21 days after a share.",
       props: () => ({ me }), El: InviteNudge },
     { k: "combo", label: "Combo", short: "Right answers in a row",
-      when: "Live. In the middle of the bottom bar during a session: shows from 3 right in a row, goes up with each one, and clears on a wrong answer.",
+      when: "Live. Pops up just above the bottom bar when a run of right answers reaches 3, 5, 10, 15, 20…, holds for a moment and floats away. Nothing on screen in between.",
       noShow: true, props: () => ({}), El: ComboPreview },
     { group: "Drafts, not built in yet" },
     { k: "dayone", label: "Day 1", short: "End of the very first session",
