@@ -33,6 +33,23 @@ function writeQueue(q) {
 let owner = null;
 export function setQueueOwner(userId) { owner = userId ?? null; }
 
+/* A duplicate of a once-only row means it is already there: done. */
+function alreadyThere(res) {
+  return res?.error?.code === "23505" ? { ...res, error: null } : res;
+}
+
+/*
+ * A refusal that will never change: bad data (22…), a constraint (23…),
+ * not permitted (42501), no such column (42703, PGRST204). Retrying those
+ * forever is what sent the database 46,794 refused picks in a day
+ * (2026-10-27). A dropped connection or an expired sign-in has no such
+ * code and is still retried.
+ */
+export function isPermanent(error) {
+  const c = String(error?.code ?? "");
+  return /^2[23]/.test(c) || c === "42501" || c === "42703" || c === "PGRST204";
+}
+
 function enqueue(op) {
   writeQueue(append(readQueue(), owner && !op.owner ? { ...op, owner } : op));
 }
@@ -77,8 +94,8 @@ async function send(op) {
     const { error } = await apply(op);
     if (error) throw error;
     return true;
-  } catch {
-    enqueue(op);
+  } catch (e) {
+    if (!isPermanent(e)) enqueue(op);
     return false;
   }
 }
@@ -110,15 +127,22 @@ function apply(op) {
       /* First answer only. A retry after the explanation is not another
          vote. The text, not the index: options are shuffled per person. A
          write queued before 0054 carries only an index and lands as one. */
-      return supabase.from("option_picks").upsert(
-        { user_id: op.userId, question_id: op.questionId, option_text: op.optionText ?? null, option_index: op.optionIndex ?? null },
-        { onConflict: "user_id,question_id", ignoreDuplicates: true },
-      );
+      /* A plain insert, a duplicate counting as done. An upsert that
+         ignores duplicates is ON CONFLICT DO NOTHING, which needs a SELECT
+         policy this table doesn't have: every pick was refused (2026-10-27). */
+      return supabase.from("option_picks")
+        .insert({ user_id: op.userId, question_id: op.questionId, option_text: op.optionText ?? null, option_index: op.optionIndex ?? null })
+        .then(alreadyThere);
     case "answer":
       /* Every answer, as its own row (migration 0056). `at` is when it was
-         given, so one answered offline isn't dated when the queue drains. */
+         given, so one answered offline isn't dated when the queue drains.
+         Its own field: send() stamps `at` with Date.now() (a number, for
+         ordering), which overwrote this and was refused as a date — not one
+         answer was logged until 2026-10-27. Ops queued before then only
+         have that number, which is still the right moment. */
       return supabase.from("answer_log").insert({
-        user_id: op.userId, question_id: op.questionId, correct: op.correct, ms: op.ms, at: op.at,
+        user_id: op.userId, question_id: op.questionId, correct: op.correct, ms: op.ms,
+        at: op.answeredAt ?? new Date(op.at).toISOString(),
       });
     case "sr":
       return supabase.from("sr_cards").upsert({
@@ -261,8 +285,10 @@ async function runFlush() {
       if (error) throw error;
       flushed += 1;
       writeQueue(dropOnce(readQueue(), op));
-    } catch {
-      /* Left where it is, to be tried again next time. */
+    } catch (e) {
+      /* Left where it is, to be tried again next time — unless the server
+         will never take it. */
+      if (isPermanent(e)) writeQueue(dropOnce(readQueue(), op));
     }
   }
   return { flushed, remaining: readQueue().length };
@@ -713,8 +739,9 @@ export async function clearFlags(questionId) {
     only; never queued or retried, since a lost one costs nothing. */
 export function logStep(userId, step) {
   if (!userId) return;
+  /* Plain insert; a second time is a duplicate and ignored (see "pick"). */
   supabase.from("onboarding_steps")
-    .upsert({ user_id: userId, step }, { onConflict: "user_id,step", ignoreDuplicates: true })
+    .insert({ user_id: userId, step })
     .then(() => {}, () => {});
 }
 
@@ -749,7 +776,7 @@ export async function fetchLeaderboardWeek(year = null, day = null) {
 export const remote = {
   practice: (userId, questionId, correct, total) => send({ kind: "practice", userId, questionId, correct, total }),
   pick:     (userId, questionId, optionText)     => send({ kind: "pick", userId, questionId, optionText }),
-  answer:   (userId, questionId, correct, ms)    => send({ kind: "answer", userId, questionId, correct, ms, at: new Date().toISOString() }),
+  answer:   (userId, questionId, correct, ms)    => send({ kind: "answer", userId, questionId, correct, ms, answeredAt: new Date().toISOString() }),
   sr:       (userId, questionId, card)           => send({ kind: "sr", userId, questionId, card }),
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),
