@@ -11344,24 +11344,28 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 
 /* Combo: a white pill, top right of the question area, lined up with the
    header's right edge. White and a soft shadow on the pale surface; the
-   bolt is the only colour. */
+   target is the only colour. */
 .combo {
   position: absolute; z-index: 4;
   top: clamp(6px, 1.4vh, 14px);
   right: max(clamp(16px, 3vw, 28px), calc((100% - 1180px) / 2));
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 13px 6px 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 16px 7px 11px; border-radius: 999px;
   background: var(--c-card-solid);
   box-shadow: 0 1px 2px rgba(15, 27, 61, .06), 0 8px 20px -8px rgba(15, 27, 61, .22);
-  color: var(--c-sub); font-size: 13px; font-weight: 500; white-space: nowrap;
+  color: var(--c-sub); font-size: 14px; font-weight: 500; white-space: nowrap;
   pointer-events: none;
   animation: comboIn .5s cubic-bezier(0.34, 1.4, 0.5, 1) both;
 }
-.combo__bolt { flex-shrink: 0; }
+.combo__target { flex-shrink: 0; overflow: visible; }
+.combo__arrow { animation: comboArrow .42s cubic-bezier(0.5, 0, 0.75, 0) both; }
+.combo__board { transform-origin: 10.5px 13.5px; animation: comboThunk .5s .36s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
+@keyframes comboArrow { from { transform: translate(9px, -9px); opacity: 0; } 30% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes comboThunk { 0% { transform: none; } 30% { transform: scale(.86); } 100% { transform: none; } }
 /* On a phone a long question starts right under the wave, so the pill sits
    on the wave's edge instead of over the stem. */
-@media (max-width: 560px) { .quiz-shell__stage > .combo { top: -26px; } }
-.combo__n { font-size: 15px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; display: inline-block; animation: comboPop .45s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
+@media (max-width: 560px) { .quiz-shell__stage > .combo { top: -28px; } }
+.combo__n { font-size: 17px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; display: inline-block; animation: comboPop .45s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
 @keyframes comboIn { from { opacity: 0; transform: translateY(-6px) scale(.9); } to { opacity: 1; transform: none; } }
 @keyframes comboPop { 0% { transform: scale(.5); opacity: 0; } 60% { transform: scale(1.3); opacity: 1; } 100% { transform: none; } }
 .combo-demo { width: 100%; display: flex; flex-direction: column; gap: 14px; align-self: stretch; }
@@ -11397,7 +11401,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-best__bar.is-new { background: color-mix(in srgb, var(--c-success) 22%, transparent); }
 .nudge-best__bar em { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-style: normal; font-size: 12px; font-weight: 600; color: var(--c-sub); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
-  .nudge-ignite .streak__flame, .combo, .combo__n, .nudge-pass__row, .nudge-best__bar { animation: none; }
+  .nudge-ignite .streak__flame, .combo, .combo__n, .combo__arrow, .combo__board, .nudge-pass__row, .nudge-best__bar { animation: none; }
 }
 @keyframes raceIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 /* The ranks show the new order, so they wait until the rows have swapped. */
