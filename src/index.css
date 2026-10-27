@@ -6347,6 +6347,15 @@ html.is-deck-dragging * {
   justify-content: center;
   align-items: flex-start;
 }
+/* The column fills the height and scrolls; the card centres inside it.
+   It kept the reading layout's margin: auto, and in a flex row an auto
+   margin beats stretch, so the column grew to the question's full height,
+   the body (overflow: hidden) clipped it, and a long question — an ABG
+   with five options — could not be scrolled to its last options
+   (2026-10-27). Auto margins on the card instead centre a short one and
+   give up their space on a long one, so it still starts at the top. */
+.quiz-shell__body.has-ai .quiz-shell__main { margin: 0; align-self: stretch; }
+.quiz-shell__body.has-ai .quiz-shell__main > .q-card { margin-top: auto; margin-bottom: auto; }
 /* The slot carries the width — and the gap, so that goes with it — while
    the dock inside keeps its own. */
 .ai-slot {
