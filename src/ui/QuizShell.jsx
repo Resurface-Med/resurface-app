@@ -309,6 +309,7 @@ export default function QuizShell({
       />
 
       <div className="quiz-shell__stage">
+        {comboPop && !showAi && <ComboPop key={comboPop.at} n={comboPop.n} />}
         {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">
             {/* Fixed-width inner, clipped by the aside. Without it the content
@@ -411,7 +412,6 @@ export default function QuizShell({
         />
       )}
 
-      {comboPop && !showAi && <ComboPop key={comboPop.at} n={comboPop.n} />}
       <footer className="quiz-shell__footer">
         <div className="quiz-shell__footer-bar">
           {/* Arrows flank the rail toggle rather than sitting by the primary:

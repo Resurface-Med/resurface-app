@@ -279,8 +279,9 @@ export function DayOneNudge({ onAction, onClose, inline }) {
 
 /* Combo (Rafil, 2026-10-27, after the header, a floating pill and the
    bottom bar all felt like fixtures): a reward, not a readout. At 3, 5,
-   10, 15, 20 … right in a row a white pill springs up just above the
-   bottom bar, holds, and floats away. Nothing on screen in between. */
+   10, 15, 20 … right in a row a white pill drops in at the top centre,
+   just under the blue, holds, and lifts away (moved up from above the
+   bottom bar, where it covered the options and Next). Nothing on screen in between. */
 export const isComboMilestone = n => n === 3 || n === 5 || (n >= 10 && n % 5 === 0);
 export const COMBO_POP_MS = 1900;
 
@@ -290,7 +291,7 @@ export const COMBO_POP_MS = 1900;
    A target was tried first and dropped (Rafil, 2026-10-27); the flame stays
    the daily streak's alone. */
 const Tick = () => (
-  <svg className="combo__tick" width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
+  <svg className="combo__tick" width="28" height="28" viewBox="0 0 22 22" aria-hidden="true">
     <circle className="combo__disc" cx="11" cy="11" r="11" />
     <path className="combo__check" d="M6.4 11.4l3.1 3.1 6.1-6.4" pathLength="1" />
   </svg>
