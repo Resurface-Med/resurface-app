@@ -43,6 +43,12 @@ const UNI = /\.(ac\.uk|edu)$/i;
    (headers, 2026-10-27). A resend at 2:00 cancelled the code 30 seconds
    from arriving, so the wait is 3 minutes there. */
 const resendSecsFor = email => (UNI.test(String(email).trim()) ? 180 : RESEND_SECS);
+/* No new accounts on university email for now (Rafil, 2026-10-27): codes
+   to it wait ~2½ minutes in ARU's Check Point scan and people give up.
+   Existing accounts still sign in and reset. Set false once ARU IT has
+   allow-listed hello@tryresurface.com. */
+const BLOCK_UNI_SIGNUP = true;
+const UNI_BLOCKED_MSG = "University email can’t be used to sign up for now, because its codes are being held up. Use a personal email, or Continue with Google.";
 /* After this long with no code, offer a way out. */
 const UNI_GIVE_UP_SECS = 240;
 const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -115,6 +121,8 @@ export default function LoginPage({ sentDeck = false }) {
 
   async function submitForm(e) {
     e.preventDefault();
+    /* The note under the field already says why; back to the field. */
+    if (BLOCK_UNI_SIGNUP && mode === "signup" && UNI.test(email.trim())) { document.getElementById("email")?.focus(); return; }
     setError(""); setNotice(""); setBusy(true);
     try {
       const trimmed = email.trim();
@@ -343,9 +351,15 @@ export default function LoginPage({ sentDeck = false }) {
                     on Gmail at a median of 18 seconds (2026-10-27). Only
                     where a code is sent: sign-up and reset. */}
                 {mode !== "signin" && UNI.test(email.trim()) && (
-                  <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: "8px 2px 0" }}>
-                    Codes sent to university email can take a long time to arrive. A personal email or Continue with Google is much quicker.
-                  </p>
+                  BLOCK_UNI_SIGNUP && mode === "signup" ? (
+                    <p style={{ fontSize: 13.5, fontWeight: 500, color: C.text, lineHeight: 1.5, margin: "8px 2px 0" }}>
+                      {UNI_BLOCKED_MSG}
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: "8px 2px 0" }}>
+                      Codes sent to university email can take a long time to arrive. A personal email or Continue with Google is much quicker.
+                    </p>
+                  )
                 )}
               </div>
 
