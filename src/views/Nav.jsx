@@ -19,6 +19,39 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
   const [open, setOpen] = useState(false);
   const navRef = useRef(null);
   const scrimRef = useRef(null);
+  /* Whether the menu button sits over something light (the white sheet),
+     so its lines go dark there and stay white over the blue (2026-10-27).
+     Read from whatever is actually behind it, so it works on every page
+     and in dark mode, where the sheet is dark. */
+  const burgerRef = useRef(null);
+  const [onLight, setOnLight] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const check = () => {
+      raf = 0;
+      const b = burgerRef.current;
+      /* Hidden (desktop, or in a session): nothing to do. offsetParent is
+         null for any fixed element, so it can't say this. */
+      if (!b || b.getClientRects().length === 0) return;
+      const r = b.getBoundingClientRect();
+      const under = document.elementsFromPoint(r.left + r.width / 2, r.top + r.height / 2).find(el => !b.contains(el));
+      let light = false;
+      for (let el = under; el; el = el.parentElement) {
+        const m = getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
+        if (!m || (m.length > 3 && Number(m[3]) < 0.5)) continue;
+        const [R, G, B] = m.map(Number);
+        light = 0.2126 * R + 0.7152 * G + 0.0722 * B > 170;
+        break;
+      }
+      setOnLight(light);
+    };
+    const soon = () => { if (!raf) raf = requestAnimationFrame(check); };
+    soon();
+    window.addEventListener("scroll", soon, { capture: true, passive: true });
+    window.addEventListener("resize", soon);
+    const t = setInterval(soon, 700);
+    return () => { window.removeEventListener("scroll", soon, { capture: true }); window.removeEventListener("resize", soon); clearInterval(t); if (raf) cancelAnimationFrame(raf); };
+  }, []);
   useDrawerSwipe({ open, setOpen, navRef, scrimRef });
 
   // Escape closes it, and while it is open the page behind must not scroll.
@@ -51,7 +84,8 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
     <>
       <button
         type="button"
-        className="app-nav__burger"
+        ref={burgerRef}
+        className={`app-nav__burger${onLight ? " is-on-light" : ""}`}
         aria-label="Open menu"
         aria-expanded={open}
         aria-controls="app-nav"

@@ -4987,6 +4987,11 @@ html.is-deck-dragging * {
     background: var(--c-on-field);
   }
   .app-nav__burger-line + .app-nav__burger-line { margin-top: 4px; }
+  /* Over the white sheet: the same glass, dark lines, a faint dark edge. */
+  .app-nav__burger-line { transition: background-color .2s ease; }
+  .app-nav__burger { transition: border-color .2s ease; }
+  .app-nav__burger.is-on-light { border-color: rgba(15, 27, 61, 0.12); }
+  .app-nav__burger.is-on-light .app-nav__burger-line { background: var(--c-text); }
 
   .app-nav__burger-dot {
     position: absolute;
