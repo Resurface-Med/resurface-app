@@ -54,7 +54,7 @@ import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
-import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge } from "./ui/Nudges";
+import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge, DayOneNudge, ComboToast, PassedNudge, BestNudge } from "./ui/Nudges";
 
 const NUDGES_LIVE = false;
 import { personalNote, yearFolder } from "./lib/firstRun";
@@ -1361,7 +1361,7 @@ export default function App() {
       onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />}
     {/* Admin > Popups' "Show over the app": stays up across pages until closed. */}
     {isAdmin && <PreviewHost render={(p, close) => {
-      const C = { streak: StreakNudge, leader: LeaderNudge, milestone: MilestoneNudge, improve: ImproveNudge, home: HomeScreenNudge, invite: InviteNudge }[p.kind];
+      const C = { streak: StreakNudge, leader: LeaderNudge, milestone: MilestoneNudge, improve: ImproveNudge, home: HomeScreenNudge, invite: InviteNudge, dayone: DayOneNudge, combo: ComboToast, passed: PassedNudge, best: BestNudge }[p.kind];
       if (C) return <C {...p.props} onAction={close} onClose={close} onDone={close} />;
       if (p.kind === "welcome" && welcomeNote) return <WelcomeReveal welcome={welcomeNote} actions={[welcomeStart]} onAction={close} onClose={close} />;
       if (p.kind === "name") return <NamePrompt suggestion={displayName || "Preview"} onSave={close} />;

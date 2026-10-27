@@ -265,6 +265,76 @@ export function InviteNudge({ me = null, onAction, onClose, copied, inline }) {
   );
 }
 
+/* ── Drafts (2026-10-27): designed, not wired to anything yet ──────── */
+
+/* Day 1: a grey flame catching light at the end of someone's first session. */
+export function DayOneNudge({ onAction, onClose, inline }) {
+  return (
+    <NudgeCard kind="dayone" inline={inline}
+      art={<span className="nudge-ignite"><StreakFlame days={1} size={58} /></span>}
+      title="Day 1. Come back tomorrow to keep it alive."
+      action="Got it" onAction={onAction} onClose={onClose} later={false} />
+  );
+}
+
+/* Combo: a small pill at the top during a session, popping in and fading
+   out on its own. Never covers a question. */
+export function ComboToast({ n = 5, inline = false, onDone }) {
+  return (
+    <div className={`combo${inline ? " is-inline" : ""}`} role="status" aria-live="polite"
+      onAnimationEnd={inline ? undefined : onDone}>
+      <svg className="combo__bolt" width="16" height="18" viewBox="0 0 16 18" aria-hidden="true"><path d="M9.5 1 2 10.2h5L5.8 17 14 7.4H8.9L9.5 1z" /></svg>
+      <span className="combo__n">{n}</span>in a row
+    </div>
+  );
+}
+
+/* Passed someone: two rows, and yours sliding up over theirs. */
+export function PassedNudge({ me, them, rank, onAction, onClose, inline }) {
+  const name = first(them.display_name);
+  return (
+    <NudgeCard kind="passed" inline={inline}
+      art={
+        <ol className="nudge-pass" aria-hidden="true">
+          <li className="nudge-pass__row is-me">
+            <span className="nudge-board__rank">{ordinal(rank)}</span>
+            <Avatar className="nudge-board__av" src={avatarSrc(me.user_id, me.avatar) || me.src} name={me.display_name} />
+            <span className="nudge-board__name">You</span>
+            <span className="nudge-board__n">{Number(me.week_count).toLocaleString("en-GB")}</span>
+          </li>
+          <li className="nudge-pass__row is-them">
+            <span className="nudge-board__rank">{ordinal(rank + 1)}</span>
+            <Avatar className="nudge-board__av" src={avatarSrc(them.user_id, them.avatar)} name={them.display_name} />
+            <span className="nudge-board__name">{name}</span>
+            <span className="nudge-board__n">{Number(them.week_count).toLocaleString("en-GB")}</span>
+          </li>
+        </ol>
+      }
+      title={`You just passed ${name}. You’re ${ordinal(rank)} now.`}
+      action="Keep going" onAction={onAction} onClose={onClose} />
+  );
+}
+
+/* Personal best: today's count climbing past the old best. */
+export function BestNudge({ today, best, onAction, onClose, inline }) {
+  const n = useCountUp(today, 1100, 250);
+  const beat = n > best;
+  return (
+    <NudgeCard kind="best" inline={inline}
+      art={
+        <span className="nudge-best" aria-hidden="true">
+          <span className={`nudge-best__n${beat ? " is-beat" : ""}`}>{n}</span>
+          <span className="nudge-best__bars">
+            <span className="nudge-best__bar is-old" style={{ "--w": `${(best / Math.max(today, best)) * 100}%` }}><em>Old best {best}</em></span>
+            <span className="nudge-best__bar is-new" style={{ "--w": "100%" }}><em>Today</em></span>
+          </span>
+        </span>
+      }
+      title={`New personal best: ${today} questions in a day.`}
+      action="Keep going" onAction={onAction} onClose={onClose} />
+  );
+}
+
 /* ── Admin previews ───────────────────────────────────────────────
    "Show" in Admin > Popups puts a card up for real. It lives here, above
    every page, so it stays while you move between tabs, until you close it

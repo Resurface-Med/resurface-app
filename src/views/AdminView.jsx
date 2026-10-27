@@ -10,7 +10,7 @@ import EditQuestionModal from "../ui/EditQuestionModal";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
-import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, showPreview } from "../ui/Nudges";
+import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, DayOneNudge, ComboToast, PassedNudge, BestNudge, showPreview } from "../ui/Nudges";
 
 /**
  * Admin, redone for where Resurface is now (2026-10-26): a few dozen
@@ -638,6 +638,20 @@ function Popups({ me = null }) {
     { k: "invite", label: "Invite", short: "After a session",
       when: "After a session, from someone’s 2nd study day. Back 5 days after ✕, gone after 3; 21 days after a share.",
       props: () => ({ me }), El: InviteNudge },
+    { group: "Drafts, not built in yet" },
+    { k: "dayone", label: "Day 1", short: "End of the very first session",
+      when: "Draft. Meant for the end of someone’s first session: the flame lights for day 1. Not connected to anything yet.",
+      props: () => ({}), El: DayOneNudge },
+    { k: "combo", label: "Combo", short: "5, 10, 15… right in a row",
+      when: "Draft. Meant for during a session: a small pill at the top, gone by itself in two seconds. Never covers a question. Not connected to anything yet.",
+      variants: [[5, "5"], [10, "10"], [20, "20"]],
+      props: v => ({ n: v }), El: ComboToast },
+    { k: "passed", label: "Passed someone", short: "A session moved you up the board",
+      when: "Draft. Meant for after a session that moved someone up their year’s leaderboard. Not connected to anything yet.",
+      props: () => ({ me: { ...meRow, week_count: Number(rivalRow.week_count) + 6 }, them: rivalRow, rank: Math.max(1, myRank - 1) }), El: PassedNudge },
+    { k: "best", label: "Personal best", short: "Most questions in a day",
+      when: "Draft. Meant for after a session that beats someone’s most questions in a day. Not connected to anything yet.",
+      props: () => ({ today: 92, best: 64 }), El: BestNudge },
     { group: "Once, for new accounts" },
     { k: "name", label: "Name and year", short: "The first thing they see", when: "Once, the first thing a new account sees. Full screen.", full: true },
     { k: "welcome", label: "Welcome note", short: "Straight after name and year", when: "Once, straight after a new account picks its name and year. Full screen.", full: true },
