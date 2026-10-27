@@ -11329,8 +11329,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* ── Draft nudges (2026-10-27) ── */
 /* Day 1: the flame starts grey and catches. */
 .nudge.is-dayone .nudge__art { background: linear-gradient(160deg, #fff4e3, #ffe2c6); }
-.nudge-ignite .streak { flex-direction: column; gap: 0; }
-.nudge-ignite .streak__n { font-size: 22px; font-weight: 700; color: #e8590c; line-height: 1; margin-top: -2px; }
 .nudge-ignite .streak__flame { animation: ignite 1.1s .3s cubic-bezier(0.34, 1.5, 0.5, 1) both; }
 @keyframes ignite { 0% { filter: grayscale(1) brightness(1.2); transform: scale(.85); opacity: .6; } 45% { filter: grayscale(1) brightness(1.2); transform: scale(.85); opacity: .6; } 70% { filter: none; transform: scale(1.18); opacity: 1; } 100% { filter: none; transform: none; opacity: 1; } }
 .nudge.is-dayone .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
