@@ -56,7 +56,7 @@ import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
 import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge, DayOneNudge, PassedNudge, BestNudge } from "./ui/Nudges";
 
-const NUDGES_LIVE = false;
+const NUDGES_LIVE = true;
 import { personalNote, yearFolder } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";

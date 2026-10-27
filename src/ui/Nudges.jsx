@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import StreakFlame from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
@@ -134,6 +135,12 @@ export const MILESTONES = [
   [1000, "Your consultant would be proud. Probably."],
   [2500, "We’re running out of things to say."],
   [5000, "Go outside. Then come back."],
+  [7500, "Somewhere, a textbook is feeling replaced."],
+  [10000, "Ten thousand. This is no longer revision, it’s a lifestyle."],
+  [15000, "The examiners should be worried."],
+  [20000, "Twenty thousand. Your thumbs deserve a holiday."],
+  [25000, "Twenty-five thousand. We’re genuinely a bit concerned."],
+  [50000, "Fifty thousand. Please tell us your secret."],
 ];
 /* Confetti: pieces burst out from behind the number once the count lands,
    then fall and fade. Fixed shapes and angles, so it looks the same every
@@ -394,51 +401,126 @@ export function PreviewHost({ render }) {
   return render(p, () => showPreview(null));
 }
 
-/* ── When they show ───────────────────────────────────────────────── */
+/* ── When they show (agreed 2026-10-27) ─────────────────────────────
+ *
+ * Rewards are plenty, asks are rare.
+ *
+ * One card per visit, at most: at the end of a session or on opening the
+ * app, never both. The combo (in the session itself) is separate and never
+ * needs a tap.
+ *
+ * Session-end cards are part of the results page, in its #session-reward
+ * slot under the score, not floating over it: over it, a card covered
+ * Practice again on a phone (2026-10-27). Only a finished session has that
+ * page, so leaving halfway earns nothing. Pure rewards drop their button
+ * there — the page has Practice again — and keep the ×.
+ *
+ * At the end of a session, the first that is due wins:
+ *   Day 1           the very first session                       once ever
+ *   Milestone       passes 100 … 50,000 answered                 each once
+ *   Passed someone  moved up their year's board this session     once a day
+ *   Personal best   most in a day, old best 30+                  once a week
+ *   Getting better  a deck 10+ points up on their first 15       every 5 days
+ *   Leaderboard     who is just ahead (gap ≤ 150)                twice a week
+ *   Home Screen     ask: phone browser, from the 2nd study day   back after 5 days, gone after 3
+ *   Invite          ask: from the 4th study day                  back after 10 days, gone after 3
+ * The two asks share one slot a week.
+ *
+ * On opening: a streak of 3+ that today hasn't kept, twice a week at most.
+ *
+ * Shown, tapped and closed are logged (onboarding_steps, first time each).
+ */
+const WEEK = 7 * DAY;
+/* Times something was shown in the last week, from a stored list. */
+const recent = (uid, k) => (store.get(uid, k).at ?? []).filter(t => Date.now() - t < WEEK);
+const stamp = (uid, k) => store.set(uid, k, { ...store.get(uid, k), at: [...recent(uid, k), Date.now()] });
 
 export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, answered = 0, onStudy }) {
   const [shown, setShown] = useState(null);          // { kind, ...data }
   const [copied, setCopied] = useState(false);
   const usedVisit = useRef(false);
   const was = useRef(sessionActive);
+  /* Rank on the board when the session began, for "passed someone". */
+  const startRank = useRef(null);
   const today = todayKey();
 
   const free = () => !usedVisit.current && !document.querySelector(".update-note") && !document.querySelector(".np-scrim, .wr");
   function show(n) {
     if (!free()) return false;
     usedVisit.current = true;
-    setShown(n);
+    setShown(n.kind === "streak" ? n : { ...n, at: "summary" });
     logStep(userId, `nudge_${n.kind}`);
     return true;
   }
+  const askFree = () => Date.now() - (Number(store.get(userId, "ask").at) || 0) >= WEEK;
+  const asked = () => store.set(userId, "ask", { at: Date.now() });
 
-  /* On opening: a streak that today hasn't kept. */
+  /* On opening: a streak of 3+ that today hasn't kept, twice a week. */
   useEffect(() => {
     if (!ready || !userId || sessionActive) return;
     const days = Number(streak?.streak) || 0;
     const studiedToday = Number(activity?.[today]) > 0;
-    if (days < 2 || studiedToday || streak?.lastDate !== yesterdayKey()) return;
-    if (store.get(userId, "streak").day === today) return;
-    const t = setTimeout(() => { if (show({ kind: "streak", days })) store.set(userId, "streak", { day: today }); }, 1500);
+    if (days < 3 || studiedToday || streak?.lastDate !== yesterdayKey()) return;
+    if (store.get(userId, "streak").day === today || recent(userId, "streak").length >= 2) return;
+    const t = setTimeout(() => {
+      if (show({ kind: "streak", days })) { stamp(userId, "streak"); store.set(userId, "streak", { ...store.get(userId, "streak"), day: today }); }
+    }, 1500);
     return () => clearTimeout(t);
   }, [ready, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* After a session: the invite if it's due, otherwise the leaderboard. */
+  async function board() {
+    const rows = (await fetchLeaderboardWeek(studyYear || null)).filter(r => r.week_count > 0);
+    const i = rows.findIndex(r => r.user_id === userId);
+    return { rows, i, rank: i < 0 ? null : Number(rows[i].rank) || i + 1 };
+  }
+
   useEffect(() => {
+    const started = !was.current && sessionActive;
     const ended = was.current && !sessionActive;
     was.current = sessionActive;
-    if (!ended || !userId) return;
+    if (!userId) return;
+    if (started) {
+      startRank.current = null;
+      setShown(s => (s?.at === "summary" ? null : s));
+      board().then(b => { startRank.current = b.rank; }, () => {});
+      return;
+    }
+    if (!ended) return;
     let cancelled = false;
     const studyDays = Object.values(activity ?? {}).filter(n => Number(n) > 0).length;
-    const inv = store.get(userId, "invite");
-    const inviteDue = studyDays >= 2 && (inv.dismissed ?? 0) < 3 && Date.now() >= (inv.nextAt ?? 0);
     const t = setTimeout(async () => {
-      /* A milestone just passed goes first: it only happens a handful of times. */
+      /* Finished, not left halfway: only a finished session has a results page. */
+      if (!document.getElementById("session-reward")) return;
+      /* Day 1: the first day anyone studied, once ever. */
+      if (studyDays <= 1 && !store.get(userId, "dayone").done) {
+        if (show({ kind: "dayone" })) store.set(userId, "dayone", { done: true });
+        return;
+      }
+      /* A milestone: a handful of times in anyone's life. */
       const seen = Number(store.get(userId, "milestone").n) || 0;
       const hit = [...MILESTONES].reverse().find(([m]) => answered >= m)?.[0] ?? 0;
       if (hit > seen) { if (show({ kind: "milestone", n: hit })) store.set(userId, "milestone", { n: hit }); return; }
-      /* Better at a deck than when they started: at most every 5 days, and a
-         deck only again after another 10 points. */
+
+      /* The board, once, for both "passed someone" and the leaderboard. */
+      let b = null;
+      try { b = await board(); } catch { /* offline */ }
+      if (cancelled) return;
+
+      /* Passed someone: higher than when the session began, once a day. */
+      if (b && b.i >= 0 && startRank.current && b.rank < startRank.current && store.get(userId, "passed").day !== today) {
+        const them = b.rows[b.i + 1];
+        if (them && show({ kind: "passed", me: b.rows[b.i], them, rank: b.rank })) { store.set(userId, "passed", { day: today }); return; }
+      }
+
+      /* Personal best: most in a day, over an old best of 30+, once a week. */
+      const todayN = Number(activity?.[today]) || 0;
+      const best = Math.max(0, ...Object.entries(activity ?? {}).filter(([d]) => d !== today).map(([, n]) => Number(n) || 0));
+      if (best >= 30 && todayN > best && recent(userId, "best").length === 0) {
+        if (show({ kind: "best", today: todayN, best })) { stamp(userId, "best"); return; }
+      }
+
+      /* Better at a deck than when they started: every 5 days at most, and
+         a deck only again after another 10 points. */
       const imp = store.get(userId, "improve");
       if (Date.now() >= (imp.nextAt ?? 0)) {
         try {
@@ -452,47 +534,69 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
           }
         } catch { /* offline: skip */ }
       }
-      /* On a phone, not installed, from the 2nd study day: Home Screen. */
+
+      /* Who is just ahead: twice a week, and only if within reach. */
+      if (b && b.i >= 0 && b.rows.length >= 3 && recent(userId, "leader").length < 2) {
+        const { rows, i, rank } = b;
+        const meRow = rows[i];
+        const rival = rank === 1 ? rows[i + 1] : rows.slice(0, i).reverse().find(r => r.week_count > meRow.week_count) ?? rows[i - 1];
+        const gap = rival ? Math.abs(Number(rival.week_count) - Number(meRow.week_count)) : Infinity;
+        if (rival && gap <= 150) {
+          const around = rows.slice(Math.max(0, i - 1), i + 2);
+          if (around.length < 3 && i === 0) around.push(...rows.slice(around.length, 3).filter(r => !around.includes(r)));
+          if (show({ kind: "leader", me: meRow, rival, rank, around, year: studyYear })) { stamp(userId, "leader"); return; }
+        }
+      }
+
+      /* The asks: one a week between them, never in the first days. */
+      if (!askFree()) return;
       const home = store.get(userId, "home");
       if (onPhone() && !isInstalled() && studyDays >= 2 && (home.dismissed ?? 0) < 3 && Date.now() >= (home.nextAt ?? 0)) {
-        if (show({ kind: "home" })) return;
+        if (show({ kind: "home" })) { asked(); return; }
       }
-      if (inviteDue) { show({ kind: "invite" }); return; }
-      if (store.get(userId, "leader").day === today) return;
-      try {
-        const rows = (await fetchLeaderboardWeek(studyYear || null)).filter(r => r.week_count > 0);
-        const i = rows.findIndex(r => r.user_id === userId);
-        if (cancelled || i < 0 || rows.length < 3) return;
-        const me = rows[i], rank = Number(me.rank) || i + 1;
-        const rival = rank === 1 ? rows[i + 1] : rows.slice(0, i).reverse().find(r => r.week_count > me.week_count) ?? rows[i - 1];
-        const around = rows.slice(Math.max(0, i - 1), i + 2);
-        if (around.length < 3 && i === 0) around.push(...rows.slice(around.length, 3).filter(r => !around.includes(r)));
-        if (show({ kind: "leader", me, rival, rank, around, year: studyYear })) store.set(userId, "leader", { day: today });
-      } catch { /* offline: nothing */ }
-    }, 1400);
+      const inv = store.get(userId, "invite");
+      if (studyDays >= 4 && (inv.dismissed ?? 0) < 3 && Date.now() >= (inv.nextAt ?? 0)) {
+        if (show({ kind: "invite" })) asked();
+      }
+    }, 650);
     return () => { cancelled = true; clearTimeout(t); };
   }, [sessionActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!shown) return null;
+  const card = renderCard();
+  if (shown.at !== "summary") return card;
+  const slot = document.getElementById("session-reward");
+  if (!slot) return null;
+  /* Pure rewards lose their button on the results page; it has Practice again. */
+  const quiet = ["milestone", "passed", "best", "improve", "leader"].includes(shown.kind);
+  return createPortal(<div className={`sum-reward__in${quiet ? " is-quiet" : ""}`}>{card}</div>, slot);
+
+  function renderCard() {
+  const inline = shown.at === "summary";
   const close = () => {
+    logStep(userId, `nudge_${shown.kind}_close`);
     if (shown.kind === "invite") {
       const st = store.get(userId, "invite");
-      store.set(userId, "invite", { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 5 * DAY });
+      store.set(userId, "invite", { ...st, dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + 10 * DAY });
     }
     setShown(null); setCopied(false);
   };
-  const study = () => { setShown(null); onStudy(); };
+  const study = () => { logStep(userId, `nudge_${shown.kind}_tap`); setShown(null); onStudy(); };
+  const ok = () => { logStep(userId, `nudge_${shown.kind}_tap`); setShown(null); };
 
-  if (shown.kind === "streak") return <StreakNudge days={shown.days} onAction={study} onClose={close} />;
-  if (shown.kind === "leader") return <LeaderNudge {...shown} onAction={study} onClose={close} />;
-  if (shown.kind === "milestone") return <MilestoneNudge n={shown.n} onAction={study} onClose={close} />;
-  if (shown.kind === "improve") return <ImproveNudge {...shown} onAction={study} onClose={close} />;
+  if (shown.kind === "dayone") return <DayOneNudge inline={inline} onAction={ok} onClose={close} />;
+  if (shown.kind === "streak") return <StreakNudge inline={inline} days={shown.days} onAction={study} onClose={close} />;
+  if (shown.kind === "leader") return <LeaderNudge inline={inline} {...shown} onAction={study} onClose={close} />;
+  if (shown.kind === "passed") return <PassedNudge inline={inline} me={shown.me} them={shown.them} rank={shown.rank} onAction={study} onClose={close} />;
+  if (shown.kind === "best") return <BestNudge inline={inline} today={shown.today} best={shown.best} onAction={study} onClose={close} />;
+  if (shown.kind === "milestone") return <MilestoneNudge inline={inline} n={shown.n} onAction={study} onClose={close} />;
+  if (shown.kind === "improve") return <ImproveNudge inline={inline} {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "home") {
     const after = days => { const st = store.get(userId, "home"); store.set(userId, "home", { dismissed: (st.dismissed ?? 0) + 1, nextAt: Date.now() + days * DAY }); setShown(null); };
-    return <HomeScreenNudge onClose={() => after(5)} onDone={how => { logStep(userId, `home_${how}`); after(how === "added" ? 3650 : 5); }} />;
+    return <HomeScreenNudge inline={inline} onClose={() => { logStep(userId, "nudge_home_close"); after(5); }} onDone={how => { logStep(userId, `home_${how}`); after(how === "added" ? 3650 : 5); }} />;
   }
   return (
-    <InviteNudge me={me} copied={copied} onClose={close} onAction={async () => {
+    <InviteNudge inline={inline} me={me} copied={copied} onClose={close} onAction={async () => {
       logStep(userId, "invite_shared");
       const st = store.get(userId, "invite");
       const done = () => { store.set(userId, "invite", { ...st, nextAt: Date.now() + 21 * DAY }); setShown(null); setCopied(false); };
@@ -501,4 +605,5 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       setCopied(true); setTimeout(done, 1800);
     }} />
   );
+  }
 }

@@ -109,6 +109,9 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
           className="sum-sheet"
           style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}
         >
+          {/* Where a reward for this session lands (ui/Nudges): part of the
+              results, under the score, instead of a card over the buttons. */}
+          <div id="session-reward" className="sum-reward" />
           {shaky.length > 0 && (
             <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>
               <div className="prog-section-head">

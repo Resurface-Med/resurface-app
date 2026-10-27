@@ -619,38 +619,37 @@ function Popups({ me = null }) {
   const ITEMS = [
     { group: "Cards" },
     { k: "milestone", label: "Milestone", short: "100, 250, 500… questions answered",
-      when: "After the session that passes 100, 250, 500, 1,000, 2,500 or 5,000 questions answered. Each one once.",
+      when: "After the session that passes 100, 250, 500, 1,000, 2,500, 5,000, 7,500, 10,000, 15,000, 20,000, 25,000 or 50,000 questions answered. Each one once. Second in line after Day 1.",
       variants: MILESTONES.map(([m]) => [m, m.toLocaleString("en-GB")]),
       props: v => ({ n: v }), El: MilestoneNudge },
     { k: "improve", label: "Getting better", short: "A deck 10+ points better",
       when: "After a session, when someone’s latest 15 answers on a deck are 10+ points better than their first 15 (30+ answers, 50%+ now). Every 5 days at most; the same deck only again after another 10 points.",
       props: () => ({ deck: "Renal", before: 54, after: 78 }), El: ImproveNudge },
     { k: "streak", label: "Streak", short: "Opening the app on a streak",
-      when: "On opening the app, with a streak of 2 or more that today hasn’t kept yet. Once a day.",
+      when: "On opening the app, with a streak of 3 or more that today hasn’t kept yet. Twice a week at most.",
       props: () => ({ days: 6 }), El: StreakNudge },
     { k: "leader", label: "Leaderboard", short: "After a session",
-      when: "After a session, for someone on their year’s leaderboard. Once a day. Uses this week’s real board here.",
+      when: "After a session, for someone on their year’s leaderboard, when the person just ahead is within 150. Twice a week at most. Uses this week’s real board here.",
       props: () => ({ me: meRow, rival: rivalRow, rank: myRank, around }), El: LeaderNudge },
     { k: "home", label: "Add to Home Screen", short: "Phone browser, not installed",
-      when: "After a session, on a phone browser that hasn’t installed Resurface, from someone’s 2nd study day. Back after 5 days; gone after 3, or once it’s added.",
+      when: "An ask. After a session, on a phone browser that hasn’t installed Resurface, from someone’s 2nd study day. Back after 5 days; gone after 3, or once it’s added. Shares one slot a week with Invite.",
       variants: [["ios", "iPhone"], ["prompt", "Android"], ["android", "Other Android"], ["inapp", "In-app browser"]],
       props: v => ({ forceKind: v }), El: HomeScreenNudge },
     { k: "invite", label: "Invite", short: "After a session",
-      when: "After a session, from someone’s 2nd study day. Back 5 days after ✕, gone after 3; 21 days after a share.",
+      when: "An ask. After a session, from someone’s 4th study day. Back 10 days after ✕, gone after 3; 21 days after a share. Shares one slot a week with Home Screen.",
       props: () => ({ me }), El: InviteNudge },
     { k: "combo", label: "Combo", short: "Right answers in a row",
-      when: "Live. Pops up just above the bottom bar when a run of right answers reaches 3, 5, 10, 15, 20…, holds for a moment and floats away. Nothing on screen in between.",
+      when: "During a session, when a run of right answers reaches 3, 5, 10, 15, 20…: drops in at the top, holds for a moment and lifts away. Separate from the cards.",
       noShow: true, props: () => ({}), El: ComboPreview },
-    { group: "Drafts, not built in yet" },
     { k: "dayone", label: "Day 1", short: "End of the very first session",
-      when: "Draft. Meant for the end of someone’s first session: the flame lights for day 1. Not connected to anything yet.",
+      when: "At the end of someone’s very first session. Once ever, and first in line.",
       props: () => ({}), El: DayOneNudge },
 
     { k: "passed", label: "Passed someone", short: "A session moved you up the board",
-      when: "Draft. Meant for after a session that moved someone up their year’s leaderboard. Not connected to anything yet.",
+      when: "After a session that moved someone up their year’s leaderboard (their rank at the start against the end). Once a day at most.",
       props: () => ({ me: { ...meRow, week_count: Number(rivalRow.week_count) + 6 }, them: rivalRow, rank: Math.max(1, myRank - 1) }), El: PassedNudge },
     { k: "best", label: "Personal best", short: "Most questions in a day",
-      when: "Draft. Meant for after a session that beats someone’s most questions in a day. Not connected to anything yet.",
+      when: "After a session that beats someone’s most questions in a day, when the old best was 30 or more. Once a week at most.",
       props: () => ({ today: 92, best: 64 }), El: BestNudge },
     { group: "Once, for new accounts" },
     { k: "name", label: "Name and year", short: "The first thing they see", when: "Once, the first thing a new account sees. Full screen.", full: true },
@@ -691,7 +690,7 @@ function Popups({ me = null }) {
             ? <p className="pp-stage__note">This one fills the screen. Press <strong>Show over the app</strong> to see it.</p>
             : <item.El key={`${pick}-${v}-${real}`} {...props} inline onAction={noop} onClose={noop} onDone={noop} />}
         </div>
-        <p className="pp-foot">These cards are switched off for students right now.</p>
+        <p className="pp-foot">One card per visit at most: on the results page when a session is finished (not if it’s left halfway), or as a card on opening the app for the streak. Rewards come before the two asks.</p>
       </section>
     </div>
   );
