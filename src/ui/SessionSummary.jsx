@@ -52,7 +52,7 @@ const band = {
   width: "100%",
 };
 
-export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong, onOpenPast = null }) {
+export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong, onOpenPast = null, reward = null }) {
   const [showWrong, setShowWrong] = useState(false);
 
   const total = results.length;
@@ -111,7 +111,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
         >
           {/* Where a reward for this session lands (ui/Nudges): part of the
               results, under the score, instead of a card over the buttons. */}
-          <div id="session-reward" className="sum-reward" />
+          <div id="session-reward" className="sum-reward">{reward}</div>
           {shaky.length > 0 && (
             <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>
               <div className="prog-section-head">

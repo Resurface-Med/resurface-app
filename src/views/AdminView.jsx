@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useLayoutEffect, useRef } from "react";
 import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { QUESTIONS } from "../data";
@@ -600,6 +600,34 @@ const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212, rank: 4
 const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249, rank: 3 };
 const SAMPLE_BEHIND = { user_id: "behind", display_name: "Zain A", week_count: 168, rank: 5 };
 
+/* A popup on the screen it really appears on: the app's own preview page
+   (views/PopupPreview) in a frame at a true phone or laptop width, scaled
+   to fit. A box at the page's width would lay out like a laptop. */
+const DEVICES = { phone: [390, 780], laptop: [1280, 800] };
+function ScreenFrame({ src, device }) {
+  const box = useRef(null);
+  const [w, setW] = useState(0);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setW(el.clientWidth));
+    ro.observe(el);
+    setW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+  const [W, H] = DEVICES[device];
+  const k = (device === "phone" ? Math.min(w, 340) : w) / W;
+  return (
+    <div ref={box} className="pp-frame-box">
+      {w > 0 && (
+        <div className={`pp-frame is-${device}`} style={{ width: W * k, height: H * k }}>
+          <iframe title="Preview" src={src} style={{ width: W, height: H, transform: `scale(${k})` }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Popups({ me = null }) {
   /* The leaderboard card from this week's real board: you and whoever is
      just ahead of you, photos and all. Made-up names until it loads, or if
@@ -614,6 +642,9 @@ function Popups({ me = null }) {
   const around = (real ? board.slice(Math.max(0, at - 1), at + 2) : [SAMPLE_RIVAL, meRow, SAMPLE_BEHIND]).map(r => (r.user_id === meRow.user_id ? meRow : r));
 
   const [pick, setPick] = useState("milestone");
+  /* How to look at it: on its screen at phone or laptop size, or the card alone. */
+  const [view, setView] = useState("phone");
+  const [replay, setReplay] = useState(0);
   const [variant, setVariant] = useState({ milestone: 500, home: "ios" });
   const noop = () => {};
   const ITEMS = [
@@ -685,11 +716,26 @@ function Popups({ me = null }) {
             ))}
           </div>
         )}
-        <div className="pp-stage">
-          {item.full
-            ? <p className="pp-stage__note">This one fills the screen. Press <strong>Show over the app</strong> to see it.</p>
-            : <item.El key={`${pick}-${v}-${real}`} {...props} inline onAction={noop} onClose={noop} onDone={noop} />}
-        </div>
+        {!item.full && (
+          <div className="pp-views">
+            <div className="ax-range" role="group" aria-label="View">
+              {[["phone", "Phone"], ["laptop", "Laptop"], ["card", "Card only"]].map(([k, l]) => (
+                <button key={k} type="button" className={view === k ? "is-on" : ""} onClick={() => setView(k)}>{l}</button>
+              ))}
+            </div>
+            {view !== "card" && <button type="button" className="pp-replay" onClick={() => setReplay(n => n + 1)}>Replay</button>}
+          </div>
+        )}
+        {item.full ? (
+          <div className="pp-stage"><p className="pp-stage__note">This one fills the screen. Press <strong>Show over the app</strong> to see it.</p></div>
+        ) : view === "card" ? (
+          <div className="pp-stage">
+            <item.El key={`${pick}-${v}-${real}`} {...props} inline onAction={noop} onClose={noop} onDone={noop} />
+          </div>
+        ) : (
+          <ScreenFrame key={`${pick}-${v}-${view}-${replay}`} device={view}
+            src={`/?popup-preview=${pick}${v != null ? `&v=${encodeURIComponent(v)}` : ""}`} />
+        )}
         <p className="pp-foot">One card per visit at most: on the results page when a session is finished (not if it’s left halfway), or as a card on opening the app for the streak. Rewards come before the two asks.</p>
       </section>
     </div>
