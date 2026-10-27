@@ -39,7 +39,7 @@ const BEHIND = { user_id: "b", display_name: "Zain Ahmed", week_count: 168, rank
 const f = () => {};
 
 function rewardFor(kind, v) {
-  const p = { inline: true, onAction: f, onClose: f };
+  const p = { onAction: f, onClose: f };
   switch (kind) {
     case "dayone": return <DayOneNudge {...p} />;
     case "milestone": return <MilestoneNudge {...p} n={Number(v) || 500} />;
@@ -52,8 +52,6 @@ function rewardFor(kind, v) {
     default: return null;
   }
 }
-/* On the results page these drop their button; the page has Practice again. */
-const QUIET = new Set(["milestone", "passed", "best", "improve", "leader"]);
 
 /* A quiz that gets its 5th in a row right, again every few seconds, so
    the pop can be watched without pressing Replay. */
@@ -96,6 +94,6 @@ export default function PopupPreview({ kind, v = null }) {
   const reward = rewardFor(kind, v);
   return (
     <SessionSummary title="Practice" results={RESULTS} onRestart={f} onChangeSettings={f} onDrillWrong={f} onOpenPast={f}
-      reward={reward && <div className={`sum-reward__in${QUIET.has(kind) ? " is-quiet" : ""}`}>{reward}</div>} />
+      reward={reward} />
   );
 }

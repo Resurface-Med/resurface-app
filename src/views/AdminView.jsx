@@ -740,7 +740,7 @@ function Popups({ me = null }) {
         ) : (
           <ScreenFrame key={`${pick}-${v}-${replay}`} kind={pick} v={v} />
         )}
-        <p className="pp-foot">One card per visit at most: on the results page when a session is finished (not if it’s left halfway), or as a card on opening the app for the streak. Rewards come before the two asks.</p>
+        <p className="pp-foot">One card per visit at most, bottom right (compact at the bottom on a phone): after a finished session (not one left halfway), or on opening the app for the streak. Rewards come before the two asks.</p>
       </section>
     </div>
   );

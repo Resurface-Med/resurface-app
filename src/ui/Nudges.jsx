@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import StreakFlame from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
@@ -409,11 +408,10 @@ export function PreviewHost({ render }) {
  * app, never both. The combo (in the session itself) is separate and never
  * needs a tap.
  *
- * Session-end cards are part of the results page, in its #session-reward
- * slot under the score, not floating over it: over it, a card covered
- * Practice again on a phone (2026-10-27). Only a finished session has that
- * page, so leaving halfway earns nothing. Pure rewards drop their button
- * there — the page has Practice again — and keep the ×.
+ * Every card floats, bottom right on desktop and compact at the bottom on a
+ * phone (Rafil, 2026-10-27: inside the results page they were cluttered by
+ * its info). A session-end card needs the results page to be up, so
+ * leaving a session halfway earns nothing.
  *
  * At the end of a session, the first that is due wins:
  *   Day 1           the very first session                       once ever
@@ -448,7 +446,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   function show(n) {
     if (!free()) return false;
     usedVisit.current = true;
-    setShown(n.kind === "streak" ? n : { ...n, at: "summary" });
+    setShown(n);
     logStep(userId, `nudge_${n.kind}`);
     return true;
   }
@@ -481,7 +479,6 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
     if (!userId) return;
     if (started) {
       startRank.current = null;
-      setShown(s => (s?.at === "summary" ? null : s));
       board().then(b => { startRank.current = b.rank; }, () => {});
       return;
     }
@@ -490,7 +487,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
     const studyDays = Object.values(activity ?? {}).filter(n => Number(n) > 0).length;
     const t = setTimeout(async () => {
       /* Finished, not left halfway: only a finished session has a results page. */
-      if (!document.getElementById("session-reward")) return;
+      if (!document.querySelector(".sum-sheet")) return;
       /* Day 1: the first day anyone studied, once ever. */
       if (studyDays <= 1 && !store.get(userId, "dayone").done) {
         if (show({ kind: "dayone" })) store.set(userId, "dayone", { done: true });
@@ -563,16 +560,10 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   }, [sessionActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!shown) return null;
-  const card = renderCard();
-  if (shown.at !== "summary") return card;
-  const slot = document.getElementById("session-reward");
-  if (!slot) return null;
-  /* Pure rewards lose their button on the results page; it has Practice again. */
-  const quiet = ["milestone", "passed", "best", "improve", "leader"].includes(shown.kind);
-  return createPortal(<div className={`sum-reward__in${quiet ? " is-quiet" : ""}`}>{card}</div>, slot);
+  return renderCard();
 
   function renderCard() {
-  const inline = shown.at === "summary";
+  const inline = false;
   const close = () => {
     logStep(userId, `nudge_${shown.kind}_close`);
     if (shown.kind === "invite") {
