@@ -217,10 +217,12 @@ export default function LoginPage({ sentDeck = false }) {
     : mode === "reset" ? "Reset your password"
     : "Welcome back";
 
+  /* One short sentence, the address in ink so it can be checked at a
+     glance. University mail's wait is said under the boxes, where eyes
+     are while waiting — five sentences up here read as one grey block
+     and were skimmed (Rafil, 2026-10-27). */
   const sub = step === "code"
-    ? (UNI.test(email)
-      ? `We sent a 6-digit code to ${email}. University email takes about 3 minutes to arrive. Keep this page open; the code will still work when it lands.`
-      : `We sent a 6-digit code to ${email}.`) + " It’s in the subject line, so you can read it from the notification."
+    ? <>We sent a 6-digit code to <strong style={{ color: C.text, fontWeight: 600 }}>{email}</strong>. It’s in the subject line.</>
     : mode === "reset"
         ? "We'll email you a code to set a new one."
       : sentDeck
@@ -393,17 +395,21 @@ export default function LoginPage({ sentDeck = false }) {
               {/* University mail: that it is still on its way, and after four
                   minutes a way out. */}
               {uniWait && (
-                <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: "0 2px", fontVariantNumeric: "tabular-nums" }}>
-                  Sent {mmss(sentAgo)} ago.
-                  {sentAgo >= UNI_GIVE_UP_SECS && (
-                    <> Still nothing? Check Junk, or{" "}
-                      <button type="button" style={{ ...linkBtn, padding: 0, fontSize: 13 }}
-                        onClick={() => { setStep("form"); setCode(""); setError(""); setNotice(""); setEmail(""); setSentAt(0); }}>
-                        use a personal email instead
-                      </button>.
-                    </>
-                  )}
-                </p>
+                <div style={{ margin: "2px 2px 0", lineHeight: 1.45 }}>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: C.text, margin: 0 }}>
+                    University email takes about 3 minutes. Keep this page open.
+                  </p>
+                  <p style={{ fontSize: 13.5, color: C.sub, margin: "3px 0 0", fontVariantNumeric: "tabular-nums" }}>
+                    {sentAgo >= UNI_GIVE_UP_SECS ? (
+                      <>Still nothing after {mmss(sentAgo)}? Check Junk, or{" "}
+                        <button type="button" style={{ ...linkBtn, padding: 0, fontSize: 13.5 }}
+                          onClick={() => { setStep("form"); setCode(""); setError(""); setNotice(""); setEmail(""); setSentAt(0); }}>
+                          use a personal email instead
+                        </button>.
+                      </>
+                    ) : `Sent ${mmss(sentAgo)} ago`}
+                  </p>
+                </div>
               )}
 
               {error && <Alert kind="error">{error}</Alert>}
