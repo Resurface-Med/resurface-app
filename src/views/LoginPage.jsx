@@ -305,7 +305,7 @@ export default function LoginPage({ sentDeck = false }) {
                   the one that works. */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "18px 0 2px" }}>
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
-                <span style={{ fontSize: 12, color: C.muted }}>or use your email</span>
+                <span style={{ fontSize: 12, color: C.muted }}>{mode === "signup" ? "or use a personal email" : "or use your email"}</span>
                 <div style={{ flex: 1, height: 1, background: "var(--c-border)" }} />
               </div>
             </>
@@ -318,6 +318,15 @@ export default function LoginPage({ sentDeck = false }) {
                 <input id="email" type="email" required autoComplete="email" autoFocus={mode !== "signup"}
                   value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com" style={field} />
+                {/* Codes to ARU student email can take a long time or never
+                    arrive: 3 of the first 4 never confirmed, against 0 of 13
+                    on Gmail at a median of 18 seconds (2026-10-27). Only
+                    where a code is sent: sign-up and reset. */}
+                {mode !== "signin" && UNI.test(email.trim()) && (
+                  <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.5, margin: "8px 2px 0" }}>
+                    Codes sent to university email can take a long time to arrive. A personal email or Continue with Google is much quicker.
+                  </p>
+                )}
               </div>
 
               {/* No display name here any more.
