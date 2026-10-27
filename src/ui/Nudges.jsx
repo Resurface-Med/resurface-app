@@ -272,9 +272,8 @@ export function DayOneNudge({ onAction, onClose, inline }) {
   return (
     <NudgeCard kind="dayone" inline={inline}
       art={<span className="nudge-streak nudge-ignite"><StreakFlame days={1} size={58} /></span>}
-      title="You started a streak!"
-      body="Day 1 done. See you tomorrow for day 2?"
-      action="I’ll be back" onAction={onAction} onClose={onClose} later={false} />
+      title="You started a streak, don’t lose it!"
+      action="I’ll be back tomorrow" onAction={onAction} onClose={onClose} later={false} />
   );
 }
 
