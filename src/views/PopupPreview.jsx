@@ -10,11 +10,9 @@ import { todayKey, yesterdayKey } from "../lib/storage";
 
 /**
  * Each popup on the screen it actually appears on (Admin > Popups,
- * 2026-10-27). Loaded in its own frame at a real phone or laptop width,
- * so the layout is the one a student gets, not a laptop page squeezed
- * into a box. Sample data only; nothing is read or written.
- *
- *   ?popup-preview=<kind>&v=<variant>
+ * 2026-10-27), drawn straight into Admin inside a phone- or laptop-sized
+ * box. Sample data only; nothing is read or written. (An iframe of the
+ * whole app was tried first and dropped as overkill.)
  */
 
 const QS = [
@@ -92,10 +90,7 @@ function HomeScreen() {
   );
 }
 
-export default function PopupPreview() {
-  const p = new URLSearchParams(location.search);
-  const kind = p.get("popup-preview");
-  const v = p.get("v");
+export default function PopupPreview({ kind, v = null }) {
   if (kind === "combo") return <ComboScreen />;
   if (kind === "streak") return <HomeScreen />;
   const reward = rewardFor(kind, v);

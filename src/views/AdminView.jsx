@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useLayoutEffect, useRef } from "react";
 import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
+import PopupPreview from "./PopupPreview";
 import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGeneratedDaily,
@@ -600,11 +601,13 @@ const SAMPLE_ME = { user_id: "me", display_name: "You", week_count: 212, rank: 4
 const SAMPLE_RIVAL = { user_id: "rival", display_name: "Omar Arif", week_count: 249, rank: 3 };
 const SAMPLE_BEHIND = { user_id: "behind", display_name: "Zain A", week_count: 168, rank: 5 };
 
-/* A popup on the screen it really appears on: the app's own preview page
-   (views/PopupPreview) in a frame at a true phone or laptop width, scaled
-   to fit. A box at the page's width would lay out like a laptop. */
-const DEVICES = { phone: [390, 780], laptop: [1280, 800] };
-function ScreenFrame({ src, device }) {
+/* A popup on the screen it really appears on (views/PopupPreview), drawn
+   at the size of the screen Admin is open on and scaled into a box. The
+   layout follows the real window, so a box can't fake a phone on a laptop:
+   open Admin on a phone to see the phone version. The transform makes the
+   box the frame for anything fixed-position inside it (the quiz screen, a
+   floating card), so nothing escapes onto the Admin page. */
+function ScreenFrame({ kind, v }) {
   const box = useRef(null);
   const [w, setW] = useState(0);
   useLayoutEffect(() => {
@@ -615,13 +618,15 @@ function ScreenFrame({ src, device }) {
     setW(el.clientWidth);
     return () => ro.disconnect();
   }, []);
-  const [W, H] = DEVICES[device];
-  const k = (device === "phone" ? Math.min(w, 340) : w) / W;
+  const W = window.innerWidth, H = Math.min(window.innerHeight, 900);
+  const k = Math.min(1, Math.max(0, w - 24) / W);
   return (
     <div ref={box} className="pp-frame-box">
       {w > 0 && (
-        <div className={`pp-frame is-${device}`} style={{ width: W * k, height: H * k }}>
-          <iframe title="Preview" src={src} style={{ width: W, height: H, transform: `scale(${k})` }} />
+        <div className="pp-frame" style={{ width: W * k, height: H * k }}>
+          <div className="pp-frame__vp" style={{ width: W, height: H, transform: `scale(${k})`, "--app-vh": `${H}px` }}>
+            <PopupPreview kind={kind} v={v} />
+          </div>
         </div>
       )}
     </div>
@@ -642,8 +647,8 @@ function Popups({ me = null }) {
   const around = (real ? board.slice(Math.max(0, at - 1), at + 2) : [SAMPLE_RIVAL, meRow, SAMPLE_BEHIND]).map(r => (r.user_id === meRow.user_id ? meRow : r));
 
   const [pick, setPick] = useState("milestone");
-  /* How to look at it: on its screen at phone or laptop size, or the card alone. */
-  const [view, setView] = useState("phone");
+  /* How to look at it: on its screen (at this device's size), or the card alone. */
+  const [view, setView] = useState("screen");
   const [replay, setReplay] = useState(0);
   const [variant, setVariant] = useState({ milestone: 500, home: "ios" });
   const noop = () => {};
@@ -719,7 +724,7 @@ function Popups({ me = null }) {
         {!item.full && (
           <div className="pp-views">
             <div className="ax-range" role="group" aria-label="View">
-              {[["phone", "Phone"], ["laptop", "Laptop"], ["card", "Card only"]].map(([k, l]) => (
+              {[["screen", "On its screen"], ["card", "Card only"]].map(([k, l]) => (
                 <button key={k} type="button" className={view === k ? "is-on" : ""} onClick={() => setView(k)}>{l}</button>
               ))}
             </div>
@@ -733,8 +738,7 @@ function Popups({ me = null }) {
             <item.El key={`${pick}-${v}-${real}`} {...props} inline onAction={noop} onClose={noop} onDone={noop} />
           </div>
         ) : (
-          <ScreenFrame key={`${pick}-${v}-${view}-${replay}`} device={view}
-            src={`/?popup-preview=${pick}${v != null ? `&v=${encodeURIComponent(v)}` : ""}`} />
+          <ScreenFrame key={`${pick}-${v}-${replay}`} kind={pick} v={v} />
         )}
         <p className="pp-foot">One card per visit at most: on the results page when a session is finished (not if it’s left halfway), or as a card on opening the app for the streak. Rewards come before the two asks.</p>
       </section>

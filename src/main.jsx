@@ -10,20 +10,11 @@ window.__RESURFACE_BUILD = "2026-10-17.1";
 mark("script");
 import { AuthProvider } from './lib/auth'
 
-/* Admin > Popups loads ?popup-preview=… in a frame: one popup on its own
-   screen with sample data, no sign-in, nothing read or written. */
-const PopupPreview = React.lazy(() => import('./views/PopupPreview.jsx'))
-const previewing = new URLSearchParams(location.search).has('popup-preview')
-
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {previewing ? (
-      <React.Suspense fallback={null}><PopupPreview /></React.Suspense>
-    ) : (
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    )}
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 )
 
