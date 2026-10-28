@@ -1,7 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/((?!assets/).*)",
+      "source": "/d/:code",
+      "destination": "/api/deck-page?code=:code"
+    },
+    {
+      "source": "/((?!assets/|api/).*)",
       "destination": "/index.html"
     }
   ],
@@ -46,5 +50,5 @@
       ]
     }
   ],
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- src public index.html package.json package-lock.json vite.config.js vercel.json"
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- src public api index.html package.json package-lock.json vite.config.js vercel.json"
 }
