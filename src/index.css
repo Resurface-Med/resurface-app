@@ -1460,6 +1460,8 @@ body::after {
   font-weight: 600;
 }
 .ai-dock__bubble strong { font-weight: 600; }
+/* Replies come in paragraphs now (2026-10-28); keep the breaks, with a little air. */
+.ai-dock__reply .ai-dock__bubble { white-space: pre-line; }
 
 .ai-dock__rate {
   display: flex;
