@@ -1515,6 +1515,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   return (
     <QuizShell
+      sessionId={sidRef.current}
       q={q}
       idx={idx}
       queue={queue}

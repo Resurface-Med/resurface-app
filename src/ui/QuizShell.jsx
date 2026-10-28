@@ -45,6 +45,8 @@ export default function QuizShell({
   onSaveEdit,
   onRequestExit,
   peerSplit = null,
+  /* The practice session, so Resurface AI counts its replies per sitting. */
+  sessionId = null,
 }) {
   /* Flags belong to this sitting. They mark a question to come back to,
      and they leave with the session. */
@@ -397,7 +399,7 @@ export default function QuizShell({
             <div className={`ai-slot${aiClosing ? " is-closing" : ""}`}>
               {/* Stays mounted across questions. The dock itself notices the
                   move: a new question, a cleared thread, new prompts. */}
-              <ExplainChat q={q} picked={sel} answered={answeredThis} closing={aiClosing} onClose={() => setAiOpen(false)} />
+              <ExplainChat q={q} picked={sel} answered={answeredThis} closing={aiClosing} sitting={sessionId} onClose={() => setAiOpen(false)} />
             </div>
           )}
         </div>

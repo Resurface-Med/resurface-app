@@ -50,22 +50,32 @@ const QUICK_UNANSWERED = [
   },
 ];
 
-function loadUsed(questionId) {
-  if (questionId == null) return 0;
+/*
+ * AI replies used, per question per sitting (2026-10-28). The key is the
+ * practice session's id and the question's, so the same question in a
+ * later session starts at 0 again; the server counts the same way. This
+ * used to be per question for good, and a student came back days later to
+ * "1 left". Saving drops every other sitting's counts, so the store only
+ * ever holds the current one.
+ */
+const usedKey = (sitting, questionId) => (sitting ? `${sitting}:${questionId}` : String(questionId));
+
+function loadUsed(key) {
   try {
     const map = JSON.parse(localStorage.getItem(ASK_STORE) || "{}");
-    const n = Number(map[String(questionId)]);
+    const n = Number(map[key]);
     return Number.isFinite(n) ? Math.min(ASK_LIMIT, Math.max(0, n)) : 0;
   } catch {
     return 0;
   }
 }
 
-function saveUsed(questionId, used) {
-  if (questionId == null) return;
+function saveUsed(key, used, sitting) {
   try {
-    const map = JSON.parse(localStorage.getItem(ASK_STORE) || "{}");
-    map[String(questionId)] = Math.min(ASK_LIMIT, Math.max(0, used));
+    const old = JSON.parse(localStorage.getItem(ASK_STORE) || "{}");
+    const map = {};
+    for (const [k, v] of Object.entries(old)) if (!sitting || k.startsWith(`${sitting}:`)) map[k] = v;
+    map[key] = Math.min(ASK_LIMIT, Math.max(0, used));
     localStorage.setItem(ASK_STORE, JSON.stringify(map));
   } catch {
     /* ignore quota persistence failures */
@@ -143,7 +153,7 @@ function QuickPills({ sending, disabled, onPick, prompts = QUICK, promptKey }) {
 const threads = new Map();
 const threadOf = id => threads.get(id) ?? [];
 
-export default function ExplainChat({ q, picked, onClose, answered = true, closing = false }) {
+export default function ExplainChat({ q, picked, onClose, answered = true, closing = false, sitting = null }) {
   const [messages, setMessagesState] = useState(() => threadOf(q.id));
   /* Every change to the thread on screen is also the thread kept. */
   const shownId = useRef(q.id);
@@ -157,7 +167,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
-  const [used, setUsed] = useState(() => loadUsed(q.id));
+  const [used, setUsed] = useState(() => loadUsed(usedKey(sitting, q.id)));
   const threadRef = useRef(null);
   const inputRef = useRef(null);
   /* The question on screen. A reply that comes back after a move belongs
@@ -180,7 +190,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   }
 
   useEffect(() => {
-    setUsed(loadUsed(q.id));
+    setUsed(loadUsed(usedKey(sitting, q.id)));
     shownId.current = q.id;
     setMessagesState(threadOf(q.id));
     setDraft("");
@@ -202,7 +212,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   function markUsed(nextUsed) {
     const capped = Math.min(ASK_LIMIT, Math.max(0, nextUsed));
     setUsed(capped);
-    saveUsed(q.id, capped);
+    saveUsed(usedKey(sitting, q.id), capped, sitting);
   }
 
   async function sendPrompt(label, apiText) {
@@ -238,6 +248,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
         headers: authHeaders(session?.access_token),
         body: JSON.stringify({
           ...contextBody(q, picked, answered),
+          ...(sitting ? { sitting } : {}),
           message: trimmed,
           history,
         }),
@@ -256,7 +267,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
         : used + 1;
       /* Quota is per question on the server. Record it against the question
          that was asked, even if they have already moved on. */
-      saveUsed(askedFor, Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
+      saveUsed(usedKey(sitting, askedFor), Math.min(ASK_LIMIT, Math.max(0, nextUsed)), sitting);
       const reply = { id: `a-${Date.now()}`, role: "assistant", text: body.reply, rating: null };
       if (!stillHere) {
         /* Filed under the question it answers, for when you go back. */
