@@ -3,7 +3,7 @@ import { apiFetch } from "../lib/api";
 import { isOnline } from "../lib/online";
 import { exhibitText } from "../lib/exhibits";
 import { supabase } from "../lib/supabase";
-import { splitMarks } from "../lib/formatExplain";
+import { splitMarks, parseBlocks } from "../lib/formatExplain";
 
 /**
  * Inline tutor dock beside the question — no auto-explain, only what the
@@ -17,7 +17,7 @@ const ASK_STORE = "rs_ai_asks";
 const QUICK = [
   {
     label: "Explain concept in simpler terms",
-    message: "In 2–3 short sentences, explain the idea in simpler words. No extra topics.",
+    message: "Explain the idea again in simpler words, breaking it down step by step. No extra topics.",
   },
   {
     label: "Give me a memory tip",
@@ -80,6 +80,20 @@ function saveUsed(key, used, sitting) {
   } catch {
     /* ignore quota persistence failures */
   }
+}
+
+/* A reply laid out the way chat assistants do: paragraphs, bullet lists,
+   numbered steps, bold key terms (2026-10-28). */
+function ExplainRich({ text }) {
+  return (
+    <div className="ai-md">
+      {parseBlocks(text).map((b, i) => (
+        b.type === "p" ? <p key={i}><ExplainText text={b.text} /></p>
+          : b.type === "ul" ? <ul key={i}>{b.items.map((t, j) => <li key={j}><ExplainText text={t} /></li>)}</ul>
+          : <ol key={i}>{b.items.map((t, j) => <li key={j}><ExplainText text={t} /></li>)}</ol>
+      ))}
+    </div>
+  );
 }
 
 function ExplainText({ text }) {
@@ -327,9 +341,9 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
           <div key={msg.id} className={`ai-dock__msg is-${msg.role}`}>
             {msg.role === "assistant" ? (
               <div className="ai-dock__reply">
-                <p className="ai-dock__bubble">
-                  <ExplainText text={msg.text} />
-                </p>
+                <div className="ai-dock__bubble">
+                  <ExplainRich text={msg.text} />
+                </div>
                 <div className="ai-dock__rate">
                   <button
                     type="button"

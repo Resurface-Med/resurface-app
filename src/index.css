@@ -1460,8 +1460,15 @@ body::after {
   font-weight: 600;
 }
 .ai-dock__bubble strong { font-weight: 600; }
-/* Replies come in paragraphs now (2026-10-28); keep the breaks, with a little air. */
-.ai-dock__reply .ai-dock__bubble { white-space: pre-line; }
+/* Replies laid out like a chat assistant's (2026-10-28): paragraphs,
+   lists and steps, with even spacing between them. */
+.ai-md > * { margin: 0; }
+.ai-md > * + * { margin-top: 10px; }
+.ai-md ul, .ai-md ol { padding-left: 1.3em; }
+.ai-md li + li { margin-top: 5px; }
+.ai-md li::marker { color: var(--c-muted); }
+.ai-md ol li::marker { font-weight: 600; color: var(--c-sub); }
+.ai-md strong { color: var(--c-text); }
 
 .ai-dock__rate {
   display: flex;

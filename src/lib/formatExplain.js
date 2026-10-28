@@ -89,3 +89,41 @@ export function splitMarks(input) {
   if (last < s.length) parts.push({ kind: "text", text: s.slice(last) });
   return parts.length ? parts : [{ kind: "text", text: s }];
 }
+
+/**
+ * A reply as blocks, for Resurface AI's chat-style answers (2026-10-28):
+ * paragraphs, "- " bullet lists and "1. " numbered steps. Bold and italic
+ * inside each are left for splitMarks. A "#" heading is shown as a bold
+ * line; anything else Markdown is read as plain text.
+ *
+ * @returns {Array<{ type: "p", text: string } | { type: "ul" | "ol", items: string[] }>}
+ */
+export function parseBlocks(input) {
+  const lines = String(input ?? "").replace(/\r\n?/g, "\n").split("\n");
+  const blocks = [];
+  let para = [];
+  const flush = () => { if (para.length) { blocks.push({ type: "p", text: para.join(" ") }); para = []; } };
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) { flush(); continue; }
+    const bullet = line.match(/^(?:[-*•])\s+(.*)$/);
+    const step = line.match(/^(\d+)[.)]\s+(.*)$/);
+    const head = line.match(/^#{1,6}\s+(.*)$/);
+    if (bullet || step) {
+      flush();
+      const type = bullet ? "ul" : "ol";
+      const text = bullet ? bullet[1] : step[2];
+      const prev = blocks[blocks.length - 1];
+      if (prev && prev.type === type) prev.items.push(text);
+      else blocks.push({ type, items: [text] });
+      continue;
+    }
+    if (head) { flush(); blocks.push({ type: "p", text: `**${head[1].replace(/\*\*/g, "")}**` }); continue; }
+    /* A wrapped line continues the item above it, if there is one. */
+    const prev = blocks[blocks.length - 1];
+    if (!para.length && prev && prev.type !== "p" && /^\s{2,}/.test(raw)) { prev.items[prev.items.length - 1] += ` ${line}`; continue; }
+    para.push(line);
+  }
+  flush();
+  return blocks;
+}
