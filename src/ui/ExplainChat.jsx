@@ -112,15 +112,18 @@ function authHeaders(token) {
 }
 
 function contextBody(q, picked, answered) {
-  /* Before an answer the correct index and the explanation are withheld —
-     the model cannot give away what it was never sent. */
+  /* The answer and explanation always go, picked or not (Rafil,
+     2026-10-28: "stop the ai from hiding the answer… i want to work with
+     it"). Withholding them left someone new to a topic guessing. */
   return {
     questionId: q.id,
     /* The exhibit goes with the stem, so the AI can read the numbers. */
     question: [q.q, q.exhibit ? exhibitText(q.exhibit) : "", q.ask].filter(Boolean).join("\n\n"),
     options: q.opts,
     picked: answered ? picked : null,
-    ...(answered ? { correct: q.ans, explanation: q.exp } : {}),
+    answered: Boolean(answered),
+    correct: q.ans,
+    explanation: q.exp,
   };
 }
 
