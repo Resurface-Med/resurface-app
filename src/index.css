@@ -11280,7 +11280,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 .nudge.is-inline { position: relative; right: auto; bottom: auto; animation: none; }
 @keyframes nudgeIn { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
-.nudge__x { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: none; color: var(--c-muted); cursor: pointer; display: grid; place-items: center; }
+.nudge__x { position: absolute; z-index: 5; top: 12px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; background: none; color: var(--c-muted); cursor: pointer; display: grid; place-items: center; }
 .nudge__x:hover { background: var(--c-surface3); color: var(--c-text); }
 .nudge__art { width: 84px; height: 84px; border-radius: 20px; display: grid; place-items: center; }
 .nudge__text { padding-top: 2px; padding-right: 18px; }
@@ -11365,7 +11365,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-mile__n { position: relative; z-index: 1; font-size: 60px; font-weight: 600; letter-spacing: -2px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; animation: mileLand .5s 1.15s cubic-bezier(0.34, 1.7, 0.5, 1) both; }
 @keyframes mileLand { 0% { transform: none; } 40% { transform: scale(1.12); } 100% { transform: none; } }
 .nudge-mile__label { position: relative; z-index: 1; margin-top: 6px; font-size: 14px; font-weight: 500; color: var(--c-muted); }
-.nudge-mile__burst { position: absolute; left: 60px; top: 34px; width: 0; height: 0; }
+.nudge-mile__burst { position: absolute; left: 60px; top: 34px; width: 0; height: 0; pointer-events: none; }
 .nudge-mile__bit { position: absolute; left: 0; top: 0; border-radius: 2px; background: var(--c); opacity: 0; animation: confetti 1.6s 1.15s cubic-bezier(0.15, 0.75, 0.3, 1) both; }
 @keyframes confetti {
   0% { opacity: 0; transform: translate(0, 0) rotate(0); }
