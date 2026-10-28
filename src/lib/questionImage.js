@@ -89,6 +89,10 @@ async function signedUrl(path) {
  */
 export async function questionImageUrl(path) {
   if (!path) return null;
+  /* An image shipped with the app (public/qimg/…), for questions built from
+     openly licensed sources such as the chest X-rays from Wikimedia Commons
+     (2026-10-28). It is served from our own domain, so it is used as is and
+     the service worker keeps it for offline. */
   if (localUrls.has(path)) return localUrls.get(path);
   const blob = await readImage(path);
   if (blob) {
@@ -96,6 +100,7 @@ export async function questionImageUrl(path) {
     localUrls.set(path, url);
     return url;
   }
+  if (path.startsWith("/")) { keepOne(path, path); return path; }
   const url = await signedUrl(path);
   if (url) keepOne(path, url);
   return url;
@@ -127,7 +132,7 @@ export function keepImagesOffline(paths) {
     for (let i = 0; i < todo.length; i += 4) {
       if (typeof navigator !== "undefined" && navigator.onLine === false) return;
       await Promise.all(todo.slice(i, i + 4).map(async p => {
-        const url = await signedUrl(p);
+        const url = p.startsWith("/") ? p : await signedUrl(p);
         if (url) await keepOne(p, url);
       }));
     }
@@ -140,5 +145,6 @@ export async function removeQuestionImage(path) {
   urlCache.delete(path);
   localUrls.delete(path);
   await deleteImage(path);
+  if (path.startsWith("/")) return;   // shipped with the app, not ours to delete
   await supabase.storage.from(BUCKET).remove([path]);
 }
