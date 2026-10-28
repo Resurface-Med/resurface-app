@@ -64,6 +64,9 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
     /* Not editable here yet; kept as it was. */
     ...(q.ask ? { ask: q.ask } : {}),
     ...(q.exhibit ? { exhibit: q.exhibit } : {}),
+    /* The topic note (2026-10-28): a save writes the whole question, so
+       anything not listed here would be wiped by an edit. */
+    ...(q.topic ? { topic: q.topic } : {}),
   });
   const canSave = question.trim() && opts.filter(o => o.trim()).length >= 2
     && opts[ans]?.trim();

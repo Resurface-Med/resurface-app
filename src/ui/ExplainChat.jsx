@@ -143,6 +143,8 @@ function contextBody(q, picked, answered) {
     answered: Boolean(answered),
     correct: q.ans,
     explanation: q.exp,
+    /* Its knowledge library note, which the tutor builds on (2026-10-28). */
+    ...(q.topic?.title && q.topic?.body ? { topic: { title: q.topic.title, body: q.topic.body } } : {}),
   };
 }
 

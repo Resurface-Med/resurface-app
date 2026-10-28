@@ -1,3 +1,4 @@
+import RichText from "./RichText";
 import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { questionsInDeck } from "../lib/decks";
@@ -141,7 +142,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
      option, the explanation, a wrong option's note, or where it lives. */
   const words = useMemo(() => deferredQuery.trim().toLowerCase().split(/\s+/).filter(Boolean), [deferredQuery]);
   const textIndex = useMemo(() => new Map(all.map(x => [x.id,
-    [x.q, ...(x.opts ?? []), x.exp, ...(x.optExp ?? []), ...(x.path ?? []).map(p => p.name)]
+    [x.q, ...(x.opts ?? []), x.exp, ...(x.optExp ?? []), ...(x.path ?? []).map(p => p.name), x.topic?.title, x.topic?.body]
       .filter(t => typeof t === "string").join(" \n ").toLowerCase()])), [all]);
   if (words.length) shown.splice(0, shown.length, ...shown.filter(x => { const t = textIndex.get(x.id) ?? ""; return words.every(w => t.includes(w)); }));
 
@@ -345,6 +346,10 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                   ))}
                 </ol>
                 {q.exp && <div className="qr-exp"><span className="qr-label">Explanation</span><p>{q.exp}</p></div>}
+                {/* The knowledge library note, so it is checked with the rest. */}
+                {q.topic?.title && (
+                  <div className="qr-exp"><span className="qr-label">Topic note: {q.topic.title}</span><RichText text={q.topic.body || ""} /></div>
+                )}
 
                 {report && (
                   <div className="qr-report">

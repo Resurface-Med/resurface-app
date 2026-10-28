@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  storedPayload,
   toDeckFile, serializeDeckFile, parseDeckFile, planDeckUpdate, deckFileName, DECK_FILE_INSTRUCTIONS,
 } from "../src/lib/deckFile.js";
 
@@ -178,5 +179,17 @@ describe("deckFileName", () => {
   it("keeps the deck name and drops characters a file name cannot hold", () => {
     expect(deckFileName("Year 2 / Endocrine")).toBe("Year 2 Endocrine.json");
     expect(deckFileName("")).toBe("deck.json");
+  });
+});
+
+describe("knowledge library notes survive a file round trip (2026-10-28)", () => {
+  it("keeps the live question's topic note, image and exhibit", () => {
+    const topic = { title: "Pneumothorax", body: "Air in the pleural space." };
+    const live = { q: "old", opts: ["a", "b", "c", "d", "e"], ans: 0, exp: "x", optExp: [], img: "/qimg/resp/p.webp", topic };
+    const next = { q: "new", opts: ["a", "b", "c", "d", "e"], ans: 1, exp: "y", optExp: [] };
+    const out = storedPayload(live, next);
+    expect(out.topic).toEqual(topic);
+    expect(out.img).toBe("/qimg/resp/p.webp");
+    expect(out.q).toBe("new");
   });
 });
