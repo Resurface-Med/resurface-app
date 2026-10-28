@@ -11565,3 +11565,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge-board__av { width: 24px; height: 24px; font-size: 10px; }
   .nudge-phone { width: 30px; height: 56px; padding: 8px 4px 6px; }
 }
+
+/* Resurface AI thinking: each stage fades in, nothing else moves. */
+.ai-dock__stage { display: inline-block; animation: aiStage .35s ease-out both; }
+@keyframes aiStage { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ai-dock__stage { animation: none; } }

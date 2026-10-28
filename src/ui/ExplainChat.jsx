@@ -82,6 +82,25 @@ function saveUsed(key, used, sitting) {
   }
 }
 
+/* While it thinks (2026-10-28): what it is doing, one quiet line at a
+   time, instead of a "Thinking…" that sat still for five seconds. */
+const STAGES = ["Reading the question…", "Working through it…", "Checking the details…", "Putting it into words…"];
+function ThinkingLine() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI(n => Math.min(n + 1, STAGES.length - 1)), 1300);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <p className="ai-dock__wait" aria-live="polite">
+      <span className="ai-dock__dots" aria-hidden="true">
+        <span /><span /><span />
+      </span>
+      <span key={i} className="ai-dock__stage">{STAGES[i]}</span>
+    </p>
+  );
+}
+
 /* A reply laid out the way chat assistants do: paragraphs, bullet lists,
    numbered steps, bold key terms (2026-10-28). */
 function ExplainRich({ text }) {
@@ -268,9 +287,13 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
           ...(sitting ? { sitting } : {}),
           message: trimmed,
           history,
+          /* Streamed (2026-10-28): the reply shows as it is written. */
+          stream: true,
+          quick: apiText !== undefined,
         }),
       });
-      const body = await res.json().catch(() => ({}));
+      const streamed = res.ok && (res.headers.get("content-type") || "").startsWith("text/plain");
+      const body = streamed ? null : await res.json().catch(() => ({}));
       if (!res.ok) {
         if (res.status === 429 && body?.remaining === 0) {
           markUsed(ASK_LIMIT);
@@ -278,22 +301,41 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
         throw new Error(body?.error || "Couldn't get a reply.");
       }
 
-      const stillHere = liveId.current === askedFor;
-      const nextUsed = typeof body.remaining === "number"
-        ? ASK_LIMIT - body.remaining
-        : used + 1;
+      const left = streamed ? Number(res.headers.get("x-remaining")) : body.remaining;
+      const nextUsed = Number.isFinite(left) ? ASK_LIMIT - left : used + 1;
       /* Quota is per question on the server. Record it against the question
          that was asked, even if they have already moved on. */
       saveUsed(usedKey(sitting, askedFor), Math.min(ASK_LIMIT, Math.max(0, nextUsed)), sitting);
-      const reply = { id: `a-${Date.now()}`, role: "assistant", text: body.reply, rating: null };
-      if (!stillHere) {
+      if (liveId.current === askedFor) setUsed(Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
+
+      const replyId = `a-${Date.now()}`;
+      let text = body?.reply ?? "";
+      if (streamed) {
+        /* The bubble appears with the first words and grows as they come. */
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        let shown = false;
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          text += dec.decode(value, { stream: true });
+          if (liveId.current !== askedFor || !text.trim()) continue;
+          const draft = { id: replyId, role: "assistant", text, rating: null, streaming: true };
+          if (!shown) { shown = true; setMessages(prev => [...prev, draft]); }
+          else setMessages(prev => prev.map(m => (m.id === replyId ? draft : m)));
+        }
+        text += dec.decode();
+      }
+      text = text.trim() || "Couldn't put that into words. Try again.";
+      const reply = { id: replyId, role: "assistant", text, rating: null };
+      if (liveId.current !== askedFor) {
         /* Filed under the question it answers, for when you go back. */
-        threads.set(askedFor, [...threadOf(askedFor), reply]);
+        threads.set(askedFor, [...threadOf(askedFor).filter(m => m.id !== replyId), reply]);
         return;
       }
-
-      setUsed(Math.min(ASK_LIMIT, Math.max(0, nextUsed)));
-      setMessages(prev => [...prev, reply]);
+      setMessages(prev => (prev.some(m => m.id === replyId)
+        ? prev.map(m => (m.id === replyId ? reply : m))
+        : [...prev, reply]));
     } catch (e) {
       if (liveId.current !== askedFor) {
         threads.set(askedFor, threadOf(askedFor).filter(m => m.id !== userMsg.id));
@@ -347,7 +389,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
                 <div className="ai-dock__bubble">
                   <ExplainRich text={msg.text} />
                 </div>
-                <div className="ai-dock__rate">
+                {!msg.streaming && <div className="ai-dock__rate">
                   <button
                     type="button"
                     className={`ai-dock__rate-btn${msg.rating === "up" ? " is-on" : ""}`}
@@ -370,7 +412,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
                       <path d="M5 8.5V3H3.2A1.2 1.2 0 002 4.2v3.1A1.2 1.2 0 003.2 8.5H5zm0 0l1.7 4.1a1.4 1.4 0 001.4 1H8.3c.7 0 1.2-.7 1-1.4L8.8 10H12.3a1.7 1.7 0 001.6-2.2l-.8-3.2A2 2 0 0011.2 3H5" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
                     </svg>
                   </button>
-                </div>
+                </div>}
               </div>
             ) : (
               <p className="ai-dock__bubble">
@@ -380,14 +422,7 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
           </div>
         ))}
 
-        {sending && (
-          <p className="ai-dock__wait" aria-live="polite">
-            <span className="ai-dock__dots" aria-hidden="true">
-              <span /><span /><span />
-            </span>
-            Thinking…
-          </p>
-        )}
+        {sending && !messages.some(m => m.streaming) && <ThinkingLine />}
 
         {error && (
           <p className="ai-dock__error" role="alert">{error}</p>
