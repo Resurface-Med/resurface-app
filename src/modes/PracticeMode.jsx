@@ -317,7 +317,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     if (!autoStart) return;
     onAutoStartConsumed?.();
     if (autoStart.ids) startWith(autoStart.ids, autoStart.limit);
-    else start({ ...filter, leaves: ["All"] });   // "Start studying": everything
+    /* "Review 87 due" (and Wrong, Saved) means all of them, not the Study
+       screen's default 20 (2026-10-28: a friend got 20 at a time). Every
+       answer saves, so stopping halfway loses nothing. */
+    else start({ ...filter, leaves: ["All"] }, "All");
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     setFilter(f => ({ ...f, leaves: NONE }));
