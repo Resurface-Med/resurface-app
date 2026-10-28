@@ -176,7 +176,7 @@ function Overview() {
         <div className="ax-chart__head">
           <h3 className="ax-h3">{chosen.title}</h3>
           <div className="ax-range" role="group" aria-label="Range">
-            {[30, 90].map(n => (
+            {[7, 30, 90].map(n => (
               <button key={n} type="button" aria-pressed={range === n}
                 className={range === n ? "is-on" : ""} onClick={() => { setRange(n); setPicked(null); }}>{n} days</button>
             ))}
