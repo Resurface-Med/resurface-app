@@ -11570,3 +11570,15 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ai-dock__stage { display: inline-block; animation: aiStage .35s ease-out both; }
 @keyframes aiStage { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ai-dock__stage { animation: none; } }
+
+/* A question's topic note (test, 2026-10-28): one line until opened. */
+.q-topic { margin-top: 16px; border-top: 1px solid var(--c-border); padding-top: 12px; }
+.q-topic__head { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--c-text); cursor: pointer; }
+.q-topic__head:hover .q-topic__title { color: var(--c-accent); }
+.q-topic__icon { color: var(--c-muted); flex-shrink: 0; }
+.q-topic__body { margin-top: 10px; font-size: 15px; line-height: 1.6; color: var(--c-text); animation: topicIn .25s ease-out both; }
+@keyframes topicIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .q-topic__body { animation: none; } }
+
+/* An explanation keeps its line breaks (an image credit sits on its own line). */
+.q-exp { white-space: pre-line; }

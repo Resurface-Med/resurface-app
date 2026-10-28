@@ -10,6 +10,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
+import RichText from "./RichText";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
 
 /* One paint list for every question. The stroke is drawn on the letters
@@ -91,6 +92,31 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * (icons, “selected” labels) stays quiet so the stem and five choices dominate.
  * Accuracy feedback lives after the commit, not as a second dashboard.
  */
+/*
+ * The topic this question belongs to, as a note under the explanation
+ * (test, 2026-10-28; after Passmed's library). One quiet line until
+ * tapped, then the whole topic in place. Several questions can share a
+ * note, so one question teaches the topic around the fact it tested.
+ */
+function TopicNote({ topic }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`q-topic${open ? " is-open" : ""}`}>
+      <button type="button" className="q-topic__head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        <svg className="q-topic__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 2.75h7.25L13 5.5v7.75H3V2.75z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M5.5 7.5h5M5.5 10h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+        <span className="q-topic__title">{topic.title}</span>
+        <span className={`q-allopts-chev${open ? " is-open" : ""}`} aria-hidden="true">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </span>
+      </button>
+      {open && <RichText text={topic.body} className="ai-md q-topic__body" />}
+    </div>
+  );
+}
+
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null }) {
   const answered = sel !== null || timedOut;
 
@@ -425,6 +451,8 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       {answered && (
         <div className="q-review anim-fade-up">
           <Highlighter as="p" text={q.exp} className="q-exp" />
+
+          {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} />}
 
           {explaining && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />
