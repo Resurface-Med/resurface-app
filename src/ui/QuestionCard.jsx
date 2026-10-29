@@ -110,7 +110,7 @@ function TopicNote({ topic }) {
   /* A taste of the note while it's shut, fading out: cut-off text says
      there is more without a button saying so. The first paragraph,
      without its markup. */
-  const teaser = String(topic.body).split(/\n\s*\n/)[0].replace(/\*\*/g, "").trim();
+  const teaser = String(topic.body).split(/\n\s*\n/)[0].replace(/\*\*|==/g, "").trim();
   const toggle = () => {
     setOpen(o => !o);
     if (tip) { setTip(false); markTipSeen(); }
