@@ -10,6 +10,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
+import EditorialNote, { readTime } from "./EditorialNote";
 import { BookOpen } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
 
@@ -102,7 +103,8 @@ const TIP_KEY = "rs_topic_tip_seen";
 const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return true; } };
 const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* fine */ } };
 
-function TopicNote({ topic, open, onToggle }) {
+function TopicNote({ topic }) {
+  const [open, setOpen] = useState(false);
   /* Once, the first time anyone meets a note (2026-10-29): what it is. */
   const [tip, setTip] = useState(() => !tipSeen());
   /* A taste of the note while it's shut, fading out: cut-off text says
@@ -110,7 +112,7 @@ function TopicNote({ topic, open, onToggle }) {
      without its markup. */
   const teaser = String(topic.body).split(/\n\s*\n/)[0].replace(/\*\*|==/g, "").trim();
   const toggle = () => {
-    onToggle?.();
+    setOpen(o => !o);
     if (tip) { setTip(false); markTipSeen(); }
   };
   return (
@@ -131,13 +133,19 @@ function TopicNote({ topic, open, onToggle }) {
             </span>
           </span>
         </span>
-        {teaser && <span className="q-topic__teaser">{teaser}</span>}
+        {!open && teaser && <span className="q-topic__teaser">{teaser}</span>}
       </button>
+      {open && (
+        <div className="q-topic__body">
+          <p className="q-topic__time">{readTime(topic.body)}</p>
+          <EditorialNote text={topic.body} />
+        </div>
+      )}
     </div>
   );
 }
 
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, noteOpen = false, onNoteToggle }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -472,9 +480,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         <div className="q-review anim-fade-up">
           <Highlighter as="p" text={q.exp} className="q-exp" />
 
-          {q.topic?.title && q.topic?.body && (
-            <TopicNote key={q.id} topic={q.topic} open={noteOpen} onToggle={onNoteToggle} />
-          )}
+          {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} />}
 
           {explaining && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />

@@ -9467,59 +9467,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .quiz-shell { transition: padding-right 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
   .quiz-shell.is-labs { padding-right: 440px; }
 }
-/* A topic note, the same sheet as lab values, a little wider because it is
-   prose. Above the AI dock's phone sheet (z-index 70) so opening a note
-   while that dock is still leaving does not hide the note under it. */
-.note-sheet {
-  position: fixed; z-index: 80;
-  top: 0; right: 0; bottom: 0;
-  width: min(560px, 100vw);
-  display: flex; flex-direction: column;
-  background: var(--c-card-solid);
-  box-shadow: -24px 0 48px -24px rgba(15, 27, 61, 0.35);
-  transform: translateX(104%);
-  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.note-sheet.is-open { transform: none; }
-.note-sheet__head {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-  flex-shrink: 0;
-  padding: calc(22px + env(safe-area-inset-top, 0px)) 20px 16px 28px;
-  border-bottom: 1px solid var(--c-border);
-}
-.note-sheet__titles { min-width: 0; }
-.note-sheet__title {
-  margin: 0;
-  font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 1.25;
-  color: var(--c-text);
-}
-.note-sheet__time {
-  margin: 6px 0 0;
-  font-size: 13px; font-weight: 500; color: var(--c-muted);
-}
-.note-sheet__x {
-  flex: none;
-  display: grid; place-items: center;
-  width: 36px; height: 36px; min-width: 36px; min-height: 36px;
-  margin-top: 2px;
-  border: 0; border-radius: 999px;
-  background: var(--c-surface3); color: var(--c-sub); cursor: pointer;
-}
-.note-sheet__x:hover { color: var(--c-text); }
-.note-sheet__body {
-  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-  padding: 22px 28px calc(36px + var(--safe-b, 0px)) 28px;
-}
-@media (max-width: 640px) {
-  .note-sheet { width: 100vw; box-shadow: none; }
-  .note-sheet__head { padding-left: 20px; padding-right: 16px; }
-  .note-sheet__title { font-size: 20px; }
-  .note-sheet__body { padding-left: 20px; padding-right: 20px; }
-}
-@media (min-width: 1200px) {
-  .quiz-shell.is-note { padding-right: 560px; }
-}
-@media (prefers-reduced-motion: reduce) { .note-sheet { transition-duration: 0.01s; } }
 
 /* ─── Admin, made legible (2026-10-18) ──────────────────────────────
    The page was 12–13px grey labels, figures run together in a line of
@@ -11642,12 +11589,16 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .q-topic__tip { margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: var(--c-sub); }
 .q-topic__tip strong { color: var(--c-accent); font-weight: 600; }
 .q-topic__tip button { margin-left: 8px; border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--c-text); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.q-topic__body { margin: 12px 0 18px; animation: topicIn .25s ease-out both; }
+@keyframes topicIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .q-topic__body { animation: none; } }
 
 /* An explanation keeps its line breaks (an image credit sits on its own line). */
 .q-exp { white-space: pre-line; }
 
 /* A topic note as an article (2026-10-29): reading time, a lede, numbered
    sections, one highlighted line, set in a reading serif. */
+.q-topic__time { margin: 0 0 10px; font-size: 12.5px; font-weight: 500; color: var(--c-muted); }
 .ed { --ed-gutter: 46px; --ed-serif: "Newsreader", Georgia, "Times New Roman", serif; max-width: 720px; color: var(--c-text); }
 /* The end of the note: a small square straight after the last word, as magazines end an article. */
 .ed > p:last-child::after, .ed > ul:last-child > li:last-child::after, .ed > ol:last-child > li:last-child::after { content: ""; display: inline-block; width: 0.5em; height: 0.5em; margin-left: 0.45em; border-radius: 1px; background: var(--c-accent); opacity: .8; vertical-align: 0.02em; }
