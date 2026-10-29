@@ -11,6 +11,7 @@ import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
 import RichText from "./RichText";
+import { BookOpen } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
 
 /* One paint list for every question. The stroke is drawn on the letters
@@ -124,10 +125,7 @@ function TopicNote({ topic }) {
       )}
       <button type="button" className="q-topic__head" onClick={toggle} aria-expanded={open}>
         <span className="q-topic__row">
-          <svg className="q-topic__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M3 2.75h7.25L13 5.5v7.75H3V2.75z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-            <path d="M5.5 7.5h5M5.5 10h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          <BookOpen className="q-topic__icon" size={17} strokeWidth={2} aria-hidden="true" />
           <span className="q-topic__title">{topic.title}</span>
           <span className="q-topic__cta">{open ? "Close" : "Read the full note"}
             <span className={`q-allopts-chev${open ? " is-open" : ""}`} aria-hidden="true">
