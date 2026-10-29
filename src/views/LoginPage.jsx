@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import PasswordField from "../ui/PasswordField";
 import { C, OF } from "../ui/theme";
 import { useAuth } from "../lib/auth";
+import { prefetchFeatured } from "../lib/remote";
 
 /* Offline, Supabase says "Failed to fetch", which reads as a fault. */
 function friendly(err) {
@@ -62,6 +63,15 @@ export default function LoginPage({ sentDeck = false }) {
     resendSignupCode, verifySignupCode, verifyRecoveryCode,
     beginRecovery, endRecovery,
   } = useAuth();
+
+  /* While they type: fetch the ready-made decks now, so the app has them by
+     the time they are in (lib/remote prefetchFeatured). Idle-time, once. */
+  useEffect(() => {
+    const go = () => { prefetchFeatured(); };
+    const ric = typeof window !== "undefined" ? window.requestIdleCallback : null;
+    const id = ric ? ric(go, { timeout: 2000 }) : setTimeout(go, 800);
+    return () => (ric ? window.cancelIdleCallback(id) : clearTimeout(id));
+  }, []);
 
   const [mode, setMode] = useState(sentDeck ? "signup" : "signin"); // signin | signup | reset
   // After signup / reset request we collect the emailed code. After a recovery

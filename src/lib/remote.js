@@ -2,6 +2,8 @@ import { supabase } from "./supabase";
 import { timed } from "./loadTiming";
 import { GEN_ID_BASE } from "../data";
 import { append, dropOnce } from "./queue";
+import { readBundle, saveBundle } from "./offlineStore";
+import { mark } from "./loadTiming";
 
 // Server-first data access.
 //
@@ -319,7 +321,14 @@ export async function selectAll(query, orderBy) {
 }
 
 /** One read per table, on sign-in. Shapes match what App.jsx already holds. */
+/* How long the rest of the load waits for the featured decks before going on
+   without them. They are the biggest thing fetched; a first sign-in should
+   not sit on "Loading your progress…" for them. */
+const FEATURED_WAIT_MS = 700;
+
 export async function loadAll(userId) {
+  const featuredP = loadFeatured().then(f => { mark("t_featured"); return f; });
+  const featuredSoon = Promise.race([featuredP, new Promise(r => setTimeout(() => r(undefined), FEATURED_WAIT_MS))]);
   /* Decks alongside the rest: they were fetched after all of it, a whole
      extra round trip on every sign-in. */
   const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured, announcements, sessions] =
@@ -333,7 +342,7 @@ export async function loadAll(userId) {
       timed("t_generated", selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id")),
       timed("t_edits", selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id")),
       timed("t_decks", loadUserDecks().then(data => ({ data, error: null }), error => ({ data: null, error }))),
-      timed("t_featured", loadFeatured()),
+      featuredSoon,
       fetchAnnouncements().catch(() => []),
       loadSessions(),
     ]);
@@ -417,7 +426,10 @@ export async function loadAll(userId) {
     generated: (generated.data ?? []).map(r => ({ ...r.payload, id: GEN_ID_BASE + Number(r.id), gen: true, deckId: r.deck_id, createdAt: r.created_at })),
     questionEdits,
     decks,
+    /* undefined when it is still on its way: the caller applies
+       `featuredLater` when it lands, and keeps what it had meanwhile. */
     featured,
+    featuredLater: featured === undefined ? featuredP : null,
     sessions,
   };
 }
@@ -445,8 +457,111 @@ export async function loadSessions() {
  *         edit, so the card offers Report instead.
  */
 export async function loadFeatured() {
+  const { data: mine, error } = await supabase.rpc("featured_mine");
+  if (error || !mine || mine.version == null) return loadFeaturedLegacy();
+  let bundle;
+  try { bundle = await featuredBundle(mine.version); } catch { return loadFeaturedLegacy(); }
+  return assembleFeatured(bundle, mine);
+}
+
+/* Before migration 0062, and if the new path fails: everything in one go. */
+async function loadFeaturedLegacy() {
   const { data, error } = await supabase.rpc("featured_content");
   if (error || !data) return { roots: [], decks: [], questions: [] };
+  return shapeFeatured(data);
+}
+
+/*
+ * The featured decks, fast (2026-10-29).
+ *
+ * The bundle (featured_bundle, migration 0062) is the same for everyone and
+ * changes only when a featured deck does, so it is fetched by version: from
+ * memory, then the device (IndexedDB), then Vercel's edge (/api/featured,
+ * cached for good per version), then the database itself if that fails.
+ * featured_mine carries the version and the per-person part.
+ */
+let bundleMem = null;
+const withTimeoutSignal = ms => (typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined);
+
+export async function featuredBundle(version) {
+  if (bundleMem && bundleMem.version === version) return bundleMem;
+  const kept = await readBundle();
+  if (kept && kept.version === version) return (bundleMem = kept);
+  let b = null;
+  try {
+    const res = await fetch(`/api/featured?v=${encodeURIComponent(version)}`, { signal: withTimeoutSignal(20000) });
+    if (res.ok && (res.headers.get("content-type") || "").includes("json")) b = await res.json();
+  } catch { /* edge unreachable: the database below */ }
+  if (!b || b.version == null) {
+    const { data, error } = await supabase.rpc("featured_bundle");
+    if (error || !data) {
+      if (kept) return (bundleMem = kept); /* an older copy beats none */
+      throw error || new Error("featured bundle");
+    }
+    b = data;
+  }
+  bundleMem = b;
+  saveBundle(b);
+  return b;
+}
+
+/* From the sign-in screen, so a first sign-in finds the decks already here.
+   Never throws. */
+export async function prefetchFeatured() {
+  try {
+    const { data: v, error } = await supabase.rpc("featured_version");
+    if (!error && v != null) await featuredBundle(v);
+  } catch { /* the load after sign-in will try again */ }
+}
+
+/** The bundle and the per-person part, in featured_content's shape. Pure. */
+export function assembleFeatured(bundle, mine) {
+  const vis = new Map((mine?.roots ?? []).map(r => [r.id, r]));
+  const extra = mine?.extra ?? {};
+  const listed = (bundle?.roots ?? []).filter(r => vis.has(r.id)).map(r => ({ ...r, ...vis.get(r.id) }));
+  const ids = new Set(listed.map(r => r.id));
+  const decks = (bundle?.decks ?? []).filter(d => ids.has(d.root));
+  const deckIds = new Set(decks.map(d => d.id));
+  const topics = bundle?.topics ?? [];
+  const questions = (bundle?.questions ?? []).filter(q => deckIds.has(q.deckId))
+    .map(q => (q.t == null ? q : { id: q.id, deckId: q.deckId, payload: { ...q.payload, topic: topics[q.t] } }));
+  const shaped = shapeFeatured({
+    roots: [...listed, ...(extra.roots ?? [])].sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+    decks: [...decks, ...(extra.decks ?? [])],
+    questions: [...questions, ...(extra.questions ?? [])],
+  });
+  shaped.version = bundle?.version ?? null;
+  shaped.mine = mine ?? null;
+  return shaped;
+}
+
+/*
+ * What the device's copy keeps of the featured decks: the version and the
+ * per-person part, not 3,000 questions. Rewriting megabytes into IndexedDB
+ * after every answer was the cost; the questions are in the bundle store.
+ */
+export function liteFeatured(f) {
+  if (!f?.mine || f.version == null) return f;
+  const hidden = new Map((f.roots ?? []).map(r => [r.id, r.hidden]));
+  const keep = r => (hidden.has(r.id) ? { ...r, hidden: hidden.get(r.id) } : r);
+  const extra = f.mine.extra ?? {};
+  return {
+    lite: true,
+    version: f.version,
+    mine: { ...f.mine, roots: (f.mine.roots ?? []).map(keep), extra: { ...extra, roots: (extra.roots ?? []).map(keep) } },
+  };
+}
+
+/** The other way: a kept copy back to what the screen uses. */
+export async function hydrateFeatured(f) {
+  if (!f?.lite) return f;
+  const b = bundleMem ?? await readBundle();
+  if (!b) return undefined;
+  bundleMem = b;
+  return assembleFeatured(b, f.mine);
+}
+
+function shapeFeatured(data) {
   const names = new Map((data.decks ?? []).map(d => [d.id, d.name]));
   /* `top` is what heads the list — a folder the deck is shown in, or the deck
      itself — and carries the byline; `id` is the real deck. */

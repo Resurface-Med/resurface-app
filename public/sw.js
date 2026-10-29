@@ -190,6 +190,9 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.origin !== self.location.origin) return;
   if (url.pathname === "/sw.js") return;
+  /* The featured decks download is cached by version at the edge and kept
+     in IndexedDB by the app; a second copy here would only cost space. */
+  if (url.pathname.startsWith("/api/")) return;
   /* The network check has to see the network, not this cache. */
   if (url.pathname === "/netcheck.html" || url.searchParams.has("nc")) return;
   /* Video and audio arrive as ranges (206), which a cache cannot store — a

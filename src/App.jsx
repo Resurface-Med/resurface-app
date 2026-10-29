@@ -29,9 +29,11 @@ import { themeStore, readCustomColor, writeCustomColor, clearCustomColor, todayK
 import { themeField, themeLight } from "./lib/themes";
 import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
+import { supabase } from "./lib/supabase";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
-  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep } from "./lib/remote";
+  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
+  liteFeatured, hydrateFeatured } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
 import { mergeSessions } from "./lib/pastSessions";
@@ -94,6 +96,8 @@ const AnnouncementsView = lazy(CHUNK[V.NEWS]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
+/* Away at least this long, the app refreshes when brought back. */
+const WAKE_REFRESH_MS = 60_000;
 /* How long a load from the server may take before the app treats itself as
    offline: shorter when there is a copy on screen to carry on from, longer
    for a first sign-in, where the only alternative is the retry screen. */
@@ -275,6 +279,14 @@ export default function App() {
     setFeatured(f);
     applyGenerated(genRowsRef.current);
   }
+  /* The featured decks when the load went on without them (lib/remote
+     loadAll): applied when they land, with any hide still queued laid on. */
+  function applyFeaturedLater(d, isCurrent = () => true) {
+    d?.featuredLater?.then(f => {
+      if (!f || !isCurrent()) return;
+      applyFeatured(overlayOps({ featured: f }, pendingOps()).featured ?? f);
+    }).catch(() => { /* the next load */ });
+  }
   /* An admin's changes to a Resurface deck's questions (Manage questions on
      it). Deletes go to the deck itself, for everyone, then the pool is
      reloaded; there is no Move — its questions stay in it. */
@@ -448,7 +460,9 @@ export default function App() {
   async function refreshData() {
     if (!user?.id) return false;
     try {
-      applySnapshot(await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT), { seed: true });
+      const d = await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT);
+      applySnapshot(d, { seed: true });
+      applyFeaturedLater(d);
       sourceRef.current = "server";
       setOnline(true);
       setLoadError(null);
@@ -548,6 +562,9 @@ export default function App() {
     (async () => {
       await loadDecks();
       const cached = await readSnapshot(user.id);
+      if (cached?.data?.featured?.lite) {
+        cached.data = { ...cached.data, featured: await hydrateFeatured(cached.data.featured) };
+      }
       if (cancelled) return;
       if (cached) {
         applySnapshot(overlayOps(cached.data, pendingOps()));
@@ -574,6 +591,7 @@ export default function App() {
         if (cancelled) return;
         if (!cached) mark("data");
         applySnapshot(d, { seed: true });
+        applyFeaturedLater(d, () => !cancelled);
         sourceRef.current = "server";
         setOnline(true);
         setLoadError(null);
@@ -606,7 +624,7 @@ export default function App() {
     ...(studyTrusted.current ? { studySeconds: studyTotal.current } : {}),
     showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
-    decks: decksRef.current, featured: featuredRef.current, sessions,
+    decks: decksRef.current, featured: liteFeatured(featuredRef.current), sessions,
   });
   const saveTimer = useRef(null);
   function saveSoon(delay = 600) {
@@ -842,11 +860,29 @@ export default function App() {
      load that works sends what was queued, brings in anything new, and takes
      the offline bar away. */
   const online = useOnline();
+  /* Woken up (2026-10-29). Most people leave the app open and put the
+     phone to sleep, so coming back after a while is the usual way in, not
+     a fresh load: queued writes go, the sign-in token is renewed if it ran
+     out while asleep, and everything is fetched again quietly — new due
+     cards, today's streak, edits to the featured decks (their download is
+     skipped when the version has not changed). Not in the middle of a
+     practice session, which is left exactly as it was. */
+  const hiddenAtRef = useRef(null);
+  const sessionActiveRef = useRef(false);
+  sessionActiveRef.current = practiceSessionActive;
   useEffect(() => {
     if (!user) return;
     const onBack = () => {
+      if (document.visibilityState === "hidden") { hiddenAtRef.current = Date.now(); return; }
       if (document.visibilityState !== "visible") return;
-      if (online) flushQueue(); else refreshData();
+      const away = hiddenAtRef.current ? Date.now() - hiddenAtRef.current : 0;
+      hiddenAtRef.current = null;
+      if (!online) { refreshData(); return; }
+      if (away >= WAKE_REFRESH_MS && !sessionActiveRef.current) {
+        supabase.auth.getSession().catch(() => {}).then(() => refreshData());
+      } else {
+        flushQueue();
+      }
     };
     const onOffline = () => setOnline(false);
     document.addEventListener("visibilitychange", onBack);

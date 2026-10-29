@@ -22,7 +22,7 @@
  * storage full) means no offline copy, never a broken app.
  */
 const DB = "resurface-offline";
-const VERSION = 1;
+const VERSION = 2;
 export const SNAPSHOT_VERSION = 1;
 
 let dbPromise = null;
@@ -35,6 +35,9 @@ function db() {
         const d = req.result;
         if (!d.objectStoreNames.contains("snapshots")) d.createObjectStore("snapshots");
         if (!d.objectStoreNames.contains("images")) d.createObjectStore("images");
+        /* The featured decks as downloaded (2026-10-29): public, the same for
+           everyone, so kept across sign-out and shared by every account. */
+        if (!d.objectStoreNames.contains("shared")) d.createObjectStore("shared");
       };
       req.onsuccess = () => {
         const d = req.result;
@@ -83,6 +86,19 @@ export async function saveSnapshot(userId, data) {
     });
     return true;
   } catch { return false; }
+}
+
+/* ── Featured decks ───────────────────────────────────────────────── */
+
+export async function readBundle() {
+  try { return (await run("shared", "readonly", s => req2p(s.get("featured")))) ?? null; }
+  catch { return null; }
+}
+
+export async function saveBundle(bundle) {
+  if (!bundle) return false;
+  try { await run("shared", "readwrite", s => { s.put(bundle, "featured"); }); return true; }
+  catch { return false; }
 }
 
 /* ── Question images ───────────────────────────────────────────────── */
