@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
@@ -120,6 +120,13 @@ export default function QuizShell({
   };
 
   const [aiOpen, setAiOpen] = useState(false);
+  /* Stable. An inline function here is a new one every render, and the
+     card treats a new one as a new question and clears the option you
+     just chose (2026-10-29). */
+  const onAiOpenChange = useCallback(open => {
+    setAiOpen(open);
+    if (open) setNote(null);
+  }, []);
   /* Closing is a move, not a disappearance: the dock stays mounted while
      its slot closes, so the question's column widens with it rather than
      jumping the instant the panel unmounts. */
@@ -401,7 +408,7 @@ export default function QuizShell({
               focusMode
               hideActions
               aiOpen={aiOpen}
-              onAiOpenChange={open => { setAiOpen(open); if (open) setNote(null); }}
+              onAiOpenChange={onAiOpenChange}
               onControlsChange={setControls}
               peerSplit={peerSplit}
               noteOpen={!!note && noteQ === q?.id}
