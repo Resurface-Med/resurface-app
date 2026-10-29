@@ -6,6 +6,7 @@ import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
 import LabValues, { BeakerIcon } from "./LabValues";
+import TopicSheet from "./TopicSheet";
 import { ComboPop, isComboMilestone, COMBO_POP_MS } from "./Nudges";
 import SideVideos, { useSideVideos } from "./SubwaySurfers";
 
@@ -70,6 +71,21 @@ export default function QuizShell({
   const [editing, setEditing] = useState(false);
   /* Lab values, slid in from the right (ui/LabValues). */
   const [labsOpen, setLabsOpen] = useState(false);
+  /* The question's topic note, the same sheet. Held as the note that was
+     opened, not a boolean, so it can finish sliding out after the question
+     has already changed. */
+  const [note, setNote] = useState(null);
+  const [noteQ, setNoteQ] = useState(q?.id);
+  if (q?.id !== noteQ) {
+    setNoteQ(q?.id);
+    if (note) setNote(null);
+  }
+  function openNote() {
+    if (!q?.topic?.body) return;
+    setLabsOpen(false);
+    setAiOpen(false);
+    setNote({ title: q.topic.title, body: q.topic.body });
+  }
   const videos = useSideVideos();
 
   /* Declared above the effects, because the Escape handler below closes the
@@ -218,8 +234,9 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}${note ? " is-note" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
+      <TopicSheet topic={note} open={!!note} onClose={() => setNote(null)} />
       <SideVideos videos={videos} railOpen={railOpen} aiOpen={showAi} />
       <header className="quiz-shell__header">
         <button
@@ -261,7 +278,7 @@ export default function QuizShell({
           <button
             type="button"
             className={`quiz-shell__tool btn-press${labsOpen ? " is-on" : ""}`}
-            onClick={() => setLabsOpen(o => !o)}
+            onClick={() => { setLabsOpen(o => !o); setNote(null); }}
             title="Lab values"
             aria-label="Lab values"
             aria-expanded={labsOpen}
@@ -384,9 +401,11 @@ export default function QuizShell({
               focusMode
               hideActions
               aiOpen={aiOpen}
-              onAiOpenChange={setAiOpen}
+              onAiOpenChange={open => { setAiOpen(open); if (open) setNote(null); }}
               onControlsChange={setControls}
               peerSplit={peerSplit}
+              noteOpen={!!note && noteQ === q?.id}
+              onNoteToggle={() => (note ? setNote(null) : openNote())}
             />
           </div>
           {showAi && (
