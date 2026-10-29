@@ -98,19 +98,44 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
  * tapped, then the whole topic in place. Several questions can share a
  * note, so one question teaches the topic around the fact it tested.
  */
+const TIP_KEY = "rs_topic_tip_seen";
+const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return true; } };
+const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* fine */ } };
+
 function TopicNote({ topic }) {
   const [open, setOpen] = useState(false);
+  /* Once, the first time anyone meets a note (2026-10-29): what it is. */
+  const [tip, setTip] = useState(() => !tipSeen());
+  /* A taste of the note while it's shut, fading out: cut-off text says
+     there is more without a button saying so. The first paragraph,
+     without its markup. */
+  const teaser = String(topic.body).split(/\n\s*\n/)[0].replace(/\*\*/g, "").trim();
+  const toggle = () => {
+    setOpen(o => !o);
+    if (tip) { setTip(false); markTipSeen(); }
+  };
   return (
     <div className={`q-topic${open ? " is-open" : ""}`}>
-      <button type="button" className="q-topic__head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
-        <svg className="q-topic__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M3 2.75h7.25L13 5.5v7.75H3V2.75z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-          <path d="M5.5 7.5h5M5.5 10h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-        <span className="q-topic__title">{topic.title}</span>
-        <span className={`q-allopts-chev${open ? " is-open" : ""}`} aria-hidden="true">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      {tip && (
+        <p className="q-topic__tip">
+          <strong>New:</strong> each question now has a topic note on the whole topic. Tap it to read.
+          <button type="button" onClick={() => { setTip(false); markTipSeen(); }}>Got it</button>
+        </p>
+      )}
+      <button type="button" className="q-topic__head" onClick={toggle} aria-expanded={open}>
+        <span className="q-topic__row">
+          <svg className="q-topic__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3 2.75h7.25L13 5.5v7.75H3V2.75z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+            <path d="M5.5 7.5h5M5.5 10h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <span className="q-topic__title">{topic.title}</span>
+          <span className="q-topic__cta">{open ? "Close" : "Read the full note"}
+            <span className={`q-allopts-chev${open ? " is-open" : ""}`} aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
+          </span>
         </span>
+        {!open && teaser && <span className="q-topic__teaser">{teaser}</span>}
       </button>
       {open && <RichText text={topic.body} className="ai-md q-topic__body" />}
     </div>
