@@ -5,6 +5,7 @@ export function MarkedText({ text }) {
   return splitMarks(text).map((part, i) => {
     if (part.kind === "strong") return <strong key={i}>{part.text}</strong>;
     if (part.kind === "em") return <em key={i}>{part.text}</em>;
+    if (part.kind === "mark") return <mark key={i} className="hl">{part.text}</mark>;
     return <span key={i}>{part.text}</span>;
   });
 }

@@ -10,7 +10,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
-import RichText from "./RichText";
+import EditorialNote, { readTime } from "./EditorialNote";
 import { BookOpen } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
 
@@ -135,7 +135,12 @@ function TopicNote({ topic }) {
         </span>
         {!open && teaser && <span className="q-topic__teaser">{teaser}</span>}
       </button>
-      {open && <RichText text={topic.body} className="ai-md q-topic__body" />}
+      {open && (
+        <div className="q-topic__body">
+          <p className="q-topic__time">{readTime(topic.body)}</p>
+          <EditorialNote text={topic.body} />
+        </div>
+      )}
     </div>
   );
 }

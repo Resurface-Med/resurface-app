@@ -11589,9 +11589,31 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .q-topic__tip { margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: var(--c-sub); }
 .q-topic__tip strong { color: var(--c-accent); font-weight: 600; }
 .q-topic__tip button { margin-left: 8px; border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--c-text); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.q-topic__body { margin-top: 10px; font-size: 15px; line-height: 1.6; color: var(--c-text); animation: topicIn .25s ease-out both; }
+.q-topic__body { margin: 12px 0 18px; animation: topicIn .25s ease-out both; }
 @keyframes topicIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .q-topic__body { animation: none; } }
 
 /* An explanation keeps its line breaks (an image credit sits on its own line). */
 .q-exp { white-space: pre-line; }
+
+/* A topic note as an article (2026-10-29): reading time, a lede, numbered
+   sections, one highlighted line, set in a reading serif. */
+.q-topic__time { margin: 0 0 8px; font-size: 12.5px; font-weight: 500; color: var(--c-muted); }
+.ed { max-width: 680px; font-family: "Newsreader", Georgia, "Times New Roman", serif; color: var(--c-text); }
+.ed__lede { margin: 0 0 6px; font-size: 21px; line-height: 1.45; font-weight: 500; letter-spacing: -0.2px; }
+.ed__h { display: flex; align-items: baseline; gap: 12px; margin: 26px 0 10px; font-family: "Poppins", sans-serif; font-size: 15px; font-weight: 600; color: var(--c-text); }
+.ed__n { font-family: "Poppins", sans-serif; font-size: 26px; font-weight: 400; letter-spacing: -0.5px; line-height: 1; color: var(--c-accent); opacity: .55; font-variant-numeric: tabular-nums; }
+.ed__p { margin: 0 0 10px; font-size: 17.5px; line-height: 1.6; }
+.ed__list { margin: 0; padding-left: 1.2em; }
+.ed__list li { font-size: 17.5px; line-height: 1.6; }
+.ed__list li + li { margin-top: 6px; }
+.ed__list li::marker { color: var(--c-muted); }
+.ed strong { font-weight: 500; color: var(--c-text); }
+/* The highlighter: a marker stroke across the lower part of the line. */
+.hl { color: inherit; padding: 0 2px; border-radius: 2px; background: linear-gradient(transparent 52%, rgba(255, 214, 64, 0.55) 52%, rgba(255, 214, 64, 0.55) 92%, transparent 92%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+[data-theme="dark"] .hl { background: linear-gradient(transparent 52%, rgba(255, 214, 64, 0.28) 52%, rgba(255, 214, 64, 0.28) 92%, transparent 92%); }
+@media (max-width: 560px) {
+  .ed__lede { font-size: 19px; }
+  .ed__p, .ed__list li { font-size: 16.5px; }
+  .ed__n { font-size: 23px; }
+}

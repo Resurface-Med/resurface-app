@@ -78,12 +78,13 @@ export function unwrapLatex(input) {
 export function splitMarks(input) {
   const s = unwrapLatex(input);
   const parts = [];
-  const re = /\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+  /* ==text== is a highlighter line, in topic notes (2026-10-29). */
+  const re = /==([^=]+)==|\*\*([^*]+)\*\*|\*([^*]+)\*/g;
   let last = 0;
   let m;
   while ((m = re.exec(s))) {
     if (m.index > last) parts.push({ kind: "text", text: s.slice(last, m.index) });
-    parts.push({ kind: m[1] != null ? "strong" : "em", text: m[1] ?? m[2] });
+    parts.push(m[1] != null ? { kind: "mark", text: m[1] } : { kind: m[2] != null ? "strong" : "em", text: m[2] ?? m[3] });
     last = m.index + m[0].length;
   }
   if (last < s.length) parts.push({ kind: "text", text: s.slice(last) });
