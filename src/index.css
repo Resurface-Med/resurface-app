@@ -11774,3 +11774,63 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .q-mynote-read__edit { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 500; color: var(--c-muted); cursor: pointer; }
 .q-mynote-read__edit:hover { color: var(--c-text); }
 .q-mynote-read__text { margin: 4px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--c-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ─── Your note beside the question (NoteDock, 2026-10-30) ─────────── */
+.note-dock__head { padding-bottom: 4px; }
+.note-dock__title { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.3px; color: var(--c-text); }
+.note-dock__body { flex: 1; min-height: 0; display: flex; padding: 6px 22px 0; }
+.note-dock__field {
+  flex: 1; width: 100%; min-height: 0; resize: none; border: 0; outline: none; padding: 8px 0;
+  background: none; color: var(--c-text); font: inherit; font-size: 16px; line-height: 1.6;
+}
+.note-dock__field::placeholder { color: var(--c-muted); }
+.note-dock__foot {
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 12px 20px calc(16px + var(--safe-b)) 22px; border-top: 1px solid var(--c-border);
+}
+.note-dock__hint { margin: 0; font-size: 13px; color: var(--c-muted); }
+.note-dock__acts { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.note-dock__acts .note-prompt__del { margin-left: 0; }
+.note-dock__save {
+  padding: 10px 22px; border: 0; border-radius: 999px; background: var(--c-accent); color: #fff;
+  font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+}
+.note-dock__save:disabled { opacity: 0.45; cursor: default; }
+
+/* Laptop: the same split as Resurface AI — the question's column on the
+   left, still readable and scrollable, the note on the right. */
+@media (min-width: 901px) {
+  .quiz-shell__body.has-note {
+    display: flex; flex-direction: row; align-items: stretch; gap: 0; width: 100%; max-width: none; overflow: hidden;
+    padding: clamp(14px, 2vh, 22px) clamp(14px, 2vw, 20px) clamp(12px, 2vh, 18px) clamp(18px, 3vw, 28px);
+  }
+  .quiz-shell__body.has-note .quiz-shell__main {
+    flex: 1 1 0; min-width: 0; min-height: 0; max-width: none; width: auto; overflow-y: auto; overscroll-behavior: contain;
+    padding: 0; display: flex; justify-content: center; align-items: flex-start; margin: 0; align-self: stretch;
+  }
+  .quiz-shell__body.has-note .quiz-shell__main > .q-card { margin-top: auto; margin-bottom: auto; }
+  .quiz-shell__body.has-note .note-dock {
+    flex: 0 0 clamp(320px, 30vw, 400px); width: clamp(320px, 30vw, 400px); align-self: stretch; min-height: 0;
+  }
+}
+/* Phone: a sheet over the lower half, the question scrolling above it. */
+@media (max-width: 900px) {
+  .quiz-shell.is-note .quiz-shell__footer { visibility: hidden; pointer-events: none; }
+  .quiz-shell__body.has-note { padding-bottom: calc(52dvh + 12px); }
+  .quiz-shell__body.has-note .note-dock {
+    position: fixed; left: 0; right: 0; bottom: var(--kb, 0px); z-index: 70; height: min(52dvh, calc(100dvh - var(--kb, 0px) - 120px)); width: auto;
+    border-radius: 22px 22px 0 0; box-shadow: 0 -12px 40px rgba(12, 22, 56, 0.18);
+    transform-origin: center bottom; animation: ai-sheet-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .quiz-shell__body.has-note .note-dock.is-closing { animation: ai-sheet-out 0.28s cubic-bezier(0.4, 0, 1, 1) both; }
+  .quiz-shell__body.has-note .note-dock__head { padding: 16px 16px 4px 20px; }
+}
+
+/* "Add to note", floating just above what you marked or selected. */
+.note-pick {
+  position: fixed; z-index: 1300; transform: translate(-50%, calc(-100% - 10px));
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 0; border-radius: 999px;
+  background: var(--c-text); color: var(--c-card-solid); font: inherit; font-size: 13.5px; font-weight: 600;
+  box-shadow: 0 8px 22px -8px rgba(12, 22, 56, 0.5); cursor: pointer; white-space: nowrap;
+  animation: rs-fade-in 0.15s ease both;
+}

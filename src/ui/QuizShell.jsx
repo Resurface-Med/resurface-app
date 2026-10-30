@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
+import NoteDock from "./NoteDock";
+import { createPortal } from "react-dom";
+import { useNotes } from "../lib/notes";
 import Wave from "./Wave";
 import QuestionCard from "./QuestionCard";
 import QuestionNavigator from "./QuestionNavigator";
@@ -132,6 +135,73 @@ export default function QuizShell({
     return () => clearTimeout(t);
   }, [aiOpen]);
 
+  /* Your note, beside the question where Resurface AI opens (NoteDock).
+     One panel at a time: opening either closes the other. */
+  const notesCtx = useNotes();
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteMounted, setNoteMounted] = useState(false);
+  useEffect(() => {
+    if (noteOpen) { setNoteMounted(true); return; }
+    if (!noteMounted) return;
+    const t = setTimeout(() => setNoteMounted(false), 530);
+    return () => clearTimeout(t);
+  }, [noteOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [append, setAppend] = useState(null);       // { text, n }: highlighted text on its way to the note
+  const openNote = () => { setAiOpen(false); setNoteOpen(true); };
+  const closeNote = () => { setNoteOpen(false); setAppend(null); };
+  useEffect(() => { if (aiOpen) setNoteOpen(false); }, [aiOpen]);
+
+  /* Text you mark or select after answering gets a small "Add to note"
+     beside it. Marks come from the highlighter (QuestionCard), which takes
+     the selection for its stroke; a plain selection (the topic note, the
+     options' notes) is read here. */
+  const [pick, setPick] = useState(null);           // { text, x, y }
+  const answeredNow = sel !== null;
+  useEffect(() => {
+    if (!notesCtx || !answeredNow) return;
+    const show = (text, rect) => {
+      const t = String(text || "").replace(/\s+/g, " ").trim();
+      if (t.length < 2) return;
+      setPick({ text: t.slice(0, 1200), x: rect.x, y: rect.y });
+    };
+    const onMarked = e => show(e.detail?.text, { x: e.detail?.x, y: e.detail?.y });
+    let timer = null;
+    const fromSelection = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const s = window.getSelection();
+        if (!s || s.isCollapsed || !s.rangeCount) return;
+        const range = s.getRangeAt(0);
+        const main = bodyRef.current?.querySelector(".quiz-shell__main");
+        if (!main || !main.contains(range.commonAncestorContainer)) return;
+        const box = range.getBoundingClientRect();
+        show(range.toString(), { x: box.left + box.width / 2, y: box.top });
+      }, 250);
+    };
+    const hide = e => { if (!e.target.closest?.(".note-pick")) setPick(null); };
+    window.addEventListener("rs:picked-text", onMarked);
+    document.addEventListener("selectionchange", fromSelection);
+    document.addEventListener("pointerdown", hide, true);
+    const main = bodyRef.current?.querySelector(".quiz-shell__main");
+    const onScroll = () => setPick(null);
+    main?.addEventListener("scroll", onScroll);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("rs:picked-text", onMarked);
+      document.removeEventListener("selectionchange", fromSelection);
+      document.removeEventListener("pointerdown", hide, true);
+      main?.removeEventListener("scroll", onScroll);
+    };
+  }, [notesCtx, answeredNow, q?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setPick(null); }, [q?.id]);
+  function addPicked() {
+    if (!pick) return;
+    setAppend({ text: pick.text, n: Date.now() });
+    openNote();
+    setPick(null);
+    window.getSelection()?.removeAllRanges();
+  }
+
   const [controls, setControls] = useState({
     pending: null,
     answered: false,
@@ -224,6 +294,8 @@ export default function QuizShell({
      it can teach the ground without handing the answer over. */
   const showAi = aiMounted;
   const aiClosing = aiMounted && !aiOpen;
+  const showNote = noteMounted && !showAi;
+  const noteClosing = noteMounted && !noteOpen;
   const canCheck = !controls.answered && controls.canSubmit;
   const primaryLabel = canCheck
     ? "Check"
@@ -235,8 +307,16 @@ export default function QuizShell({
   }
 
   return (
-    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
+    <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${showNote ? " is-note" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
+      {pick && createPortal(
+        <button type="button" className="note-pick btn-press" style={{ left: pick.x, top: pick.y }}
+          onPointerDown={e => e.preventDefault()} onClick={addPicked}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+          Add to note
+        </button>,
+        document.body,
+      )}
       <SideVideos videos={videos} railOpen={railOpen} aiOpen={showAi} />
       <header className="quiz-shell__header">
         <button
@@ -389,7 +469,7 @@ export default function QuizShell({
           />
         )}
 
-        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}${aiClosing ? " is-ai-closing" : ""}`}>
+        <div ref={bodyRef} className={`quiz-shell__body${showAi ? " has-ai" : ""}${aiClosing ? " is-ai-closing" : ""}${showNote ? " has-note" : ""}${noteClosing ? " is-note-closing" : ""}`}>
           <div className="quiz-shell__main">
             <QuestionCard
               key={q.id}
@@ -409,8 +489,14 @@ export default function QuizShell({
               onAiOpenChange={setAiOpen}
               onControlsChange={setControls}
               peerSplit={peerSplit}
+              onOpenNote={notesCtx ? openNote : null}
             />
           </div>
+          {showNote && (
+            <div className={`ai-slot${noteClosing ? " is-closing" : ""}`}>
+              <NoteDock q={q} append={append} closing={noteClosing} onClose={closeNote} />
+            </div>
+          )}
           {showAi && (
             /* The slot is what moves: it opens from nothing to the dock's
                width and closes back to nothing, so the question's column

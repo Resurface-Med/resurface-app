@@ -62,6 +62,9 @@ function Highlighter({ as: Tag = "span", text, className, style, onMarked }) {
     if (!range.toString().trim()) return;
     e.stopPropagation();
     const live = range.cloneRange();
+    /* The session offers to add what you marked to your note (QuizShell). */
+    const box = range.getBoundingClientRect();
+    window.dispatchEvent(new CustomEvent("rs:picked-text", { detail: { text: range.toString().trim(), x: box.left + box.width / 2, y: box.top } }));
     markerStrokes.add(live);
     owned.current.push(live);
     skipClick.current = true;
@@ -166,7 +169,7 @@ export function TopicNote({ topic, hl, qid, deckId }) {
   );
 }
 
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, onOpenNote = null }) {
   const answered = sel !== null || timedOut;
 
   const [pending, setPending] = useState(null);
@@ -178,7 +181,9 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const myNote = notes?.notes?.[q.id]?.body?.trim() ? notes.notes[q.id] : null;
   const [noteOpenFor, setNoteOpenFor] = useState(null);
   const noteOpen = noteOpenFor === q.id;
-  const openNote = () => setNoteOpenFor(q.id);
+  /* In a session the note opens beside the question (QuizShell); anywhere
+     else, in its own popup. */
+  const openNote = () => (onOpenNote ? onOpenNote() : setNoteOpenFor(q.id));
   /* Every option, or just the right one and yours. Remembered rather than
      reset per question: someone who wants to see them all wants it on every
      question, and someone who doesn't was closing it on every one. */
