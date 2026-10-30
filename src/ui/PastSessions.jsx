@@ -100,16 +100,19 @@ function History({ sessions, liveIds, byId, waiting, onOpen, onFix, onDetail }) 
   );
 }
 
-const FILTERS = [["all", "All"], ["wrong", "Wrong"], ["right", "Right"]];
+/* Flagged: the questions you marked for later with the session's flag
+   (2026-10-30), so a session's review can go straight to them. */
+const FILTERS = [["all", "All"], ["wrong", "Wrong"], ["right", "Right"], ["flagged", "Flagged"]];
 
-function Detail({ s, byId, onBack, onOpen }) {
+function Detail({ s, byId, flagged, onBack, onOpen }) {
   const [filter, setFilter] = useState("all");
   const rows = (s.items ?? []).map((it, i) => {
     const q = byId.get(it.id);
     const state = it.pick == null ? (s.finished ? "wrong" : "open") : it.ok ? "right" : "wrong";
-    return { i, q, state };
+    return { i, q, state, flag: flagged.has(it.id) };
   });
-  const shown = rows.filter(r => filter === "all" || r.state === filter);
+  const matches = (r, k) => k === "all" || (k === "flagged" ? r.flag : r.state === k);
+  const shown = rows.filter(r => matches(r, filter));
   /* The deck under each question only when they come from more than one. */
   const mixed = new Set(rows.map(r => r.q?.cat).filter(Boolean)).size > 1;
   const wrong = rows.filter(r => r.state === "wrong").length;
@@ -129,7 +132,7 @@ function Detail({ s, byId, onBack, onOpen }) {
           {FILTERS.map(([k, l]) => (
             <button key={k} type="button" role="radio" aria-checked={filter === k}
               className={`pss-seg__b${filter === k ? " is-on" : ""}`} onClick={() => setFilter(k)}>
-              {l} <span className="pss-seg__n">{k === "all" ? rows.length : rows.filter(r => r.state === k).length}</span>
+              {l} <span className="pss-seg__n">{rows.filter(r => matches(r, k)).length}</span>
             </button>
           ))}
         </div>
@@ -140,12 +143,18 @@ function Detail({ s, byId, onBack, onOpen }) {
         </div>
       </aside>
       <ol className="pss-qs">
-        {shown.map(({ i, q, state }) => (
+        {shown.map(({ i, q, state, flag }) => (
           <li key={i} className="pss-q">
             <span className="pss-q__n">{i + 1}</span>
             <span className="pss-q__text">
               <span className="pss-q__stem">{q ? q.q : "This question has since been deleted."}</span>
               {mixed && q?.cat && <span className="pss-q__topic">{q.cat}</span>}
+              {flag && (
+                <span className="pss-q__flag">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 22V4a1 1 0 0 1 1-1h13l-3 5 3 5H5" /></svg>
+                  Flagged
+                </span>
+              )}
             </span>
             <span className={`pss-mark is-${state}`} aria-label={state === "right" ? "Right" : state === "wrong" ? "Wrong" : "Not answered"}>
               {state === "right" ? "✓" : state === "wrong" ? "✕" : "–"}
@@ -153,13 +162,13 @@ function Detail({ s, byId, onBack, onOpen }) {
             {q && <button type="button" className="pss-btn btn-press" onClick={() => onOpen(s, "continue", i)}>Review <Chev /></button>}
           </li>
         ))}
-        {shown.length === 0 && <li className="pss-none">None {filter === "wrong" ? "wrong" : "right"} in this session.</li>}
+        {shown.length === 0 && <li className="pss-none">{filter === "flagged" ? "You didn’t flag any questions in this session." : `None ${filter === "wrong" ? "wrong" : "right"} in this session.`}</li>}
       </ol>
     </div>
   );
 }
 
-export default function PastSessions({ sessions, srCards = {}, liveIds = null, questions = [], onOpen, onFix, onClose }) {
+export default function PastSessions({ sessions, srCards = {}, liveIds = null, questions = [], bookmarks = [], onOpen, onFix, onClose }) {
   const [detail, setDetail] = useState(null);
   useEffect(() => {
     const onKey = e => { if (e.key === "Escape") { if (detail) setDetail(null); else onClose(); } };
@@ -169,6 +178,7 @@ export default function PastSessions({ sessions, srCards = {}, liveIds = null, q
   const waiting = useMemo(() => waitingMistakes(sessions, srCards, liveIds), [sessions, srCards, liveIds]);
   const open = detail ? sessions.find(s => s.id === detail) : null;
   const byId = useMemo(() => new Map(questions.map(q => [q.id, q])), [questions]);
+  const flagged = useMemo(() => new Set(bookmarks), [bookmarks]);
 
   return createPortal(
     <div className="np-scrim pss-scrim" role="presentation" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -178,7 +188,7 @@ export default function PastSessions({ sessions, srCards = {}, liveIds = null, q
         </button>
         <div className="pss-body" key={open ? open.id : "list"}>
           {open
-            ? <Detail s={open} byId={byId} onBack={() => setDetail(null)} onOpen={onOpen} />
+            ? <Detail s={open} byId={byId} flagged={flagged} onBack={() => setDetail(null)} onOpen={onOpen} />
             : <History sessions={sessions} liveIds={liveIds} byId={byId} waiting={waiting} onOpen={onOpen} onFix={onFix} onDetail={s => setDetail(s.id)} />}
         </div>
       </div>

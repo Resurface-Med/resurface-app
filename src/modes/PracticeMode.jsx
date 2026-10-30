@@ -597,7 +597,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     </button>
   ) : null;
   const pastSheet = pastOpen ? (
-    <PastSessions sessions={sessions} srCards={srCards} liveIds={liveIds} questions={QUESTIONS}
+    <PastSessions sessions={sessions} srCards={srCards} liveIds={liveIds} questions={QUESTIONS} bookmarks={bookmarks}
       onOpen={openPast} onFix={ids => { setPastOpen(false); startWith(ids); }}
       onClose={() => setPastOpen(false)} />
   ) : null;

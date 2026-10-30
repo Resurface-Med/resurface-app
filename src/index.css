@@ -11837,3 +11837,4 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .notes__item:hover .notes__go { color: var(--c-accent); transform: translateX(2px); }
 .notes__topic { margin-top: 10px; }
 .notes__item .notes__note { white-space: normal; }
+.pss-q__flag { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--c-accent); }
