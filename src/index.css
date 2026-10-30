@@ -9940,7 +9940,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
    post down the right, one rule between posts. */
 .ann-post {
   display: grid; grid-template-columns: 148px minmax(0, 1fr); column-gap: clamp(20px, 3vw, 40px);
-  padding: clamp(28px, 4vh, 40px) 0; border-top: 1px solid var(--c-border);
+  padding: clamp(44px, 6.5vh, 64px) 0; border-top: 1px solid var(--c-border);
 }
 .ann-post:first-child { border-top: 0; padding-top: 8px; }
 .ann-post__main { min-width: 0; max-width: 620px; }
@@ -9967,7 +9967,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-rich strong { color: var(--c-text); font-weight: 600; }
 .ann-rich a { color: var(--c-accent); font-weight: 500; }
 @media (max-width: 760px) {
-  .ann-post { grid-template-columns: minmax(0, 1fr); padding: 28px 0; }
+  .ann-post { grid-template-columns: minmax(0, 1fr); padding: 40px 0; }
   .ann-post:first-child { padding-top: 4px; }
   .ann-post__meta { flex-direction: row; flex-wrap: wrap; gap: 4px 0; padding-top: 0; margin-bottom: 8px; }
   .ann-post.is-lead .ann-post__meta { padding-top: 0; }
