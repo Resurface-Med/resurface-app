@@ -11761,3 +11761,16 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .notes-view__img { margin-top: 12px; }
 .notes-view__img .q-image { display: inline-block; width: auto; height: auto; min-height: 0; aspect-ratio: auto; padding: 0; margin: 0; background: none; }
 .notes-view__img .q-image img { display: block; height: 200px; width: auto; max-width: 100%; border-radius: 12px; }
+/* Writing a note: the NamePrompt popup, with room for a few lines. */
+.note-prompt { max-width: 520px; }
+.note-prompt__q { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.note-prompt__field { margin-top: 20px; min-height: 120px; resize: none; line-height: 1.55; }
+.note-prompt__del { margin-left: auto; color: var(--c-danger); }
+.note-prompt__del:hover { color: var(--c-danger); }
+/* Reading it under the explanation. */
+.q-mynote-read { margin-top: 16px; padding: 2px 0 2px 16px; border-left: 3px solid var(--c-accent); }
+.q-mynote-read__head { display: flex; align-items: baseline; gap: 12px; }
+.q-mynote-read__label { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; color: var(--c-accent); }
+.q-mynote-read__edit { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 500; color: var(--c-muted); cursor: pointer; }
+.q-mynote-read__edit:hover { color: var(--c-text); }
+.q-mynote-read__text { margin: 4px 0 0; font-size: 15.5px; line-height: 1.55; color: var(--c-text); white-space: pre-wrap; overflow-wrap: anywhere; }

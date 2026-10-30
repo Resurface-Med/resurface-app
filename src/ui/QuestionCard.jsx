@@ -6,7 +6,7 @@ import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
 import FlagQuestion from "./FlagQuestion";
-import NoteBox from "./NoteBox";
+import NotePrompt from "./NotePrompt";
 import { useNotes } from "../lib/notes";
 import { QUESTIONS } from "../data";
 import EditQuestionModal from "./EditQuestionModal";
@@ -178,6 +178,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const myNote = notes?.notes?.[q.id]?.body?.trim() ? notes.notes[q.id] : null;
   const [noteOpenFor, setNoteOpenFor] = useState(null);
   const noteOpen = noteOpenFor === q.id;
+  const openNote = () => setNoteOpenFor(q.id);
   /* Every option, or just the right one and yours. Remembered rather than
      reset per question: someone who wants to see them all wants it on every
      question, and someone who doesn't was closing it on every one. */
@@ -512,13 +513,25 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               branch swapped this for Edit, so the owner never saw it. */}
           <div className="q-review-acts">
             <FlagQuestion questionId={q.id} />
-            {notes && !myNote && !noteOpen && (
-              <button type="button" className="q-flag-open btn-press" onClick={() => setNoteOpenFor(q.id)}>Add a note</button>
+            {notes && !myNote && (
+              <button type="button" className="q-flag-open btn-press" onClick={openNote}>Add a note</button>
             )}
           </div>
-          {notes && (myNote || noteOpen) && (
-            <NoteBox key={q.id} body={myNote?.body ?? ""} autoFocus={!myNote}
-              onSave={body => notes.setNote(q.id, body)} onEmptyBlur={() => setNoteOpenFor(null)} />
+          {/* Your note, read as something you wrote, not a field to fill:
+              a rule down the side, your words, and Edit (2026-10-30). */}
+          {notes && myNote && (
+            <div className="q-mynote-read">
+              <div className="q-mynote-read__head">
+                <span className="q-mynote-read__label">Your note</span>
+                <button type="button" className="q-mynote-read__edit" onClick={openNote}>Edit</button>
+              </div>
+              <p className="q-mynote-read__text">{myNote.body}</p>
+            </div>
+          )}
+          {notes && noteOpen && (
+            <NotePrompt question={q.q} initial={myNote?.body ?? ""}
+              onSave={body => notes.setNote(q.id, body)} onDelete={() => notes.setNote(q.id, "")}
+              onClose={() => setNoteOpenFor(null)} />
           )}
 
           {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} qid={q.id} deckId={q.deckId} />}
