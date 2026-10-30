@@ -22,7 +22,7 @@ export default function EditorialNote({ text }) {
           return (
             <h4 key={i} className="ed__h">
               <span className="ed__n">{String(numbers[i]).padStart(2, "0")}</span>
-              {b.text.trim().slice(2, -2)}
+              <MarkedText text={b.text.trim().slice(2, -2)} />
             </h4>
           );
         }

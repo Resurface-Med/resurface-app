@@ -13,6 +13,7 @@ import QuestionExhibit from "./QuestionExhibit";
 import EditorialNote, { readTime } from "./EditorialNote";
 import { BookOpen } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
+import { focusNote } from "../lib/formatExplain";
 
 /* One paint list for every question. The stroke is drawn on the letters
    themselves, so the words are never split into a separate box. */
@@ -103,7 +104,7 @@ const TIP_KEY = "rs_topic_tip_seen";
 const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return true; } };
 const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* fine */ } };
 
-function TopicNote({ topic }) {
+function TopicNote({ topic, hl }) {
   const [open, setOpen] = useState(false);
   /* Once, the first time anyone meets a note (2026-10-29): what it is. */
   const [tip, setTip] = useState(() => !tipSeen());
@@ -138,7 +139,7 @@ function TopicNote({ topic }) {
       {open && (
         <div className="q-topic__body">
           <p className="q-topic__time">{readTime(topic.body)}</p>
-          <EditorialNote text={topic.body} />
+          <EditorialNote text={focusNote(topic.body, hl)} />
         </div>
       )}
     </div>
@@ -480,7 +481,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         <div className="q-review anim-fade-up">
           <Highlighter as="p" text={q.exp} className="q-exp" />
 
-          {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} />}
+          {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} />}
 
           {explaining && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />

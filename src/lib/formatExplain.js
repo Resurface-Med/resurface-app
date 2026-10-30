@@ -128,3 +128,22 @@ export function parseBlocks(input) {
   flush();
   return blocks;
 }
+
+/**
+ * A topic note with this question's own highlight (2026-10-30). Questions
+ * share a note, so the note's ==line== is one fact for all of them; each
+ * question can carry `hl`, the line(s) of the note that answer it, and
+ * those are marked instead. If the note has been edited so a line is no
+ * longer in it, the note keeps its own highlight rather than losing it.
+ */
+export function focusNote(body, hl) {
+  const text = String(body ?? "");
+  const lines = (Array.isArray(hl) ? hl : [hl]).filter(h => typeof h === "string" && h.trim() && !h.includes("="));
+  if (!lines.length) return text;
+  const plain = text.replace(/==/g, "");
+  if (!lines.every(h => plain.includes(h))) return text;
+  return lines.reduce((out, h) => {
+    const at = out.indexOf(h);
+    return at < 0 ? out : `${out.slice(0, at)}==${h}==${out.slice(at + h.length)}`;
+  }, plain);
+}
