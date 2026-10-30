@@ -1277,6 +1277,10 @@ export default function App() {
 
   const nav = {
     view, setView: handleNav, dueCount, isAdmin,
+    /* My notes only gets its tab once you've written one (Rafil,
+       2026-10-30); still shown while you're on it, so deleting your last
+       note doesn't pull the page out from under you. */
+    showNotes: Object.values(notes).some(n => n?.body?.trim()) || view === V.NOTES,
     email: user?.email,
     displayName,
     avatar: avatarSrc(user?.id, ownAvatar(avatarV)),

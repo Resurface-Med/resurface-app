@@ -15,7 +15,7 @@ const ICONS = {
   [V.NOTES]: NotebookPen,
 };
 
-export function Sidebar({ view, setView, dueCount, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
+export function Sidebar({ view, setView, dueCount, showNotes = false, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
   const navRef = useRef(null);
@@ -143,7 +143,7 @@ export function Sidebar({ view, setView, dueCount, email, displayName, avatar = 
           {(isAdmin ? [...NAV_GROUPS, [{ k: V.ADMIN, label: "Admin", ruled: true }]] : NAV_GROUPS)
             .map((group, gi) => (
               <div key={gi} className={`app-nav__group${group[0]?.ruled ? " is-ruled" : ""}`}>
-                {group.map(item => {
+                {group.filter(item => item.k !== V.NOTES || showNotes).map(item => {
                   const active = view === item.k;
                   const Icon = ICONS[item.k];
                   const review = item.k === V.STUDY ? dueCount : 0;
