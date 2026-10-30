@@ -1657,10 +1657,6 @@ body::after {
   transition: color .15s, border-color .15s;
 }
 .q-flag-open:hover { color: var(--c-accent); border-color: var(--c-accent-brd); }
-/* The one-time note that the header flag marks, not reports (QuizShell). */
-.combo.mark-hint { animation-duration: 4s; max-width: min(88vw, 420px); white-space: normal; text-align: left; padding: 11px 16px; border-radius: 16px; }
-.combo.mark-hint .combo__words { font-size: 13.5px; line-height: 1.4; }
-.combo.mark-hint strong { font-weight: 600; }
 
 .q-flag {
   margin-top: 12px;
