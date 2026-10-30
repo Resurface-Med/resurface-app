@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { h1, OF } from "../ui/theme";
+import { h1 } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { TopicNote } from "../ui/QuestionCard";
 import NoteBox from "../ui/NoteBox";
@@ -169,17 +169,11 @@ export default function NotesView({ onStudy }) {
   const [shut, setShut] = useState(() => new Set());
   const searching = query.trim().length > 0;
   const toggle = key => setShut(s => { const n = new Set(s); if (n.has(key)) n.delete(key); else n.add(key); return n; });
-  const lectures = new Set(all.map(x => (x.q.path ?? []).map(p => p.name).join(" › "))).size;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
       <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>My notes</h1>
-        <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em" }}>
-          {all.length
-            ? `${all.length} ${all.length === 1 ? "note" : "notes"} across ${lectures} ${lectures === 1 ? "lecture" : "lectures"}. Only you can see them.`
-            : "What you write under a question, kept by lecture. Only you can see them."}
-        </p>
       </div>
       <Wave from="transparent" to="var(--c-card-solid)" />
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
