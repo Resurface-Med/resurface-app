@@ -54,38 +54,44 @@ export function Rich({ text }) {
   );
 }
 
+/* One post: on a laptop the date sits in a gutter on the left and the post
+   reads down the right, like a changelog; on a phone the date goes above.
+   No card around it (2026-10-30): posts are divided by a single rule, so an
+   old post with a long body never leaves a short one stranded in a box
+   beside it. */
 function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit, onWelcome }) {
   const draft = !a.published_at && a.id !== "draft";
+  const acts = (onEdit || onDelete) && (
+    <p className="ann-post__acts">
+      {onWelcome && a.published_at && (
+        <button type="button" className="ann-post__act" onClick={() => onWelcome(a)}>
+          {a.welcome ? "Shown on Home · remove" : "Show on Home for new people"}
+        </button>
+      )}
+      {onEdit && <button type="button" className="ann-post__act" onClick={() => onEdit(a)}>Edit</button>}
+      {onPublish && a.published_at && <button type="button" className="ann-post__act" onClick={() => onPublish(a, false)}>Unpublish</button>}
+      {onDelete && <button type="button" className="ann-post__act is-danger" onClick={() => onDelete(a)}>Delete</button>}
+    </p>
+  );
   return (
     <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}${draft ? " is-draft" : ""}`}>
-      {draft && (
-        <div className="ann-draftbar">
-          <span>Draft</span>
-          {onPublish && <button type="button" className="ann-draftbar__go btn-press" onClick={() => onPublish(a)}>Publish to everyone</button>}
-        </div>
-      )}
-      {a.image_url && <img className="ann-post__img" src={a.image_url} alt="" loading="lazy" />}
-      <div className="ann-post__text">
-        {/* Plain text, not pills (Rafil, 2026-10-19): "New · News · 19 October". */}
-        <p className="ann-post__meta">
-          {isNew && <span className="ann-new">New</span>}
-          {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
-          <span>{when(a.published_at || a.created_at)}</span>
-          {(onEdit || onDelete) && (
-            <span className="ann-post__acts">
-              {onWelcome && a.published_at && (
-                <button type="button" className="ann-post__act" onClick={() => onWelcome(a)}>
-                  {a.welcome ? "Shown on Home · remove" : "Show on Home for new people"}
-                </button>
-              )}
-              {onEdit && <button type="button" className="ann-post__act" onClick={() => onEdit(a)}>Edit</button>}
-              {onPublish && a.published_at && <button type="button" className="ann-post__act" onClick={() => onPublish(a, false)}>Unpublish</button>}
-              {onDelete && <button type="button" className="ann-post__act is-danger" onClick={() => onDelete(a)}>Delete</button>}
-            </span>
-          )}
-        </p>
+      {/* Plain text, not pills (Rafil, 2026-10-19). */}
+      <p className="ann-post__meta">
+        <time dateTime={a.published_at || a.created_at}>{when(a.published_at || a.created_at)}</time>
+        {isNew && <span className="ann-new">New</span>}
+        {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
+      </p>
+      <div className="ann-post__main">
+        {draft && (
+          <div className="ann-draftbar">
+            <span>Draft · only admins can see this</span>
+            {onPublish && <button type="button" className="ann-draftbar__go btn-press" onClick={() => onPublish(a)}>Publish to everyone</button>}
+          </div>
+        )}
         <h2 className="ann-post__title">{a.title}</h2>
+        {a.image_url && <img className="ann-post__img" src={a.image_url} alt="" loading="lazy" />}
         {a.body && <Rich text={a.body} />}
+        {acts}
       </div>
     </article>
   );
@@ -197,12 +203,7 @@ export function AnnouncementFeed({ items = [], newSince = null, isAdmin = false,
       ) : (
         <>
           {render(lead, true)}
-          {rest.length > 0 && (
-            <>
-              <h3 className="ann-earlier">Earlier</h3>
-              <div className="ann-rest">{rest.map(a => render(a, false))}</div>
-            </>
-          )}
+          {rest.map(a => render(a, false))}
         </>
       )}
     </div>
