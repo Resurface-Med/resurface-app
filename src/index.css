@@ -11157,7 +11157,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ax-cal__bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .ax-cal__month { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
 .ax-cal__nav { display: flex; gap: 6px; }
-.ax-cal__nav button { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--c-border); background: var(--c-card-solid); color: var(--c-text); font-size: 20px; line-height: 1; cursor: pointer; }
+.ax-cal__nav button { width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border-radius: 10px; border: 1px solid var(--c-border); background: var(--c-card-solid); color: var(--c-text); cursor: pointer; }
 .ax-cal__nav button:hover:not(:disabled) { background: var(--c-surface3); }
 .ax-cal__nav button:disabled { opacity: .35; cursor: default; }
 .ax-cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
@@ -11724,11 +11724,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .notes-view__bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 80px 0 32px; }
 .notes-view__where { min-width: 0; font-size: 13.5px; font-weight: 500; color: var(--c-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .notes-view__step { flex: none; display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--c-sub); }
-.notes-view__arrow {
-  width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--c-border);
-  border-radius: 50%; background: var(--c-card-solid); color: var(--c-text); font: inherit; font-size: 18px; line-height: 1; cursor: pointer;
-}
-.notes-view__arrow:disabled { opacity: 0.35; cursor: default; }
+.notes-view__arrow { width: 34px; height: 34px; }
 .notes-view__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 32px 32px; }
 @media (max-width: 760px) {
   .notes-view__bar { padding: 18px 56px 0 18px; }

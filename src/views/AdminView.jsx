@@ -8,6 +8,7 @@ import {
   setAdmin, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured, fetchLeaderboardWeek,
 } from "../lib/remote";
 import EditQuestionModal from "../ui/EditQuestionModal";
+import NavChevron from "../ui/NavChevron";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
@@ -318,9 +319,9 @@ function Activity() {
             <h3 className="ax-cal__month">{new Date(cursor.y, cursor.m, 1).toLocaleDateString("en-GB", { month: "long", year: "numeric" })}</h3>
             <span className="ax-cal__nav">
               <button type="button" aria-label="Previous month" disabled={!canPrev}
-                onClick={() => setCursor(c => { const d = new Date(c.y, c.m - 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>‹</button>
+                onClick={() => setCursor(c => { const d = new Date(c.y, c.m - 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}><NavChevron back size={15} /></button>
               <button type="button" aria-label="Next month" disabled={!canNext}
-                onClick={() => setCursor(c => { const d = new Date(c.y, c.m + 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}>›</button>
+                onClick={() => setCursor(c => { const d = new Date(c.y, c.m + 1, 1); return { y: d.getFullYear(), m: d.getMonth() }; })}><NavChevron size={15} /></button>
             </span>
           </div>
           <div className="ax-cal__grid" role="listbox" aria-label="Day">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
+import NavChevron from "./NavChevron";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
 import { useNotes } from "../lib/notes";
@@ -16,20 +17,6 @@ import SideVideos, { useSideVideos } from "./SubwaySurfers";
  * Full-screen study mode: no sidebar until you ask for the question list.
  */
 /** The same chevron the rail and Progress draw, mirrored for back. */
-function NavChevron({ back }) {
-  return (
-    <svg
-      width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true"
-      style={back ? { transform: "scaleX(-1)" } : undefined}
-    >
-      <path
-        d="M6.5 3.5L12 9l-5.5 5.5"
-        stroke="currentColor" strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export default function QuizShell({
   q,

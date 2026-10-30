@@ -4,6 +4,7 @@ import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { TopicNote } from "../ui/QuestionCard";
 import NoteBox from "../ui/NoteBox";
+import NavChevron from "../ui/NavChevron";
 import QuestionImage from "../ui/QuestionImage";
 import { QUESTIONS } from "../data";
 import { useNotes, notedQuestions, noteTree } from "../lib/notes";
@@ -55,9 +56,9 @@ function Viewer({ list, at, onMove, onClose }) {
           <span className="notes-view__where">{where}</span>
           {list.length > 1 && (
             <span className="notes-view__step">
-              <button type="button" className="notes-view__arrow" disabled={at === 0} onClick={() => onMove(at - 1)} aria-label="Previous note">‹</button>
+              <button type="button" className="quiz-shell__arrow notes-view__arrow btn-press" disabled={at === 0} onClick={() => onMove(at - 1)} aria-label="Previous note"><NavChevron back size={15} /></button>
               <span>{at + 1} of {list.length}</span>
-              <button type="button" className="notes-view__arrow" disabled={at === list.length - 1} onClick={() => onMove(at + 1)} aria-label="Next note">›</button>
+              <button type="button" className="quiz-shell__arrow notes-view__arrow btn-press" disabled={at === list.length - 1} onClick={() => onMove(at + 1)} aria-label="Next note"><NavChevron size={15} /></button>
             </span>
           )}
         </div>
