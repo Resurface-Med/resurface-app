@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
  * what you wrote the next time the question comes round. Saves as you type,
  * the same as Edit question; emptying it removes the note.
  */
-export default function NoteBox({ body = "", onSave, autoFocus = false, onEmptyBlur = null }) {
+export default function NoteBox({ body = "", onSave, autoFocus = false, onEmptyBlur = null, lead = false }) {
   const [text, setText] = useState(body);
   const [state, setState] = useState("idle");      // idle | saving | saved
   const timer = useRef(null);
@@ -48,9 +48,9 @@ export default function NoteBox({ body = "", onSave, autoFocus = false, onEmptyB
   }
 
   return (
-    <div className="q-mynote" data-in="rise">
+    <div className={`q-mynote${lead ? " q-mynote--lead" : ""}`} data-in="rise">
       <div className="q-mynote__head">
-        <label className="q-mynote__label" htmlFor="q-mynote">My note</label>
+        <label className="q-mynote__label" htmlFor="q-mynote">{lead ? "Your note" : "My note"}</label>
         <span className="q-mynote__state" aria-live="polite">
           {state === "saving" ? "Saving…" : state === "saved" ? (text.trim() ? "Saved" : "Removed") : ""}
         </span>

@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
-import QuestionCard from "../ui/QuestionCard";
+import { TopicNote } from "../ui/QuestionCard";
+import NoteBox from "../ui/NoteBox";
+import QuestionImage from "../ui/QuestionImage";
 import { QUESTIONS } from "../data";
 import { useNotes, notedQuestions, noteTree } from "../lib/notes";
 
@@ -30,6 +32,7 @@ const ago = iso => {
 
 function Viewer({ list, at, onMove, onClose }) {
   const item = list[at];
+  const ctx = useNotes();
   useEffect(() => {
     const onKey = e => {
       if (e.target.closest?.("textarea, input")) return;
@@ -58,8 +61,24 @@ function Viewer({ list, at, onMove, onClose }) {
             </span>
           )}
         </div>
+        {/* Your note first and large — it's what you came to read; the
+            question under it, smaller, for context (Rafil, 2026-10-30). */}
         <div className="notes-view__body" key={item.q.id}>
-          <QuestionCard q={item.q} sel={item.q.ans} timedOut={false} onAnswer={() => {}} hideActions />
+          <NoteBox lead body={ctx?.notes?.[item.q.id]?.body ?? item.note.body}
+            onSave={body => ctx?.setNote(item.q.id, body)} />
+          <section className="notes-view__q" aria-label="The question">
+            <p className="notes-view__label">The question</p>
+            <p className="notes-view__stem">{item.q.q}</p>
+            {item.q.img && <div className="notes-view__img"><QuestionImage path={item.q.img} /></div>}
+            <p className="notes-view__ans">
+              <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              {item.q.opts?.[item.q.ans]}
+            </p>
+            {item.q.exp && <p className="notes-view__exp">{item.q.exp}</p>}
+            {item.q.topic?.title && item.q.topic?.body && (
+              <TopicNote topic={item.q.topic} hl={item.q.hl} qid={item.q.id} deckId={item.q.deckId} />
+            )}
+          </section>
         </div>
       </div>
     </div>,

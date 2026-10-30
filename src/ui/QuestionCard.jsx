@@ -107,7 +107,7 @@ const TIP_KEY = "rs_topic_tip_seen";
 const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return true; } };
 const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* fine */ } };
 
-function TopicNote({ topic, hl, qid, deckId }) {
+export function TopicNote({ topic, hl, qid, deckId }) {
   const [open, setOpen] = useState(false);
   /* Your notes on the other questions from this topic, at the foot of the
      note (2026-10-30): the revision sheet with your own additions on it.

@@ -11720,7 +11720,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .notes__when { flex: none; }
 
 /* A note opened: the question in full, in the Past sessions window. */
-.notes-view { width: min(880px, 100%); }
+.notes-view { width: min(780px, 100%); height: auto; max-height: min(860px, calc(100dvh - 48px)); }
 .notes-view__bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 80px 0 32px; }
 .notes-view__where { min-width: 0; font-size: 13.5px; font-weight: 500; color: var(--c-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .notes-view__step { flex: none; display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--c-sub); }
@@ -11742,3 +11742,22 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .notes-tree__count { flex: none; font-size: 13.5px; font-weight: 500; color: var(--c-muted); }
 .notes-tree__notes { padding-top: 2px; padding-bottom: 14px; padding-right: 14px; }
 .notes-tree__notes .notes__topic:first-child { margin-top: 4px; }
+/* The note window: your note leads, large; the question follows, smaller. */
+.q-mynote--lead { margin-top: 18px; }
+.q-mynote--lead .q-mynote__label { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; color: var(--c-accent); }
+.q-mynote--lead .q-mynote__field {
+  padding: 4px 0 6px; border: 0; border-radius: 0; background: none;
+  font-size: clamp(21px, 2vw, 25px); font-weight: 500; line-height: 1.45; letter-spacing: -0.3px; color: var(--c-text);
+  min-height: 0;
+}
+.q-mynote--lead .q-mynote__field:focus { box-shadow: none; }
+.notes-view__q { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--c-border); }
+.notes-view__label { margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; color: var(--c-muted); }
+.notes-view__stem { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.45; letter-spacing: -0.2px; color: var(--c-text); }
+.notes-view__ans { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; font-size: 15px; font-weight: 600; color: var(--c-success); }
+.notes-view__exp { margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: var(--c-sub); }
+.notes-view__q .q-topic { margin-top: 16px; }
+.notes-view__exp { white-space: pre-line; }
+.notes-view__img { margin-top: 12px; }
+.notes-view__img .q-image { display: inline-block; width: auto; height: auto; min-height: 0; aspect-ratio: auto; padding: 0; margin: 0; background: none; }
+.notes-view__img .q-image img { display: block; height: 200px; width: auto; max-width: 100%; border-radius: 12px; }
