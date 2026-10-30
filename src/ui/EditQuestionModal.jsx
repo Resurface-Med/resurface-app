@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { primaryBtn } from "./theme";
 import { remote } from "../lib/remote";
 import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
@@ -145,8 +146,10 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
   /* Laid out like Manage questions (2026-10-17): the same panel, header and
      close; sentence-case labels; the correct answer chosen by tapping its
      letter and shown in green, as the manager shows it. No Save button on an
-     existing question — it saves as you type (above). */
-  return (
+     existing question — it saves as you type (above). Portalled to body so a
+     caller inside an animated (transformed) row, like an admin report, can't
+     trap the fixed scrim inside that row. */
+  return createPortal(
     <div className="qm-scrim qe-scrim" onMouseDown={e => { if (e.target === e.currentTarget) close(); }}>
       <div className="qm qe" role="dialog" aria-modal="true" aria-label={isNew ? "New question" : "Edit question"}>
         <header className="qm-head qe-head">
@@ -247,6 +250,7 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
           </footer>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
