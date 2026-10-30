@@ -10051,11 +10051,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-tag-pick { border-radius: 10px; }
 /* Drafts: a strip across the top saying who can see it, and the button
    that sends it out. */
-.ann-draftbar {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  margin: 0 0 16px; padding-bottom: 14px; border-bottom: 1px dashed var(--c-accent-brd); color: var(--c-accent);
-  font-size: 14px; font-weight: 600;
-}
+.ann-draftbar { margin: 0 0 8px; color: var(--c-accent); font-size: 13.5px; font-weight: 600; }
+.ann-post__head { display: flex; align-items: flex-start; gap: 12px; }
+.ann-post__head .ann-post__title { flex: 1; min-width: 0; }
+.ann-post__menu { margin-top: 2px; }
+.ann-post.is-lead .ann-post__menu { margin-top: 6px; }
+.ann-post__menu .deck-menu-btn { color: var(--c-muted); }
 .ann-draftbar__go { padding: 8px 16px; border: 0; border-radius: 999px; background: var(--c-accent); color: #fff; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .ann-post__unpub { margin-left: auto; border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-sub); cursor: pointer; }
 .ann-post__del.is-after { margin-left: 14px; }
@@ -10067,11 +10068,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   background: #fff; color: var(--c-accent); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
   box-shadow: 0 10px 24px -14px rgba(10, 20, 60, 0.6);
 }
-.ann-post__meta > span.ann-post__acts::before { content: none; }
-.ann-post__acts { display: flex; gap: 8px 18px; margin: 18px 0 0; }
-.ann-post__act { border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; color: var(--c-sub); cursor: pointer; }
-.ann-post__act:hover { color: var(--c-text); }
-.ann-post__act.is-danger { color: var(--c-danger); }
 
 /* Home for a new account: the welcome note as a letter, the film beside it. */
 .dash-welcome { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(24px, 3vw, 44px); align-items: start; }
@@ -10108,7 +10104,6 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   border: 0; background: none; font: inherit; font-size: 15px; font-weight: 500; color: var(--c-accent); cursor: pointer;
 }
 .dash-letter__film:hover { text-decoration: underline; text-underline-offset: 3px; }
-.ann-post__acts { flex-wrap: wrap; }
 /* The welcome note, a step larger on laptops. */
 @media (min-width: 901px) {
   .dash-welcome { max-width: 760px; }

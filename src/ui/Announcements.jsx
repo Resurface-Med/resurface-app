@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import Popover, { MenuItems } from "./Popover";
 import { confirm } from "./Confirm";
 import { downscale } from "../lib/questionImage";
 import { supabase, SUPABASE_URL } from "../lib/supabase";
@@ -63,18 +64,16 @@ export function Rich({ text }) {
 function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit, onWelcome }) {
   const draft = !a.published_at && a.id !== "draft";
   const stamp = a.published_at || a.created_at;
-  const acts = (onEdit || onDelete) && (
-    <p className="ann-post__acts">
-      {onWelcome && a.published_at && (
-        <button type="button" className="ann-post__act" onClick={() => onWelcome(a)}>
-          {a.welcome ? "Shown on Home · remove" : "Show on Home for new people"}
-        </button>
-      )}
-      {onEdit && <button type="button" className="ann-post__act" onClick={() => onEdit(a)}>Edit</button>}
-      {onPublish && a.published_at && <button type="button" className="ann-post__act" onClick={() => onPublish(a, false)}>Unpublish</button>}
-      {onDelete && <button type="button" className="ann-post__act is-danger" onClick={() => onDelete(a)}>Delete</button>}
-    </p>
-  );
+  /* Admin actions behind a ⋯, the same menu as a deck's (2026-10-30):
+     only admins get it, and nothing else on the post changes for them. */
+  const items = [
+    onEdit && { label: "Edit", onSelect: () => onEdit(a) },
+    onPublish && (a.published_at
+      ? { label: "Unpublish", onSelect: () => onPublish(a, false) }
+      : { label: "Publish to everyone", onSelect: () => onPublish(a) }),
+    onWelcome && a.published_at && { label: a.welcome ? "Remove from Home" : "Show on Home for new people", onSelect: () => onWelcome(a) },
+    onDelete && { label: "Delete", danger: true, onSelect: () => onDelete(a) },
+  ].filter(Boolean);
   return (
     <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}${draft ? " is-draft" : ""}`}>
       {/* Plain text, not pills (Rafil, 2026-10-19). */}
@@ -86,18 +85,35 @@ function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit, onWelcome }
         {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
       </p>
       <div className="ann-post__main">
-        {draft && (
-          <div className="ann-draftbar">
-            <span>Draft · only admins can see this</span>
-            {onPublish && <button type="button" className="ann-draftbar__go btn-press" onClick={() => onPublish(a)}>Publish to everyone</button>}
-          </div>
-        )}
-        <h2 className="ann-post__title">{a.title}</h2>
+        {draft && <p className="ann-draftbar">Draft · only admins can see this</p>}
+        <div className="ann-post__head">
+          <h2 className="ann-post__title">{a.title}</h2>
+          {items.length > 0 && <PostMenu title={a.title} items={items} />}
+        </div>
         {a.image_url && <img className="ann-post__img" src={a.image_url} alt="" loading="lazy" />}
         {a.body && <Rich text={a.body} />}
-        {acts}
       </div>
     </article>
+  );
+}
+
+function PostMenu({ title, items }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  return (
+    <span className="deck-menu ann-post__menu">
+      <button ref={ref} type="button" className="deck-menu-btn" aria-label={`Options for ${title}`} aria-haspopup="menu" aria-expanded={open}
+        onClick={() => setOpen(o => !o)}>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="3.25" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="8" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="12.75" cy="8" r="1.2" fill="currentColor" />
+        </svg>
+      </button>
+      <Popover anchorRef={ref} open={open} onClose={() => setOpen(false)}>
+        <MenuItems items={items} onPick={it => { setOpen(false); it.onSelect(); }} />
+      </Popover>
+    </span>
   );
 }
 
