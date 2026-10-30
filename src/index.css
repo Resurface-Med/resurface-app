@@ -1642,18 +1642,25 @@ body::after {
    moment a question is wrong and invisible the rest of the time. */
 .q-flag-open {
   margin-top: 12px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--c-muted);
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-sub);
+  font-size: 13px;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--c-border);
+  transition: color .15s, border-color .15s;
 }
-.q-flag-open:hover { color: var(--c-sub); }
+.q-flag-open:hover { color: var(--c-accent); border-color: var(--c-accent-brd); }
+/* The one-time note that the header flag marks, not reports (QuizShell). */
+.combo.mark-hint { animation-duration: 4s; max-width: min(88vw, 420px); white-space: normal; text-align: left; padding: 11px 16px; border-radius: 16px; }
+.combo.mark-hint .combo__words { font-size: 13.5px; line-height: 1.4; }
+.combo.mark-hint strong { font-weight: 600; }
 
 .q-flag {
   margin-top: 12px;

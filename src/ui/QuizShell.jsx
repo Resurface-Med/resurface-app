@@ -52,8 +52,25 @@ export default function QuizShell({
      and they leave with the session. */
   const [flagged, setFlagged] = useState(() => new Set());
   const flaggedHere = q ? flagged.has(q.id) : false;
+  /* The flag marks a question to come back to; it does not report one.
+     Students took it for reporting and nothing reached anyone (2026-10-30),
+     so the first time it is used it says where reporting is. */
+  const [markHint, setMarkHint] = useState(false);
+  useEffect(() => {
+    if (!markHint) return;
+    const t = setTimeout(() => setMarkHint(false), 4000);
+    return () => clearTimeout(t);
+  }, [markHint]);
   function toggleFlag() {
     if (!q) return;
+    if (!flagged.has(q.id)) {
+      try {
+        if (localStorage.getItem("rs_mark_hint") !== "1") {
+          localStorage.setItem("rs_mark_hint", "1");
+          setMarkHint(true);
+        }
+      } catch { /* no storage: no hint */ }
+    }
     setFlagged(prev => {
       const next = new Set(prev);
       if (next.has(q.id)) next.delete(q.id);
@@ -248,8 +265,8 @@ export default function QuizShell({
             type="button"
             className={`quiz-shell__tool btn-press${flaggedHere ? " is-on" : ""}`}
             onClick={toggleFlag}
-            title={flaggedHere ? "Remove flag" : "Flag question"}
-            aria-label={flaggedHere ? "Remove flag" : "Flag question"}
+            title={flaggedHere ? "Unmark" : "Mark for later"}
+            aria-label={flaggedHere ? "Unmark" : "Mark for later"}
             aria-pressed={flaggedHere}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -312,6 +329,11 @@ export default function QuizShell({
 
       <div className="quiz-shell__stage">
         {comboPop && !showAi && <ComboPop key={comboPop.at} n={comboPop.n} />}
+        {markHint && !comboPop && !showAi && (
+          <span className="combo mark-hint" role="status">
+            <span className="combo__words">Marked for later. To report it, use <strong>Report a problem</strong> under the answer.</span>
+          </span>
+        )}
         {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">
             {/* Fixed-width inner, clipped by the aside. Without it the content
