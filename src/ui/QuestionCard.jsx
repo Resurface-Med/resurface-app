@@ -481,6 +481,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         <div className="q-review anim-fade-up">
           <Highlighter as="p" text={q.exp} className="q-exp" />
 
+          {/* Under the explanation, not buried under the topic note.
+              Shown on your own questions too: a featured deck's owner
+              studies those as theirs (gen, not featured), and the old
+              branch swapped this for Edit, so the owner never saw it. */}
+          <FlagQuestion questionId={q.id} />
+
           {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} />}
 
           {explaining && !onAiOpenChange && (
@@ -538,13 +544,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
             {peerSplit && (
               <span className="q-peer-n">{peerSplit.total} people have answered this</span>
             )}
-            {/* A question that is not yours is reported. Yours is corrected
-                here instead — telling yourself it is wrong helps nobody.
-                A premade question stays reportable even for an admin: the
-                pencil in the header is how they edit it. */}
-            {q.gen && !q.featured
-              ? <button type="button" className="q-fix" onClick={() => setEditing(true)}>Edit question</button>
-              : <FlagQuestion questionId={q.id} />}
+            {/* Yours is also edited here. A premade question is edited from
+                the pencil in the header, and only by an admin. */}
+            {q.gen && !q.featured && (
+              <button type="button" className="q-fix" onClick={() => setEditing(true)}>Edit question</button>
+            )}
           </div>
         </div>
       )}
