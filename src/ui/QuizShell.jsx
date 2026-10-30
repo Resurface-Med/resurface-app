@@ -48,6 +48,36 @@ export default function QuizShell({
   /* The practice session, so Resurface AI counts its replies per sitting. */
   sessionId = null,
 }) {
+  /* Flags belong to this sitting. They mark a question to come back to,
+     and they leave with the session. */
+  const [flagged, setFlagged] = useState(() => new Set());
+  const flaggedHere = q ? flagged.has(q.id) : false;
+  /* The flag marks a question to come back to; it does not report one.
+     Students took it for reporting and nothing reached anyone (2026-10-30),
+     so the first time it is used it says where reporting is. */
+  const [markHint, setMarkHint] = useState(false);
+  useEffect(() => {
+    if (!markHint) return;
+    const t = setTimeout(() => setMarkHint(false), 4000);
+    return () => clearTimeout(t);
+  }, [markHint]);
+  function toggleFlag() {
+    if (!q) return;
+    if (!flagged.has(q.id)) {
+      try {
+        if (localStorage.getItem("rs_mark_hint") !== "1") {
+          localStorage.setItem("rs_mark_hint", "1");
+          setMarkHint(true);
+        }
+      } catch { /* no storage: no hint */ }
+    }
+    setFlagged(prev => {
+      const next = new Set(prev);
+      if (next.has(q.id)) next.delete(q.id);
+      else next.add(q.id);
+      return next;
+    });
+  }
   const [railOpen, setRailOpen] = useState(false);
   const [railMounted, setRailMounted] = useState(false);
   /* The editor is opened from the header here rather than from the card. The
@@ -233,6 +263,20 @@ export default function QuizShell({
 
           <button
             type="button"
+            className={`quiz-shell__tool btn-press${flaggedHere ? " is-on" : ""}`}
+            onClick={toggleFlag}
+            title={flaggedHere ? "Unmark" : "Mark for later"}
+            aria-label={flaggedHere ? "Unmark" : "Mark for later"}
+            aria-pressed={flaggedHere}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 3.4v17.2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M7 5.2h11.2L14.4 9.6l3.8 4.4H7V5.2z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" fill={flaggedHere ? "currentColor" : "none"} />
+            </svg>
+          </button>
+
+          <button
+            type="button"
             className={`quiz-shell__tool btn-press${labsOpen ? " is-on" : ""}`}
             onClick={() => setLabsOpen(o => !o)}
             title="Lab values"
@@ -285,6 +329,11 @@ export default function QuizShell({
 
       <div className="quiz-shell__stage">
         {comboPop && !showAi && <ComboPop key={comboPop.at} n={comboPop.n} />}
+        {markHint && !comboPop && !showAi && (
+          <span className="combo mark-hint" role="status">
+            <span className="combo__words">Marked for later. To report it, use <strong>Report a problem</strong> under the answer.</span>
+          </span>
+        )}
         {railMounted && (
           <aside className="quiz-rail" aria-label="Session progress">
             {/* Fixed-width inner, clipped by the aside. Without it the content
@@ -307,6 +356,7 @@ export default function QuizShell({
               idx={idx}
               sels={sels}
               results={results}
+              flagged={flagged}
               onJump={onJump}
             />
             <button
