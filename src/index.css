@@ -11830,3 +11830,10 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   box-shadow: 0 8px 22px -8px rgba(12, 22, 56, 0.5); cursor: pointer; white-space: nowrap;
   animation: rs-fade-in 0.15s ease both;
 }
+/* A note in the list is just your words, two lines at most, and an arrow. */
+.notes__item { flex-direction: row; align-items: center; gap: 16px; padding: 10px 14px; }
+.notes__item .notes__note { flex: 1; min-width: 0; -webkit-line-clamp: 2; }
+.notes__go { flex: none; color: var(--c-muted-dim); transition: color .15s ease, transform .15s ease; }
+.notes__item:hover .notes__go { color: var(--c-accent); transform: translateX(2px); }
+.notes__topic { margin-top: 10px; }
+.notes__item .notes__note { white-space: normal; }

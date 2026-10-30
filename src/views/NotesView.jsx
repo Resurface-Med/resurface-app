@@ -22,14 +22,6 @@ import { useNotes, notedQuestions, noteTree } from "../lib/notes";
 
 const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
 
-const ago = iso => {
-  if (!iso) return "";
-  const d = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (d <= 0) return "Today";
-  if (d === 1) return "Yesterday";
-  if (d < 7) return `${d} days ago`;
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-};
 
 function Viewer({ list, at, onMove, onClose }) {
   const item = list[at];
@@ -133,11 +125,10 @@ function Folder({ n, depth, isLast, isOpen, onToggle, onOpen }) {
                     {t.items.map(({ q, note }) => (
                       <li key={q.id}>
                         <button type="button" className="notes__item" onClick={() => onOpen(q.id)}>
+                          {/* Just your words (Rafil, 2026-10-30): the question and when
+                              you wrote it are there when you open it. */}
                           <span className="notes__note">{note.body}</span>
-                          <span className="notes__q">
-                            <span className="notes__q-text">{q.q}</span>
-                            <span className="notes__when">{ago(note.at)}</span>
-                          </span>
+                          <span className="notes__go" aria-hidden="true"><NavChevron size={14} /></span>
                         </button>
                       </li>
                     ))}
