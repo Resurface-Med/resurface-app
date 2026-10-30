@@ -230,6 +230,7 @@ export function storedPayload(live, next) {
     ...(live.exhibit ? { exhibit: live.exhibit } : {}),
     /* The topic note (2026-10-28) isn't in the file, so it is kept. */
     ...(live.topic ? { topic: live.topic } : {}),
+    ...(live.hl ? { hl: live.hl } : {}),
   };
 }
 

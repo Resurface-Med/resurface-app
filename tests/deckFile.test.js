@@ -185,10 +185,11 @@ describe("deckFileName", () => {
 describe("knowledge library notes survive a file round trip (2026-10-28)", () => {
   it("keeps the live question's topic note, image and exhibit", () => {
     const topic = { title: "Pneumothorax", body: "Air in the pleural space." };
-    const live = { q: "old", opts: ["a", "b", "c", "d", "e"], ans: 0, exp: "x", optExp: [], img: "/qimg/resp/p.webp", topic };
+    const live = { q: "old", opts: ["a", "b", "c", "d", "e"], ans: 0, exp: "x", optExp: [], img: "/qimg/resp/p.webp", topic, hl: ["Air in the pleural space."] };
     const next = { q: "new", opts: ["a", "b", "c", "d", "e"], ans: 1, exp: "y", optExp: [] };
     const out = storedPayload(live, next);
     expect(out.topic).toEqual(topic);
+    expect(out.hl).toEqual(["Air in the pleural space."]);
     expect(out.img).toBe("/qimg/resp/p.webp");
     expect(out.q).toBe("new");
   });
