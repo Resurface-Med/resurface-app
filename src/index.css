@@ -9935,25 +9935,48 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-bell--account { width: 36px; height: 36px; }
 
 /* ─── What's new: posts ────────────────────────────────────────────── */
-.ann-feed { display: flex; flex-direction: column; }
-/* A changelog, not a wall of cards (2026-10-30): the date in a gutter, the
-   post down the right, one rule between posts. */
+.ann-feed {
+  --gut: 150px; --gap: clamp(24px, 3vw, 44px);
+  position: relative; display: flex; flex-direction: column; max-width: calc(var(--gut) + var(--gap) + 640px);
+}
+/* A changelog with a timeline (2026-10-30): a thin line runs down the date
+   gutter with a dot at each post; the newest dot is filled in blue with a
+   soft ring, and its gutter says Latest. One rule between posts, drawn only
+   under the text column so it doesn't cut the timeline. */
+.ann-feed::before {
+  content: ""; position: absolute; left: 5px; top: 22px; bottom: 40px; width: 2px;
+  background: linear-gradient(var(--c-border) 70%, transparent);
+}
 .ann-post {
-  display: grid; grid-template-columns: 148px minmax(0, 1fr); column-gap: clamp(20px, 3vw, 40px);
-  padding: clamp(44px, 6.5vh, 64px) 0; border-top: 1px solid var(--c-border);
+  position: relative; display: grid; grid-template-columns: var(--gut) minmax(0, 1fr); column-gap: var(--gap);
+  padding: clamp(44px, 6.5vh, 64px) 0;
 }
-.ann-post:first-child { border-top: 0; padding-top: 8px; }
-.ann-post__main { min-width: 0; max-width: 620px; }
+.ann-post + .ann-post::before {
+  content: ""; position: absolute; top: 0; right: 0; left: calc(var(--gut) + var(--gap));
+  height: 1px; background: var(--c-border);
+}
+.ann-post:first-child { padding-top: 12px; }
+.ann-post__main { min-width: 0; max-width: 640px; }
 .ann-post__meta {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 0; padding-top: 6px;
-  font-size: 13.5px; color: var(--c-muted);
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  margin: 0; padding: 5px 0 0 28px; font-size: 13.5px; color: var(--c-muted);
 }
-.ann-post__meta time { color: var(--c-sub); font-weight: 500; }
-.ann-tag { font-size: 13.5px; color: var(--c-muted); }
-.ann-new { font-size: 13.5px; font-weight: 600; color: var(--c-accent); }
+.ann-post__meta::before {
+  content: ""; position: absolute; left: 0; top: 8px; width: 12px; height: 12px; border-radius: 50%;
+  box-sizing: border-box; border: 2px solid var(--c-muted-dim); background: var(--c-card-solid);
+}
+.ann-post.is-lead .ann-post__meta::before {
+  background: var(--c-accent); border-color: var(--c-accent); box-shadow: 0 0 0 5px var(--c-accent-dim);
+}
+.ann-post.is-lead .ann-post__meta { padding-top: 9px; }
+.ann-post.is-lead .ann-post__meta::before { top: 12px; }
+.ann-post__meta time { display: flex; flex-direction: column; gap: 1px; }
+.ann-date { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-text); }
+.ann-year { font-size: 13.5px; color: var(--c-muted); }
+.ann-tag { margin-top: 6px; font-size: 13.5px; color: var(--c-muted); }
+.ann-new { margin-bottom: 2px; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; color: var(--c-accent); }
 .ann-post__title { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.5px; line-height: 1.3; color: var(--c-text); }
-.ann-post.is-lead .ann-post__title { font-size: clamp(26px, 2.6vw, 32px); letter-spacing: -0.8px; line-height: 1.2; }
-.ann-post.is-lead .ann-post__meta { padding-top: 10px; }
+.ann-post.is-lead .ann-post__title { font-size: clamp(28px, 2.8vw, 34px); letter-spacing: -0.9px; line-height: 1.18; }
 .ann-post__img {
   display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; margin-top: 18px;
   border-radius: 18px; background: var(--c-surface3);
@@ -9967,15 +9990,23 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ann-rich strong { color: var(--c-text); font-weight: 600; }
 .ann-rich a { color: var(--c-accent); font-weight: 500; }
 @media (max-width: 760px) {
+  .ann-feed::before { display: none; }
   .ann-post { grid-template-columns: minmax(0, 1fr); padding: 40px 0; }
+  .ann-post + .ann-post::before { left: 0; }
   .ann-post:first-child { padding-top: 4px; }
-  .ann-post__meta { flex-direction: row; flex-wrap: wrap; gap: 4px 0; padding-top: 0; margin-bottom: 8px; }
-  .ann-post.is-lead .ann-post__meta { padding-top: 0; }
+  .ann-post__meta, .ann-post.is-lead .ann-post__meta { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 0; padding: 0; margin-bottom: 10px; }
+  .ann-post__meta::before { display: none; }
+  .ann-post__meta time { flex-direction: row; gap: 4px; }
+  .ann-date { font-size: 13.5px; }
+  .ann-tag, .ann-new { margin: 0; font-size: 13.5px; }
   .ann-post__meta > * + *::before { content: "·"; margin: 0 8px; color: var(--c-muted); font-weight: 400; }
+  .ann-post.is-lead .ann-new::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--c-accent); box-shadow: 0 0 0 3px var(--c-accent-dim); vertical-align: 1px; }
 }
 /* The composer's preview column is narrow: date above there too. */
-.ann-compose__preview .ann-post { grid-template-columns: minmax(0, 1fr); padding-top: 0; border-top: 0; }
-.ann-compose__preview .ann-post__meta { flex-direction: row; gap: 0 14px; padding-top: 0; margin-bottom: 8px; }
+.ann-compose__preview .ann-post { grid-template-columns: minmax(0, 1fr); padding-top: 0; }
+.ann-compose__preview .ann-post__meta { flex-direction: row; gap: 0 14px; padding: 0; margin-bottom: 8px; }
+.ann-compose__preview .ann-post__meta::before { display: none; }
+.ann-compose__preview .ann-post__meta time { flex-direction: row; gap: 4px; }
 
 /* Writing one (admins). */
 .ann-start {

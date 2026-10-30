@@ -31,7 +31,7 @@ export default function AnnouncementsView(props) {
       </div>
       <Wave from="transparent" to="var(--c-card-solid)" />
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div style={{ ...band, maxWidth: 820, paddingTop: "clamp(16px, 2.6vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+        <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
           <AnnouncementFeed {...props} composing={composing} onComposeDone={() => setComposing(false)} />
         </div>
       </div>

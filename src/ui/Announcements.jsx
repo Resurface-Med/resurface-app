@@ -20,7 +20,8 @@ export const TAGS = {
   news: "News",
 };
 
-const when = iso => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+const dayMonth = iso => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const year = iso => new Date(iso).getFullYear();
 
 /* **bold**, web addresses and email addresses inside one line. */
 function Inline({ text }) {
@@ -61,6 +62,7 @@ export function Rich({ text }) {
    beside it. */
 function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit, onWelcome }) {
   const draft = !a.published_at && a.id !== "draft";
+  const stamp = a.published_at || a.created_at;
   const acts = (onEdit || onDelete) && (
     <p className="ann-post__acts">
       {onWelcome && a.published_at && (
@@ -76,9 +78,11 @@ function Post({ a, isNew, lead = false, onDelete, onPublish, onEdit, onWelcome }
   return (
     <article className={`ann-post${lead ? " is-lead" : ""}${isNew ? " is-new" : ""}${draft ? " is-draft" : ""}`}>
       {/* Plain text, not pills (Rafil, 2026-10-19). */}
+      {/* The newest post says so in words as well as with the filled dot on
+          the timeline; older ones only say New until you've seen them. */}
       <p className="ann-post__meta">
-        <time dateTime={a.published_at || a.created_at}>{when(a.published_at || a.created_at)}</time>
-        {isNew && <span className="ann-new">New</span>}
+        {lead ? <span className="ann-new">Latest</span> : isNew && <span className="ann-new">New</span>}
+        <time dateTime={stamp}><span className="ann-date">{dayMonth(stamp)}</span> <span className="ann-year">{year(stamp)}</span></time>
         {a.tag && <span className="ann-tag">{TAGS[a.tag]}</span>}
       </p>
       <div className="ann-post__main">
