@@ -6,6 +6,9 @@ import { C, qcard, qstem, primaryBtn } from "./theme";
 import BmBtn from "./BmBtn";
 import ExplainChat from "./ExplainChat";
 import FlagQuestion from "./FlagQuestion";
+import NoteBox from "./NoteBox";
+import { useNotes } from "../lib/notes";
+import { QUESTIONS } from "../data";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
@@ -104,8 +107,14 @@ const TIP_KEY = "rs_topic_tip_seen";
 const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return true; } };
 const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* fine */ } };
 
-function TopicNote({ topic, hl }) {
+function TopicNote({ topic, hl, qid, deckId }) {
   const [open, setOpen] = useState(false);
+  /* Your notes on the other questions from this topic, at the foot of the
+     note (2026-10-30): the revision sheet with your own additions on it.
+     Same topic and same lecture; this question's own note is just above. */
+  const notes = useNotes();
+  const mine = open && notes?.notes ? QUESTIONS.filter(x => x.id !== qid && x.deckId === deckId
+    && x.topic?.title === topic.title && notes.notes[x.id]?.body?.trim()) : [];
   /* Once, the first time anyone meets a note (2026-10-29): what it is. */
   const [tip, setTip] = useState(() => !tipSeen());
   /* A taste of the note while it's shut, fading out: cut-off text says
@@ -140,6 +149,17 @@ function TopicNote({ topic, hl }) {
         <div className="q-topic__body">
           <p className="q-topic__time">{readTime(topic.body)}</p>
           <EditorialNote text={focusNote(topic.body, hl)} />
+          {mine.length > 0 && (
+            <div className="q-topic__mine">
+              <p className="q-topic__mine-h">Your notes on this topic</p>
+              {mine.map(x => (
+                <div key={x.id} className="q-topic__mine-item">
+                  <p className="q-topic__mine-note">{notes.notes[x.id].body}</p>
+                  <p className="q-topic__mine-q">{x.q}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -153,6 +173,11 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
   const [eliminated, setEliminated] = useState(new Set());
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  /* My note (lib/notes): shown once there is one; "Add a note" opens it. */
+  const notes = useNotes();
+  const myNote = notes?.notes?.[q.id]?.body?.trim() ? notes.notes[q.id] : null;
+  const [noteOpenFor, setNoteOpenFor] = useState(null);
+  const noteOpen = noteOpenFor === q.id;
   /* Every option, or just the right one and yours. Remembered rather than
      reset per question: someone who wants to see them all wants it on every
      question, and someone who doesn't was closing it on every one. */
@@ -485,9 +510,18 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               Shown on your own questions too: a featured deck's owner
               studies those as theirs (gen, not featured), and the old
               branch swapped this for Edit, so the owner never saw it. */}
-          <FlagQuestion questionId={q.id} />
+          <div className="q-review-acts">
+            <FlagQuestion questionId={q.id} />
+            {notes && !myNote && !noteOpen && (
+              <button type="button" className="q-flag-open btn-press" onClick={() => setNoteOpenFor(q.id)}>Add a note</button>
+            )}
+          </div>
+          {notes && (myNote || noteOpen) && (
+            <NoteBox key={q.id} body={myNote?.body ?? ""} autoFocus={!myNote}
+              onSave={body => notes.setNote(q.id, body)} onEmptyBlur={() => setNoteOpenFor(null)} />
+          )}
 
-          {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} />}
+          {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} qid={q.id} deckId={q.deckId} />}
 
           {explaining && !onAiOpenChange && (
             <ExplainChat q={q} picked={sel} onClose={() => setExplaining(false)} />

@@ -26,6 +26,8 @@ export function overlayOps(snap, ops) {
     pStats: { ...snap.pStats },
     srCards: { ...snap.srCards },
     bookmarks: [...(snap.bookmarks ?? [])],
+    /* null when they couldn't be loaded: left null, so the app keeps its own. */
+    notes: snap.notes == null ? snap.notes : { ...snap.notes },
     activity: { ...snap.activity },
     questionEdits: { ...snap.questionEdits },
     generated: [...(snap.generated ?? [])],
@@ -44,6 +46,12 @@ export function overlayOps(snap, ops) {
         break;
       case "bookmark-remove":
         s.bookmarks = s.bookmarks.filter(id => id !== op.questionId);
+        break;
+      case "note-set":
+        if (s.notes) s.notes[op.questionId] = { body: op.body, at: op.updatedAt };
+        break;
+      case "note-remove":
+        if (s.notes) delete s.notes[op.questionId];
         break;
       case "activity":
         s.activity[op.day] = op.count;

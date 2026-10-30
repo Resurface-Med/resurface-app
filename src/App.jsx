@@ -23,6 +23,7 @@ class ErrorBoundary extends Component {
   }
 }
 import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
+import { NotesContext } from "./lib/notes";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, readCustomColor, writeCustomColor, clearCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
@@ -73,6 +74,7 @@ import { avatarSrc, ownAvatar } from "./lib/avatar";
    `view-enter` in index.css — drop it early and the hole comes back. */
 const VIEW_SWAP_MS = 560;
 const RESUME_VIEW = "pq_resume_view";
+const EMPTY_NOTES = {};
 
 /* Kept as named loaders rather than inline, because navigation waits on
    them as well as `lazy` — see `go`. Calling one twice is free: an import
@@ -85,6 +87,7 @@ const CHUNK = {
   [V.GENERATE]:    chunk(() => import("./views/GenerateMode")),
   [V.ADMIN]:       chunk(() => import("./views/AdminView")),
   [V.NEWS]:        chunk(() => import("./views/AnnouncementsView")),
+  [V.NOTES]:       chunk(() => import("./views/NotesView")),
 };
 const StudyMode       = lazy(CHUNK[V.STUDY]);
 const ProgressView    = lazy(CHUNK[V.PROGRESS]);
@@ -93,6 +96,7 @@ const ProfileView     = lazy(CHUNK[V.PROFILE]);
 const GenerateMode    = lazy(CHUNK[V.GENERATE]);
 const AdminView       = lazy(CHUNK[V.ADMIN]);
 const AnnouncementsView = lazy(CHUNK[V.NEWS]);
+const NotesView = lazy(CHUNK[V.NOTES]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
 
@@ -152,6 +156,12 @@ export default function App() {
   const [pStats, setPStats] = useState({});
   const [srCards, setSrCards] = useState({});
   const [bookmarks, setBookmarks] = useState([]);
+  /* My notes (lib/notes, migration 0063): { [questionId]: { body, at } }.
+     Held with the account they belong to: notes are private, so another
+     account signing in on this device sees none of the last person's while
+     its own are on their way. */
+  const [notesHeld, setNotesHeld] = useState({ uid: null, map: {} });
+  const notes = notesHeld.uid && notesHeld.uid === user?.id ? notesHeld.map : EMPTY_NOTES;
   const [streak, setStreak] = useState({ streak: 0, longest: 0, lastDate: null });
   const [activity, setActivity] = useState({});
   const [dailyGoal, setDailyGoal] = useState(20);
@@ -394,6 +404,7 @@ export default function App() {
     setStudyYear(d.studyYear);
     /* null: they could not be loaded this time — keep what is shown. */
     if (Array.isArray(d.sessions)) setSessions(d.sessions);
+    if (d.notes && typeof d.notes === "object") setNotesHeld({ uid: user.id, map: d.notes });
     loadPrefs({ showAllOptions: d.showAllOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
@@ -619,7 +630,7 @@ export default function App() {
      account's state is never saved under another's name. */
   const snapshotRef = useRef(null);
   snapshotRef.current = () => ({
-    pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
+    pStats, srCards, bookmarks, notes, activity, streak, dailyGoal, displayName, avatarV,
     announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear,
     ...(studyTrusted.current ? { studySeconds: studyTotal.current } : {}),
     showAllOptions: getPrefs().showAllOptions, introSeen: getPrefs().introSeen,
@@ -639,7 +650,7 @@ export default function App() {
     if (!user?.id || dataLoading || loadError || !sourceRef.current) return;
     saveSoon();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, activity, streak, dailyGoal, displayName, avatarV,
+  }, [user?.id, dataLoading, loadError, pStats, srCards, bookmarks, notes, activity, streak, dailyGoal, displayName, avatarV,
     announcements, annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear, studySeconds, generated, decks, featured, sessions]);
   useEffect(() => {
     if (!user?.id) return;
@@ -949,6 +960,18 @@ export default function App() {
 
     countStudied();
   }
+
+  function setNote(id, body) {
+    remote.setNote(user.id, id, body);
+    const uid = user.id;
+    setNotesHeld(h => {
+      const next = { ...(h.uid === uid ? h.map : {}) };
+      if (body.trim()) next[id] = { body, at: new Date().toISOString() };
+      else delete next[id];
+      return { uid, map: next };
+    });
+  }
+  const notesCtx = useMemo(() => ({ notes, setNote }), [notes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleBookmark(id) {
     setBookmarks(b => {
@@ -1354,6 +1377,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+    <NotesContext.Provider value={notesCtx}>
     <>
     {/* Asked once, after they are in, and only of the people whose name was
         made up from their email — anyone who used Google already has their
@@ -1520,6 +1544,8 @@ export default function App() {
 
           {v === V.LEADERBOARD && <LeaderboardView userId={user.id} />}
 
+          {v === V.NOTES && <NotesView onStudy={() => go(V.STUDY)} />}
+
           {v === V.ADMIN && (online ? <AdminView me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView
@@ -1580,6 +1606,7 @@ export default function App() {
       </div>
     </div>
     </>
+    </NotesContext.Provider>
     </ErrorBoundary>
   );
 }

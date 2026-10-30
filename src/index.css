@@ -11666,3 +11666,73 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   .ed__n { font-size: 25px; }
   .ed__h { font-size: 17.5px; }
 }
+
+/* ─── My notes (2026-10-30) ───────────────────────────────────────── */
+/* Under the explanation: Report and Add a note side by side. */
+.q-review-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; }
+.q-review-acts > .q-flag, .q-review-acts > .q-flag-done { flex: 1 1 100%; }
+.q-mynote { margin-top: 14px; }
+.q-mynote__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.q-mynote__label { font-size: 13.5px; font-weight: 600; color: var(--c-text); }
+.q-mynote__state { font-size: 12.5px; color: var(--c-muted); }
+.q-mynote__field {
+  display: block; width: 100%; box-sizing: border-box; min-height: 64px; resize: none; overflow: hidden;
+  padding: 12px 14px; border: 1.5px solid var(--c-border); border-radius: 14px;
+  background: var(--c-surface); color: var(--c-text); font: inherit; font-size: 15px; line-height: 1.55;
+}
+.q-mynote__field:focus { outline: none; border-color: var(--c-accent-brd); }
+.q-mynote__field::placeholder { color: var(--c-muted); }
+
+/* At the foot of a topic note: your notes on its other questions. */
+.q-topic__mine { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--c-border); }
+.q-topic__mine-h { margin: 0 0 10px; font-size: 13.5px; font-weight: 600; color: var(--c-text); }
+.q-topic__mine-item + .q-topic__mine-item { margin-top: 12px; }
+.q-topic__mine-note { margin: 0; font-size: 15px; line-height: 1.55; color: var(--c-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.q-topic__mine-q { margin: 3px 0 0; font-size: 13px; color: var(--c-muted); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* The page. */
+.notes { max-width: 760px; }
+.notes__search {
+  width: 100%; max-width: 420px; box-sizing: border-box; padding: 11px 16px; margin-bottom: 8px;
+  border: 1.5px solid var(--c-border); border-radius: 999px; background: var(--c-surface);
+  color: var(--c-text); font: inherit; font-size: 15px;
+}
+.notes__search:focus { outline: none; border-color: var(--c-accent-brd); }
+.notes__none { margin: 24px 0; font-size: 15px; color: var(--c-sub); }
+.notes__lec { padding: clamp(28px, 4vh, 40px) 0 4px; }
+.notes__lec + .notes__lec { border-top: 1px solid var(--c-border); }
+.notes__lec-h { margin: 0 0 6px; display: flex; flex-direction: column; gap: 2px; }
+.notes__lec-path { font-size: 13.5px; font-weight: 500; color: var(--c-muted); }
+.notes__lec-name { font-size: 21px; font-weight: 600; letter-spacing: -0.4px; color: var(--c-text); }
+.notes__topic { margin-top: 14px; }
+.notes__topic-h { margin: 0 0 2px; font-size: 14px; font-weight: 600; color: var(--c-accent); }
+.notes__list { list-style: none; margin: 0; padding: 0; }
+.notes__item {
+  display: flex; flex-direction: column; gap: 4px; width: 100%; text-align: left; cursor: pointer;
+  padding: 12px 14px; margin: 0 -14px; border: 0; border-radius: 14px; background: none; font: inherit;
+  transition: background .15s ease;
+}
+.notes__item:hover { background: var(--c-surface2); }
+.notes__note { font-size: 16px; line-height: 1.5; color: var(--c-text); white-space: pre-wrap; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.notes__q { display: flex; align-items: baseline; gap: 16px; font-size: 13.5px; color: var(--c-muted); }
+.notes__q-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notes__when { flex: none; }
+
+/* A note opened: the question in full, in the Past sessions window. */
+.notes-view { width: min(880px, 100%); }
+.notes-view__bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px 80px 0 32px; }
+.notes-view__where { min-width: 0; font-size: 13.5px; font-weight: 500; color: var(--c-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notes-view__step { flex: none; display: inline-flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--c-sub); }
+.notes-view__arrow {
+  width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 1.5px solid var(--c-border);
+  border-radius: 50%; background: var(--c-card-solid); color: var(--c-text); font: inherit; font-size: 18px; line-height: 1; cursor: pointer;
+}
+.notes-view__arrow:disabled { opacity: 0.35; cursor: default; }
+.notes-view__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 32px 32px; }
+@media (max-width: 760px) {
+  .notes-view__bar { padding: 18px 56px 0 18px; }
+  .notes-view__body { padding: 6px 18px 22px; }
+}
+/* The question inside the window is the window's content, not a card on it. */
+.notes-view__body .q-card { box-shadow: none !important; padding: 18px 0 0 !important; border-radius: 0 !important; background: none !important; }

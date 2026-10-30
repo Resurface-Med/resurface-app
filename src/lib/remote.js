@@ -161,6 +161,13 @@ function apply(op) {
       return supabase.from("bookmarks").upsert({ user_id: op.userId, question_id: op.questionId });
     case "bookmark-remove":
       return supabase.from("bookmarks").delete().eq("user_id", op.userId).eq("question_id", op.questionId);
+    case "note-set":
+      return supabase.from("question_notes").upsert({
+        user_id: op.userId, question_id: op.questionId, body: op.body,
+        updated_at: op.updatedAt ?? new Date(op.at).toISOString(),
+      });
+    case "note-remove":
+      return supabase.from("question_notes").delete().eq("user_id", op.userId).eq("question_id", op.questionId);
     case "activity":
       return supabase.from("activity").upsert({ user_id: op.userId, day: op.day, count: op.count });
     case "streak":
@@ -331,7 +338,7 @@ export async function loadAll(userId) {
   const featuredSoon = Promise.race([featuredP, new Promise(r => setTimeout(() => r(undefined), FEATURED_WAIT_MS))]);
   /* Decks alongside the rest: they were fetched after all of it, a whole
      extra round trip on every sign-in. */
-  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured, announcements, sessions] =
+  const [practice, sr, bookmarks, activity, streak, profile, generated, edits, deckRes, featured, announcements, sessions, notes] =
     await Promise.all([
       timed("t_practice", selectAll(() => supabase.from("practice_stats").select("question_id, correct, total").eq("user_id", userId), "question_id")),
       timed("t_sr", selectAll(() => supabase.from("sr_cards").select("*").eq("user_id", userId), "question_id")),
@@ -345,6 +352,7 @@ export async function loadAll(userId) {
       featuredSoon,
       fetchAnnouncements().catch(() => []),
       loadSessions(),
+      loadNotes(userId),
     ]);
   if (deckRes.error) throw deckRes.error;
   const decks = deckRes.data;
@@ -431,7 +439,20 @@ export async function loadAll(userId) {
     featured,
     featuredLater: featured === undefined ? featuredP : null,
     sessions,
+    notes,
   };
+}
+
+/* My notes (migration 0063): { [questionId]: { body, at } }. Not one of the
+   tables the snapshot must have: null if it fails, and the app keeps the
+   notes it already had rather than showing none. */
+export async function loadNotes(userId) {
+  const { data, error } = await selectAll(() => supabase.from("question_notes")
+    .select("question_id, body, updated_at").eq("user_id", userId), "question_id");
+  if (error) return null;
+  const out = {};
+  for (const r of data ?? []) out[r.question_id] = { body: r.body, at: r.updated_at };
+  return out;
 }
 
 /* Past sessions (migration 0027), newest first. Not one of the tables the
@@ -895,6 +916,11 @@ export const remote = {
   sr:       (userId, questionId, card)           => send({ kind: "sr", userId, questionId, card }),
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),
+  /* A note is sent whole each time (debounced by the box), so a queued one
+     replaying is harmless; an empty note is removed. */
+  setNote:        (userId, questionId, body) => (body.trim()
+    ? send({ kind: "note-set", userId, questionId, body, updatedAt: new Date().toISOString() })
+    : send({ kind: "note-remove", userId, questionId })),
   activity: (userId, day, count)  => send({ kind: "activity", userId, day, count }),
   studyTime: (userId, seconds) => send({ kind: "study-time", userId, seconds }),
   streak:   (userId, s)           => send({ kind: "streak", userId, current: s.streak, longest: s.longest, lastDate: s.lastDate }),

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDrawerSwipe } from "../ui/useDrawerSwipe";
-import { BookOpen, ChartColumn, Flag, House, LogOut, Megaphone, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, ChartColumn, Flag, House, LogOut, Megaphone, NotebookPen, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 import Avatar from "../ui/Avatar";
 
@@ -12,6 +12,7 @@ const ICONS = {
   [V.LEADERBOARD]: Trophy,
   [V.ADMIN]: Flag,
   [V.NEWS]: Megaphone,
+  [V.NOTES]: NotebookPen,
 };
 
 export function Sidebar({ view, setView, dueCount, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
