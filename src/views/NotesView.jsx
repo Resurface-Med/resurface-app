@@ -4,7 +4,7 @@ import { h1, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import QuestionCard from "../ui/QuestionCard";
 import { QUESTIONS } from "../data";
-import { useNotes, notedQuestions, groupNotes } from "../lib/notes";
+import { useNotes, notedQuestions, noteTree } from "../lib/notes";
 
 /**
  * My notes (2026-10-30): every note you've written on a question, in one
@@ -67,6 +67,71 @@ function Viewer({ list, at, onMove, onClose }) {
   );
 }
 
+const STEP = 26, PAD = 14;
+
+function Chevron({ open }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"
+      style={{ display: "block", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
+      <path d="M6.5 3.5L12 9l-5.5 5.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/* One folder row, drawn with Study's deck-tree classes so the two read as
+   the same thing; under it its sub-folders, or, for a lecture, its notes. */
+function Folder({ n, depth, isLast, isOpen, onToggle, onOpen }) {
+  const open = isOpen(n.key);
+  const rowCls = `topic-row ${depth <= 1 ? "topic-row-roomy" : "is-child"}${depth === 0 ? " is-block" : ""}`;
+  return (
+    <div className={`tree-node${depth === 0 ? " topic-block" : ""}${depth > 0 ? " is-nested" : ""}${isLast ? " is-last" : ""}`}>
+      <div className={rowCls} style={{ paddingLeft: PAD + depth * STEP, "--depth": depth }}>
+        <span className="topic-twist">
+          <button type="button" onClick={() => onToggle(n.key)} aria-expanded={open}
+            aria-label={`${open ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${open ? " is-open" : ""}`}>
+            <Chevron open={open} />
+          </button>
+        </span>
+        <button type="button" className="topic-hit notes-tree__hit" onClick={() => onToggle(n.key)} aria-expanded={open}>
+          <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>{n.name}</span>
+          <span className="notes-tree__count">{n.count} {n.count === 1 ? "note" : "notes"}</span>
+        </button>
+      </div>
+      {open && (
+        <div className="tree-kids">
+          {n.kids.map((k, i) => (
+            <Folder key={k.key} n={k} depth={depth + 1} isLast={i === n.kids.length - 1 && n.topics.length === 0}
+              isOpen={isOpen} onToggle={onToggle} onOpen={onOpen} />
+          ))}
+          {n.topics.length > 0 && (
+            <div className="notes-tree__notes" style={{ paddingLeft: PAD + (depth + 1) * STEP + 30 }}>
+              {n.topics.map(t => (
+                <div key={t.title ?? "_"} className="notes__topic">
+                  {/* No topic heading when it only repeats the lecture's name. */}
+                  {t.title && t.title.toLowerCase() !== String(n.name).toLowerCase() && <h3 className="notes__topic-h">{t.title}</h3>}
+                  <ul className="notes__list">
+                    {t.items.map(({ q, note }) => (
+                      <li key={q.id}>
+                        <button type="button" className="notes__item" onClick={() => onOpen(q.id)}>
+                          <span className="notes__note">{note.body}</span>
+                          <span className="notes__q">
+                            <span className="notes__q-text">{q.q}</span>
+                            <span className="notes__when">{ago(note.at)}</span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NotesView({ onStudy }) {
   const ctx = useNotes();
   const [query, setQuery] = useState("");
@@ -80,9 +145,19 @@ export default function NotesView({ onStudy }) {
     return all.filter(({ q, note }) => note.body.toLowerCase().includes(t) || String(q.q).toLowerCase().includes(t)
       || (q.topic?.title ?? "").toLowerCase().includes(t) || (q.path ?? []).some(p => String(p.name).toLowerCase().includes(t)));
   }, [all, query]);
-  const groups = useMemo(() => groupNotes(shown), [shown]);
+  const tree = useMemo(() => noteTree(shown), [shown]);
   /* The viewer steps through notes in the order they're listed. */
-  const order = useMemo(() => groups.flatMap(g => g.topics.flatMap(t => t.items)), [groups]);
+  const order = useMemo(() => {
+    const out = [];
+    const walk = n => { n.topics.forEach(t => out.push(...t.items)); n.kids.forEach(walk); };
+    tree.forEach(walk);
+    return out;
+  }, [tree]);
+  /* Folders, as on Study: shut ones remembered by key. Everything starts
+     open — only folders with notes in them exist — and a search opens all. */
+  const [shut, setShut] = useState(() => new Set());
+  const searching = query.trim().length > 0;
+  const toggle = key => setShut(s => { const n = new Set(s); if (n.has(key)) n.delete(key); else n.add(key); return n; });
   const lectures = new Set(all.map(x => (x.q.path ?? []).map(p => p.name).join(" › "))).size;
 
   return (
@@ -110,35 +185,13 @@ export default function NotesView({ onStudy }) {
             <div className="notes">
               <input className="notes__search" type="search" value={query} onChange={e => setQuery(e.target.value)}
                 placeholder="Search your notes" aria-label="Search your notes" />
-              {groups.length === 0 && <p className="notes__none">No notes match “{query.trim()}”.</p>}
-              {groups.map(g => (
-                <section key={g.key} className="notes__lec">
-                  <h2 className="notes__lec-h">
-                    {g.path.length > 1 && <span className="notes__lec-path">{g.path.slice(0, -1).join(" › ")}</span>}
-                    <span className="notes__lec-name">{g.path[g.path.length - 1] ?? g.key}</span>
-                  </h2>
-                  {g.topics.map(t => (
-                    <div key={t.title ?? "_"} className="notes__topic">
-                      {/* No topic heading when it only repeats the lecture's name. */}
-                      {t.title && t.title.toLowerCase() !== String(g.path[g.path.length - 1] ?? "").toLowerCase()
-                        && <h3 className="notes__topic-h">{t.title}</h3>}
-                      <ul className="notes__list">
-                        {t.items.map(({ q, note }) => (
-                          <li key={q.id}>
-                            <button type="button" className="notes__item" onClick={() => setView({ list: order, at: order.findIndex(x => x.q.id === q.id) })}>
-                              <span className="notes__note">{note.body}</span>
-                              <span className="notes__q">
-                                <span className="notes__q-text">{q.q}</span>
-                                <span className="notes__when">{ago(note.at)}</span>
-                              </span>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </section>
-              ))}
+              {tree.length === 0 && <p className="notes__none">No notes match “{query.trim()}”.</p>}
+              <div className="notes-tree">
+                {tree.map((n, i) => (
+                  <Folder key={n.key} n={n} depth={0} isLast={i === tree.length - 1}
+                    isOpen={k => searching || !shut.has(k)} onToggle={toggle} onOpen={id => setView({ list: order, at: order.findIndex(x => x.q.id === id) })} />
+                ))}
+              </div>
             </div>
           )}
         </div>

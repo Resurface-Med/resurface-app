@@ -48,3 +48,32 @@ export function groupNotes(items) {
   }
   return [...lectures.values()].map(l => ({ ...l, topics: [...l.topics.values()] }));
 }
+
+/*
+ * The same notes as folders, the way Study shows decks (2026-10-30, Rafil:
+ * "in a folder called Year 2, then Renal, then Medicine"): one node per
+ * level of the deck path, each holding only what has notes under it. A
+ * lecture (the last level) holds its notes by topic.
+ *
+ * Node: { key, name, count, at, kids: Node[], topics: [{ title, items }] }
+ */
+export function noteTree(items) {
+  const root = { key: "", kids: new Map(), topics: new Map(), count: 0, at: "" };
+  for (const it of items) {
+    const path = (it.q.path ?? []).map(p => p.name).filter(Boolean);
+    const segs = path.length ? path : ["Other questions"];
+    let node = root;
+    node.count++;
+    segs.forEach((name, i) => {
+      const key = segs.slice(0, i + 1).join(" › ");
+      if (!node.kids.has(key)) node.kids.set(key, { key, name, kids: new Map(), topics: new Map(), count: 0, at: it.note.at });
+      node = node.kids.get(key);
+      node.count++;
+    });
+    const title = it.q.topic?.title ?? null;
+    if (!node.topics.has(title)) node.topics.set(title, { title, items: [] });
+    node.topics.get(title).items.push(it);
+  }
+  const done = n => ({ ...n, kids: [...n.kids.values()].map(done), topics: [...n.topics.values()] });
+  return done(root).kids;
+}

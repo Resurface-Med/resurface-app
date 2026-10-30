@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { notedQuestions, groupNotes } from "./notes";
+import { notedQuestions, groupNotes, noteTree } from "./notes";
 
 const qs = [
   { id: 1, q: "A", path: [{ name: "Year 2" }, { name: "Renal" }], topic: { title: "AKI" } },
@@ -33,5 +33,15 @@ describe("notes offline", () => {
   });
   it("leaves notes null when they couldn't be loaded", () => {
     expect(overlayOps({ notes: null }, [{ kind: "note-set", questionId: 2, body: "b" }]).notes).toBe(null);
+  });
+});
+
+describe("note folders", () => {
+  it("nests by deck path, only what has notes", () => {
+    const t = noteTree(notedQuestions({ 1: { body: "x", at: "2026-10-01" }, 2: { body: "z", at: "2026-10-02" }, 3: { body: "y", at: "2026-10-03" } }, qs));
+    expect(t.map(n => n.name)).toEqual(["Year 1", "Year 2"]);
+    expect(t[1].count).toBe(2);
+    expect(t[1].kids[0].name).toBe("Renal");
+    expect(t[1].kids[0].topics[0].items.map(x => x.q.id)).toEqual([2, 1]);
   });
 });
