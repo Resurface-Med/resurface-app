@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
@@ -33,16 +33,19 @@ export default function QuizShell({
   onPrev,
   onJump,
   onToggleBookmark,
+  bookmarks = null,
   onSaveEdit,
   onRequestExit,
   peerSplit = null,
   /* The practice session, so Resurface AI counts its replies per sitting. */
   sessionId = null,
 }) {
-  /* Flags belong to this sitting. They mark a question to come back to,
-     and they leave with the session. */
-  const [flagged, setFlagged] = useState(() => new Set());
-  const flaggedHere = q ? flagged.has(q.id) : false;
+  /* The flag is saved (2026-11-01): it is the same mark as the old
+     Bookmark, kept on your account, so a flagged question shows in a past
+     session's Flagged tab and in Study's Flagged pool. It used to belong to
+     the sitting alone and vanish when you left. */
+  const flagged = useMemo(() => new Set(bookmarks ?? []), [bookmarks]);
+  const flaggedHere = Boolean(isBookmarked);
   /* The flag marks a question to come back to; it does not report one.
      Students took it for reporting and nothing reached anyone (2026-10-30),
      so the first time it is used it says where reporting is. */
@@ -53,8 +56,8 @@ export default function QuizShell({
     return () => clearTimeout(t);
   }, [markHint]);
   function toggleFlag() {
-    if (!q) return;
-    if (!flagged.has(q.id)) {
+    if (!q || !onToggleBookmark) return;
+    if (!flaggedHere) {
       try {
         if (localStorage.getItem("rs_mark_hint") !== "1") {
           localStorage.setItem("rs_mark_hint", "1");
@@ -62,12 +65,7 @@ export default function QuizShell({
         }
       } catch { /* no storage: no hint */ }
     }
-    setFlagged(prev => {
-      const next = new Set(prev);
-      if (next.has(q.id)) next.delete(q.id);
-      else next.add(q.id);
-      return next;
-    });
+    onToggleBookmark();
   }
   const [railOpen, setRailOpen] = useState(false);
   const [railMounted, setRailMounted] = useState(false);
@@ -428,23 +426,6 @@ export default function QuizShell({
               flagged={flagged}
               onJump={onJump}
             />
-            <button
-              type="button"
-              className={`quiz-rail__bm btn-press${isBookmarked ? " is-on" : ""}`}
-              onClick={onToggleBookmark}
-              aria-pressed={isBookmarked}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path
-                  d="M4 2.5h8v12l-4-2.4-4 2.4v-12z"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinejoin="round"
-                  fill={isBookmarked ? "currentColor" : "none"}
-                />
-              </svg>
-              {isBookmarked ? "Bookmarked" : "Bookmark"}
-            </button>
             </div>
           </aside>
         )}

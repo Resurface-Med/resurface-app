@@ -42,7 +42,7 @@ const SCOPES = [
   { k: "all",   label: "Any" },
   { k: "due",   label: "Due" },
   { k: "wrong", label: "Wrong" },
-  { k: "saved", label: "Saved" },
+  { k: "saved", label: "Flagged" },
 ];
 
 
@@ -1523,6 +1523,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       sels={sels}
       results={results}
       isBookmarked={isBookmarked}
+      bookmarks={bookmarks}
       isLast={idx + 1 >= queue.length}
       onAnswer={handleAnswer}
       onNext={handleNext}

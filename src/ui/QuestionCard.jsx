@@ -334,8 +334,19 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
     {editing && <EditQuestionModal q={q} persist={persistFor(q)} onClose={() => setEditing(false)} onSave={(updated) => { setEditing(false); onSaveEdit?.(updated); }} />}
     <div
       style={focusMode ? undefined : qcard}
-      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img && exhibitBeside(q.exhibit) ? " has-exhibit" : ""}`}
+      className={`q-card anim-scale-in${focusMode ? " q-card--focus" : ""}${focusMode && isBookmarked && onToggleBookmark ? " is-flagged" : ""}${q.img ? " has-img" : ""}${q.exhibit && !q.img && exhibitBeside(q.exhibit) ? " has-exhibit" : ""}`}
     >
+      {/* Flagged, shown on the card itself (Rafil, 2026-11-01), so it's
+          seen with the questions list shut. Tapping it unflags. */}
+      {focusMode && isBookmarked && onToggleBookmark && (
+        <button type="button" className="q-flagged btn-press" onClick={onToggleBookmark} title="Unflag" aria-label="Flagged. Tap to unflag">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 3.4v17.2" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+            <path d="M7 5.2h11.2L14.4 9.6l3.8 4.4H7V5.2z" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" fill="currentColor" />
+          </svg>
+          Flagged
+        </button>
+      )}
       {!focusMode && (
       <div className="q-card-meta">
         {/* A premade question says where it is from; your own say nothing.
