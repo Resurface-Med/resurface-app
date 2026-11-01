@@ -35,7 +35,8 @@ const dbId = q => q.id - GEN_ID_BASE;
 const FILTERS = [
   ["all", "All"],
   ["todo", "To review"],
-  ["flagged", "Flagged"],
+  /* No Flagged tab (Rafil, 2026-11-01): a question flagged here is still
+     not approved, so it's under To review, marked with its "!". */
   ["reported", "Reported"],
   ["suggested", "Suggested"],
 ];
