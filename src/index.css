@@ -11918,3 +11918,9 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
    question in the deck as it opens, which can hold the page long enough
    to leave the fade stuck part way — the window see-through over Study. */
 .qr-scrim, .qr-scrim .qr, .qr-scrim .pss-body { animation: none !important; }
+/* Popups opened from inside a big window sit above it (2026-11-01):
+   Review questions and My notes are at 1550. */
+.qe-scrim { z-index: 1600; }
+.confirm-scrim { z-index: 2000; }
+.confirm-prompt { width: min(440px, 100%); }
+.np__save.is-danger { background: var(--c-danger); box-shadow: none; }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { C, card, primaryBtn, btnGhost } from "./theme";
+import { createPortal } from "react-dom";
 
 /**
  * An in-app "are you sure?" — the Leave-session dialog, generalised.
@@ -33,8 +33,6 @@ export function confirmDelete(what, count) {
   });
 }
 
-const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "nowrap" };
-
 export function ConfirmHost() {
   const [q, setQ] = useState(null);
   const [typed, setTyped] = useState("");
@@ -57,61 +55,35 @@ export function ConfirmHost() {
   function answer(yes) { q.resolve(yes); setQ(null); }
   if (!q) return null;
   const locked = Boolean(q.typeToConfirm) && typed.trim().toLowerCase() !== q.typeToConfirm.toLowerCase();
-  return (
-    <div
-      role="dialog" aria-modal="true" aria-label={q.title}
-      style={{
-        position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",
-        display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-        backdropFilter: "blur(4px)",
-      }}
-      onClick={e => { if (e.target === e.currentTarget) answer(false); }}
-    >
-      <div className="anim-scale-in" style={{ ...card, maxWidth: 380, width: "90%", textAlign: "center", padding: "36px 28px" }}>
-        <div style={{ fontSize: 18, color: C.text, fontWeight: 600, marginBottom: 8, letterSpacing: -0.3 }}>{q.title}</div>
-        {q.body && (
-          <div style={{ fontSize: 14, color: C.sub, marginBottom: 28, lineHeight: 1.55 }}>{q.body}</div>
-        )}
+  /* The standard popup (NamePrompt's np-* layout, 2026-11-01), white, and
+     above every window — the old one sat beneath Review questions and My
+     notes, so a confirmation asked from inside them was hidden. */
+  return createPortal(
+    <div className="np-scrim confirm-scrim" role="presentation"
+      onMouseDown={e => { if (e.target === e.currentTarget) answer(false); }}>
+      <div className="np confirm-prompt" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <h2 className="np__title" id="confirm-title">{q.title}</h2>
+        {q.body && <p className="np__sub">{q.body}</p>}
         {q.typeToConfirm && (
-          <div style={{ marginBottom: 22, textAlign: "left" }}>
-            <label htmlFor="confirm-type" style={{ display: "block", fontSize: 13, color: C.sub, marginBottom: 7 }}>
-              Type <strong style={{ color: C.text }}>{q.typeToConfirm}</strong> to confirm
+          <>
+            <label className="np__label" htmlFor="confirm-type">
+              Type <strong>{q.typeToConfirm}</strong> to confirm
             </label>
-            <input
-              id="confirm-type"
-              value={typed}
-              autoFocus
-              autoComplete="off"
-              onChange={e => setTyped(e.target.value)}
-              style={{
-                width: "100%", boxSizing: "border-box", padding: "11px 14px",
-                fontFamily: "inherit", fontSize: 15, color: C.text,
-                background: "var(--c-surface2)", border: "1.5px solid var(--c-border)",
-                borderRadius: "var(--r-ctrl)",
-              }}
-            />
-          </div>
+            <input id="confirm-type" className="np__field is-labelled" value={typed} autoFocus autoComplete="off"
+              onChange={e => setTyped(e.target.value)} />
+          </>
         )}
-        <div style={{ display: "flex", gap: 10, marginTop: q.body ? 0 : 24 }}>
-          <button
-            type="button"
-            className="btn-press"
-            autoFocus={!q.typeToConfirm}
-            disabled={locked}
-            onClick={() => answer(true)}
-            style={{
-              ...primaryBtn, ...dialogBtn,
-              ...(q.danger ? { background: "var(--c-danger)", boxShadow: "none" } : {}),
-              ...(locked ? { opacity: 0.4, cursor: "default" } : {}),
-            }}
-          >
+        <div className="np__row">
+          <button type="button" className={`np__save btn-press${q.danger ? " is-danger" : ""}`}
+            autoFocus={!q.typeToConfirm} disabled={locked} onClick={() => answer(true)}>
             {q.action ?? "OK"}
           </button>
-          <button type="button" className="btn-press" onClick={() => answer(false)} style={{ ...btnGhost, ...dialogBtn }}>
-            {q.cancel ?? "Cancel"}
-          </button>
+          {q.cancel !== null && (
+            <button type="button" className="np__skip" onClick={() => answer(false)}>{q.cancel ?? "Cancel"}</button>
+          )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
