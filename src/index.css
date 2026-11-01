@@ -11871,12 +11871,14 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
    second grid area, so it moves with that column as the list opens. */
 .quiz-rail-toggle {
   position: absolute; grid-column: 2; grid-row: 1; top: 14px; left: clamp(12px, 2vw, 24px); z-index: 6;
-  width: 42px; height: 42px; display: grid; place-items: center; padding: 0;
-  border: 0; border-radius: 50%; background: var(--c-card-solid); color: var(--c-accent);
-  box-shadow: 0 6px 18px -8px rgba(12, 22, 56, 0.35), 0 0 0 1px var(--c-border);
-  cursor: pointer; transition: box-shadow .15s ease, color .15s ease;
+  width: 40px; height: 40px; display: grid; place-items: center; padding: 0;
+  /* A plain mark on the page, not a disc on it (Rafil, 2026-11-01): the
+     white circle and its shadow stuck out of the empty space around the
+     question. A wash appears only under the pointer. */
+  border: 0; border-radius: 12px; background: none; color: var(--c-muted);
+  cursor: pointer; transition: background .15s ease, color .15s ease;
 }
-.quiz-rail-toggle:hover { box-shadow: 0 8px 22px -8px rgba(12, 22, 56, 0.45), 0 0 0 1px var(--c-accent-brd); }
+.quiz-rail-toggle:hover, .quiz-rail-toggle.is-on { background: var(--c-surface3); color: var(--c-accent); }
 .quiz-shell.is-ai .quiz-rail-toggle, .quiz-shell.is-note .quiz-rail-toggle { display: none; }
 @media (max-width: 900px) {
   /* No margin beside the card on a phone, so the card starts a row lower
