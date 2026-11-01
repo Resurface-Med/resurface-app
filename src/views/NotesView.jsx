@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { h1 } from "../ui/theme";
 import Wave from "../ui/Wave";
 import { TopicNote } from "../ui/QuestionCard";
-import NoteBox from "../ui/NoteBox";
+import Popover, { MenuItems } from "../ui/Popover";
+import { confirm } from "../ui/Confirm";
 import NavChevron from "../ui/NavChevron";
 import QuestionImage from "../ui/QuestionImage";
 import { QUESTIONS } from "../data";
@@ -23,7 +24,64 @@ import { useNotes, notedQuestions, noteTree } from "../lib/notes";
 const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
 
 
-function Viewer({ list, at, onMove, onClose }) {
+/* Deleting asks first: a note is the student's own writing, gone for good. */
+async function askDelete() {
+  return confirm({ title: "Delete this note?", body: "It's removed from this question and from My notes.", action: "Delete", danger: true });
+}
+
+/* Your note at the top of the window: read, with Edit and Delete beside
+   its label, or being edited, with Save and Cancel (2026-11-01: there was
+   no visible way to change or remove a note). */
+function NoteLead({ body, startEditing = false, onSave, onDelete }) {
+  const [editing, setEditing] = useState(startEditing);
+  const [text, setText] = useState(body);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!editing) return;
+    const el = ref.current;
+    if (!el) return;
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  }, [editing]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [text, editing]);
+  const save = () => { if (text.trim()) { onSave(text.trim()); setEditing(false); } };
+  return (
+    <div className="notes-lead">
+      <div className="notes-lead__head">
+        <span className="notes-lead__label">Your note</span>
+        {!editing && (
+          <span className="notes-lead__acts">
+            <button type="button" className="notes-lead__act" onClick={() => { setText(body); setEditing(true); }}>Edit</button>
+            <button type="button" className="notes-lead__act is-danger" onClick={onDelete}>Delete</button>
+          </span>
+        )}
+      </div>
+      {editing ? (
+        <>
+          <textarea ref={ref} className="notes-lead__field" value={text} maxLength={4000} aria-label="Your note"
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); save(); }
+              if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setEditing(false); setText(body); }
+            }} />
+          <div className="notes-lead__row">
+            <button type="button" className="note-dock__save btn-press" disabled={!text.trim()} onClick={save}>Save</button>
+            <button type="button" className="np__skip" onClick={() => { setEditing(false); setText(body); }}>Cancel</button>
+          </div>
+        </>
+      ) : (
+        <p className="notes-lead__text">{body}</p>
+      )}
+    </div>
+  );
+}
+
+function Viewer({ list, at, startEditing = false, onMove, onClose, onGone }) {
   const item = list[at];
   const ctx = useNotes();
   useEffect(() => {
@@ -57,8 +115,9 @@ function Viewer({ list, at, onMove, onClose }) {
         {/* Your note first and large — it's what you came to read; the
             question under it, smaller, for context (Rafil, 2026-10-30). */}
         <div className="notes-view__body" key={item.q.id}>
-          <NoteBox lead body={ctx?.notes?.[item.q.id]?.body ?? item.note.body}
-            onSave={body => ctx?.setNote(item.q.id, body)} />
+          <NoteLead body={ctx?.notes?.[item.q.id]?.body ?? item.note.body} startEditing={startEditing}
+            onSave={body => ctx?.setNote(item.q.id, body)}
+            onDelete={async () => { if (await askDelete()) { ctx?.setNote(item.q.id, ""); onGone(item.q.id); } }} />
           <section className="notes-view__q" aria-label="The question">
             <p className="notes-view__label">The question</p>
             <p className="notes-view__stem">{item.q.q}</p>
@@ -92,7 +151,29 @@ function Chevron({ open }) {
 
 /* One folder row, drawn with Study's deck-tree classes so the two read as
    the same thing; under it its sub-folders, or, for a lecture, its notes. */
-function Folder({ n, depth, isLast, isOpen, onToggle, onOpen }) {
+/* A note's own menu in the list, the same ⋯ as a deck's. */
+function NoteMenu({ onEdit, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  return (
+    <span className="deck-menu notes__menu">
+      <button ref={ref} type="button" className="deck-menu-btn" aria-label="Note options" aria-haspopup="menu" aria-expanded={open}
+        onClick={() => setOpen(o => !o)}>
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <circle cx="3.25" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="8" cy="8" r="1.2" fill="currentColor" />
+          <circle cx="12.75" cy="8" r="1.2" fill="currentColor" />
+        </svg>
+      </button>
+      <Popover anchorRef={ref} open={open} onClose={() => setOpen(false)}>
+        <MenuItems items={[{ label: "Edit", onSelect: onEdit }, { label: "Delete", danger: true, onSelect: onDelete }]}
+          onPick={it => { setOpen(false); it.onSelect(); }} />
+      </Popover>
+    </span>
+  );
+}
+
+function Folder({ n, depth, isLast, isOpen, onToggle, onOpen, onDelete }) {
   const open = isOpen(n.key);
   const rowCls = `topic-row ${depth <= 1 ? "topic-row-roomy" : "is-child"}${depth === 0 ? " is-block" : ""}`;
   return (
@@ -113,7 +194,7 @@ function Folder({ n, depth, isLast, isOpen, onToggle, onOpen }) {
         <div className="tree-kids">
           {n.kids.map((k, i) => (
             <Folder key={k.key} n={k} depth={depth + 1} isLast={i === n.kids.length - 1 && n.topics.length === 0}
-              isOpen={isOpen} onToggle={onToggle} onOpen={onOpen} />
+              isOpen={isOpen} onToggle={onToggle} onOpen={onOpen} onDelete={onDelete} />
           ))}
           {n.topics.length > 0 && (
             <div className="notes-tree__notes" style={{ paddingLeft: PAD + (depth + 1) * STEP + 30 }}>
@@ -123,13 +204,14 @@ function Folder({ n, depth, isLast, isOpen, onToggle, onOpen }) {
                   {t.title && t.title.toLowerCase() !== String(n.name).toLowerCase() && <h3 className="notes__topic-h">{t.title}</h3>}
                   <ul className="notes__list">
                     {t.items.map(({ q, note }) => (
-                      <li key={q.id}>
+                      <li key={q.id} className="notes__row">
                         <button type="button" className="notes__item" onClick={() => onOpen(q.id)}>
                           {/* Just your words (Rafil, 2026-10-30): the question and when
                               you wrote it are there when you open it. */}
                           <span className="notes__note">{note.body}</span>
                           <span className="notes__go" aria-hidden="true"><NavChevron size={14} /></span>
                         </button>
+                        <NoteMenu onEdit={() => onOpen(q.id, true)} onDelete={() => onDelete(q.id)} />
                       </li>
                     ))}
                   </ul>
@@ -194,14 +276,22 @@ export default function NotesView({ onStudy }) {
               <div className="notes-tree">
                 {tree.map((n, i) => (
                   <Folder key={n.key} n={n} depth={0} isLast={i === tree.length - 1}
-                    isOpen={k => searching || !shut.has(k)} onToggle={toggle} onOpen={id => setView({ list: order, at: order.findIndex(x => x.q.id === id) })} />
+                    isOpen={k => searching || !shut.has(k)} onToggle={toggle}
+                    onOpen={(id, edit = false) => setView({ list: order, at: order.findIndex(x => x.q.id === id), edit })}
+                    onDelete={async id => { if (await askDelete()) ctx?.setNote(id, ""); }} />
                 ))}
               </div>
             </div>
           )}
         </div>
       </div>
-      {view && <Viewer list={view.list} at={view.at} onMove={i => setView(v => ({ ...v, at: i }))} onClose={() => setView(null)} />}
+      {view && <Viewer list={view.list} at={view.at} startEditing={view.edit}
+        onMove={i => setView(v => ({ ...v, at: i, edit: false }))} onClose={() => setView(null)}
+        onGone={id => setView(v => {
+          /* The deleted note leaves the window's list; the next one takes its place. */
+          const list = v.list.filter(x => x.q.id !== id);
+          return list.length ? { list, at: Math.min(v.at, list.length - 1), edit: false } : null;
+        })} />}
     </div>
   );
 }

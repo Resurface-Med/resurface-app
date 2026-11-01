@@ -11847,3 +11847,22 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .tc__candle.is-at .tc__body { filter: brightness(1.12); }
 .tc__ohlc { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ax-candles-btn { margin-left: 6px; }
+/* Managing notes (2026-11-01): a ⋯ on each row, Edit and Delete in the window. */
+.notes__row { display: flex; align-items: center; gap: 4px; }
+.notes__row .notes__item { flex: 1; min-width: 0; }
+.notes__menu { flex: none; }
+.notes-lead { margin-top: 18px; }
+.notes-lead__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.notes-lead__label { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; color: var(--c-accent); }
+.notes-lead__acts { display: inline-flex; gap: 16px; }
+.notes-lead__act { border: 0; background: none; padding: 0; font: inherit; font-size: 14px; font-weight: 500; color: var(--c-sub); cursor: pointer; }
+.notes-lead__act:hover { color: var(--c-text); }
+.notes-lead__act.is-danger { color: var(--c-danger); }
+.notes-lead__text { margin: 0; font-size: clamp(21px, 2vw, 25px); font-weight: 500; line-height: 1.45; letter-spacing: -0.3px; color: var(--c-text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.notes-lead__field {
+  display: block; width: 100%; box-sizing: border-box; min-height: 110px; resize: none; overflow: hidden;
+  padding: 12px 14px; border: 1.5px solid var(--c-accent-brd); border-radius: 14px; background: var(--c-card-solid);
+  color: var(--c-text); font: inherit; font-size: 18px; line-height: 1.5;
+}
+.notes-lead__field:focus { outline: none; border-color: var(--c-accent); }
+.notes-lead__row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
