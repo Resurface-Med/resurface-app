@@ -11914,3 +11914,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .qe-hint { margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: var(--c-muted); }
 .qe-topic-title { width: 100%; box-sizing: border-box; margin-bottom: 8px; font-weight: 600; }
 .qe-topic-body { min-height: 260px; font-size: 14.5px; line-height: 1.6; }
+/* Review questions opens without fading in (2026-11-01). It draws every
+   question in the deck as it opens, which can hold the page long enough
+   to leave the fade stuck part way — the window see-through over Study. */
+.qr-scrim, .qr-scrim .qr, .qr-scrim .pss-body { animation: none !important; }

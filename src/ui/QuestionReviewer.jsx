@@ -270,7 +270,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const pct = all.length ? Math.round((approved / all.length) * 100) : 0;
 
   return createPortal(
-    <div className="np-scrim pss-scrim" role="presentation" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="np-scrim pss-scrim qr-scrim" role="presentation" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="pss qr" role="dialog" aria-modal="true" aria-labelledby="qr-title">
         <button type="button" className="pss-x" onClick={onClose} aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
