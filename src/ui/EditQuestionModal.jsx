@@ -1,13 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { primaryBtn } from "./theme";
-import { remote } from "../lib/remote";
+import { remote, adminEditFeatured } from "../lib/remote";
 import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
 import { useAuth } from "../lib/auth";
-import { applyQuestionEdit } from "../data";
+import { applyQuestionEdit, QUESTIONS } from "../data";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
+
+const isNewQ = q => q.id === undefined || q.id === null;
+/* A question as stored: without what the app adds when it loads one. */
+const stored = x => {
+  const { id, gen, featured, deckId, createdAt, path, leaf, rootId, block, deck, cat, year, ...payload } = x; // eslint-disable-line no-unused-vars
+  return payload;
+};
 
 export default function EditQuestionModal({ q, onClose, onSave, persist = null }) {
   const { user } = useAuth();
@@ -18,6 +25,15 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
   const [optExp, setOptExp]       = useState(
     q.optExp ? [...q.optExp].map(e => e ?? "") : Array(q.opts.length).fill("")
   );
+
+  /* The topic note (2026-11-01): editable here so the team can fix a note
+     where they fix the question. One note is shared by every question on
+     that topic in the lecture, so a change is written to all of them. */
+  const [topicTitle, setTopicTitle] = useState(q.topic?.title ?? "");
+  const [topicBody, setTopicBody] = useState(q.topic?.body ?? "");
+  const siblings = q.topic && !isNewQ(q)
+    ? QUESTIONS.filter(x => x.id !== q.id && x.deckId === q.deckId && x.topic?.title === q.topic.title)
+    : [];
 
   const [img, setImg] = useState(q.img ?? null);
   const [imgUrl, setImgUrl] = useState(null);
@@ -67,7 +83,7 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
     ...(q.exhibit ? { exhibit: q.exhibit } : {}),
     /* The topic note (2026-10-28): a save writes the whole question, so
        anything not listed here would be wiped by an edit. */
-    ...(q.topic ? { topic: q.topic } : {}),
+    ...(q.topic ? { topic: topicTitle.trim() && topicBody.trim() ? { title: topicTitle.trim(), body: topicBody.trim() } : q.topic } : {}),
     /* Its own highlight in that note (2026-10-30). */
     ...(q.hl ? { hl: q.hl } : {}),
   });
@@ -79,8 +95,20 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
      correction was discarded on the next load. */
   /* `persist`, when given, saves somewhere else — an admin editing a
      Resurface deck saves into the deck itself (lib/adminFeatured). */
+  const sentTopic = useRef(q.topic ? JSON.stringify(q.topic) : null);
   function record(updated) {
     applyQuestionEdit(q.id, updated);
+    /* A changed note goes to every question that shares it. */
+    const t = updated.topic ? JSON.stringify(updated.topic) : null;
+    if (t && t !== sentTopic.current && siblings.length && (persist || q.gen)) {
+      sentTopic.current = t;
+      for (const x of siblings) {
+        const payload = { ...stored(x), topic: updated.topic };
+        applyQuestionEdit(x.id, payload);
+        if (persist && x.featured) Promise.resolve(adminEditFeatured(x.id, { topic: updated.topic })).catch(() => setStatus("failed"));
+        else if (user && x.gen) remote.updateGenerated(user.id, { id: x.id, ...payload });
+      }
+    }
     if (persist) Promise.resolve(persist(updated)).catch(() => setStatus("failed"));
     /* Your own question: the question itself, so everyone who has it (a
        shared or ready-made deck) gets the fix, not a personal correction
@@ -117,7 +145,7 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
     }, 500);
     return () => clearTimeout(pending.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question, opts, ans, exp, optExp, img]);
+  }, [question, opts, ans, exp, optExp, img, topicTitle, topicBody]);
 
   /* Closing: anything still waiting is written now, and the caller is handed
      the question as it stands so the screen behind shows the change. */
@@ -238,6 +266,22 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
               ))}
             </ol>
           </div>
+
+          {q.topic && (
+            <div className="qe-field">
+              <span className="qe-label">Topic note</span>
+              <p className="qe-hint">
+                {siblings.length
+                  ? `Shared by ${siblings.length + 1} questions in this lecture. A change here updates it on all of them.`
+                  : "The note under this question's explanation."}
+                {" "}**Heading** on its own line, “- ” for a point, ==text== to highlight.
+              </p>
+              <input type="text" className="qe-opt-input qe-topic-title" value={topicTitle} aria-label="Topic note title"
+                onChange={e => setTopicTitle(e.target.value)} placeholder="Title" />
+              <textarea className="qe-input qe-topic-body" value={topicBody} aria-label="Topic note"
+                onChange={e => setTopicBody(e.target.value)} rows={14} />
+            </div>
+          )}
         </div>
 
         {isNew && (

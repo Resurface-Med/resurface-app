@@ -11910,3 +11910,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .quiz-pair__rule { width: 1px; height: 22px; background: rgba(var(--c-ink-rgb), 0.12); }
 @media (max-width: 900px) { .quiz-pair { height: 42px; } .quiz-pair__btn { width: 48px; height: 42px; } }
 .leave-prompt { width: min(440px, 100%); }
+/* Editing a question's topic note (2026-11-01). */
+.qe-hint { margin: 0 0 10px; font-size: 13.5px; line-height: 1.5; color: var(--c-muted); }
+.qe-topic-title { width: 100%; box-sizing: border-box; margin-bottom: 8px; font-weight: 600; }
+.qe-topic-body { min-height: 260px; font-size: 14.5px; line-height: 1.6; }
