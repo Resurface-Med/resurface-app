@@ -318,21 +318,6 @@ export default function QuizShell({
           </svg>
         </button>
 
-        {/* The questions list opens from the left, so its toggle is here,
-            at that edge, as the usual sidebar mark (Rafil, 2026-11-01) —
-            in place of a "Questions" button in the bar at the bottom. */}
-        <button
-          type="button"
-          className={`quiz-shell__tool quiz-shell__rail-toggle btn-press${railOpen ? " is-on" : ""}`}
-          onClick={() => (railOpen ? closeRail() : openRail())}
-          title={railOpen ? "Hide the questions list" : "Show the questions list"}
-          aria-label={railOpen ? "Hide the questions list" : "Show the questions list"}
-          aria-expanded={railOpen}
-        >
-          {railOpen
-            ? <PanelLeftClose size={20} strokeWidth={2} aria-hidden="true" />
-            : <PanelLeftOpen size={20} strokeWidth={2} aria-hidden="true" />}
-        </button>
 
         <div className="quiz-shell__progress-wrap">
           <div className="quiz-shell__progress" aria-hidden="true">
@@ -463,6 +448,24 @@ export default function QuizShell({
             </div>
           </aside>
         )}
+
+        {/* The questions list's toggle (Rafil, 2026-11-01): the usual
+            sidebar mark, floating at the top left of the page under the
+            blue, in place of a "Questions" button in the bottom bar. It
+            sits on the question's column, so when the list opens it rides
+            across with that edge and stays beside the list. */}
+        <button
+          type="button"
+          className={`quiz-rail-toggle btn-press${railOpen ? " is-on" : ""}`}
+          onClick={() => (railOpen ? closeRail() : openRail())}
+          title={railOpen ? "Hide the questions list" : "Show the questions list"}
+          aria-label={railOpen ? "Hide the questions list" : "Show the questions list"}
+          aria-expanded={railOpen}
+        >
+          {railOpen
+            ? <PanelLeftClose size={20} strokeWidth={2} aria-hidden="true" />
+            : <PanelLeftOpen size={20} strokeWidth={2} aria-hidden="true" />}
+        </button>
 
         {railOpen && (
           <button
