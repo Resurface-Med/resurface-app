@@ -189,7 +189,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
                 className="btn-press sum-btn-soft"
                 onClick={() => onDrillWrong(wrongOnes.map(r => r.id))}
               >
-                Redo missed
+                Redo wrong
               </button>
             )}
 
