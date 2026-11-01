@@ -22,7 +22,7 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-import { V, C, NAV, card, primaryBtn, btnGhost } from "./ui/theme";
+import { V, C, NAV, card } from "./ui/theme";
 import { NotesContext } from "./lib/notes";
 import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
@@ -126,7 +126,6 @@ function googleName(user) {
 
 /** Shared by both buttons in the leave-session dialog, so they cannot drift
  *  apart in height. nowrap because a wrapped label is what made them fat. */
-const dialogBtn = { flex: 1, padding: "12px 18px", fontSize: 14.5, whiteSpace: "nowrap" };
 
 export default function App() {
   const { user, loading: authLoading, configured, signOut, recovering } = useAuth();
@@ -1451,30 +1450,19 @@ export default function App() {
         />
       )}
       <ConfirmHost />
+      {/* Leaving a session, in the standard popup (NamePrompt's np-*
+          layout, 2026-11-01) rather than a card of its own on a blurred
+          blue backdrop. "Save and leave" says what happens. */}
       {pendingView && (
-        <div style={{
-          position: "fixed", inset: 0, background: "rgba(26, 47, 122, 0.55)",
-          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
-          backdropFilter: "blur(4px)",
-        }}>
-          <div style={{ ...card, maxWidth: 420, width: "90%", textAlign: "center", padding: "36px 28px" }}>
-            <div style={{ fontSize: 18, color: C.text, fontWeight: 600, marginBottom: 8, letterSpacing: -0.3 }}>Leave session?</div>
-            <div style={{ fontSize: 14, color: C.sub, marginBottom: 28, lineHeight: 1.55 }}>
-              Your progress will be saved. You can pick up exactly where you left off.
-            </div>
-            {/* "Save and leave" (Rafil, 2026-11-01): it says what the button
-                does. It once wrapped to two lines in a 340px dialog; the
-                dialog is wider now and the buttons never wrap. */}
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={() => { go(pendingView); setPendingView(null); }}
-                className="btn-press"
-                style={{ ...primaryBtn, ...dialogBtn, flex: "1.4 1 0", whiteSpace: "nowrap" }}>
+        <div className="np-scrim" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setPendingView(null); }}>
+          <div className="np leave-prompt" role="dialog" aria-modal="true" aria-labelledby="leave-title">
+            <h2 className="np__title" id="leave-title">Leave session?</h2>
+            <p className="np__sub">Your progress is saved. You can pick up exactly where you left off from Past sessions.</p>
+            <div className="np__row">
+              <button type="button" className="np__save btn-press" autoFocus onClick={() => { go(pendingView); setPendingView(null); }}>
                 Save and leave
               </button>
-              <button onClick={() => setPendingView(null)} className="btn-press"
-                style={{ ...btnGhost, ...dialogBtn, whiteSpace: "nowrap" }}>
-                Stay
-              </button>
+              <button type="button" className="np__skip" onClick={() => setPendingView(null)}>Stay</button>
             </div>
           </div>
         </div>
