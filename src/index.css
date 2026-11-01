@@ -11838,3 +11838,12 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .notes__topic { margin-top: 10px; }
 .notes__item .notes__note { white-space: normal; }
 .pss-q__flag { display: inline-flex; align-items: center; gap: 5px; margin-top: 4px; font-size: 12.5px; font-weight: 600; color: var(--c-accent); }
+/* Admin chart as a trading chart (a joke, 2026-11-01). */
+.tc__candle .tc__wick { stroke-width: 1.5; }
+.tc__candle.is-up .tc__wick { stroke: var(--c-success); }
+.tc__candle.is-up .tc__body { fill: var(--c-success); }
+.tc__candle.is-down .tc__wick { stroke: var(--c-danger); }
+.tc__candle.is-down .tc__body { fill: var(--c-danger); }
+.tc__candle.is-at .tc__body { filter: brightness(1.12); }
+.tc__ohlc { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ax-candles-btn { margin-left: 6px; }

@@ -71,13 +71,34 @@ function useWidth(ref, fallback) {
  * The full chart. `points` and `days` line up; `picked` is the index shown
  * below the chart, `onPick(i)` sets it.
  */
-export function TrendChart({ points, days, unit = "", height = 260, picked = null, onPick = null }) {
+/*
+ * Candles (2026-11-01, a joke Rafil asked for): the same series drawn like a
+ * trading chart. A day has one number, so a candle opens at yesterday's and
+ * closes at today's, green if it went up and red if it went down; the wicks
+ * reach a little past both, by a fixed wobble per day so they don't jump
+ * around on every render.
+ */
+export function candlesOf(points) {
+  const wob = i => { const t = Math.sin((i + 1) * 12.9898) * 43758.5453; return t - Math.floor(t); };
+  return points.map((c, i) => {
+    const o = i === 0 ? c : points[i - 1];
+    const span = Math.max(1, Math.abs(c - o), Math.max(o, c) * 0.15);
+    return {
+      o, c,
+      h: Math.max(o, c) + Math.round(span * (0.15 + 0.5 * wob(i))),
+      l: Math.max(0, Math.min(o, c) - Math.round(span * (0.15 + 0.5 * wob(i + 99)))),
+    };
+  });
+}
+
+export function TrendChart({ points, days, unit = "", height = 260, picked = null, onPick = null, candles = false }) {
   const box = useRef(null);
   const W = useWidth(box, 800);
   const gid = useId().replace(/:/g, "");
   const [hover, setHover] = useState(null);
   const L = 36, R = 8, T = 18, B = 28;
   const iw = W - L - R, ih = height - T - B;
+  const bars = useMemo(() => (candles ? candlesOf(points) : null), [candles, points]);
   const top = niceMax(Math.max(0, ...points));
   const step = points.length > 1 ? iw / (points.length - 1) : iw;
   const x = i => L + i * step;
@@ -149,18 +170,34 @@ export function TrendChart({ points, days, unit = "", height = 260, picked = nul
           <text key={d} x={x(i)} y={height - 8} className="tc__xtick"
             textAnchor={i === 0 ? "start" : i === days.length - 1 ? "end" : "middle"}>{dmy(d)}</text>
         ) : null)}
-        <path d={area} fill={`url(#g${gid})`} />
-        <path d={line} className="tc__line" />
+        {bars ? bars.map((b, i) => {
+          const w = Math.max(3, Math.min(14, step * 0.6));
+          const up = b.c >= b.o;
+          const y1 = y(Math.max(b.o, b.c)), y2 = y(Math.min(b.o, b.c));
+          return (
+            <g key={i} className={`tc__candle ${up ? "is-up" : "is-down"}${at === i ? " is-at" : ""}`}>
+              <line x1={x(i)} x2={x(i)} y1={y(Math.min(b.h, top))} y2={y(b.l)} className="tc__wick" />
+              <rect x={x(i) - w / 2} y={y1} width={w} height={Math.max(1.5, y2 - y1)} rx="1.5" className="tc__body" />
+            </g>
+          );
+        }) : (
+          <>
+            <path d={area} fill={`url(#g${gid})`} />
+            <path d={line} className="tc__line" />
+          </>
+        )}
         {at != null && (
           <>
             <line x1={x(at)} x2={x(at)} y1={T - 6} y2={T + ih} className="tc__cursor" />
-            <circle cx={x(at)} cy={y(points[at])} r="5" className="tc__dot" />
+            {!bars && <circle cx={x(at)} cy={y(points[at])} r="5" className="tc__dot" />}
           </>
         )}
       </svg>
       {hover != null && (
         <div className="tc__tip" style={{ left: tipLeft }}>
-          <strong>{Number(points[at]).toLocaleString("en-GB")}</strong> {unit}
+          {bars
+            ? <strong className="tc__ohlc">O {bars[at].o} · H {bars[at].h} · L {bars[at].l} · C {bars[at].c}</strong>
+            : <><strong>{Number(points[at]).toLocaleString("en-GB")}</strong> {unit}</>}
           <span>{long(days[at])}</span>
         </div>
       )}

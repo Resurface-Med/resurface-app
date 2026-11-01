@@ -131,6 +131,7 @@ const SERIES = [
 function Overview() {
   const [totals] = useSection(fetchOverview);
   const [range, setRange] = useState(30);
+  const [candles, setCandles] = useState(() => { try { return localStorage.getItem("rs_admin_candles") === "1"; } catch { return false; } });
   const loadDaily = useCallback(() => fetchOverviewDaily(range), [range]);
   const [daily] = useSection(loadDaily);
   const [show, setShow] = useState("active");
@@ -181,6 +182,11 @@ function Overview() {
               <button key={n} type="button" aria-pressed={range === n}
                 className={range === n ? "is-on" : ""} onClick={() => { setRange(n); setPicked(null); }}>{n} days</button>
             ))}
+            {/* A joke (Rafil, 2026-11-01): the graph as a trading chart. */}
+            <button type="button" aria-pressed={candles} className={`ax-candles-btn${candles ? " is-on" : ""}`}
+              onClick={() => setCandles(c => { const v = !c; try { localStorage.setItem("rs_admin_candles", v ? "1" : ""); } catch { /* fine */ } return v; })}>
+              Candles
+            </button>
           </div>
         </div>
         <div className="ax-series" role="tablist" aria-label="What the chart shows">
@@ -190,7 +196,7 @@ function Overview() {
           ))}
         </div>
         {daily.error ? <Empty>{daily.error}</Empty> : !daily.rows ? <div className="ax-chart__ph" /> : (
-          <TrendChart points={series.get(show) ?? []} days={days} unit={chosen.unit}
+          <TrendChart points={series.get(show) ?? []} days={days} unit={chosen.unit} candles={candles}
             picked={picked != null && picked < days.length ? picked : null} onPick={setPicked} />
         )}
       </section>
