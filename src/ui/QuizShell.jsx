@@ -3,6 +3,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import NavChevron from "./NavChevron";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
 import { useNotes } from "../lib/notes";
@@ -533,11 +534,18 @@ export default function QuizShell({
 
             <button
               type="button"
-              className={`quiz-shell__foot-btn btn-press${railOpen ? " is-on" : ""}`}
+              className={`quiz-shell__foot-btn quiz-shell__rail-btn btn-press${railOpen ? " is-on" : ""}`}
               aria-pressed={railOpen}
+              aria-label={railOpen ? "Hide the questions list" : "Show the questions list"}
+              title={railOpen ? "Hide the questions list" : "Show the questions list"}
               onClick={() => (railOpen ? closeRail() : openRail())}
             >
-              Questions
+              {/* The sidebar mark everyone knows, so it reads as "opens a
+                  panel" and not as another action (Rafil, 2026-11-01). */}
+              {railOpen
+                ? <PanelLeftClose size={18} strokeWidth={2} aria-hidden="true" />
+                : <PanelLeftOpen size={18} strokeWidth={2} aria-hidden="true" />}
+              <span>Questions</span>
             </button>
 
             <button
