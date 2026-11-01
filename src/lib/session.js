@@ -95,3 +95,49 @@ export function refreshSaved(saved, liveById, reshuffle) {
   const idx = Math.min(newIndex[Math.max(0, at)] ?? 0, out.length - 1);
   return { queue: out, sels: outSels, idx };
 }
+
+/*
+ * The device's copy of an unfinished session, small (2026-11-01).
+ *
+ * It held every question in full — stem, options, explanations and topic
+ * note — so a session of all 1,479 Year 2 questions was several megabytes,
+ * past what a phone's browser lets a page keep, and saving it threw
+ * "quota exceeded". Now each question is its id and the order its options
+ * were shown in; the questions come back from the bank when it's resumed,
+ * shuffled exactly as they were.
+ */
+export function compactQueue(queue) {
+  return (queue ?? []).map(q => (q.optOrder ? { id: q.id, o: q.optOrder } : { id: q.id }));
+}
+
+/* A question back in the order its options were shown. */
+function inOrder(q, order) {
+  if (!order || order.length !== q.opts?.length) return q;
+  return {
+    ...q,
+    opts: order.map(i => q.opts[i]),
+    ans: order.indexOf(q.ans),
+    optExp: q.optExp ? order.map(i => q.optExp[i]) : undefined,
+    optOrder: order,
+  };
+}
+
+/* A saved session with its questions filled in from the bank. Full copies
+   saved before this change are left as they are; an id no longer in the
+   bank is dropped, and the answers and position move with what's left. */
+export function expandSaved(saved, liveById) {
+  const queue = saved?.queue ?? [];
+  if (!queue.length || queue[0].q !== undefined) return saved;
+  const sels = saved.sels ?? {};
+  const out = [], outSels = {}, newIndex = [];
+  queue.forEach((it, i) => {
+    newIndex[i] = out.length;
+    const live = liveById.get(it.id);
+    if (!live) return;
+    if (sels[i] !== undefined) outSels[out.length] = sels[i];
+    out.push(inOrder(live, it.o));
+  });
+  if (!out.length) return null;
+  const at = Math.min(saved.idx ?? 0, queue.length - 1);
+  return { ...saved, queue: out, sels: outSels, idx: Math.min(newIndex[Math.max(0, at)] ?? 0, out.length - 1) };
+}

@@ -4,7 +4,7 @@ import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, 
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS, applyQuestionEdit } from "../data";
 import { isReviewDue } from "../lib/sm2";
-import { reask, reaskAt, shiftFrom, refreshSaved } from "../lib/session";
+import { reask, reaskAt, shiftFrom, refreshSaved, compactQueue, expandSaved } from "../lib/session";
 import { useAuth } from "../lib/auth";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
@@ -159,7 +159,8 @@ function loadSaved(userId) {
  * Reading it means an old saved session describes itself too, and the shape
  * written to localStorage does not have to change.
  */
-function describeSession(s) {
+function describeSession(saved) {
+  const s = expandSaved(saved, new Map(QUESTIONS.map(q => [q.id, q])));
   const qs = s?.queue ?? [];
   if (!qs.length) return null;
   // Answered, not position. The old desktop pill read "3/20 left" off idx + 1,
@@ -402,7 +403,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
   // Persist session whenever active state changes
   useEffect(() => {
-    if (queue) localStorage.setItem(SESSION_KEY, JSON.stringify({ queue, idx, sels, sC, sT, sid: sidRef.current, startedAt: startedRef.current }));
+    /* Ids and option order only (lib/session compactQueue), and never
+       allowed to break the session if the device is out of room. */
+    if (!queue) return;
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ queue: compactQueue(queue), idx, sels, sC, sT, sid: sidRef.current, startedAt: startedRef.current }));
+    } catch { /* storage full or off: the server's copy of the session still has it */ }
   }, [queue, idx, sels, sC, sT, SESSION_KEY]);
 
   /* Time studied: only while a question is up. The setup screen and the
@@ -495,8 +501,9 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* Someone who has never answered a question: the deck list explains
      itself in one line (2026-10-26). */
   const firstRun = Object.keys(pStats).length === 0;
-  function goNext(phone) {
-    if (phone) setCountOpt("All");
+  /* Phones start at 20 like everywhere else (Rafil, 2026-11-01). They used
+     to jump to All, which meant a session of every question by default. */
+  function goNext() {
     setStep("options");
   }
 
@@ -524,7 +531,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   function resumeSession() {
     /* Checked against what exists now: questions deleted since are dropped,
        corrected ones come back corrected (see refreshSaved). */
-    const fresh = refreshSaved(savedSession, new Map(QUESTIONS.map(q => [q.id, q])), shuffleOptions);
+    const byId = new Map(QUESTIONS.map(q => [q.id, q]));
+    const fresh = refreshSaved(expandSaved(savedSession, byId), byId, shuffleOptions);
     if (!fresh) { discardSession(); return; }
     const s = { ...savedSession, ...fresh };
     const restoredQueue = s.queue ?? [];
@@ -634,7 +642,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         if (creatingDeck || naming || isNone(filter.leaves) || scopedCount(filter) === 0) return;
         e.preventDefault();
         el?.blur?.();
-        goNext(isPhone);   // as each layout's Next does
+        goNext();
       } else if (step === "options") {
         if (scopedCount(filter) === 0) return;
         e.preventDefault();
@@ -1318,7 +1326,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     <button
                       className="btn-press"
                       disabled={scoped === 0}
-                      onClick={() => goNext(true)}
+                      onClick={() => goNext()}
                       style={{ ...primaryBtn, ...lg, width: "100%", opacity: scoped === 0 ? 0.5 : 1 }}
                     >
                       {scoped === 0
@@ -1488,7 +1496,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               </p>
               <button
                 disabled={scoped === 0}
-                onClick={() => goNext(false)}
+                onClick={() => goNext()}
                 className="btn-press setup-next-btn"
               >
                 Next <span aria-hidden="true">→</span>
