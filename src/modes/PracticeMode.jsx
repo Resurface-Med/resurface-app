@@ -901,21 +901,22 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         { label: "Upload corrections", onSelect: openDeckFile },
       ];
     }
-    /* Review questions (2026-10-23): the admin team's reviewer, on any deck. */
-    const reviewItem = isFeaturedAdmin()
-      ? [{ label: "Review questions", onSelect: n => setReviewing({ id: n.id, name: n.name }) }]
-      : [];
-    const manageFeatured = isFeaturedAdmin() && featuredActions
-      ? [{ label: "Manage questions", onSelect: n => setManaging(n.id) }, ...reviewItem]
-      : [];
+    /* Manage questions (2026-11-01): for the admin team it opens what was
+       "Review questions" (approve, flag, edit, delete, comments), and the
+       older manager it duplicated is gone from their menu. Everyone else's
+       Manage questions is still the manager, the only place they edit their
+       own decks' questions. */
+    const manageItem = isFeaturedAdmin()
+      ? { label: "Manage questions", onSelect: n => setReviewing({ id: n.id, name: n.name }) }
+      : { label: "Manage questions", onSelect: n => setManaging(n.id) };
+    const manageFeatured = isFeaturedAdmin() && featuredActions ? [manageItem] : [];
     const featuredMenu = node => [
       ...manageFeatured,
       ...fileItems(node),
       { label: "Hide from my decks", onSelect: n => hideFeatured(n.id) },
     ];
     const rowMenu = node => node.mine ? [
-      { label: "Manage questions", onSelect: n => setManaging(n.id) },
-      ...reviewItem,
+      manageItem,
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),

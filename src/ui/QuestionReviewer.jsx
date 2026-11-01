@@ -277,7 +277,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
         </button>
 
         <header className="qr-head">
-          <h2 className="pss-title" id="qr-title">Review · {deckName}</h2>
+          <h2 className="pss-title" id="qr-title">Manage · {deckName}</h2>
           <p className="pss-sub qr-progress-line">
             <span><strong>{approved}</strong> of {all.length} approved</span>
             {flagged > 0 && <span> · {flagged} flagged</span>}
