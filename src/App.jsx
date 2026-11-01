@@ -1457,25 +1457,22 @@ export default function App() {
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
           backdropFilter: "blur(4px)",
         }}>
-          <div style={{ ...card, maxWidth: 380, width: "90%", textAlign: "center", padding: "36px 28px" }}>
+          <div style={{ ...card, maxWidth: 420, width: "90%", textAlign: "center", padding: "36px 28px" }}>
             <div style={{ fontSize: 18, color: C.text, fontWeight: 600, marginBottom: 8, letterSpacing: -0.3 }}>Leave session?</div>
             <div style={{ fontSize: 14, color: C.sub, marginBottom: 28, lineHeight: 1.55 }}>
               Your progress will be saved. You can pick up exactly where you left off.
             </div>
-            {/* "Save and leave" was too long for half of a 340px dialog, so it
-                wrapped to two lines and the button grew to fit — twice the
-                height of the one beside it. The body already promises the save,
-                and the title asks a question, so the two buttons are just its
-                answers. Both share one set of metrics; the old pair were
-                hand-rolled separately at different padding and font sizes. */}
+            {/* "Save and leave" (Rafil, 2026-11-01): it says what the button
+                does. It once wrapped to two lines in a 340px dialog; the
+                dialog is wider now and the buttons never wrap. */}
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => { go(pendingView); setPendingView(null); }}
                 className="btn-press"
-                style={{ ...primaryBtn, ...dialogBtn }}>
-                Leave
+                style={{ ...primaryBtn, ...dialogBtn, flex: "1.4 1 0", whiteSpace: "nowrap" }}>
+                Save and leave
               </button>
               <button onClick={() => setPendingView(null)} className="btn-press"
-                style={{ ...btnGhost, ...dialogBtn }}>
+                style={{ ...btnGhost, ...dialogBtn, whiteSpace: "nowrap" }}>
                 Stay
               </button>
             </div>
