@@ -11866,4 +11866,3 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 .notes-lead__field:focus { outline: none; border-color: var(--c-accent); }
 .notes-lead__row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
-.quiz-shell__rail-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }

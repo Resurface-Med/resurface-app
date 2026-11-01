@@ -318,6 +318,22 @@ export default function QuizShell({
           </svg>
         </button>
 
+        {/* The questions list opens from the left, so its toggle is here,
+            at that edge, as the usual sidebar mark (Rafil, 2026-11-01) —
+            in place of a "Questions" button in the bar at the bottom. */}
+        <button
+          type="button"
+          className={`quiz-shell__tool quiz-shell__rail-toggle btn-press${railOpen ? " is-on" : ""}`}
+          onClick={() => (railOpen ? closeRail() : openRail())}
+          title={railOpen ? "Hide the questions list" : "Show the questions list"}
+          aria-label={railOpen ? "Hide the questions list" : "Show the questions list"}
+          aria-expanded={railOpen}
+        >
+          {railOpen
+            ? <PanelLeftClose size={20} strokeWidth={2} aria-hidden="true" />
+            : <PanelLeftOpen size={20} strokeWidth={2} aria-hidden="true" />}
+        </button>
+
         <div className="quiz-shell__progress-wrap">
           <div className="quiz-shell__progress" aria-hidden="true">
             <div
@@ -532,21 +548,6 @@ export default function QuizShell({
               <NavChevron back />
             </button>
 
-            <button
-              type="button"
-              className={`quiz-shell__foot-btn quiz-shell__rail-btn btn-press${railOpen ? " is-on" : ""}`}
-              aria-pressed={railOpen}
-              aria-label={railOpen ? "Hide the questions list" : "Show the questions list"}
-              title={railOpen ? "Hide the questions list" : "Show the questions list"}
-              onClick={() => (railOpen ? closeRail() : openRail())}
-            >
-              {/* The sidebar mark everyone knows, so it reads as "opens a
-                  panel" and not as another action (Rafil, 2026-11-01). */}
-              {railOpen
-                ? <PanelLeftClose size={18} strokeWidth={2} aria-hidden="true" />
-                : <PanelLeftOpen size={18} strokeWidth={2} aria-hidden="true" />}
-              <span>Questions</span>
-            </button>
 
             <button
               type="button"
