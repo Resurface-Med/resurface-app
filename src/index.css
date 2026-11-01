@@ -11897,3 +11897,15 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (max-width: 900px) { .q-flagged { top: 10px; right: 10px; padding: 5px 10px; } }
 .q-card--focus.is-flagged .q-stem--focus { padding-right: 96px; }
 @media (max-width: 900px) { .q-card--focus.is-flagged .q-stem--focus { padding-right: 0; padding-top: 30px; } }
+/* Back and forward, joined (2026-11-01). */
+.quiz-pair { display: inline-flex; align-items: center; gap: 0; height: 44px; border-radius: 999px; background: rgba(var(--c-ink-rgb), 0.06); flex: none; }
+.quiz-pair__btn {
+  width: 52px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none;
+  color: var(--c-text); cursor: pointer; transition: background .15s ease, color .15s ease;
+}
+.quiz-pair__btn:first-child { border-radius: 999px 0 0 999px; }
+.quiz-pair__btn:last-child { border-radius: 0 999px 999px 0; }
+.quiz-pair__btn:hover:not(:disabled) { background: rgba(var(--c-ink-rgb), 0.06); }
+.quiz-pair__btn:disabled { color: var(--c-muted-dim); cursor: default; }
+.quiz-pair__rule { width: 1px; height: 22px; background: rgba(var(--c-ink-rgb), 0.12); }
+@media (max-width: 900px) { .quiz-pair { height: 42px; } .quiz-pair__btn { width: 48px; height: 42px; } }

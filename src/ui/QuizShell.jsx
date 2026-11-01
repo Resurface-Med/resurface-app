@@ -521,21 +521,23 @@ export default function QuizShell({
               unanswered the primary reads "Check", so forward is the only way
               to skip one — and back had no footer control at all, it meant
               opening the rail. */}
-          <div className="quiz-shell__nav">
+          {/* Back and forward as one joined pair (Rafil, 2026-11-01): a solid
+              grey pill with a hairline between, in place of two outlined
+              circles. */}
+          <div className="quiz-shell__nav quiz-pair" role="group" aria-label="Move between questions">
             <button
               type="button"
-              className="quiz-shell__arrow btn-press"
+              className="quiz-pair__btn btn-press"
               onClick={() => onPrev?.()}
               disabled={!onPrev}
               aria-label="Previous question"
             >
               <NavChevron back />
             </button>
-
-
+            <span className="quiz-pair__rule" aria-hidden="true" />
             <button
               type="button"
-              className="quiz-shell__arrow btn-press"
+              className="quiz-pair__btn btn-press"
               onClick={() => onNext?.()}
               disabled={isLast}
               aria-label="Next question"
