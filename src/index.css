@@ -11995,10 +11995,15 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   background: radial-gradient(130% 110% at 15% 20%, rgba(61, 99, 230, 0.15), rgba(61, 99, 230, 0.06) 55%, rgba(61, 99, 230, 0.02) 90%);
   box-shadow: 0 0 0 1px rgba(61, 99, 230, 0.16), 0 0 64px 6px rgba(61, 99, 230, 0.12);
 }
-.ann-feed > .ann-post.is-lead .ann-post__title { color: var(--c-accent); }
+/* The title stays dark, with a blue underline (2026-11-02). */
+.ann-feed > .ann-post.is-lead .ann-post__title {
+  text-decoration: underline; text-decoration-color: var(--c-accent); text-decoration-thickness: 3px;
+  text-underline-offset: 8px; text-decoration-skip-ink: none;
+}
 [data-theme="dark"] .ann-feed > .ann-post.is-lead .ann-post__main {
   background: radial-gradient(130% 110% at 15% 20%, rgba(110, 140, 255, 0.18), rgba(110, 140, 255, 0.07) 55%, rgba(110, 140, 255, 0.02) 90%);
 }
 @media (max-width: 760px) {
   .ann-feed > .ann-post.is-lead .ann-post__main { padding: 20px 18px 22px; margin: 0 -6px; border-radius: 22px; }
 }
+.ann-feed > .ann-post.is-lead .ann-rich { margin-top: 22px; }
