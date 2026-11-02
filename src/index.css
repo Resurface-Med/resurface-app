@@ -11987,3 +11987,18 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .pop-item.has-sub { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .pop-item.is-back { display: flex; align-items: center; gap: 8px; color: var(--c-muted); }
 .pop-chev { flex: none; opacity: .55; }
+/* The newest post, lit (Rafil, 2026-11-02: "more focus", option A a little
+   softer): a blue glow behind it with a fine blue edge, and its title in
+   blue. Not in the composer's preview. */
+.ann-feed > .ann-post.is-lead .ann-post__main {
+  padding: 28px 32px 30px; margin: -28px 0 -6px -32px; border-radius: 30px;
+  background: radial-gradient(130% 110% at 15% 20%, rgba(61, 99, 230, 0.15), rgba(61, 99, 230, 0.06) 55%, rgba(61, 99, 230, 0.02) 90%);
+  box-shadow: 0 0 0 1px rgba(61, 99, 230, 0.16), 0 0 64px 6px rgba(61, 99, 230, 0.12);
+}
+.ann-feed > .ann-post.is-lead .ann-post__title { color: var(--c-accent); }
+[data-theme="dark"] .ann-feed > .ann-post.is-lead .ann-post__main {
+  background: radial-gradient(130% 110% at 15% 20%, rgba(110, 140, 255, 0.18), rgba(110, 140, 255, 0.07) 55%, rgba(110, 140, 255, 0.02) 90%);
+}
+@media (max-width: 760px) {
+  .ann-feed > .ann-post.is-lead .ann-post__main { padding: 20px 18px 22px; margin: 0 -6px; border-radius: 22px; }
+}
