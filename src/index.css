@@ -11998,3 +11998,18 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .ann-feed > .ann-post.is-lead .ann-rich { font-size: 17.5px; margin-top: 16px; }
 .ann-feed > .ann-post.is-lead { padding-bottom: clamp(52px, 8vh, 80px); }
 .ann-feed > .ann-post.is-lead .ann-post__meta .ann-new { display: none; }
+/* Option 3, gradient frame (dev, 2026-11-02): the newest post on a white
+   card framed in a blue-to-violet-to-pink border. */
+.ann-feed > .ann-post.is-lead .ann-post__main {
+  padding: 30px 36px 34px; margin: -30px 0 -10px -36px; border-radius: 26px;
+  border: 2.5px solid transparent;
+  background: linear-gradient(var(--c-card-solid), var(--c-card-solid)) padding-box,
+              linear-gradient(120deg, #3d63e6, #8b5cf6, #ec4899) border-box;
+  box-shadow: 0 20px 50px -24px rgba(139, 92, 246, 0.55);
+}
+@media (max-width: 760px) {
+  .ann-feed > .ann-post.is-lead .ann-post__main { padding: 20px 18px 22px; margin: 0 -6px; border-radius: 22px; }
+}
+@media (max-width: 760px) {
+  .ann-feed > .ann-post.is-lead .ann-post__meta .ann-new + *::before { content: none; }
+}
