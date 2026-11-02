@@ -103,8 +103,10 @@ function RenameField({ initial, onDone }) {
 
 /** A row's own menu. An item marked `picker` swaps the menu for the
     Move to… list, anchored to the same ⋯. */
+const subOf = mode => (mode && typeof mode === "object" ? mode.sub : null);
+
 function RowMenu({ node, items, renderPicker }) {
-  const [mode, setMode] = useState(null);           // null | "menu" | "picker"
+  const [mode, setMode] = useState(null);           // null | "menu" | "picker" | { sub: label }
   const ref = useRef(null);
   const close = useCallback(() => setMode(null), []);
   return (
@@ -117,12 +119,22 @@ function RowMenu({ node, items, renderPicker }) {
           <circle cx="12.75" cy="8" r="1.2" fill="currentColor" />
         </svg>
       </button>
-      <Popover anchorRef={ref} open={mode === "menu"} onClose={close}>
-        <MenuItems items={items} onPick={it => {
-          if (it.picker) { setMode("picker"); return; }
-          setMode(null);
-          it.onSelect(node, ref.current);
-        }} />
+      {/* `sub` is read off an object only: a string has an old built-in
+          .sub() method, so mode?.sub on "menu" is truthy. */}
+      <Popover anchorRef={ref} open={mode === "menu" || subOf(mode) !== null} onClose={close}>
+        {/* A row with `sub` (Organise, Admin) opens its list in place of the
+            menu, with Back to return (2026-11-02: a shorter menu). */}
+        <MenuItems key={subOf(mode) ?? "top"}
+          items={subOf(mode) !== null
+            ? [{ label: "Back", back: true }, ...(items.find(it => it.label === subOf(mode))?.sub ?? [])]
+            : items}
+          onPick={it => {
+            if (it.back) { setMode("menu"); return; }
+            if (it.sub) { setMode({ sub: it.label }); return; }
+            if (it.picker) { setMode("picker"); return; }
+            setMode(null);
+            it.onSelect(node, ref.current);
+          }} />
       </Popover>
       {renderPicker && (
         <Popover anchorRef={ref} open={mode === "picker"} onClose={close} className="pop-wide">
@@ -360,6 +372,9 @@ export default function DeckTree({
     const items = rowMenu ? rowMenu(n) : null;
     if (!items || !onMove || !n.mine) return items;
     const moves = [{ label: "Move to…", picker: true }];
+    /* Into the Organise list when there is one. */
+    const org = items.findIndex(it => it.organise);
+    if (org >= 0) return items.map((it, i) => (i === org ? { ...it, sub: [...it.sub, ...moves] } : it));
     const at = items.findIndex(it => it.danger);
     return at < 0 ? [...items, ...moves] : [...items.slice(0, at), ...moves, ...items.slice(at)];
   }

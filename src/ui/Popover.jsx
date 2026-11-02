@@ -69,18 +69,31 @@ export default function Popover({ anchorRef, open, onClose, align = "right", chi
   );
 }
 
-/** A list of actions for a Popover. */
+/* The arrow on a row that opens a further list, and on its Back row. */
+function Chev({ back = false }) {
+  return (
+    <svg className="pop-chev" width="12" height="12" viewBox="0 0 18 18" fill="none" aria-hidden="true"
+      style={back ? { transform: "scaleX(-1)" } : undefined}>
+      <path d="M6.5 3.5L12 9l-5.5 5.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** A list of actions for a Popover. An item with `sub` opens a further
+    list in the same menu; `back` is that list's way out. */
 export function MenuItems({ items, onPick }) {
   return items.map(it => (
     <button
       key={it.label}
       type="button"
       role="menuitem"
-      className={`pop-item${it.danger ? " is-danger" : ""}`}
+      className={`pop-item${it.danger ? " is-danger" : ""}${it.sub ? " has-sub" : ""}${it.back ? " is-back" : ""}`}
       disabled={it.disabled}
       onClick={e => { e.stopPropagation(); onPick(it); }}
     >
+      {it.back && <Chev back />}
       {it.label}
+      {it.sub && <Chev />}
     </button>
   ));
 }

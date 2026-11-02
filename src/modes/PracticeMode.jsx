@@ -924,31 +924,40 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const uploadItem = featured => (isFeaturedAdmin()
       ? [{ label: "Upload questions", onSelect: n => setUploading({ id: n.id, name: n.name, featured }) }]
       : []);
-    const manageFeatured = isFeaturedAdmin() && featuredActions ? [manageItem, ...uploadItem(true)] : [];
+    const manageFeatured = isFeaturedAdmin() && featuredActions ? [manageItem] : [];
+    const featuredAdmin = node => {
+      const sub = [...(isFeaturedAdmin() && featuredActions ? uploadItem(true) : []), ...fileItems(node)];
+      return sub.length ? [{ label: "Admin", sub }] : [];
+    };
     const featuredMenu = node => [
       ...manageFeatured,
-      ...fileItems(node),
+      ...featuredAdmin(node),
       { label: "Hide from my decks", onSelect: n => hideFeatured(n.id) },
     ];
+    /* Your deck's menu, shortened (Rafil, 2026-11-02): the four things
+       people do, then Organise for the rest, and Delete. Admins get one
+       Admin item holding their upload and file tools. */
+    const adminSub = node => [...uploadItem(false), ...fileItems(node)];
     const rowMenu = node => node.mine ? [
       manageItem,
-      ...uploadItem(false),
-      { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
-      { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
       /* Share is here rather than only on a root deck's tab, which is where
          it used to live and why fourteen shareable decks had been shared
          exactly zero times. */
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
-      ...fileItems(node),
+      { label: "Organise", organise: true, sub: [
+        { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
+        { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
+      ] },
       /* A folder of yours inside a ready-made deck can go to the reviewers,
          to be added for everyone. */
       /* Not one filed under a heading ("Year 2"): there is no deck to add to. */
       ...(node.yours && !node.shelved ? [{ label: mySuggestions.some(s => s.deckId === node.id) ? "Your suggestion" : "Suggest for everyone", onSelect: n => setSuggesting(n.id) }] : []),
+      ...(adminSub(node).length ? [{ label: "Admin", sub: adminSub(node) }] : []),
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ] : node.byline && onHideFeatured ? featuredMenu(node)
-      : node.featured && (manageFeatured.length || fileItems(node).length) ? [...manageFeatured, ...fileItems(node)]
+      : node.featured && (manageFeatured.length || fileItems(node).length) ? [...manageFeatured, ...featuredAdmin(node)]
       : null;
     const qNorm = topicQuery.trim().toLowerCase();
     /* A featured deck you hid can be brought back. (An old copy of one is
