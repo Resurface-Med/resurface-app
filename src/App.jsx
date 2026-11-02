@@ -1490,7 +1490,7 @@ export default function App() {
               still behind it, which is a better thing to be looking at than
               "Loading…" appearing and vanishing in a frame. */}
           <Suspense fallback={null}>
-          {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go}
+          {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go} displayName={displayName}
             welcome={welcomeNote}
             welcomeActions={[welcomeStart, { label: "Make my own questions", primary: false, run: () => go(V.GENERATE) }]}
             onReplayWelcome={() => setReveal(true)}

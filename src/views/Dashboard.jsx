@@ -46,7 +46,7 @@ function StatRow({ label, value, strong = false, top = false, i = 0 }) {
   );
 }
 
-export default function Dashboard({
+export default function Dashboard({ displayName = "",
   pStats, streak, dueCount, setView,
   activity = {}, srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
   welcome = null,
@@ -76,6 +76,7 @@ export default function Dashboard({
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const firstName = String(displayName || "").trim().split(/\s+/)[0] || "";
   const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
   // Two actions, max: reviews that are due, and open practice. Wrong-answer
@@ -164,7 +165,9 @@ export default function Dashboard({
         }}>
           <div data-in="left" style={{ "--i": 0 }}>
             <span style={eyebrowField}>{todayLabel}</span>
-            <h1 style={{ ...h1, marginTop: 10 }}>{greeting}.</h1>
+            {/* By name (Rafil, 2026-11-02): the first word of their display
+                name, so "Zain Arghandawi" is greeted as Zain. */}
+            <h1 style={{ ...h1, marginTop: 10 }}>{greeting}{firstName ? `, ${firstName}` : ""}.</h1>
           </div>
 
           {streak.streak > 0 && (
