@@ -11987,22 +11987,14 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .pop-item.has-sub { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .pop-item.is-back { display: flex; align-items: center; gap: 8px; color: var(--c-muted); }
 .pop-chev { flex: none; opacity: .55; }
-/* The newest post, lit (Rafil, 2026-11-02: "more focus", option A a little
-   softer): a blue glow behind it with a fine blue edge, and its title in
-   blue. Not in the composer's preview. */
-.ann-feed > .ann-post.is-lead .ann-post__main {
-  /* A raised card, no tint (Rafil, 2026-11-02: no blue shading): white,
-     a fine border, a soft neutral shadow. */
-  padding: 28px 32px 30px; margin: -28px 0 -6px -32px; border-radius: 26px;
-  background: var(--c-card-solid);
-  box-shadow: 0 0 0 1px var(--c-border), 0 18px 40px -22px rgba(15, 27, 61, 0.35);
+/* The newest post as the lead story (2026-11-02, on dev for Rafil to try):
+   no card, no tint, no underline — bigger type and a solid blue "Latest"
+   label above its title, as news pages mark the top story. */
+.ann-feed > .ann-post.is-lead .ann-post__title { font-size: clamp(30px, 3.2vw, 40px); letter-spacing: -1px; line-height: 1.12; }
+.ann-feed > .ann-post.is-lead .ann-post__title::before {
+  content: "Latest"; display: table; margin-bottom: 14px; padding: 5px 11px; border-radius: 999px;
+  background: var(--c-accent); color: #fff; font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px; line-height: 1.2;
 }
-/* The title stays dark, with a blue underline (2026-11-02). */
-.ann-feed > .ann-post.is-lead .ann-post__title {
-  text-decoration: underline; text-decoration-color: var(--c-accent); text-decoration-thickness: 3px;
-  text-underline-offset: 8px; text-decoration-skip-ink: none;
-}
-@media (max-width: 760px) {
-  .ann-feed > .ann-post.is-lead .ann-post__main { padding: 20px 18px 22px; margin: 0 -6px; border-radius: 22px; }
-}
-.ann-feed > .ann-post.is-lead .ann-rich { margin-top: 22px; }
+.ann-feed > .ann-post.is-lead .ann-rich { font-size: 17.5px; margin-top: 16px; }
+.ann-feed > .ann-post.is-lead { padding-bottom: clamp(52px, 8vh, 80px); }
+.ann-feed > .ann-post.is-lead .ann-post__meta .ann-new { display: none; }
