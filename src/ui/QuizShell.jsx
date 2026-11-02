@@ -3,7 +3,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import NavChevron from "./NavChevron";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { NotebookPen, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
 import { useNotes } from "../lib/notes";
@@ -148,43 +148,51 @@ export default function QuizShell({
     const show = (text, rect) => {
       const t = String(text || "").replace(/\s+/g, " ").trim();
       if (t.length < 2) return;
-      setPick({ text: t.slice(0, 1200), x: rect.x, y: rect.y });
+      setPick(p => (p && p.text === t.slice(0, 1200) ? p : { text: t.slice(0, 1200), x: rect.x, y: rect.y }));
     };
     const onMarked = e => show(e.detail?.text, { x: e.detail?.x, y: e.detail?.y });
-    let timer = null;
-    const fromSelection = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        const s = window.getSelection();
-        if (!s || s.isCollapsed || !s.rangeCount) return;
-        const range = s.getRangeAt(0);
-        const main = bodyRef.current?.querySelector(".quiz-shell__main");
-        if (!main || !main.contains(range.commonAncestorContainer)) return;
-        const box = range.getBoundingClientRect();
-        show(range.toString(), { x: box.left + box.width / 2, y: box.top });
-      }, 250);
+    /* Shown once the selection is finished, and then left where it is
+       (2026-11-02: it appeared mid-drag and jumped as the selection grew,
+       and again when the highlighter took over). A mouse or pen says it's
+       finished on pointer up; a finger adjusting handles doesn't, so touch
+       waits for the selection to stop changing. */
+    const readSelection = () => {
+      const s = window.getSelection();
+      if (!s || s.isCollapsed || !s.rangeCount) return;
+      const range = s.getRangeAt(0);
+      const main = bodyRef.current?.querySelector(".quiz-shell__main");
+      if (!main || !main.contains(range.commonAncestorContainer)) return;
+      const box = range.getBoundingClientRect();
+      show(range.toString(), { x: box.left + box.width / 2, y: box.top });
     };
-    const hide = e => { if (!e.target.closest?.(".note-pick")) setPick(null); };
+    let touch = false, timer = null;
+    const onDown = e => { touch = e.pointerType === "touch"; if (!e.target.closest?.(".note-pick")) setPick(null); };
+    const onUp = e => { if (e.pointerType !== "touch") setTimeout(readSelection, 0); };
+    const onChange = () => { if (!touch) return; clearTimeout(timer); timer = setTimeout(readSelection, 600); };
     window.addEventListener("rs:picked-text", onMarked);
-    document.addEventListener("selectionchange", fromSelection);
-    document.addEventListener("pointerdown", hide, true);
+    document.addEventListener("pointerdown", onDown, true);
+    document.addEventListener("pointerup", onUp);
+    document.addEventListener("selectionchange", onChange);
     const main = bodyRef.current?.querySelector(".quiz-shell__main");
     const onScroll = () => setPick(null);
     main?.addEventListener("scroll", onScroll);
     return () => {
       clearTimeout(timer);
       window.removeEventListener("rs:picked-text", onMarked);
-      document.removeEventListener("selectionchange", fromSelection);
-      document.removeEventListener("pointerdown", hide, true);
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("selectionchange", onChange);
       main?.removeEventListener("scroll", onScroll);
     };
   }, [notesCtx, answeredNow, q?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { setPick(null); }, [q?.id]);
   function addPicked() {
-    if (!pick) return;
+    if (!pick || pick.added) return;
     setAppend({ text: pick.text, n: Date.now() });
     openNote();
-    setPick(null);
+    /* A beat of "Added" before it goes, so the tap feels like it landed. */
+    setPick(p => (p ? { ...p, added: true } : p));
+    setTimeout(() => setPick(p => (p?.added ? null : p)), 900);
     window.getSelection()?.removeAllRanges();
   }
 
@@ -296,10 +304,12 @@ export default function QuizShell({
     <div className={`quiz-shell${railOpen ? " is-rail" : ""}${showAi ? " is-ai" : ""}${showNote ? " is-note" : ""}${labsOpen ? " is-labs" : ""}`} role="dialog" aria-modal="true" aria-label="Study session">
       <LabValues open={labsOpen} onClose={() => setLabsOpen(false)} />
       {pick && createPortal(
-        <button type="button" className="note-pick btn-press" style={{ left: pick.x, top: pick.y }}
+        <button type="button" className={`note-pick${pick.added ? " is-added" : ""}`} style={{ left: pick.x, top: pick.y }}
           onPointerDown={e => e.preventDefault()} onClick={addPicked}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-          Add to note
+          {pick.added
+            ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            : <NotebookPen size={16} strokeWidth={2.2} aria-hidden="true" />}
+          {pick.added ? "Added" : "Add to my note"}
         </button>,
         document.body,
       )}
