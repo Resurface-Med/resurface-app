@@ -165,7 +165,7 @@ export default function DeckTree({
   /* A deck to show open, with everything above it: where "Start Year 2
      questions" lands, the list as usual with that year expanded. */
   revealId = null,
-  allLabel = "Everything", showAll = true, allAvail = null,
+  allLabel = "Everything", showAll: showAllProp = false, allAvail = null,
   rowMenu = null, allowEmpty = false,
   /* When another tree sits beside this one (featured decks), its matches
      count too, so this one does not say "no deck matches" over them. */
@@ -499,6 +499,10 @@ export default function DeckTree({
     );
   }
 
+  /* No "Everything" row (Rafil, 2026-11-02): you tick the decks you want.
+     Kept only where it's the one thing to tick — inside a deck that holds
+     its own questions and has no sub-decks. */
+  const showAll = showAllProp || tree.length === 0;
   return (
     <div
       ref={containerRef}

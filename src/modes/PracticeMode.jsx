@@ -804,7 +804,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
        happen to hold nothing for this scope. The heading counts what there
        is to choose from until something is chosen. */
     const nothingChosen = isNone(filter.leaves);
-    const poolSize = scopedCount({ ...filter, leaves: ["All"] });
 
     /* An account with nothing to practise. This screen used to give it the
        whole machine anyway — a search box with nothing to search, a dashed
@@ -1249,7 +1248,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     <div className="setup-head">
                       <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                       <span className="setup-head__meta">
-                        <span>{nothingChosen ? poolSize : scoped} question{(nothingChosen ? poolSize : scoped) === 1 ? "" : "s"}</span>
                         {activeRoot
                           ? <button type="button" className="gen-link" onClick={() => setActiveRootId(null)}>← All decks</button>
                           : <button type="button" className="gen-link" onClick={() => newDeckInline(null)}>＋ New deck</button>}
@@ -1405,7 +1403,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: "6px 14px", marginBottom: 10 }}>
                   <h2 style={{ ...sectionH, margin: 0 }}>What are you revising?</h2>
                   <span style={{ display: "flex", alignItems: "baseline", gap: 14, fontSize: 13, color: C.muted, fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
-                    <>{nothingChosen ? poolSize : scoped} question{(nothingChosen ? poolSize : scoped) === 1 ? "" : "s"}</>
                     {/* Landed inside one deck (from a share link or Generate):
                         the way back to the whole list. */}
                     {activeRoot ? (
