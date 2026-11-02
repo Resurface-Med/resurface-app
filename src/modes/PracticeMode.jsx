@@ -940,6 +940,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const adminSub = node => [...uploadItem(false), ...fileItems(node)];
     const rowMenu = node => node.mine ? [
       manageItem,
+      /* High up: making a sub-deck is how a deck gets organised by lecture. */
+      { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
       /* Share is here rather than only on a root deck's tab, which is where
          it used to live and why fourteen shareable decks had been shared
@@ -947,7 +949,6 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       { label: "Share", onSelect: n => { const d = decksById.get(n.id); if (d) setSharing(d); } },
       { label: "Organise", organise: true, sub: [
         { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
-        { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ] },
       /* A folder of yours inside a ready-made deck can go to the reviewers,
          to be added for everyone. */
