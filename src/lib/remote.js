@@ -733,6 +733,13 @@ export async function adminEditFeatured(id, payload) {
   const { error } = await supabase.rpc("admin_edit_featured_question", { qid: Number(id) - GEN_ID_BASE, body: payload });
   if (error) throw new Error(error.message);
 }
+/* Questions added to a Resurface deck by an admin (migration 0064). Returns
+   their app ids. */
+export async function adminAddFeatured(deckId, payloads) {
+  const { data, error } = await supabase.rpc("admin_add_featured_questions", { deck: deckId, rows: payloads });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(id => GEN_ID_BASE + Number(id));
+}
 export async function adminDeleteFeatured(ids) {
   const { data, error } = await supabase.rpc("admin_delete_featured_questions", { ids: ids.map(id => Number(id) - GEN_ID_BASE) });
   if (error) throw new Error(error.message);

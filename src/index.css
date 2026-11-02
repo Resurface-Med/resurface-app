@@ -11943,3 +11943,37 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .confirm-scrim { z-index: 2000; }
 .confirm-prompt { width: min(440px, 100%); }
 .np__save.is-danger { background: var(--c-danger); box-shadow: none; }
+/* Upload questions (2026-11-02). */
+.upq { width: min(860px, 100%); }
+.upq-pick, .upq-done { max-width: 560px; }
+.upq-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-top: 24px;
+  padding: 36px 20px; border: 2px dashed var(--c-accent-brd); border-radius: 18px; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.upq-drop:hover, .upq-drop.is-over { background: var(--c-surface2); border-color: var(--c-accent); }
+.upq-drop__main { font-size: 16px; font-weight: 600; color: var(--c-accent); }
+.upq-drop__sub { font-size: 13.5px; color: var(--c-muted); }
+.upq-format { margin-top: 26px; }
+.upq-format__h { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--c-text); }
+.upq-format__p { margin: 0 0 8px; font-size: 14px; line-height: 1.6; color: var(--c-sub); }
+.upq-format code { font-size: 12.5px; padding: 1px 5px; border-radius: 5px; background: var(--c-surface2); color: var(--c-text); }
+.upq-error { margin: 14px 0 0; font-size: 14px; color: var(--c-danger); }
+.upq-problems { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(214, 69, 69, 0.07); }
+.upq-problems__h { margin: 0 0 6px; font-size: 14px; font-weight: 600; color: var(--c-danger); }
+.upq-problems ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: var(--c-sub); }
+.upq-problems__more { margin: 4px 0 0; font-size: 13px; color: var(--c-muted); }
+.upq-list { list-style: none; margin: 20px 0 0; padding: 0; }
+.upq-q { padding: 16px 0; border-top: 1px solid var(--c-border); }
+.upq-q__top { display: flex; align-items: flex-start; gap: 12px; }
+.upq-q__n { flex: none; width: 24px; font-size: 14px; font-weight: 600; color: var(--c-muted); text-align: right; padding-top: 1px; }
+.upq-q__stem { flex: 1; min-width: 0; margin: 0; font-size: 15px; font-weight: 600; line-height: 1.45; color: var(--c-text); }
+.upq-q__acts { flex: none; display: inline-flex; gap: 14px; }
+.upq-remove { color: var(--c-danger) !important; }
+.upq-opts { list-style: none; margin: 8px 0 0 36px; padding: 0; display: grid; gap: 3px; }
+.upq-opts li { font-size: 14px; color: var(--c-sub); padding: 3px 8px; border-radius: 8px; }
+.upq-opts li b { color: var(--c-muted); font-weight: 600; margin-right: 8px; }
+.upq-opts li.is-ans { background: var(--c-success-dim, #e6f5ec); color: var(--c-success); font-weight: 500; }
+.upq-q__exp { margin: 8px 0 0 36px; font-size: 13.5px; line-height: 1.55; color: var(--c-muted); }
+.upq-foot { position: sticky; bottom: -36px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; padding: 16px 0 4px; background: var(--c-card-solid); border-top: 1px solid var(--c-border); }
+.upq-close { margin-top: 20px; }

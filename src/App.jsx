@@ -31,7 +31,7 @@ import { themeField, themeLight } from "./lib/themes";
 import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
 import { supabase } from "./lib/supabase";
-import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured,
+import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
   adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
   liteFeatured, hydrateFeatured } from "./lib/remote";
@@ -304,6 +304,12 @@ export default function App() {
       try { await adminDeleteFeatured(ids); } finally { await refreshData(); }
     },
     moveQuestions: null,
+    /* Uploaded questions (ui/UploadQuestions), into the deck for everyone. */
+    addQuestions: async (deckId, payloads) => {
+      const ids = await adminAddFeatured(deckId, payloads);
+      await refreshData();
+      return ids;
+    },
     /* After a suggested question is added to a deck: it is in the deck now. */
     refresh: () => refreshData(),
   };
@@ -832,7 +838,15 @@ export default function App() {
   }
   const deleteQuestion = id => deleteQuestions([id]);
   const moveQuestion = (id, deckId) => moveQuestions([id], deckId);
-  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion, deleteQuestions, moveQuestions };
+  /* Uploaded questions into one of your own decks (ui/UploadQuestions). */
+  async function addQuestions(deckId, payloads) {
+    /* null: offline, so they're queued on this device and added when the
+       connection is back — not a failure, and not to be retried. */
+    const ids = await remote.addGenerated(user.id, payloads, deckId);
+    if (ids) await refreshData();
+    return ids;
+  }
+  const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion, deleteQuestions, moveQuestions, addQuestions };
 
   /* Straight into a session on these questions (see PracticeMode.startWith). */
   function practise(ids, limit = null) {

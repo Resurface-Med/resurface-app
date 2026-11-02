@@ -16,7 +16,7 @@ const stored = x => {
   return payload;
 };
 
-export default function EditQuestionModal({ q, onClose, onSave, persist = null }) {
+export default function EditQuestionModal({ q, onClose, onSave, persist = null, draft = false }) {
   const { user } = useAuth();
   const [question, setQuestion]   = useState(q.q);
   const [opts, setOpts]           = useState([...q.opts]);
@@ -179,11 +179,11 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
      trap the fixed scrim inside that row. */
   return createPortal(
     <div className="qm-scrim qe-scrim" onMouseDown={e => { if (e.target === e.currentTarget) close(); }}>
-      <div className="qm qe" role="dialog" aria-modal="true" aria-label={isNew ? "New question" : "Edit question"}>
+      <div className="qm qe" role="dialog" aria-modal="true" aria-label={isNew && !draft ? "New question" : "Edit question"}>
         <header className="qm-head qe-head">
           <div className="qm-title-row">
             <div className="qm-titles">
-              <h2 className="qm-title">{isNew ? "New question" : "Edit question"}</h2>
+              <h2 className="qm-title">{isNew && !draft ? "New question" : "Edit question"}</h2>
               {!isNew && (
                 <p className={`qm-sub qe-status${status === "invalid" || status === "failed" ? " is-invalid" : ""}`} aria-live="polite">
                   {status === "failed"
@@ -289,7 +289,9 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null }
             <button type="button" className="qe-cancel btn-press" onClick={onClose}>Cancel</button>
             <button type="button" className="btn-press" onClick={handleAdd} disabled={!canSave}
               style={{ ...primaryBtn, opacity: canSave ? 1 : 0.45 }}>
-              Add question
+              {/* A question not yet added (an upload being reviewed) is edited
+                  in place and saved back to the list. */}
+              {draft ? "Save changes" : "Add question"}
             </button>
           </footer>
         )}

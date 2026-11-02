@@ -20,6 +20,7 @@ import { toDeckFile, serializeDeckFile, deckFileName, parseDeckFile, planDeckUpd
 import DeckFileSheet from "../ui/DeckFileSheet";
 import PastSessions from "../ui/PastSessions";
 import QuestionManager from "../ui/QuestionManager";
+import UploadQuestions from "../ui/UploadQuestions";
 import QuestionReviewer from "../ui/QuestionReviewer";
 import SuggestPrompt from "../ui/SuggestPrompt";
 import { suggestDeck, withdrawSuggestion, fetchMySuggestions, fetchOptionSplit, adminEditFeatured, remote, logStep } from "../lib/remote";
@@ -226,6 +227,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   const [sharing, setSharing] = useState(null);
   /* The deck whose questions are open in the manager (ui/QuestionManager). */
   const [managing, setManaging] = useState(null);
+  /* A deck being uploaded into (ui/UploadQuestions, admins): { id, name, featured }. */
+  const [uploading, setUploading] = useState(null);
   const [reviewing, setReviewing] = useState(null);           // { id, name }: the reviewer is open
   /* Your folders inside ready-made decks that you suggested for everyone,
      and the one whose suggestion pop-up is open (ui/SuggestPrompt). */
@@ -916,7 +919,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const manageItem = isFeaturedAdmin()
       ? { label: "Manage questions", onSelect: n => setReviewing({ id: n.id, name: n.name }) }
       : { label: "Manage questions", onSelect: n => setManaging(n.id) };
-    const manageFeatured = isFeaturedAdmin() && featuredActions ? [manageItem] : [];
+    /* Upload questions from a JSON file (2026-11-02): the admin team, on
+       any deck — a Resurface one for everyone, or their own. */
+    const uploadItem = featured => (isFeaturedAdmin()
+      ? [{ label: "Upload questions", onSelect: n => setUploading({ id: n.id, name: n.name, featured }) }]
+      : []);
+    const manageFeatured = isFeaturedAdmin() && featuredActions ? [manageItem, ...uploadItem(true)] : [];
     const featuredMenu = node => [
       ...manageFeatured,
       ...fileItems(node),
@@ -924,6 +932,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     ];
     const rowMenu = node => node.mine ? [
       manageItem,
+      ...uploadItem(false),
       { label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) },
       { label: "New sub-deck", onSelect: n => newDeckInline(n.id) },
       ...(onGenerateInto ? [{ label: "Generate into this", onSelect: n => onGenerateInto(n.id) }] : []),
@@ -1163,6 +1172,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             editPersist={(updated, q) => persistFor(q)?.(updated)} onClose={() => setManaging(null)} />
         : <QuestionManager deckId={managing} decks={decks} pStats={pStats} actions={deckActions} onClose={() => setManaging(null)} />
     );
+    const uploader = uploading && (
+      <UploadQuestions deckName={uploading.name} onClose={() => setUploading(null)}
+        onAdd={drafts => (uploading.featured
+          ? featuredActions.addQuestions(uploading.id, drafts)
+          : deckActions.addQuestions(uploading.id, drafts))} />
+    );
     /* The deck list counted only Due questions after Home's "Review" with
        nothing on screen saying so — Jacob's deck read 11 questions (Rafil,
        2026-10-20). Whenever the list is narrowed, it says so here, with
@@ -1340,6 +1355,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           {deckFileSheet}
           {pastSheet}
           {manager}
+          {uploader}
           {reviewer}
           {suggestPrompt}
         </div>
@@ -1508,6 +1524,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         {deckFileSheet}
         {pastSheet}
         {manager}
+        {uploader}
         {reviewer}
         {suggestPrompt}
       </div>
