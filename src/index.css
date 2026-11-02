@@ -12012,3 +12012,5 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (max-width: 760px) {
   .ann-feed > .ann-post.is-lead .ann-post__meta .ann-new + *::before { content: none; }
 }
+.ann-rich .ann-sub { margin: 34px 0 10px; padding-top: 26px; border-top: 1px solid var(--c-border); font-size: 18px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-text); }
+.ann-rich .ann-sub:first-child { margin-top: 0; padding-top: 0; border-top: 0; }

@@ -42,6 +42,11 @@ export function Rich({ text }) {
     <div className="ann-rich">
       {blocks.map((b, i) => {
         const lines = b.split("\n");
+        /* A line that is all bold, on its own, is a section heading: it
+           gets space above it so a post can have two parts (2026-11-02). */
+        if (lines.length === 1 && /^\*\*[^*]+\*\*$/.test(lines[0].trim())) {
+          return <h3 key={i} className="ann-sub">{lines[0].trim().slice(2, -2)}</h3>;
+        }
         if (lines.every(l => /^\s*[-•]\s+/.test(l))) {
           return <ul key={i}>{lines.map((l, j) => <li key={j}><Inline text={l.replace(/^\s*[-•]\s+/, "")} /></li>)}</ul>;
         }
