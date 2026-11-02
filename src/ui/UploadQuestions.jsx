@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import EditQuestionModal from "./EditQuestionModal";
 import { parseQuestionFile, UPLOAD_EXAMPLE } from "../lib/questionUpload";
+import { UPLOAD_GUIDE } from "../lib/uploadGuide";
 
 /**
  * Upload questions into a deck from a JSON file (2026-11-02), for the admin
@@ -15,18 +16,22 @@ import { parseQuestionFile, UPLOAD_EXAMPLE } from "../lib/questionUpload";
 
 const LETTERS = "ABCDE";
 
-function downloadTemplate() {
-  const blob = new Blob([`${JSON.stringify(UPLOAD_EXAMPLE, null, 2)}\n`], { type: "application/json" });
+function download(name, body, type) {
+  const blob = new Blob([body], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url; a.download = "resurface-questions-template.json";
+  a.href = url; a.download = name;
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+const downloadTemplate = () => download("resurface-questions-template.json", `${JSON.stringify(UPLOAD_EXAMPLE, null, 2)}\n`, "application/json");
+const downloadGuide = () => download("resurface-question-instructions.md", UPLOAD_GUIDE, "text/markdown");
 
 export default function UploadQuestions({ deckName, onAdd, onClose }) {
   const [drafts, setDrafts] = useState(null);         // null until a file is read
   const [problems, setProblems] = useState([]);
+  const [warnings, setWarnings] = useState([]);
+  const [copied, setCopied] = useState(false);
   const [fileName, setFileName] = useState("");
   const [editing, setEditing] = useState(null);       // index
   const [busy, setBusy] = useState(false);
@@ -44,8 +49,8 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
   async function read(file) {
     if (!file) return;
     setError(""); setFileName(file.name);
-    const { drafts: d, problems: p } = parseQuestionFile(await file.text());
-    setDrafts(d); setProblems(p);
+    const { drafts: d, problems: p, warnings: w } = parseQuestionFile(await file.text());
+    setDrafts(d); setProblems(p); setWarnings(w ?? []);
   }
 
   async function add() {
@@ -87,7 +92,16 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
           The same as Download deck: <code>{"{ \"questions\": [ … ] }"}</code>, each with <code>q</code>, <code>options</code>,{" "}
           <code>correct</code> (the right option's text, or its letter), <code>exp</code>, and optionally <code>why</code>, one line per option.
         </p>
-        <button type="button" className="gen-link" onClick={downloadTemplate}>Download a template</button>
+        <p className="upq-format__p">Each question can also carry its topic note for the knowledge library, and the lines of it that question highlights.</p>
+        <div className="upq-format__acts">
+          <button type="button" className="pss-btn btn-press" onClick={async () => {
+            try { await navigator.clipboard.writeText(UPLOAD_GUIDE); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+            catch { downloadGuide(); }
+          }}>{copied ? "Copied" : "Copy instructions for Claude"}</button>
+          <button type="button" className="gen-link" onClick={downloadGuide}>Download them</button>
+          <button type="button" className="gen-link" onClick={downloadTemplate}>Download a template</button>
+        </div>
+        <p className="upq-format__hint">Give Claude the instructions and your lecture, ask for the number of questions you want, and upload what it returns here.</p>
       </div>
     </div>
   ) : (
@@ -100,6 +114,12 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
             <p className="upq-problems__h">{problems.length} row{problems.length === 1 ? "" : "s"} couldn't be used and won't be added:</p>
             <ul>{problems.slice(0, 20).map(p => <li key={p.row}>Row {p.row}: {p.why}</li>)}</ul>
             {problems.length > 20 && <p className="upq-problems__more">and {problems.length - 20} more.</p>}
+          </div>
+        )}
+        {warnings.length > 0 && (
+          <div className="upq-problems is-warn">
+            <p className="upq-problems__h">{warnings.length} row{warnings.length === 1 ? "" : "s"} will be added with something left out:</p>
+            <ul>{warnings.slice(0, 20).map(p => <li key={p.row}>Row {p.row}: {p.why}</li>)}</ul>
           </div>
         )}
       </div>
@@ -120,6 +140,12 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
               ))}
             </ul>
             {d.exp && <p className="upq-q__exp">{d.exp}</p>}
+            {d.topic && (
+              <p className="upq-q__topic">
+                <span>Topic note: {d.topic.title}</span>
+                {d.hl?.length ? <span className="upq-q__hl">Highlights “{d.hl[0]}”{d.hl.length > 1 ? ` and ${d.hl.length - 1} more` : ""}</span> : null}
+              </p>
+            )}
           </li>
         ))}
         {drafts.length === 0 && <li className="pss-none">Nothing left to add.</li>}

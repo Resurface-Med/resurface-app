@@ -11977,3 +11977,9 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .upq-q__exp { margin: 8px 0 0 36px; font-size: 13.5px; line-height: 1.55; color: var(--c-muted); }
 .upq-foot { position: sticky; bottom: -36px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 8px; padding: 16px 0 4px; background: var(--c-card-solid); border-top: 1px solid var(--c-border); }
 .upq-close { margin-top: 20px; }
+.upq-format__acts { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+.upq-format__hint { margin: 12px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--c-muted); }
+.upq-problems.is-warn { background: rgba(214, 140, 30, 0.08); }
+.upq-problems.is-warn .upq-problems__h { color: var(--c-warning, #b7791f); }
+.upq-q__topic { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 0 36px; font-size: 13px; color: var(--c-accent); font-weight: 500; }
+.upq-q__hl { color: var(--c-muted); font-weight: 400; }

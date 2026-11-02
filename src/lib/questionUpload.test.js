@@ -33,3 +33,23 @@ describe("question upload", () => {
     expect(parseQuestionFile({ a: 1 }).problems[0].why).toMatch(/list of questions/);
   });
 });
+
+describe("topic notes in an upload", () => {
+  it("keeps the note and only highlight lines that are in it", () => {
+    const { drafts, warnings } = parseQuestionFile([{ q: "x", options: ["a", "b"], correct: "a",
+      topic: { title: "T", body: "**H**\n- ==line one==\n- line two" }, hl: ["line two", "not there", "has = sign"] }]);
+    expect(drafts[0].topic.title).toBe("T");
+    expect(drafts[0].hl).toEqual(["line two"]);
+    expect(warnings[0].why).toMatch(/2 highlight lines/);
+  });
+  it("leaves out a note with no body, and says so", () => {
+    const { drafts, warnings } = parseQuestionFile([{ q: "x", options: ["a", "b"], correct: "a", topic: { title: "T" } }]);
+    expect(drafts[0].topic).toBeUndefined();
+    expect(warnings).toHaveLength(1);
+  });
+  it("the template's note and highlight are valid", () => {
+    const { drafts, warnings } = parseQuestionFile(UPLOAD_EXAMPLE);
+    expect(warnings).toEqual([]);
+    expect(drafts[0].hl).toHaveLength(1);
+  });
+});
