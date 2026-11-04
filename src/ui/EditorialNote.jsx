@@ -8,7 +8,7 @@ import { MarkedText } from "./RichText";
    than taking it over, with its caption beside it; tapping opens it full
    screen in the same viewer as a question's image. The path is the stored
    one (or a /qimg/ file), its link worked out when drawn. */
-function NoteImage({ src, alt }) {
+function NoteImage({ src, alt, n }) {
   const [url, setUrl] = useState(null);
   const [failed, setFailed] = useState(false);
   const [zoomed, setZoomed] = useState(false);
@@ -40,7 +40,7 @@ function NoteImage({ src, alt }) {
           </span>
         )}
       </button>
-      {alt && <figcaption>{alt}</figcaption>}
+      <figcaption><span className="ed__fig-n">Fig. {n}</span>{alt}</figcaption>
       {zoomed && createPortal((
         <div className="q-lightbox" role="dialog" aria-modal="true" aria-label={alt || "Picture"} onClick={() => setZoomed(false)}>
           <img src={url} alt={alt || ""} />
@@ -72,7 +72,7 @@ export default function EditorialNote({ text }) {
   return (
     <div className="ed">
       {blocks.map((b, i) => {
-        if (b.type === "img") return <NoteImage key={i} src={b.src} alt={b.alt} />;
+        if (b.type === "img") return <NoteImage key={i} src={b.src} alt={b.alt} n={blocks.slice(0, i + 1).filter(x => x.type === "img").length} />;
         if (i === 0 && b.type === "p") return <p key={i} className="ed__lede"><MarkedText text={b.text} /></p>;
         if (numbers[i]) {
           return (
