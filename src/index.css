@@ -12132,14 +12132,12 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (prefers-reduced-motion: no-preference) {
   .cal__day:not(.is-blank) { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
   .cal__day.l1, .cal__day.l2, .cal__day.l3, .cal__day.l4 { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both, cal-fill .7s ease both; animation-delay: calc(var(--d, 0) * 28ms), calc(var(--d, 0) * 28ms + 220ms); }
-  .cal__day.is-today { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both, cal-pulse 1.6s ease-out 1; animation-delay: calc(var(--d, 0) * 28ms), calc(var(--d, 0) * 28ms + 500ms); }
   .cal__grid.from-right { animation: cal-turn-r .38s cubic-bezier(.2, .8, .2, 1) both; }
   .cal__grid.from-left { animation: cal-turn-l .38s cubic-bezier(.2, .8, .2, 1) both; }
   .cal__month { animation: cal-month .4s ease both; }
 }
 @keyframes cal-in { from { opacity: 0; transform: translateY(6px) scale(.86); } to { opacity: 1; transform: none; } }
 @keyframes cal-fill { from { background-color: var(--c-surface2); color: var(--c-sub); } }
-@keyframes cal-pulse { 0% { box-shadow: inset 0 0 0 2px var(--c-text), 0 0 0 0 color-mix(in srgb, var(--c-accent) 45%, transparent); } 100% { box-shadow: inset 0 0 0 2px var(--c-text), 0 0 0 10px transparent; } }
 @keyframes cal-turn-r { from { opacity: 0; transform: translateX(24px); } }
 @keyframes cal-turn-l { from { opacity: 0; transform: translateX(-24px); } }
 @keyframes cal-month { from { opacity: 0; transform: translateY(6px); } }
@@ -12215,11 +12213,9 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .home-sheet.is-dash .dash-card .home-fig__n { font-size: clamp(18px, 1.5vw, 21px); }
 .home-sheet.is-dash .dash-card .home-fig__l { font-size: 14.5px; }
 /* Today (2026-11-04): the date in a solid dark circle, as phone calendars
-   mark it, inside its square, which keeps today's shade. */
+   mark it, inside its square, which keeps today's shade. No pulse (Rafil). */
 .cal__day.is-today { box-shadow: none; }
 .cal__today { display: inline-flex; align-items: center; justify-content: center; width: 72%; max-width: 30px; aspect-ratio: 1 / 1; border-radius: 50%; background: var(--c-text); color: var(--c-card-solid); font-weight: 700; box-shadow: 0 2px 6px -1px rgba(15, 27, 61, 0.35); }
 @media (prefers-reduced-motion: no-preference) {
   .cal__day.is-today { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
-  .cal__today { animation: cal-today 1.8s ease-out 1 both; animation-delay: calc(var(--d, 0) * 28ms + 450ms); }
 }
-@keyframes cal-today { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-accent) 55%, transparent); } 100% { box-shadow: 0 0 0 9px transparent, 0 2px 6px -1px rgba(15, 27, 61, 0.35); } }
