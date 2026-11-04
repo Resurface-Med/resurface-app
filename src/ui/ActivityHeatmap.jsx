@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { sectionH, meta } from "./theme";
+import { sectionH } from "./theme";
 import { todayKey } from "../lib/storage";
 
 /**
@@ -86,11 +86,6 @@ export default function ActivityHeatmap({ activity = {} }) {
   return (
     <section className="cal" style={{ position: "relative" }}>
       <h2 style={sectionH}>Your activity</h2>
-      <p style={{ ...meta, marginTop: 4 }}>
-        {total === 0
-          ? (offset === 0 ? "Answer a question and today fills in." : `Nothing in ${first.toLocaleDateString("en-GB", { month: "long" })}.`)
-          : `${total} question${total === 1 ? "" : "s"} over ${activeDays} day${activeDays === 1 ? "" : "s"} in ${first.toLocaleDateString("en-GB", { month: "long" })}`}
-      </p>
 
       <div className="cal__panel">
       {/* A desk calendar's top: the binding, then the month on the strip. */}
@@ -133,10 +128,17 @@ export default function ActivityHeatmap({ activity = {} }) {
         })}
       </div>
 
+      <div className="cal__foot">
+      <span className="cal__sum">
+        {total === 0
+          ? (offset === 0 ? "Answer a question and today fills in" : "Nothing this month")
+          : <><b>{total.toLocaleString()}</b> question{total === 1 ? "" : "s"} over <b>{activeDays}</b> day{activeDays === 1 ? "" : "s"}</>}
+      </span>
       <div className="cal__key" aria-hidden="true">
         <span>Less</span>
         {[0, 1, 2, 3, 4].map(l => <i key={l} className={`l${l}`} />)}
         <span>More</span>
+      </div>
       </div>
       </div>
 
