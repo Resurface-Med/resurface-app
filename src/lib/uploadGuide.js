@@ -54,8 +54,12 @@ Each question can carry the note shown under its explanation: a short revision s
   - Separate sections with a blank line.
 - "hl": the one or two lines of the note that answer THIS question, copied word for word from the body (without the == marks and without the leading "- "). This is what gets highlighted for this question, so it differs between questions sharing a note. Never put an "=" character in an hl line.
 
-## 6. Pictures (only if you were given image files)
-Only use pictures the person has given you with the material, by their exact file names. Never invent a file name, and never describe a picture you were not given.
+## 6. Pictures (only if you were given separate image files)
+You cannot make, draw or extract pictures. A picture can only be used if the person attached it to this chat as its own image file (a .png or .jpg), and you must use that file's exact name.
+- Pictures inside a PDF, slides or a document do NOT count: you can't hand them over as files. Don't name them.
+- If no separate image files were attached, use no pictures at all: no image lines and no "img".
+- Never invent a file name, and never describe a picture you were not given.
+- At the end of your reply, under the JSON, list the file names you used, so the person knows which files to choose when uploading.
 - In a topic note, a picture is a line of its own, with a blank line before and after: ![Caption](file-name.png). The caption says what it shows in a few words ("Nephron, labelled").
 - Put it right after the section it illustrates. One or two per note at most.
 - A question can show a picture above its stem with "img": "file-name.png", for image-based questions (an X-ray, an ECG, a histology slide). Then the stem refers to it ("The chest X-ray above…") and the answer must be visible in it.
