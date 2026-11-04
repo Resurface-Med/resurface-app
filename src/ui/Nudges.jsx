@@ -3,7 +3,6 @@ import StreakFlame from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
 import { fetchLeaderboardWeek, fetchMyRecentAnswers, logStep } from "../lib/remote";
-import { improvement } from "../lib/firstRun";
 import { QUESTIONS } from "../data";
 import { todayKey, yesterdayKey } from "../lib/storage";
 
@@ -178,18 +177,15 @@ export function MilestoneNudge({ n, onAction, onClose, inline }) {
 
 /* Getting better (2026-10-26): where they started on a deck and where they
    are now, the second number climbing from the first. */
-/* How many answers either side the "getting better" card compares. */
-const IMPROVE_N = 30;
-
 export function ImproveNudge({ deck, before, after, onAction, onClose, inline }) {
   const now = useCountUp(after - before, 1000, 550);
   return (
     <NudgeCard kind="improve" inline={inline}
       art={
         <span className="nudge-up" aria-hidden="true">
-          <span className="nudge-up__col is-was"><span className="nudge-up__n">{before}%</span><span className="nudge-up__cap">your first {IMPROVE_N} answers</span></span>
+          <span className="nudge-up__col is-was"><span className="nudge-up__n">{before}%</span><span className="nudge-up__cap">your usual</span></span>
           <svg className="nudge-up__arrow" viewBox="0 0 40 16"><path d="M2 8 H34 M27 2 L35 8 L27 14" /></svg>
-          <span className="nudge-up__col is-now"><span className="nudge-up__n">{before + now}%</span><span className="nudge-up__cap">your last {IMPROVE_N}</span></span>
+          <span className="nudge-up__col is-now"><span className="nudge-up__n">{before + now}%</span><span className="nudge-up__cap">this session</span></span>
         </span>
       }
       title={`You’re getting better at ${deck}.`}
@@ -436,10 +432,14 @@ const WEEK = 7 * DAY;
 const recent = (uid, k) => (store.get(uid, k).at ?? []).filter(t => Date.now() - t < WEEK);
 const stamp = (uid, k) => store.set(uid, k, { ...store.get(uid, k), at: [...recent(uid, k), Date.now()] });
 
-export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, answered = 0, onStudy }) {
+export default function NudgeCenter({ userId, me = null, ready, sessionActive, streak, activity, studyYear, answered = 0, onStudy, lastSession = null }) {
   const [shown, setShown] = useState(null);          // { kind, ...data }
   const [copied, setCopied] = useState(false);
   const usedVisit = useRef(false);
+  /* Read when the card decides, not when the session ended: the finished
+     session's record can land a moment after. */
+  const lastRef = useRef(lastSession);
+  lastRef.current = lastSession;
   const was = useRef(sessionActive);
   /* Rank on the board when the session began, for "passed someone". */
   const startRank = useRef(null);
@@ -522,21 +522,30 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
         if (show({ kind: "best", today: todayN, best })) { stamp(userId, "best"); return; }
       }
 
-      /* Better at a deck than when they started: every 5 days at most, and
-         a deck only again after another 10 points. */
+      /* Better than usual (2026-11-04): this session against your own
+         record on the deck before it. Only a session wholly from one deck,
+         10+ answered, so the figure is the results page's own score; your
+         usual is your earlier answers there (20+). 10 points up or more,
+         every 5 days at most. */
       const imp = store.get(userId, "improve");
-      if (Date.now() >= (imp.nextAt ?? 0)) {
+      const rec = lastRef.current;
+      if (Date.now() >= (imp.nextAt ?? 0) && rec?.finished && rec.answered >= 10) {
         try {
           const byId = new Map(QUESTIONS.map(q => [q.id, q]));
           const deckOf = id => (byId.get(id)?.path ?? []).map(p => p.name).find(n => !/^Year \d/.test(n)) ?? null;
-          /* Thirty either side (2026-11-04): with fifteen, a good run at the
-             end of one session read as "100% now" beside a results page
-             that said otherwise. */
-          const got = improvement(await fetchMyRecentAnswers(90), deckOf, imp.decks ?? {}, IMPROVE_N);
-          if (cancelled) return;
-          if (got && show({ kind: "improve", ...got })) {
-            store.set(userId, "improve", { nextAt: Date.now() + 5 * DAY, decks: { ...(imp.decks ?? {}), [got.deck]: got.after } });
-            return;
+          const done = (rec.items ?? []).filter(x => x.ok !== undefined);
+          const decks = new Set(done.map(x => deckOf(x.id)));
+          const deck = decks.size === 1 ? [...decks][0] : null;
+          if (deck) {
+            const after = Math.round((rec.correct / rec.answered) * 100);
+            const since = new Date(rec.created_at).getTime();
+            const prior = (await fetchMyRecentAnswers(90)).filter(r => new Date(r.at).getTime() < since && deckOf(r.question_id) === deck);
+            if (cancelled) return;
+            const before = prior.length >= 20 ? Math.round((prior.filter(r => r.correct).length / prior.length) * 100) : null;
+            if (before !== null && after >= before + 10 && show({ kind: "improve", deck, before, after })) {
+              store.set(userId, "improve", { nextAt: Date.now() + 5 * DAY });
+              return;
+            }
           }
         } catch { /* offline: skip */ }
       }

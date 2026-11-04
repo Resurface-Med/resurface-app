@@ -1445,6 +1445,8 @@ export default function App() {
         still be previewed in Admin > Popups. Flip NUDGES_LIVE to turn on. */}
     {NUDGES_LIVE && <NudgeCenter userId={user?.id} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} ready={!dataLoading} sessionActive={practiceSessionActive}
       streak={streak} activity={activity} studyYear={studyYear}
+      /* The session just finished, as the results page counts it. */
+      lastSession={sessions.reduce((a, b) => (!a || String(b.updated_at) > String(a.updated_at) ? b : a), null)}
       answered={Object.values(pStats).reduce((a, x) => a + (Number(x?.total) || 0), 0)}
       onStudy={() => { setLaunchFilter({ deck: "All", cat: "All" }); setStudyScope("all"); setAutoStart(false); go(V.STUDY); }} />}
     {/* Admin > Popups' "Show over the app": stays up across pages until closed. */}
