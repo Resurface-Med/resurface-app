@@ -3,19 +3,50 @@ import { createPortal } from "react-dom";
 import EditQuestionModal from "./EditQuestionModal";
 import { parseQuestionFile, UPLOAD_EXAMPLE } from "../lib/questionUpload";
 import { UPLOAD_GUIDE } from "../lib/uploadGuide";
-import { keyOf, namedFiles, draftFiles, withPaths } from "../lib/uploadImages";
+import { keyOf, namedFiles, withPaths } from "../lib/uploadImages";
+import { IMAGE_LINE } from "../lib/formatExplain";
 import { uploadQuestionImage } from "../lib/questionImage";
 import { supabase } from "../lib/supabase";
 
 const isJson = f => /\.json$/i.test(f.name) || f.type === "application/json";
 const isImage = f => /^image\//.test(f.type) || /\.(png|jpe?g|webp|gif|heic)$/i.test(f.name);
 
-/* A chosen picture, small, before anything is uploaded. */
-function Thumb({ file, name }) {
+/* A question's pictures, as the review lists them: the one above the
+   question, then each in its note, with its caption. */
+function picsOf(d) {
+  const out = d.img ? [{ kind: "img", ref: d.img, label: "Above the question" }] : [];
+  for (const line of String(d.topic?.body ?? "").split(/\r?\n/)) {
+    const m = line.trim().match(IMAGE_LINE);
+    if (m) out.push({ kind: "note", ref: m[2], line: line.trim(), label: m[1] || "In the note" });
+  }
+  return out;
+}
+
+/* That question without that picture; the rest of it as it was. */
+function withoutPic(d, pic) {
+  if (pic.kind === "img") { const { img, ...rest } = d; return rest; } // eslint-disable-line no-unused-vars
+  const lines = d.topic.body.split(/\r?\n/);
+  const at = lines.findIndex(l => l.trim() === pic.line);
+  const body = lines.filter((_, i) => i !== at).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return { ...d, topic: { ...d.topic, body } };
+}
+
+/* A chosen picture, small, before anything is uploaded; its × takes it off
+   this question only. */
+function Thumb({ file, name, label, onRemove }) {
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
-  return url ? <img className="upq-thumb" src={url} alt={name} />
-    : <span className="upq-thumb is-missing" title={`${name} not chosen`}>{name}</span>;
+  return (
+    <figure className="upq-pic">
+      <div className="upq-pic__frame">
+        {url ? <img src={url} alt="" /> : <span className="upq-pic__missing">{name}<br />not chosen</span>}
+        <button type="button" className="upq-pic__x" aria-label={`Remove ${label} from this question`} onClick={onRemove}>
+          <svg width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+        </button>
+      </div>
+      <figcaption title={label}>{label}</figcaption>
+    </figure>
+  );
 }
 
 /**
@@ -193,14 +224,19 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
               ))}
             </ul>
             {d.exp && <p className="upq-q__exp">{d.exp}</p>}
-            {draftFiles(d).length > 0 && (
-              <div className="upq-thumbs">{[...new Set(draftFiles(d))].map(k => <Thumb key={k} name={k} file={images[k]} />)}</div>
-            )}
             {d.topic && (
               <p className="upq-q__topic">
                 <span>Topic note: {d.topic.title}</span>
                 {d.hl?.length ? <span className="upq-q__hl">Highlights “{d.hl[0]}”{d.hl.length > 1 ? ` and ${d.hl.length - 1} more` : ""}</span> : null}
               </p>
+            )}
+            {picsOf(d).length > 0 && (
+              <div className="upq-pics">
+                {picsOf(d).map((pic, k) => (
+                  <Thumb key={`${k}-${pic.ref}`} name={keyOf(pic.ref)} file={images[keyOf(pic.ref)]} label={pic.label}
+                    onRemove={() => setDrafts(list => list.map((x, j) => (j === i ? withoutPic(x, pic) : x)))} />
+                ))}
+              </div>
             )}
           </li>
         ))}
