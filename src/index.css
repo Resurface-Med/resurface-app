@@ -12213,9 +12213,13 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .home-sheet.is-dash .dash-card .home-fig__n { font-size: clamp(18px, 1.5vw, 21px); }
 .home-sheet.is-dash .dash-card .home-fig__l { font-size: 14.5px; }
 /* Today (2026-11-04): the date in a solid dark circle, as phone calendars
-   mark it, inside its square, which keeps today's shade. No pulse (Rafil). */
+   mark it, inside its square, which keeps today's shade. No pulse (Rafil).
+   Now a red marker loop instead of the dark circle. */
 .cal__day.is-today { box-shadow: none; }
-.cal__today { display: inline-flex; align-items: center; justify-content: center; width: 72%; max-width: 30px; aspect-ratio: 1 / 1; border-radius: 50%; background: var(--c-text); color: var(--c-card-solid); font-weight: 700; box-shadow: 0 2px 6px -1px rgba(15, 27, 61, 0.35); }
+.cal__today { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 72%; max-width: 30px; aspect-ratio: 1 / 1; font-weight: 700; color: var(--c-text); }
+/* A red loop drawn round the date, its ends overlapping like a pen stroke
+   on a wall calendar (Rafil picked this over a red X, 2026-11-04). */
+.cal__today::after { content: ""; position: absolute; inset: -7px -8px -6px -7px; pointer-events: none; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 56'><path d='M41 6 C24 1 6 10 5 27 C4 44 20 52 34 50 C50 48 57 35 55 22 C53 11 43 4 30 5 C24 6 19 8 16 11' fill='none' stroke='%23e0352b' stroke-width='3.4' stroke-linecap='round'/></svg>") center / 100% 100% no-repeat; }
 @media (prefers-reduced-motion: no-preference) {
   .cal__day.is-today { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
 }
