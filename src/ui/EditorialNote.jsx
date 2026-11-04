@@ -1,5 +1,28 @@
-import { parseBlocks } from "../lib/formatExplain";
+import { useEffect, useState } from "react";
+import { parseBlocks, stripImages } from "../lib/formatExplain";
+import { questionImageUrl } from "../lib/questionImage";
 import { MarkedText } from "./RichText";
+
+/* A picture in a note: full width, its caption under it. The path is the
+   stored one (or a /qimg/ file); the link is worked out when drawn, like a
+   question's image, and the device keeps a copy for offline. */
+function NoteImage({ src, alt }) {
+  const [url, setUrl] = useState(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let live = true;
+    setUrl(null); setFailed(false);
+    questionImageUrl(src).then(u => { if (!live) return; if (u) setUrl(u); else setFailed(true); });
+    return () => { live = false; };
+  }, [src]);
+  if (failed) return null;
+  return (
+    <figure className="ed__fig">
+      {url ? <img src={url} alt={alt || ""} loading="lazy" /> : <div className="ed__fig-wait" aria-hidden="true" />}
+      {alt && <figcaption>{alt}</figcaption>}
+    </figure>
+  );
+}
 
 /**
  * A topic note laid out like an article (2026-10-29): the first paragraph
@@ -7,7 +30,7 @@ import { MarkedText } from "./RichText";
  * (01, 02…), ==one line== under a highlighter, in a reading serif.
  */
 export default function EditorialNote({ text }) {
-  const blocks = parseBlocks(text);
+  const blocks = parseBlocks(text, { images: true });
   const isHead = b => b.type === "p" && /^\*\*[^*]+\*\*$/.test(b.text.trim());
   /* Each heading's section number, worked out before drawing. */
   const numbers = blocks.reduce((acc, b, i) => {
@@ -17,6 +40,7 @@ export default function EditorialNote({ text }) {
   return (
     <div className="ed">
       {blocks.map((b, i) => {
+        if (b.type === "img") return <NoteImage key={i} src={b.src} alt={b.alt} />;
         if (i === 0 && b.type === "p") return <p key={i} className="ed__lede"><MarkedText text={b.text} /></p>;
         if (numbers[i]) {
           return (
@@ -36,6 +60,6 @@ export default function EditorialNote({ text }) {
 
 /** "1 min read" at about 200 words a minute. */
 export function readTime(text) {
-  const words = String(text || "").replace(/[*=#-]/g, " ").split(/\s+/).filter(Boolean).length;
+  const words = stripImages(text).replace(/[*=#-]/g, " ").split(/\s+/).filter(Boolean).length;
   return `${Math.max(1, Math.round(words / 200))} min read`;
 }

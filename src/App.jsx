@@ -28,6 +28,7 @@ import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEd
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, readCustomColor, writeCustomColor, clearCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { themeField, themeLight } from "./lib/themes";
+import { noteImages } from "./lib/formatExplain";
 import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
 import { supabase } from "./lib/supabase";
@@ -683,7 +684,7 @@ export default function App() {
      server has answered (lib/questionImage). */
   useEffect(() => {
     if (!user?.id || dataLoading || sourceRef.current !== "server") return;
-    const t = setTimeout(() => keepImagesOffline(QUESTIONS.map(q => q.img).filter(p => typeof p === "string" && p)), 4000);
+    const t = setTimeout(() => keepImagesOffline(QUESTIONS.flatMap(q => [q.img, ...noteImages(q.topic?.body)]).filter(p => typeof p === "string" && p)), 4000);
     return () => clearTimeout(t);
   }, [user?.id, dataLoading, generated, featured]);
 

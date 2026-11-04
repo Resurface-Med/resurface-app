@@ -54,17 +54,25 @@ Each question can carry the note shown under its explanation: a short revision s
   - Separate sections with a blank line.
 - "hl": the one or two lines of the note that answer THIS question, copied word for word from the body (without the == marks and without the leading "- "). This is what gets highlighted for this question, so it differs between questions sharing a note. Never put an "=" character in an hl line.
 
-## 6. Style
+## 6. Pictures (only if you were given image files)
+Only use pictures the person has given you with the material, by their exact file names. Never invent a file name, and never describe a picture you were not given.
+- In a topic note, a picture is a line of its own, with a blank line before and after: ![Caption](file-name.png). The caption says what it shows in a few words ("Nephron, labelled").
+- Put it right after the section it illustrates. One or two per note at most.
+- A question can show a picture above its stem with "img": "file-name.png", for image-based questions (an X-ray, an ECG, a histology slide). Then the stem refers to it ("The chest X-ray above…") and the answer must be visible in it.
+- Never put an image line in an "hl" line.
+
+## 7. Style
 UK spelling, SI units, British drug names (paracetamol, adrenaline, furosemide).
 
-## 7. Before you return, check every question
+## 8. Before you return, check every question
 - The answer is in the material and is genuinely the single best answer.
 - Five options, same kind, similar length and format, none a giveaway, every wrong one plausible.
 - "correct" is copied character for character from one of the options.
 - "why" has five entries with "" at the correct one.
 - If it has a topic note: one ==highlight==, ends with Where marks are lost, and every hl line appears in the body word for word.
+- Every picture named (in a note or "img") is one of the files you were given, spelt exactly.
 
-## 8. The file
+## 9. The file
 Return one JSON object shaped exactly like this example (one question shown; include as many as asked for):
 
 ${JSON.stringify(UPLOAD_EXAMPLE, null, 2)}

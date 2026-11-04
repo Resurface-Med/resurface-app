@@ -1,8 +1,22 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import EditQuestionModal from "./EditQuestionModal";
 import { parseQuestionFile, UPLOAD_EXAMPLE } from "../lib/questionUpload";
 import { UPLOAD_GUIDE } from "../lib/uploadGuide";
+import { keyOf, namedFiles, draftFiles, withPaths } from "../lib/uploadImages";
+import { uploadQuestionImage } from "../lib/questionImage";
+import { supabase } from "../lib/supabase";
+
+const isJson = f => /\.json$/i.test(f.name) || f.type === "application/json";
+const isImage = f => /^image\//.test(f.type) || /\.(png|jpe?g|webp|gif|heic)$/i.test(f.name);
+
+/* A chosen picture, small, before anything is uploaded. */
+function Thumb({ file, name }) {
+  const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+  return url ? <img className="upq-thumb" src={url} alt={name} />
+    : <span className="upq-thumb is-missing" title={`${name} not chosen`}>{name}</span>;
+}
 
 /**
  * Upload questions into a deck from a JSON file (2026-11-02), for the admin
@@ -38,7 +52,11 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);             // { n, queued }
   const [over, setOver] = useState(false);
+  /* Pictures chosen with the JSON, by file name (lower case, no folder). */
+  const [images, setImages] = useState({});
+  const [stage, setStage] = useState("");
   const input = useRef(null);
+  const picInput = useRef(null);
 
   useEffect(() => {
     const onKey = e => { if (e.key === "Escape" && editing === null && !busy) onClose(); };
@@ -46,23 +64,46 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose, editing, busy]);
 
-  async function read(file) {
-    if (!file) return;
-    setError(""); setFileName(file.name);
-    const { drafts: d, problems: p, warnings: w } = parseQuestionFile(await file.text());
+  /* The JSON and its pictures can come together, in one choice or one drop,
+     or the pictures afterwards. */
+  async function read(list) {
+    const files = [...(list ?? [])];
+    if (!files.length) return;
+    const pics = files.filter(isImage);
+    if (pics.length) setImages(m => ({ ...m, ...Object.fromEntries(pics.map(f => [keyOf(f.name), f])) }));
+    const json = files.find(isJson);
+    if (!json) return;
+    setError(""); setFileName(json.name);
+    const { drafts: d, problems: p, warnings: w } = parseQuestionFile(await json.text());
     setDrafts(d); setProblems(p); setWarnings(w ?? []);
   }
+
+  const named = drafts ? namedFiles(drafts) : [];
+  const missing = named.filter(k => !images[k]);
 
   async function add() {
     if (!drafts?.length) return;
     setBusy(true); setError("");
     try {
-      const ids = await onAdd(drafts);
+      /* Each picture once, however many questions name it. */
+      const paths = {};
+      const todo = named.filter(k => images[k]);
+      if (todo.length) {
+        if (typeof navigator !== "undefined" && navigator.onLine === false) throw new Error("Pictures need a connection. Nothing was saved.");
+        const { data } = await supabase.auth.getUser();
+        if (!data?.user) throw new Error("Sign in again, then try. Nothing was saved.");
+        for (let i = 0; i < todo.length; i++) {
+          setStage(`Uploading pictures ${i + 1} of ${todo.length}…`);
+          paths[todo[i]] = await uploadQuestionImage(data.user.id, images[todo[i]]);
+        }
+      }
+      setStage("");
+      const ids = await onAdd(withPaths(drafts, paths));
       setDone({ n: drafts.length, queued: !ids });
     } catch (e) {
       setError(e?.message || "Couldn't add them. Nothing was saved; try again.");
     } finally {
-      setBusy(false);
+      setBusy(false); setStage("");
     }
   }
 
@@ -80,10 +121,10 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
       <p className="pss-sub">Into {deckName}. You'll see every question before anything is added.</p>
       <label className={`upq-drop${over ? " is-over" : ""}`}
         onDragOver={e => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)}
-        onDrop={e => { e.preventDefault(); setOver(false); read(e.dataTransfer.files?.[0]); }}>
-        <input ref={input} type="file" accept=".json,application/json" hidden onChange={e => { read(e.target.files?.[0]); e.target.value = ""; }} />
+        onDrop={e => { e.preventDefault(); setOver(false); read(e.dataTransfer.files); }}>
+        <input ref={input} type="file" accept=".json,application/json,image/*" multiple hidden onChange={e => { read(e.target.files); e.target.value = ""; }} />
         <span className="upq-drop__main">Choose a JSON file</span>
-        <span className="upq-drop__sub">or drop it here</span>
+        <span className="upq-drop__sub">and its pictures, if it has any, or drop them here</span>
       </label>
       {problems.length > 0 && <p className="upq-error" role="alert">{fileName}: {problems[0].why}</p>}
       <div className="upq-format">
@@ -93,6 +134,7 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
           <code>correct</code> (the right option's text, or its letter), <code>exp</code>, and optionally <code>why</code>, one line per option.
         </p>
         <p className="upq-format__p">Each question can also carry its topic note for the knowledge library, and the lines of it that question highlights.</p>
+        <p className="upq-format__p">Pictures: a note can have a line of its own like <code>![Caption](diagram.png)</code>, and a question can have <code>"img": "xray.png"</code>. Choose those files with the JSON.</p>
         <div className="upq-format__acts">
           <button type="button" className="pss-btn btn-press" onClick={async () => {
             try { await navigator.clipboard.writeText(UPLOAD_GUIDE); setCopied(true); setTimeout(() => setCopied(false), 2000); }
@@ -116,6 +158,17 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
             {problems.length > 20 && <p className="upq-problems__more">and {problems.length - 20} more.</p>}
           </div>
         )}
+        {missing.length > 0 && (
+          <div className="upq-problems is-warn">
+            <p className="upq-problems__h">{missing.length} picture{missing.length === 1 ? " is" : "s are"} named but not chosen, and will be left out:</p>
+            <p className="upq-problems__files">{missing.join(", ")}</p>
+            <button type="button" className="gen-link" onClick={() => picInput.current?.click()}>Choose pictures</button>
+          </div>
+        )}
+        {named.length > 0 && missing.length === 0 && (
+          <p className="upq-pics-ok">All {named.length} picture{named.length === 1 ? "" : "s"} chosen.</p>
+        )}
+        <input ref={picInput} type="file" accept="image/*" multiple hidden onChange={e => { read(e.target.files); e.target.value = ""; }} />
         {warnings.length > 0 && (
           <div className="upq-problems is-warn">
             <p className="upq-problems__h">{warnings.length} row{warnings.length === 1 ? "" : "s"} will be added with something left out:</p>
@@ -140,6 +193,9 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
               ))}
             </ul>
             {d.exp && <p className="upq-q__exp">{d.exp}</p>}
+            {draftFiles(d).length > 0 && (
+              <div className="upq-thumbs">{[...new Set(draftFiles(d))].map(k => <Thumb key={k} name={k} file={images[k]} />)}</div>
+            )}
             {d.topic && (
               <p className="upq-q__topic">
                 <span>Topic note: {d.topic.title}</span>
@@ -152,10 +208,11 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
       </ol>
       <div className="upq-foot">
         {error && <p className="upq-error" role="alert">{error}</p>}
+        {stage && <p className="upq-stage">{stage}</p>}
         <button type="button" className="pss-btn is-primary btn-press" disabled={busy || !drafts.length} onClick={add}>
           {busy ? "Adding…" : `Add ${drafts.length} question${drafts.length === 1 ? "" : "s"}`}
         </button>
-        <button type="button" className="gen-link" disabled={busy} onClick={() => { setDrafts(null); setProblems([]); input.current && (input.current.value = ""); }}>
+        <button type="button" className="gen-link" disabled={busy} onClick={() => { setDrafts(null); setProblems([]); setImages({}); input.current && (input.current.value = ""); }}>
           Choose another file
         </button>
       </div>

@@ -16,7 +16,7 @@ import QuestionExhibit from "./QuestionExhibit";
 import EditorialNote, { readTime } from "./EditorialNote";
 import { BookOpen } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
-import { focusNote } from "../lib/formatExplain";
+import { focusNote, stripImages } from "../lib/formatExplain";
 
 /* One paint list for every question. The stroke is drawn on the letters
    themselves, so the words are never split into a separate box. */
@@ -123,7 +123,7 @@ export function TopicNote({ topic, hl, qid, deckId }) {
   /* A taste of the note while it's shut, fading out: cut-off text says
      there is more without a button saying so. The first paragraph,
      without its markup. */
-  const teaser = String(topic.body).split(/\n\s*\n/)[0].replace(/\*\*|==/g, "").trim();
+  const teaser = stripImages(topic.body).trim().split(/\n\s*\n/)[0].replace(/\*\*|==/g, "").trim();
   const toggle = () => {
     setOpen(o => !o);
     if (tip) { setTip(false); markTipSeen(); }

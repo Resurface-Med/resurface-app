@@ -13,6 +13,11 @@
  * the exact lines of that body this question highlights. A highlight line
  * not found word for word in the body is dropped, with a warning.
  *
+ * Pictures (2026-11-04): a note's body can hold a line of its own,
+ * ![caption](file.png), and a question can carry `img: "file.png"`. The
+ * JSON only names the files; they're chosen alongside it in the upload
+ * window, which stores each one and swaps in its stored path on Add.
+ *
  * Returns { drafts, problems, warnings }: drafts in the app's shape; for each
  * row that couldn't be used, its number and why; and notes on rows that
  * were used with something left out — so nothing is dropped quietly.
@@ -69,6 +74,8 @@ export function parseQuestionFile(raw) {
     const whyRaw = first(row, ["why", "optExp", "optionExplanations"]);
     const optExp = opts.map((_, k) => (k === ans ? null : (Array.isArray(whyRaw) ? text(whyRaw[k]) || null : null)));
     const draft = { q, opts, ans, exp: text(first(row, ["exp", "explanation"])), optExp };
+    const img = text(first(row, ["img", "image"]));
+    if (img) draft.img = img;
     const t = row.topic;
     if (t && typeof t === "object") {
       const title = text(t.title), body = typeof t.body === "string" ? t.body.trim() : "";

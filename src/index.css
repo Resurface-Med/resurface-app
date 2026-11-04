@@ -12022,3 +12022,15 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 .ax-status svg { opacity: .55; }
 .ax-status.is-on { border-color: var(--c-text); }
+/* Pictures in topic notes (2026-11-04). */
+.ed__fig { margin: 22px 0; }
+.ed__fig img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 12px; background: var(--c-surface2); }
+.ed__fig-wait { width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; background: var(--c-surface2); }
+.ed__fig figcaption { margin-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--c-muted); }
+/* Upload: pictures named in the JSON (2026-11-04). */
+.upq-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.upq-thumb { width: 72px; height: 54px; border-radius: 8px; object-fit: cover; background: var(--c-surface2); box-shadow: inset 0 0 0 1px var(--c-border); }
+.upq-thumb.is-missing { display: inline-flex; align-items: center; justify-content: center; padding: 4px; font-size: 10.5px; line-height: 1.2; color: var(--c-muted); text-align: center; overflow: hidden; word-break: break-all; border: 1.5px dashed var(--c-border); box-shadow: none; }
+.upq-problems__files { margin: 4px 0 8px; font-size: 13.5px; word-break: break-word; }
+.upq-pics-ok { margin: 10px 0 0; font-size: 13.5px; color: var(--c-success); }
+.upq-stage { margin: 0; font-size: 13.5px; color: var(--c-muted); }

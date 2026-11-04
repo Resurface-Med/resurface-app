@@ -63,6 +63,32 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null, 
     }
   }
 
+  /* A picture in the topic note (2026-11-04): uploaded, then its line goes
+     in where the cursor is, with "Caption" selected to type over. */
+  const bodyRef = useRef(null);
+  const [noteImgBusy, setNoteImgBusy] = useState(false);
+  async function handleNoteImage(file) {
+    if (!file || !user) return;
+    setImgError("");
+    setNoteImgBusy(true);
+    try {
+      const path = await uploadQuestionImage(user.id, file);
+      const el = bodyRef.current;
+      const at = el ? el.selectionStart : topicBody.length;
+      const before = topicBody.slice(0, at).replace(/\s*$/, "");
+      const after = topicBody.slice(at).replace(/^\s*/, "");
+      const line = `![Caption](${path})`;
+      const next = `${before}${before ? "\n\n" : ""}${line}${after ? `\n\n${after}` : ""}`;
+      setTopicBody(next);
+      const start = (before ? before.length + 2 : 0) + 2;
+      requestAnimationFrame(() => { if (el) { el.focus(); el.setSelectionRange(start, start + 7); } });
+    } catch (e) {
+      setImgError(e.message || "That image would not upload.");
+    } finally {
+      setNoteImgBusy(false);
+    }
+  }
+
   function setOpt(i, val) { setOpts(o => o.map((v, j) => j === i ? val : v)); }
   function setOptExpItem(i, val) { setOptExp(o => o.map((v, j) => j === i ? val : v)); }
 
@@ -274,12 +300,19 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null, 
                 {siblings.length
                   ? `Shared by ${siblings.length + 1} questions in this lecture. A change here updates it on all of them.`
                   : "The note under this question's explanation."}
-                {" "}**Heading** on its own line, “- ” for a point, ==text== to highlight.
+                {" "}**Heading** on its own line, “- ” for a point, ==text== to highlight, ![caption](picture) for a picture.
               </p>
               <input type="text" className="qe-opt-input qe-topic-title" value={topicTitle} aria-label="Topic note title"
                 onChange={e => setTopicTitle(e.target.value)} placeholder="Title" />
-              <textarea className="qe-input qe-topic-body" value={topicBody} aria-label="Topic note"
+              <textarea ref={bodyRef} className="qe-input qe-topic-body" value={topicBody} aria-label="Topic note"
                 onChange={e => setTopicBody(e.target.value)} rows={14} />
+              <div className="qedit-img-row">
+                <label className="qedit-img-btn">
+                  {noteImgBusy ? "Adding…" : "Add a picture to the note"}
+                  <input type="file" accept="image/*" style={{ display: "none" }} disabled={noteImgBusy}
+                    onChange={e => { handleNoteImage(e.target.files?.[0]); e.target.value = ""; }} />
+                </label>
+              </div>
             </div>
           )}
         </div>

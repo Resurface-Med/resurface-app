@@ -99,7 +99,7 @@ export function splitMarks(input) {
  *
  * @returns {Array<{ type: "p", text: string } | { type: "ul" | "ol", items: string[] }>}
  */
-export function parseBlocks(input) {
+export function parseBlocks(input, { images = false } = {}) {
   const lines = String(input ?? "").replace(/\r\n?/g, "\n").split("\n");
   const blocks = [];
   let para = [];
@@ -110,6 +110,11 @@ export function parseBlocks(input) {
     const bullet = line.match(/^(?:[-*•])\s+(.*)$/);
     const step = line.match(/^(\d+)[.)]\s+(.*)$/);
     const head = line.match(/^#{1,6}\s+(.*)$/);
+    /* A picture on a line of its own (topic notes, 2026-11-04):
+       ![caption](path). Only where the caller asks; the AI's replies never
+       draw one. */
+    const img = images && line.match(IMAGE_LINE);
+    if (img) { flush(); blocks.push({ type: "img", alt: img[1].trim(), src: img[2] }); continue; }
     if (bullet || step) {
       flush();
       const type = bullet ? "ul" : "ol";
@@ -127,6 +132,19 @@ export function parseBlocks(input) {
   }
   flush();
   return blocks;
+}
+
+/** ![caption](path) on a line of its own. */
+export const IMAGE_LINE = /^!\[([^\]]*)\]\(([^)\s]+)\)$/;
+
+/** Every picture a note names, in order. */
+export function noteImages(body) {
+  return String(body ?? "").split(/\r?\n/).map(l => l.trim().match(IMAGE_LINE)).filter(Boolean).map(m => m[2]);
+}
+
+/** The note without its picture lines, for teasers, reading time and search. */
+export function stripImages(body) {
+  return String(body ?? "").split(/\r?\n/).filter(l => !IMAGE_LINE.test(l.trim())).join("\n");
 }
 
 /**
