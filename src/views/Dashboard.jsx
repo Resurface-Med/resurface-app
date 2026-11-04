@@ -179,10 +179,10 @@ export default function Dashboard({ displayName = "",
         )}
       </div>
 
-      <Wave className="page-wave" from="transparent" to="var(--c-card-solid)" height="clamp(28px, min(4vw, 6vh), 64px)" />
+      <Wave className="page-wave" from="transparent" to={empty ? "var(--c-card-solid)" : "var(--c-surface2)"} height="clamp(28px, min(4vw, 6vh), 64px)" />
 
       {/* ── Sheet: where you stand, and what you've been doing ─────── */}
-      <div ref={sheetRef} className="home-sheet" style={{ background: "var(--c-card-solid)", flex: 1, paddingBottom: showWelcome ? 12 : "clamp(24px, 4vh, 48px)" }}>
+      <div ref={sheetRef} className={`home-sheet${empty ? "" : " is-dash"}`} style={{ background: empty ? "var(--c-card-solid)" : "var(--c-surface2)", flex: 1, paddingBottom: showWelcome ? 12 : "clamp(24px, 4vh, 48px)" }}>
         <div style={{ ...band, paddingTop: "clamp(16px, 2.6vh, 28px)" }}>
           {empty ? (
             /* The welcome note, whole, on a sheet of paper on the app's blue
@@ -217,6 +217,8 @@ export default function Dashboard({ displayName = "",
 
             <section data-in="rise" style={{ "--i": 5 }}>
               <h2 style={sectionH}>Your progress</h2>
+              {/* A card like the calendar's, as tall as it (2026-11-04). */}
+              <div className="dash-card">
               {/* How much of the bank you've been through (2026-11-04): the
                   share large, the counts beside it, one slim bar under. */}
               <div className="home-bank" data-in="rise" style={{ "--i": 6 }}>
@@ -242,6 +244,7 @@ export default function Dashboard({ displayName = "",
                   <span className="home-fig__n">{acc === null ? "—" : `${acc}%`}</span>
                   <span className="home-fig__l">Accuracy</span>
                 </div>
+              </div>
               </div>
 
             </section>

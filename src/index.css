@@ -12155,3 +12155,14 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .dash-split .home-fig__l { font-size: 15px; }
 .dash-split .home-bank__pct { font-size: clamp(20px, 1.7vw, 24px); }
 .dash-split .home-bank__bar { height: 6px; margin-top: 12px; }
+/* Home as a dashboard (2026-11-04): a soft grey sheet, progress and the
+   calendar as two white cards of one height, titles above them. */
+.home-sheet.is-dash .dash-split { align-items: stretch; }
+.home-sheet.is-dash .dash-split > section { display: flex; flex-direction: column; }
+.home-sheet.is-dash .dash-split > section > .cal { display: flex; flex-direction: column; flex: 1; }
+.home-sheet.is-dash .cal__panel { flex: 1; display: flex; flex-direction: column; }
+.home-sheet.is-dash .cal__foot { margin-top: auto; }
+.dash-card { flex: 1; display: flex; flex-direction: column; margin-top: 22px; padding: 22px 24px 8px; border: 1px solid var(--c-border); border-radius: 22px; background: var(--c-card-solid); box-shadow: 0 1px 2px rgba(15, 27, 61, 0.04), 0 18px 40px -26px rgba(15, 27, 61, 0.35); }
+.dash-card .home-bank { margin-top: 0; }
+.dash-card .home-figs { flex: 1; justify-content: space-evenly; margin-top: 8px; }
+.home-sheet.is-dash .cal__panel { border-color: var(--c-border); }
