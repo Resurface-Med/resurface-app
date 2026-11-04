@@ -235,7 +235,10 @@ export default function DeckTree({
       (function walk(nodes) { for (const n of nodes) { s.add(n.id); walk(n.children); } })(forest);
       return s;
     }
-    if (forest[0]) s.add(forest[0].id);
+    /* Your own first deck opens; a ready-made one (Year 1) does not — it
+       opened for everyone with no decks of their own, so Study always
+       landed with Year 1 spread out (2026-11-04). */
+    if (forest[0] && !forest[0].featured) s.add(forest[0].id);
     if (revealId) {
       (function find(nodes, trail) {
         for (const n of nodes) {

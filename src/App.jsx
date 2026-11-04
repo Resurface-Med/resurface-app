@@ -208,6 +208,9 @@ export default function App() {
   /* A deck to land on in Study — after a share link, or after Generate. */
   const [openDeckId, setOpenDeckId] = useState(null);
   const [revealDeckId, setRevealDeckId] = useState(null);
+  /* "Start Year N questions" opens your year once. Kept, it opened Year N
+     on every later visit to Study, and on every rebuild of the list. */
+  useEffect(() => { if (view !== V.STUDY) setRevealDeckId(null); }, [view]);
   /* The deck Generate should file its next questions into. */
   const [generateInto, setGenerateInto] = useState(null);
   /* Set only by the dashboard's own button, so Study reached from the
