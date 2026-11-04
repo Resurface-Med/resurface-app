@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import StreakFlame from "../ui/StreakFlame";
 import { C, V, h1, sectionH, eyebrowField, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
@@ -24,7 +24,7 @@ import { formatStudyTime } from "../lib/studyTime";
 
 export default function Dashboard({ displayName = "",
   pStats, streak, dueCount, setView,
-  activity = {}, srCards: _srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
+  activity = {}, srCards: _srCards = {}, dailyGoal: _dailyGoal = 20, studySeconds = null, onGoalChange: _onGoalChange, onStudy,
   welcome = null,
   /* The note's ways in, from App: [{ label, primary, run }]. */
   welcomeActions = null,
@@ -43,15 +43,6 @@ export default function Dashboard({ displayName = "",
   const bank = useMemo(() => (inBank ? QUESTIONS.filter(inBank) : QUESTIONS), [inBank, pStats]); // eslint-disable-line react-hooks/exhaustive-deps
   const bankTotal = bank.length;
   const bankSeen = useMemo(() => seenCount(bank, pStats), [bank, pStats]);
-
-  const [editingGoal, setEditingGoal] = useState(false);
-  const [goalDraft, setGoalDraft] = useState("");
-
-  const todayCount = useMemo(() => {
-    const now = new Date();
-    const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    return activity[key] || 0;
-  }, [activity]);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -258,54 +249,6 @@ export default function Dashboard({ displayName = "",
             <section data-in="rise" style={{ "--i": 7 }}>
               <ActivityHeatmap activity={activity} />
 
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-                marginTop: 20, paddingTop: 15, borderTop: "1px solid var(--c-border)",
-                fontSize: 13.5, color: C.sub,
-              }}>
-                <span>
-                  Today {todayCount} of{" "}
-                  {editingGoal ? (
-                    <form
-                      style={{ display: "inline" }}
-                      onSubmit={e => {
-                        e.preventDefault();
-                        const n = parseInt(goalDraft);
-                        if (n > 0) onGoalChange?.(n);
-                        setEditingGoal(false);
-                      }}
-                    >
-                      <input
-                        autoFocus type="number" min="1" max="500"
-                        value={goalDraft}
-                        onChange={e => setGoalDraft(e.target.value)}
-                        onBlur={() => setEditingGoal(false)}
-                        style={{
-                          width: 50, background: "var(--c-surface3)", border: "1px solid var(--c-border)",
-                          borderRadius: 6, outline: "none", fontSize: 13.5, color: C.text,
-                          fontFamily: "inherit", textAlign: "center", padding: "1px 0",
-                        }}
-                      />
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => { setGoalDraft(String(dailyGoal)); setEditingGoal(true); }}
-                      style={{
-                        background: "none", border: "none", padding: 0, cursor: "pointer",
-                        fontFamily: "inherit", fontSize: 13.5, fontWeight: 600, color: C.accent,
-                      }}
-                    >{dailyGoal}</button>
-                  )}
-                  {todayCount >= dailyGoal ? " ✓" : ""}
-                </span>
-
-                {streak.streak > 0 && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span>{streak.streak} day streak</span>
-                  </>
-                )}
-              </div>
             </section>
 
           </div>
