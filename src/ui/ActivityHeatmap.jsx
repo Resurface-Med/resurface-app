@@ -91,6 +91,7 @@ export default function ActivityHeatmap({ activity = {} }) {
           : `${total} question${total === 1 ? "" : "s"} over ${activeDays} day${activeDays === 1 ? "" : "s"} in ${first.toLocaleDateString("en-GB", { month: "long" })}`}
       </p>
 
+      <div className="cal__panel">
       <div className="cal__head">
         <span className="cal__month">{monthName}</span>
         <span className="cal__nav">
@@ -127,6 +128,7 @@ export default function ActivityHeatmap({ activity = {} }) {
         <span>Less</span>
         {[0, 1, 2, 3, 4].map(l => <i key={l} className={`l${l}`} />)}
         <span>More</span>
+      </div>
       </div>
 
       {tip && (

@@ -12082,25 +12082,28 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .home-bank__bar { height: 8px; margin-top: 14px; border-radius: 99px; background: var(--c-surface3); overflow: hidden; transform-origin: left; }
 .home-bank__bar span { display: block; height: 100%; border-radius: 99px; background: var(--c-accent); }
 /* ─── Your activity, as a calendar (2026-11-04) ───────────────────── */
-.cal { --cal-gap: clamp(5px, 0.5vw, 7px); max-width: 400px; }
-.cal__head { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 12px; }
-.cal__month { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-text); }
-.cal__nav { display: inline-flex; gap: 4px; }
-.cal__arrow { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--c-sub); cursor: pointer; }
+/* A panel of its own across the column: month and arrows over a rule,
+   then the days, wider than tall so it fills the width without towering. */
+.cal { --cal-gap: clamp(4px, 0.45vw, 6px); }
+.cal__panel { margin-top: 18px; padding: 6px 18px 16px; border: 1px solid var(--c-border); border-radius: 20px; background: var(--c-card-solid); box-shadow: 0 1px 2px rgba(15, 27, 61, 0.04), 0 12px 32px -22px rgba(15, 27, 61, 0.25); }
+.cal__head { display: flex; align-items: center; justify-content: space-between; margin: 0 -18px 14px; padding: 10px 14px 10px 18px; border-bottom: 1px solid var(--c-border); }
+.cal__month { font-size: 15.5px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-text); }
+.cal__nav { display: inline-flex; gap: 2px; }
+.cal__arrow { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--c-sub); cursor: pointer; }
 .cal__arrow:hover:not(:disabled) { background: var(--c-surface2); color: var(--c-text); }
 .cal__arrow:disabled { opacity: .3; cursor: default; }
 .cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--cal-gap); }
-.cal__wd { padding-bottom: 4px; font-size: 12px; font-weight: 600; text-align: center; color: var(--c-muted); }
-.cal__day { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: clamp(8px, 0.9vw, 11px); font: inherit; font-size: clamp(12.5px, 1vw, 14px); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--c-sub); cursor: pointer; transition: transform .12s ease; }
-.cal__day:hover:not(.is-future) { transform: scale(1.06); }
+.cal__wd { padding-bottom: 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .4px; text-align: center; color: var(--c-muted); }
+.cal__day { height: clamp(34px, 4.6vh, 44px); display: flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 10px; font: inherit; font-size: 13.5px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--c-sub); cursor: pointer; transition: transform .12s ease; }
+.cal__day:hover:not(.is-future) { transform: scale(1.05); }
 .cal__day.is-blank { background: none; cursor: default; }
 .cal__day.l0 { background: var(--c-surface2); }
 .cal__day.l1 { background: color-mix(in srgb, var(--c-accent) 20%, var(--c-card-solid)); color: var(--c-text); }
 .cal__day.l2 { background: color-mix(in srgb, var(--c-accent) 42%, var(--c-card-solid)); color: var(--c-text); }
 .cal__day.l3 { background: color-mix(in srgb, var(--c-accent) 70%, var(--c-card-solid)); color: #fff; }
 .cal__day.l4 { background: var(--c-accent); color: #fff; font-weight: 600; }
-.cal__day.is-future { background: none; color: var(--c-muted-dim); cursor: default; }
-.cal__day.is-today { box-shadow: 0 0 0 2px var(--c-card-solid), 0 0 0 3.5px var(--c-text); font-weight: 700; }
+.cal__day.is-future { background: color-mix(in srgb, var(--c-surface2) 45%, transparent); color: var(--c-muted-dim); cursor: default; }
+.cal__day.is-today { box-shadow: inset 0 0 0 2px var(--c-text); font-weight: 700; }
 .cal__key { display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 14px; font-size: 11.5px; color: var(--c-muted-dim); }
 .cal__key span:first-child { margin-right: 3px; }
 .cal__key span:last-child { margin-left: 3px; }
