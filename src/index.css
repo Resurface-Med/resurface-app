@@ -12075,3 +12075,9 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .home-figs > div + div { border-top: 1px solid var(--c-border); }
 .home-fig__n { order: 2; font-size: clamp(24px, 2.1vw, 30px); font-weight: 600; letter-spacing: -0.7px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; }
 .home-fig__l { order: 1; font-size: 16px; color: var(--c-sub); }
+/* Home: how much of the bank, large, one slim bar (2026-11-04). */
+.home-bank { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin-top: 16px; }
+.home-bank__pct { font-size: clamp(24px, 2.1vw, 30px); font-weight: 600; letter-spacing: -0.7px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.home-bank__of { font-size: 14.5px; color: var(--c-muted); }
+.home-bank__bar { height: 8px; margin-top: 14px; border-radius: 99px; background: var(--c-surface3); overflow: hidden; transform-origin: left; }
+.home-bank__bar span { display: block; height: 100%; border-radius: 99px; background: var(--c-accent); }

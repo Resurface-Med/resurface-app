@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import StreakFlame from "../ui/StreakFlame";
-import { C, V, h1, sectionH, eyebrowField, meta, OF } from "../ui/theme";
+import { C, V, h1, sectionH, eyebrowField, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
 import { QUESTIONS } from "../data";
 import { Rich } from "../ui/Announcements";
-import { seenCount, masteredCount, share } from "../lib/progress";
+import { seenCount, share } from "../lib/progress";
 import { formatStudyTime } from "../lib/studyTime";
 
 /**
@@ -21,12 +21,10 @@ import { formatStudyTime } from "../lib/studyTime";
  * which is both the reason it looked wrong and the reason nobody read it.
  */
 
-/** Anki's threshold for a mature card, in days. */
-const MASTERED_DAYS = 21;
 
 export default function Dashboard({ displayName = "",
   pStats, streak, dueCount, setView,
-  activity = {}, srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
+  activity = {}, srCards: _srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
   welcome = null,
   /* The note's ways in, from App: [{ label, primary, run }]. */
   welcomeActions = null,
@@ -37,11 +35,6 @@ export default function Dashboard({ displayName = "",
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
   const total = QUESTIONS.length;
   const seen = seenCount(QUESTIONS, pStats);
-
-  /* Counted over the questions that exist, not over the cards that are
-     stored: progress outlives the questions it is about, so a card left
-     behind by a deleted deck would otherwise be counted as mastered. */
-  const mastered = useMemo(() => masteredCount(QUESTIONS, srCards, MASTERED_DAYS), [srCards]);
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -102,8 +95,6 @@ export default function Dashboard({ displayName = "",
     width: "100%",
   };
 
-  const pctMastered = share(mastered, total) * 100;
-  const pctSeenOnly = share(Math.max(seen - mastered, 0), total) * 100;
   const showWelcome = empty && welcome;
   const sheetRef = useRef(null);
   const tileRef = useRef(null);
@@ -227,38 +218,14 @@ export default function Dashboard({ displayName = "",
 
             <section data-in="rise" style={{ "--i": 5 }}>
               <h2 style={sectionH}>Your progress</h2>
-              <p style={{ ...meta, marginTop: 4 }}>
-                {seen === 0
-                  ? `All ${total} questions are waiting.`
-                  : `${Math.round((seen / total) * 100)}% of the bank attempted.`}
-              </p>
-
-              {/* The heatmap opposite opens with a row of month labels above
-                  its cells, so without this the bar sat level with those
-                  labels rather than with the cells — and the cells are what it
-                  is actually the counterpart of. Mirrors the label's type and
-                  the grid's gap using the same clamps, so the two stay level
-                  across the whole range instead of at one width. Only while
-                  the columns are side by side; stacked, it is a blank line. */}
-              <div className="dash-heat-align" aria-hidden="true" style={{
-                marginTop: 20,
-                fontSize: "clamp(11px, 0.85vw, 13px)",
-                lineHeight: 1.2,
-              }}>&nbsp;</div>
-
-              {/* One object, three quantities. Mastered nests inside seen nests
-                  inside the bank, which separate figures could only imply. */}
-              <div data-in="grow" style={{
-                display: "flex", height: 16, borderRadius: 99, overflow: "hidden",
-                background: "var(--c-surface3)",
-                marginTop: "clamp(4px, 0.55vw, 7px)", "--i": 6,
-              }}>
-                {/* flex-basis rather than width so the two segments still
-                    share the track, and no transition — the parent already
-                    sweeps open on scaleX, and animating these would re-run
-                    layout inside something that is mid-animation. */}
-                <div style={{ flex: `0 0 ${pctMastered}%`, background: "var(--c-accent)" }} />
-                <div style={{ flex: `0 0 ${pctSeenOnly}%`, background: "var(--c-accent)", opacity: 0.32 }} />
+              {/* How much of the bank you've been through (2026-11-04): the
+                  share large, the counts beside it, one slim bar under. */}
+              <div className="home-bank" data-in="rise" style={{ "--i": 6 }}>
+                <span className="home-bank__pct">{seen === 0 ? "0%" : `${Math.max(1, Math.round((seen / total) * 100))}%`}</span>
+                <span className="home-bank__of">{seen.toLocaleString()} of {total.toLocaleString()} questions attempted</span>
+              </div>
+              <div className="home-bank__bar" data-in="grow" style={{ "--i": 7 }} aria-hidden="true">
+                <span style={{ width: `${seen === 0 ? 0 : Math.max(1.2, share(seen, total) * 100)}%` }} />
               </div>
 
               {/* The three figures that matter, large (Rafil, 2026-11-04);
