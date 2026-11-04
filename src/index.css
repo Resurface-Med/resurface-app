@@ -12128,7 +12128,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .cal__tip span { opacity: .7; }
 /* The calendar's motion. The days ripple in along the diagonal; a shaded
    day lands pale and then fills to its colour; a month turn slides the page
-   the way you went; today's ring pulses once. Nothing for reduced motion. */
+   the way you went. Nothing for reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
   .cal__day:not(.is-blank) { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
   .cal__day.l1, .cal__day.l2, .cal__day.l3, .cal__day.l4 { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both, cal-fill .7s ease both; animation-delay: calc(var(--d, 0) * 28ms), calc(var(--d, 0) * 28ms + 220ms); }
