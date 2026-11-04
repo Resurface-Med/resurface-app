@@ -12068,3 +12068,8 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .nbe-btn:hover:not(:disabled) { color: var(--c-text); }
 .nbe-btn:disabled { opacity: .35; cursor: default; }
 .nbe-btn.is-x:hover { color: var(--c-danger); }
+/* Home: answered, time and accuracy as large figures (2026-11-04). */
+.home-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.home-figs > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.home-fig__n { font-size: clamp(28px, 2.6vw, 36px); font-weight: 600; letter-spacing: -1px; line-height: 1.1; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.home-fig__l { font-size: 14px; color: var(--c-sub); }

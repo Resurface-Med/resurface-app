@@ -24,28 +24,6 @@ import { formatStudyTime } from "../lib/studyTime";
 /** Anki's threshold for a mature card, in days. */
 const MASTERED_DAYS = 21;
 
-function StatRow({ label, value, strong = false, top = false, i = 0 }) {
-  return (
-    <div data-in="rise" style={{
-      "--i": i,
-      display: "flex", alignItems: "baseline", justifyContent: "space-between",
-      gap: 12, padding: "9px 0",
-      borderTop: top ? "1px solid var(--c-border)" : "none",
-      marginTop: top ? 8 : 0,
-      paddingTop: top ? 15 : 9,
-    }}>
-      <span style={{ fontSize: 14, color: C.sub }}>{label}</span>
-      <span style={{
-        fontSize: strong ? 17 : 15,
-        fontWeight: strong ? 700 : 600,
-        color: C.text,
-        letterSpacing: -0.3,
-        fontVariantNumeric: "tabular-nums",
-      }}>{value}</span>
-    </div>
-  );
-}
-
 export default function Dashboard({ displayName = "",
   pStats, streak, dueCount, setView,
   activity = {}, srCards = {}, dailyGoal = 20, studySeconds = null, onGoalChange, onStudy,
@@ -283,40 +261,23 @@ export default function Dashboard({ displayName = "",
                 <div style={{ flex: `0 0 ${pctSeenOnly}%`, background: "var(--c-accent)", opacity: 0.32 }} />
               </div>
 
-              <div style={{ marginTop: 16 }}>
-                <StatRow
-                  i={7}
-                  strong
-                  label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", marginRight: 8 }} />Mastered</>}
-                  value={mastered.toLocaleString()}
-                />
-                <StatRow
-                  i={8}
-                  label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-accent)", opacity: 0.32, marginRight: 8 }} />Seen</>}
-                  value={seen.toLocaleString()}
-                />
-                <StatRow
-                  i={9}
-                  label={<><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: "var(--c-surface3)", marginRight: 8 }} />Not yet started</>}
-                  value={(total - seen).toLocaleString()}
-                />
-
-                <StatRow i={10} top label="Questions answered" value={totalT.toLocaleString()} />
-                <StatRow i={11} label="Time studied" value={studySeconds == null ? "—" : formatStudyTime(studySeconds)} />
-                <StatRow i={12} label="Accuracy" value={acc === null ? "—" : `${acc}%`} />
+              {/* The three figures that matter, large (Rafil, 2026-11-04);
+                  mastered and seen are in the bar above and on Progress. */}
+              <div className="home-figs">
+                <div data-in="rise" style={{ "--i": 7 }}>
+                  <span className="home-fig__n">{totalT.toLocaleString()}</span>
+                  <span className="home-fig__l">Questions answered</span>
+                </div>
+                <div data-in="rise" style={{ "--i": 8 }}>
+                  <span className="home-fig__n">{studySeconds == null ? "—" : formatStudyTime(studySeconds)}</span>
+                  <span className="home-fig__l">Time studied</span>
+                </div>
+                <div data-in="rise" style={{ "--i": 9 }}>
+                  <span className="home-fig__n">{acc === null ? "—" : `${acc}%`}</span>
+                  <span className="home-fig__l">Accuracy</span>
+                </div>
               </div>
 
-              <button
-                onClick={() => setView(V.PROGRESS)}
-                className="btn-press"
-                style={{
-                  marginTop: 14, background: "none", border: "none", padding: 0,
-                  cursor: "pointer", fontFamily: "inherit", fontSize: 14,
-                  fontWeight: 600, color: C.accent, display: "flex", alignItems: "center", gap: 5,
-                }}
-              >
-                Full breakdown by topic <span aria-hidden="true">→</span>
-              </button>
             </section>
 
             <section data-in="rise" style={{ "--i": 7 }}>
