@@ -12022,11 +12022,17 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 .ax-status svg { opacity: .55; }
 .ax-status.is-on { border-color: var(--c-text); }
-/* Pictures in topic notes (2026-11-04). */
-.ed__fig { margin: 22px 0; }
-.ed__fig img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 12px; background: var(--c-surface2); }
-.ed__fig-wait { width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; background: var(--c-surface2); }
-.ed__fig figcaption { margin-top: 8px; font-size: 13.5px; line-height: 1.45; color: var(--c-muted); }
+/* Pictures in topic notes (2026-11-04): small, caption beside, tap to open. */
+.ed__fig { display: flex; align-items: center; gap: 14px; margin: 18px 0; }
+.ed__fig-btn { position: relative; flex: none; padding: 0; border: 0; border-radius: 10px; background: var(--c-surface2); cursor: zoom-in; overflow: hidden; box-shadow: inset 0 0 0 1px var(--c-border); }
+.ed__fig-btn img { display: block; width: 168px; height: 112px; object-fit: cover; }
+.ed__fig-wait { display: block; width: 168px; height: 112px; }
+.ed__fig-btn .q-image__zoom { position: absolute; right: 6px; bottom: 6px; }
+.ed__fig figcaption { margin: 0; font-size: 14px; line-height: 1.45; color: var(--c-muted); }
+.ed__lightbox-cap { position: absolute; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); margin: 0; padding: 0 24px; text-align: center; font-size: 14.5px; color: rgba(255, 255, 255, 0.86); pointer-events: none; }
+@media (max-width: 600px) {
+  .ed__fig-btn img, .ed__fig-wait { width: 128px; height: 88px; }
+}
 /* Upload: pictures named in the JSON (2026-11-04). */
 .upq-thumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .upq-thumb { width: 72px; height: 54px; border-radius: 8px; object-fit: cover; background: var(--c-surface2); box-shadow: inset 0 0 0 1px var(--c-border); }
@@ -12034,3 +12040,5 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .upq-problems__files { margin: 4px 0 8px; font-size: 13.5px; word-break: break-word; }
 .upq-pics-ok { margin: 10px 0 0; font-size: 13.5px; color: var(--c-success); }
 .upq-stage { margin: 0; font-size: 13.5px; color: var(--c-muted); }
+.ed__fig-btn .q-image__zoom { width: 24px; height: 24px; }
+.ed__fig-btn:hover .q-image__zoom, .ed__fig-btn:focus-visible .q-image__zoom { opacity: 1; }

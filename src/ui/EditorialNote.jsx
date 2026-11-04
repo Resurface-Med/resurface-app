@@ -1,25 +1,57 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { parseBlocks, stripImages } from "../lib/formatExplain";
 import { questionImageUrl } from "../lib/questionImage";
 import { MarkedText } from "./RichText";
 
-/* A picture in a note: full width, its caption under it. The path is the
-   stored one (or a /qimg/ file); the link is worked out when drawn, like a
-   question's image, and the device keeps a copy for offline. */
+/* A picture in a note (2026-11-04): small, so it sits in the note rather
+   than taking it over, with its caption beside it; tapping opens it full
+   screen in the same viewer as a question's image. The path is the stored
+   one (or a /qimg/ file), its link worked out when drawn. */
 function NoteImage({ src, alt }) {
   const [url, setUrl] = useState(null);
   const [failed, setFailed] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
   useEffect(() => {
     let live = true;
     setUrl(null); setFailed(false);
     questionImageUrl(src).then(u => { if (!live) return; if (u) setUrl(u); else setFailed(true); });
     return () => { live = false; };
   }, [src]);
+  useEffect(() => {
+    if (!zoomed) return;
+    const onKey = e => { if (e.key === "Escape") setZoomed(false); };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [zoomed]);
   if (failed) return null;
   return (
     <figure className="ed__fig">
-      {url ? <img src={url} alt={alt || ""} loading="lazy" /> : <div className="ed__fig-wait" aria-hidden="true" />}
+      <button type="button" className="ed__fig-btn" onClick={() => url && setZoomed(true)} aria-label={`Open ${alt || "picture"} full screen`}>
+        {url ? <img src={url} alt={alt || ""} loading="lazy" /> : <span className="ed__fig-wait" aria-hidden="true" />}
+        {url && (
+          <span className="q-image__zoom" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <circle cx="7" cy="7" r="4.6" stroke="currentColor" strokeWidth="1.6" />
+              <path d="M10.4 10.4L14 14M7 5.2v3.6M5.2 7h3.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
+          </span>
+        )}
+      </button>
       {alt && <figcaption>{alt}</figcaption>}
+      {zoomed && createPortal((
+        <div className="q-lightbox" role="dialog" aria-modal="true" aria-label={alt || "Picture"} onClick={() => setZoomed(false)}>
+          <img src={url} alt={alt || ""} />
+          {alt && <p className="ed__lightbox-cap">{alt}</p>}
+          <button type="button" className="q-lightbox__close" aria-label="Close picture" onClick={() => setZoomed(false)}>
+            <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+      ), document.body)}
     </figure>
   );
 }
