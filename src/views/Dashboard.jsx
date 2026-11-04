@@ -215,7 +215,7 @@ export default function Dashboard({ displayName = "",
           ) : (
           <div className="dash-split">
 
-            <section data-in="rise" style={{ "--i": 5 }}>
+            <section className="dash-side" data-in="rise" style={{ "--i": 5 }}>
               <h2 style={sectionH}>Your progress</h2>
               {/* How much of the bank you've been through (2026-11-04): the
                   share large, the counts beside it, one slim bar under. */}
@@ -246,7 +246,7 @@ export default function Dashboard({ displayName = "",
 
             </section>
 
-            <section data-in="rise" style={{ "--i": 7 }}>
+            <section className="dash-main" data-in="rise" style={{ "--i": 7 }}>
               <ActivityHeatmap activity={activity} />
 
             </section>

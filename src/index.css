@@ -2175,9 +2175,9 @@ select {
    different questions — what you have done, and what to do next. */
 .dash-split {
   display: grid;
-  /* The calendar's column is held to a calendar's width (2026-11-04), so
-     its square days fill it edge to edge without towering. */
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  /* The calendar is the main thing (2026-11-04): the wide column, first;
+     progress is a narrower column beside it. */
+  grid-template-columns: minmax(0, 560px) minmax(260px, 1fr);
   gap: clamp(32px, 4vw, 64px);
   align-items: start;
 }
@@ -12148,3 +12148,15 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .cal__sum { font-size: 13px; color: var(--c-sub); }
 .cal__sum b { font-weight: 600; color: var(--c-text); }
 .cal__foot .cal__key { margin-left: auto; }
+.dash-split > .dash-main { grid-column: 1; grid-row: 1; }
+.dash-split > .dash-side { grid-column: 2; grid-row: 1; }
+@media (max-width: 1100px) {
+  .dash-split > .dash-main, .dash-split > .dash-side { grid-column: auto; grid-row: auto; }
+}
+/* In the side column the figures are a size down. */
+.dash-side .home-figs > div { padding: clamp(14px, 2vh, 20px) 0; }
+.dash-side .home-fig__n { font-size: clamp(20px, 1.6vw, 24px); }
+.dash-side .home-fig__l { font-size: 15px; }
+/* The wide calendar: the days fill it, held to a sensible size. */
+.dash-main .cal__grid { --cal-gap: clamp(6px, 0.6vw, 9px); }
+.dash-main .cal__day { font-size: 14.5px; }
