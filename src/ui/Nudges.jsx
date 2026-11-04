@@ -439,7 +439,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   /* Read when the card decides, not when the session ended: the finished
      session's record can land a moment after. */
   const lastRef = useRef(lastSession);
-  lastRef.current = lastSession;
+  useEffect(() => { lastRef.current = lastSession; }, [lastSession]);
   const was = useRef(sessionActive);
   /* Rank on the board when the session began, for "passed someone". */
   const startRank = useRef(null);
