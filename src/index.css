@@ -12219,7 +12219,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .cal__today { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 72%; max-width: 30px; aspect-ratio: 1 / 1; font-weight: 700; color: var(--c-text); }
 /* A red loop drawn round the date, its ends overlapping like a pen stroke
    on a wall calendar (Rafil picked this over a red X, 2026-11-04). */
-.cal__today::after { content: ""; position: absolute; inset: -7px -8px -6px -7px; pointer-events: none; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 56'><path d='M41 6 C24 1 6 10 5 27 C4 44 20 52 34 50 C50 48 57 35 55 22 C53 11 43 4 30 5 C24 6 19 8 16 11' fill='none' stroke='%23e0352b' stroke-width='3.4' stroke-linecap='round'/></svg>") center / 100% 100% no-repeat; }
+.cal__today::after { content: ""; position: absolute; inset: -9px -10px -8px -9px; pointer-events: none; transform: rotate(-8deg); background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 58'><path d='M44 9 C35 3.5 19 4 10.5 14 C3 23 5.5 38 15 45.5 C24 52.5 41 51 50.5 42 C58.5 34 57.5 19.5 48 12.5 C40 6.5 27 6 19.5 9.5 C16 11 13.5 13.5 12.5 15.5' fill='none' stroke='%23e0352b' stroke-width='3.1' stroke-linecap='round' stroke-linejoin='round'/><path d='M46.5 11.5 C49.5 13.5 52 16.5 53 19' fill='none' stroke='%23e0352b' stroke-width='2' stroke-linecap='round' opacity='.55'/></svg>") center / 100% 100% no-repeat; }
 @media (prefers-reduced-motion: no-preference) {
   .cal__day.is-today { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
 }
