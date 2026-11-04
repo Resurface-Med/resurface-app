@@ -2177,7 +2177,7 @@ select {
   display: grid;
   /* The calendar's column is held to a calendar's width (2026-11-04), so
      its square days fill it edge to edge without towering. */
-  grid-template-columns: minmax(0, 1fr) minmax(290px, 330px);
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 272px);
   gap: clamp(32px, 4vw, 64px);
   align-items: start;
 }
@@ -12185,3 +12185,19 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .home-sheet.is-dash .cal__key i { width: 10px; height: 10px; border-radius: 3px; }
 .home-sheet.is-dash .dash-card { padding: 18px 22px 6px; }
 .home-sheet.is-dash .dash-card .home-figs { justify-content: space-around; }
+/* The progress card (2026-11-04): a thicker bar, tight rows; the bar at
+   the top and the rows at the foot, rather than rows spread apart. */
+.home-sheet.is-dash .dash-card { justify-content: space-between; gap: 18px; padding: 20px 22px 8px; }
+.home-sheet.is-dash .dash-card .home-bank__pct { font-size: clamp(24px, 2vw, 28px); }
+.home-sheet.is-dash .dash-card .home-bank__bar { height: 14px; margin-top: 14px; }
+.home-sheet.is-dash .dash-card .home-figs { flex: none; justify-content: flex-start; margin-top: 0; }
+.home-sheet.is-dash .dash-card .home-figs > div { padding: 12px 0; }
+.home-sheet.is-dash .dash-card { justify-content: flex-start; gap: 0; }
+.home-sheet.is-dash .dash-card .home-figs { margin-top: auto; padding-top: 14px; }
+.home-sheet.is-dash .dash-card .home-bank { flex-direction: column; align-items: flex-start; gap: 6px; }
+.home-sheet.is-dash .dash-card .home-bank__pct { font-size: clamp(36px, 3.2vw, 46px); letter-spacing: -1.4px; }
+.home-sheet.is-dash .dash-card .home-bank__of { font-size: 14.5px; }
+.home-sheet.is-dash .dash-card .home-bank__bar { height: 16px; margin-top: 16px; }
+.home-sheet.is-dash .cal__day { font-size: 11.5px; border-radius: 7px; }
+.home-sheet.is-dash .cal__sum { font-size: 11.5px; }
+.home-sheet.is-dash .cal__key span { display: none; }
