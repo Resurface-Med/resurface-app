@@ -178,15 +178,18 @@ export function MilestoneNudge({ n, onAction, onClose, inline }) {
 
 /* Getting better (2026-10-26): where they started on a deck and where they
    are now, the second number climbing from the first. */
+/* How many answers either side the "getting better" card compares. */
+const IMPROVE_N = 30;
+
 export function ImproveNudge({ deck, before, after, onAction, onClose, inline }) {
   const now = useCountUp(after - before, 1000, 550);
   return (
     <NudgeCard kind="improve" inline={inline}
       art={
         <span className="nudge-up" aria-hidden="true">
-          <span className="nudge-up__col is-was"><span className="nudge-up__n">{before}%</span><span className="nudge-up__cap">when you started</span></span>
+          <span className="nudge-up__col is-was"><span className="nudge-up__n">{before}%</span><span className="nudge-up__cap">your first {IMPROVE_N} answers</span></span>
           <svg className="nudge-up__arrow" viewBox="0 0 40 16"><path d="M2 8 H34 M27 2 L35 8 L27 14" /></svg>
-          <span className="nudge-up__col is-now"><span className="nudge-up__n">{before + now}%</span><span className="nudge-up__cap">now</span></span>
+          <span className="nudge-up__col is-now"><span className="nudge-up__n">{before + now}%</span><span className="nudge-up__cap">your last {IMPROVE_N}</span></span>
         </span>
       }
       title={`You’re getting better at ${deck}.`}
@@ -526,7 +529,10 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
         try {
           const byId = new Map(QUESTIONS.map(q => [q.id, q]));
           const deckOf = id => (byId.get(id)?.path ?? []).map(p => p.name).find(n => !/^Year \d/.test(n)) ?? null;
-          const got = improvement(await fetchMyRecentAnswers(90), deckOf, imp.decks ?? {});
+          /* Thirty either side (2026-11-04): with fifteen, a good run at the
+             end of one session read as "100% now" beside a results page
+             that said otherwise. */
+          const got = improvement(await fetchMyRecentAnswers(90), deckOf, imp.decks ?? {}, IMPROVE_N);
           if (cancelled) return;
           if (got && show({ kind: "improve", ...got })) {
             store.set(userId, "improve", { nextAt: Date.now() + 5 * DAY, decks: { ...(imp.decks ?? {}), [got.deck]: got.after } });
