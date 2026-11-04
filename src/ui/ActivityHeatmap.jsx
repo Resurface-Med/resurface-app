@@ -67,7 +67,6 @@ export default function ActivityHeatmap({ activity = {} }) {
   const days = cells.filter(Boolean);
   const total = days.reduce((s, d) => s + (activity[todayKey(d)] || 0), 0);
   const activeDays = days.filter(d => activity[todayKey(d)] > 0).length;
-  const monthName = first.toLocaleDateString("en-GB", { month: "long", year: first.getFullYear() === new Date().getFullYear() ? undefined : "numeric" });
 
   const onHover = useCallback((e, date, count, isTap = false) => {
     if (e === null) return setTip(null);
@@ -80,7 +79,9 @@ export default function ActivityHeatmap({ activity = {} }) {
       : { x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop, date, count, align, key }));
   }, []);
 
-  const go = step => { setTip(null); setOffset(o => Math.min(0, Math.max(earliest, o + step))); };
+  /* Which way the page turned, for the slide. */
+  const [dir, setDir] = useState(0);
+  const go = step => { setTip(null); setDir(step); setOffset(o => Math.min(0, Math.max(earliest, o + step))); };
 
   return (
     <section className="cal" style={{ position: "relative" }}>
@@ -92,8 +93,13 @@ export default function ActivityHeatmap({ activity = {} }) {
       </p>
 
       <div className="cal__panel">
+      {/* A desk calendar's top: the binding, then the month on the strip. */}
       <div className="cal__head">
-        <span className="cal__month">{monthName}</span>
+        <span className="cal__rings" aria-hidden="true"><i /><i /></span>
+        <span className="cal__month" key={`m${offset}`}>
+          <span className="cal__month-name">{first.toLocaleDateString("en-GB", { month: "long" })}</span>
+          <span className="cal__year">{first.getFullYear()}</span>
+        </span>
         <span className="cal__nav">
           <button type="button" className="cal__arrow" aria-label="Previous month" disabled={offset <= earliest} onClick={() => go(-1)}>
             <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -104,9 +110,12 @@ export default function ActivityHeatmap({ activity = {} }) {
         </span>
       </div>
 
-      <div className="cal__grid" onMouseLeave={() => setTip(null)}>
+      {/* Keyed by month, so a turn plays the page in again: the days ripple
+          in from the top-left, then the busy ones fill with colour. */}
+      <div className={`cal__grid${dir < 0 ? " from-left" : dir > 0 ? " from-right" : ""}`} key={offset} onMouseLeave={() => setTip(null)}>
         {WEEKDAYS.map((w, i) => <span key={`w${i}`} className="cal__wd" aria-hidden="true">{w}</span>)}
         {cells.map((date, i) => {
+          const ripple = { "--d": Math.floor(i / 7) + (i % 7) };
           if (!date) return <span key={i} className="cal__day is-blank" aria-hidden="true" />;
           const key = todayKey(date);
           const count = activity[key] || 0;
@@ -114,7 +123,7 @@ export default function ActivityHeatmap({ activity = {} }) {
           const l = future ? 0 : level(count);
           return (
             <button key={i} type="button" tabIndex={-1}
-              className={`cal__day l${l}${key === today ? " is-today" : ""}${future ? " is-future" : ""}`}
+              className={`cal__day l${l}${key === today ? " is-today" : ""}${future ? " is-future" : ""}`} style={ripple}
               aria-label={`${date.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}: ${count} question${count === 1 ? "" : "s"}`}
               onMouseEnter={future ? undefined : e => onHover(e, date, count)}
               onClick={future ? undefined : e => onHover(e, date, count, true)}>
