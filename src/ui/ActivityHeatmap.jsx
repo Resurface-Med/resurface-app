@@ -122,7 +122,7 @@ export default function ActivityHeatmap({ activity = {} }) {
               aria-label={`${date.toLocaleDateString("en-GB", { day: "numeric", month: "long" })}: ${count} question${count === 1 ? "" : "s"}`}
               onMouseEnter={future ? undefined : e => onHover(e, date, count)}
               onClick={future ? undefined : e => onHover(e, date, count, true)}>
-              {date.getDate()}
+              {key === today ? <span className="cal__today">{date.getDate()}</span> : date.getDate()}
             </button>
           );
         })}
