@@ -12045,3 +12045,19 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .upq-stage { margin: 0; font-size: 13.5px; color: var(--c-muted); }
 .ed__fig-btn .q-image__zoom { width: 26px; height: 26px; }
 .ed__fig-btn:hover .q-image__zoom, .ed__fig-btn:focus-visible .q-image__zoom { opacity: 1; }
+/* The topic note editor with picture cards (2026-11-04). */
+.nbe { display: flex; flex-direction: column; gap: 10px; }
+.nbe-text { min-height: 64px; resize: none; overflow: hidden; font-size: 14.5px; line-height: 1.6; }
+.nbe-card { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 14px; background: var(--c-surface2); box-shadow: inset 0 0 0 1px var(--c-border); }
+.nbe-thumb { flex: none; display: block; width: 72px; height: 54px; border-radius: 9px; object-fit: cover; background: var(--c-surface3); }
+.nbe-card__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.nbe-card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nbe-card__label { font-size: 12px; font-weight: 600; letter-spacing: .2px; color: var(--c-muted); }
+.nbe-cap { width: 100%; padding: 6px 9px; margin-left: -9px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 14.5px; color: var(--c-text); }
+.nbe-cap:hover { background: var(--c-card-solid); }
+.nbe-cap:focus { outline: none; background: var(--c-card-solid); box-shadow: 0 0 0 2px var(--c-accent-brd); }
+.nbe-card__acts { flex: none; display: flex; gap: 4px; }
+.nbe-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 9px; background: var(--c-card-solid); color: var(--c-sub); cursor: pointer; box-shadow: inset 0 0 0 1px var(--c-border); }
+.nbe-btn:hover:not(:disabled) { color: var(--c-text); }
+.nbe-btn:disabled { opacity: .35; cursor: default; }
+.nbe-btn.is-x:hover { color: var(--c-danger); }

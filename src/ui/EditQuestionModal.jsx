@@ -4,6 +4,7 @@ import { primaryBtn } from "./theme";
 import { remote, adminEditFeatured } from "../lib/remote";
 import { uploadQuestionImage, questionImageUrl } from "../lib/questionImage";
 import { useAuth } from "../lib/auth";
+import NoteBodyEditor from "./NoteBodyEditor";
 import { applyQuestionEdit, QUESTIONS } from "../data";
 
 const LETTERS = ["A", "B", "C", "D", "E"];
@@ -63,25 +64,16 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null, 
     }
   }
 
-  /* A picture in the topic note (2026-11-04): uploaded, then its line goes
-     in where the cursor is, with "Caption" selected to type over. */
-  const bodyRef = useRef(null);
+  /* A picture in the topic note (2026-11-04): uploaded, then handed to the
+     note editor, which puts it where the cursor was. */
   const [noteImgBusy, setNoteImgBusy] = useState(false);
+  const [addedPath, setAddedPath] = useState(null);
   async function handleNoteImage(file) {
     if (!file || !user) return;
     setImgError("");
     setNoteImgBusy(true);
     try {
-      const path = await uploadQuestionImage(user.id, file);
-      const el = bodyRef.current;
-      const at = el ? el.selectionStart : topicBody.length;
-      const before = topicBody.slice(0, at).replace(/\s*$/, "");
-      const after = topicBody.slice(at).replace(/^\s*/, "");
-      const line = `![Caption](${path})`;
-      const next = `${before}${before ? "\n\n" : ""}${line}${after ? `\n\n${after}` : ""}`;
-      setTopicBody(next);
-      const start = (before ? before.length + 2 : 0) + 2;
-      requestAnimationFrame(() => { if (el) { el.focus(); el.setSelectionRange(start, start + 7); } });
+      setAddedPath(await uploadQuestionImage(user.id, file));
     } catch (e) {
       setImgError(e.message || "That image would not upload.");
     } finally {
@@ -300,15 +292,15 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null, 
                 {siblings.length
                   ? `Shared by ${siblings.length + 1} questions in this lecture. A change here updates it on all of them.`
                   : "The note under this question's explanation."}
-                {" "}**Heading** on its own line, “- ” for a point, ==text== to highlight, ![caption](picture) for a picture.
+                {" "}**Heading** on its own line, “- ” for a point, ==text== to highlight.
               </p>
               <input type="text" className="qe-opt-input qe-topic-title" value={topicTitle} aria-label="Topic note title"
                 onChange={e => setTopicTitle(e.target.value)} placeholder="Title" />
-              <textarea ref={bodyRef} className="qe-input qe-topic-body" value={topicBody} aria-label="Topic note"
-                onChange={e => setTopicBody(e.target.value)} rows={14} />
+              <NoteBodyEditor value={topicBody} onChange={setTopicBody}
+                addedPath={addedPath} onAddedUsed={() => setAddedPath(null)} />
               <div className="qedit-img-row">
                 <label className="qedit-img-btn">
-                  {noteImgBusy ? "Adding…" : "Add a picture to the note"}
+                  {noteImgBusy ? "Adding…" : "Add a picture"}
                   <input type="file" accept="image/*" style={{ display: "none" }} disabled={noteImgBusy}
                     onChange={e => { handleNoteImage(e.target.files?.[0]); e.target.value = ""; }} />
                 </label>
