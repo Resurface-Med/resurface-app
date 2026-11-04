@@ -2177,7 +2177,7 @@ select {
   display: grid;
   /* The calendar's column is held to a calendar's width (2026-11-04), so
      its square days fill it edge to edge without towering. */
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 330px);
   gap: clamp(32px, 4vw, 64px);
   align-items: start;
 }
@@ -12166,3 +12166,22 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .dash-card .home-bank { margin-top: 0; }
 .dash-card .home-figs { flex: 1; justify-content: space-evenly; margin-top: 8px; }
 .home-sheet.is-dash .cal__panel { border-color: var(--c-border); }
+/* Compact (2026-11-04): the calendar at a calendar widget's size, so the
+   two cards line up without either taking the page. */
+.home-sheet.is-dash .cal { --cal-gap: 4px; }
+.home-sheet.is-dash .cal__panel, .home-sheet.is-dash .dash-card { margin-top: 16px; border-radius: 18px; }
+.home-sheet.is-dash .cal__head { padding: 16px 10px 10px 16px; border-radius: 17px 17px 0 0; }
+.home-sheet.is-dash .cal__rings { top: -8px; }
+.home-sheet.is-dash .cal__rings i { width: 9px; height: 20px; }
+.home-sheet.is-dash .cal__month-name { font-size: 19px; }
+.home-sheet.is-dash .cal__year { font-size: 12px; }
+.home-sheet.is-dash .cal__arrow { width: 28px; height: 28px; }
+.home-sheet.is-dash .cal__grid { padding: 10px 12px 0; }
+.home-sheet.is-dash .cal__wd { font-size: 10.5px; padding-bottom: 2px; }
+.home-sheet.is-dash .cal__day { border-radius: 8px; font-size: 12px; }
+.home-sheet.is-dash .cal__foot { margin-top: 10px; padding: 9px 12px 10px; }
+.home-sheet.is-dash .cal__sum { font-size: 12px; }
+.home-sheet.is-dash .cal__key { font-size: 10.5px; gap: 4px; }
+.home-sheet.is-dash .cal__key i { width: 10px; height: 10px; border-radius: 3px; }
+.home-sheet.is-dash .dash-card { padding: 18px 22px 6px; }
+.home-sheet.is-dash .dash-card .home-figs { justify-content: space-around; }
