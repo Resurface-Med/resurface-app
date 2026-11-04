@@ -29,12 +29,20 @@ export default function Dashboard({ displayName = "",
   /* The note's ways in, from App: [{ label, primary, run }]. */
   welcomeActions = null,
   onReplayWelcome = null,
+  /* Which questions count towards "attempted": your year and your decks. */
+  inBank = null,
 }) {
   const totalT = Object.values(pStats).reduce((s, v) => s + v.total, 0);
   const totalC = Object.values(pStats).reduce((s, v) => s + v.correct, 0);
   const acc = totalT > 0 ? Math.round(totalC / totalT * 100) : null;
   const total = QUESTIONS.length;
   const seen = seenCount(QUESTIONS, pStats);
+  /* The bank you're measured against (2026-11-04): your own year's
+     Resurface decks and your own decks, not every year's. Without a year
+     set, everything. */
+  const bank = useMemo(() => (inBank ? QUESTIONS.filter(inBank) : QUESTIONS), [inBank, pStats]); // eslint-disable-line react-hooks/exhaustive-deps
+  const bankTotal = bank.length;
+  const bankSeen = useMemo(() => seenCount(bank, pStats), [bank, pStats]);
 
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalDraft, setGoalDraft] = useState("");
@@ -221,11 +229,11 @@ export default function Dashboard({ displayName = "",
               {/* How much of the bank you've been through (2026-11-04): the
                   share large, the counts beside it, one slim bar under. */}
               <div className="home-bank" data-in="rise" style={{ "--i": 6 }}>
-                <span className="home-bank__pct">{seen === 0 ? "0%" : `${Math.max(1, Math.round((seen / total) * 100))}%`}</span>
-                <span className="home-bank__of">{seen.toLocaleString()} of {total.toLocaleString()} questions attempted</span>
+                <span className="home-bank__pct">{bankSeen === 0 ? "0%" : `${Math.max(1, Math.round((bankSeen / bankTotal) * 100))}%`}</span>
+                <span className="home-bank__of">{bankSeen.toLocaleString()} of {bankTotal.toLocaleString()} questions attempted</span>
               </div>
               <div className="home-bank__bar" data-in="grow" style={{ "--i": 7 }} aria-hidden="true">
-                <span style={{ width: `${seen === 0 ? 0 : Math.max(1.2, share(seen, total) * 100)}%` }} />
+                <span style={{ width: `${bankSeen === 0 ? 0 : Math.max(1.2, share(bankSeen, bankTotal) * 100)}%` }} />
               </div>
 
               {/* The three figures that matter, large (Rafil, 2026-11-04);

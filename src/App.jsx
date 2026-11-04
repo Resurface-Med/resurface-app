@@ -61,7 +61,7 @@ import WelcomeReveal from "./ui/WelcomeReveal";
 import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge, DayOneNudge, PassedNudge, BestNudge } from "./ui/Nudges";
 
 const NUDGES_LIVE = true;
-import { personalNote, yearFolder } from "./lib/firstRun";
+import { personalNote, yearFolder, yearDecks } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -269,6 +269,13 @@ export default function App() {
   const welcomeNote = useMemo(() => personalNote(rawWelcome, featured, studyYear), [rawWelcome, featured, studyYear]);
   useEffect(() => { if (reveal && welcomeNote && user) logStep(user.id, "note_shown"); }, [reveal, Boolean(welcomeNote)]); // eslint-disable-line react-hooks/exhaustive-deps
   const firstFolder = yearFolder(featured, studyYear);
+  /* Home's "attempted" counts your year's Resurface decks and your own
+     decks; another year's ready-made decks are left out (2026-11-04). */
+  const inBank = useMemo(() => {
+    const ids = new Set(yearDecks(featured, studyYear).map(d => d.id));
+    if (!ids.size) return null;
+    return q => !q.featured || (q.path ?? []).some(p => ids.has(p.id));
+  }, [featured, studyYear]);
   /* The note's way in: Study, with your year's ready-made decks expanded
      (Rafil, 2026-10-26, after trying a taster picker that muddied it). */
   const welcomeStart = { label: firstFolder ? `Start Year ${studyYear} questions` : "Start practising", primary: true, run: () => startFirst() };
@@ -1508,7 +1515,7 @@ export default function App() {
               still behind it, which is a better thing to be looking at than
               "Loading…" appearing and vanishing in a frame. */}
           <Suspense fallback={null}>
-          {v === V.DASH && <Dashboard pStats={pStats} streak={streak} dueCount={dueCount} setView={go} displayName={displayName}
+          {v === V.DASH && <Dashboard inBank={inBank} pStats={pStats} streak={streak} dueCount={dueCount} setView={go} displayName={displayName}
             welcome={welcomeNote}
             welcomeActions={[welcomeStart, { label: "Make my own questions", primary: false, run: () => go(V.GENERATE) }]}
             onReplayWelcome={() => setReveal(true)}
