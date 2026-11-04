@@ -12014,3 +12014,11 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 .ann-rich .ann-sub { margin: 34px 0 10px; padding-top: 26px; border-top: 1px solid var(--c-border); font-size: 18px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-text); }
 .ann-rich .ann-sub:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+/* Admin › People: status in a menu beside the search (2026-11-04). */
+.ax-status {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--c-border); background: var(--c-card-solid); color: var(--c-text);
+  font: inherit; font-size: 14.5px; font-weight: 500; line-height: 1; cursor: pointer; white-space: nowrap;
+}
+.ax-status svg { opacity: .55; }
+.ax-status.is-on { border-color: var(--c-text); }

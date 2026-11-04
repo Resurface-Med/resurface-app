@@ -12,6 +12,7 @@ import NavChevron from "../ui/NavChevron";
 import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
+import Popover, { MenuItems } from "../ui/Popover";
 import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, DayOneNudge, ComboPreview, PassedNudge, BestNudge, showPreview } from "../ui/Nudges";
 
 /**
@@ -381,8 +382,10 @@ function SortTh({ k, sort, onSort, num, children }) {
   );
 }
 
+/* Status sits in a menu beside the search; the tabs are the years, the way
+   Rafil looks at people first (2026-11-04). */
 const FILTERS = [
-  { k: "all", label: "Everyone", test: () => true },
+  { k: "all", label: "Any status", test: () => true },
   { k: "active", label: "Active", test: p => statusOf(p) === "active" },
   { k: "quiet", label: "Gone quiet", test: p => statusOf(p) === "quiet" },
   { k: "tried", label: "Tried once", test: p => statusOf(p) === "tried" },
@@ -395,6 +398,9 @@ function People() {
   const loadDaily = useCallback(() => fetchPeopleDaily(30), []);
   const [daily] = useSection(loadDaily);
   const [filter, setFilter] = useState("all");
+  const [year, setYear] = useState("all");
+  const [statusOpen, setStatusOpen] = useState(false);
+  const statusRef = useRef(null);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("seen");
   const [busy, setBusy] = useState(null);
@@ -433,7 +439,15 @@ function People() {
 
   const f = FILTERS.find(x => x.k === filter);
   const q = query.trim().toLowerCase();
-  const shown = rows.filter(f.test).filter(p => !q || [p.display_name, p.email].some(t => (t ?? "").toLowerCase().includes(q)));
+  const years = [...new Set(rows.map(p => p.study_year).filter(Boolean))].sort((a, b) => a - b);
+  const YEARS = [
+    { k: "all", label: "Everyone", test: () => true },
+    ...years.map(y => ({ k: String(y), label: `Year ${y}`, test: p => p.study_year === y })),
+    ...(rows.some(p => !p.study_year) ? [{ k: "none", label: "No year", test: p => !p.study_year }] : []),
+  ];
+  const yf = YEARS.find(x => x.k === year) ?? YEARS[0];
+  const inYear = rows.filter(yf.test);
+  const shown = inYear.filter(f.test).filter(p => !q || [p.display_name, p.email].some(t => (t ?? "").toLowerCase().includes(q)));
   const sorted = [...shown].sort((a, b) =>
     sort === "seen" ? String(b.last_active ?? "").localeCompare(String(a.last_active ?? ""))
     : sort === "week" ? (week.get(b.user_id) ?? 0) - (week.get(a.user_id) ?? 0)
@@ -442,16 +456,25 @@ function People() {
 
   return (
     <>
-      <div className="ax-filters" role="tablist" aria-label="Show">
-        {FILTERS.map(x => (
-          <button key={x.k} type="button" role="tab" aria-selected={filter === x.k}
-            className={`ax-filter${filter === x.k ? " is-on" : ""}`} onClick={() => setFilter(x.k)}>
+      <div className="ax-filters" role="tablist" aria-label="Year">
+        {YEARS.map(x => (
+          <button key={x.k} type="button" role="tab" aria-selected={yf.k === x.k}
+            className={`ax-filter${yf.k === x.k ? " is-on" : ""}`} onClick={() => setYear(x.k)}>
             {x.label}<span>{rows.filter(x.test).length}</span>
           </button>
         ))}
       </div>
       <div className="ax-toolbar">
         <input className="ax-search" type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search names and emails" aria-label="Search" />
+        <button ref={statusRef} type="button" className={`ax-status${filter !== "all" ? " is-on" : ""}`}
+          aria-haspopup="menu" aria-expanded={statusOpen} onClick={() => setStatusOpen(o => !o)}>
+          {f.label}
+          <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+        <Popover anchorRef={statusRef} open={statusOpen} onClose={() => setStatusOpen(false)} align="left">
+          <MenuItems items={FILTERS.map(x => ({ label: `${x.label} · ${inYear.filter(x.test).length}`, k: x.k }))}
+            onPick={it => { setFilter(it.k); setStatusOpen(false); }} />
+        </Popover>
         <CopyEmails people={shown} label={`Copy ${shown.length} ${shown.length === 1 ? "email" : "emails"}`} />
       </div>
       {filter !== "all" && filter !== "mail" && <p className="ax-note">{STATUS[filter]?.hint}.</p>}
