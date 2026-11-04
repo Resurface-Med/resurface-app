@@ -2177,7 +2177,7 @@ select {
   display: grid;
   /* The calendar's column is held to a calendar's width (2026-11-04), so
      its square days fill it edge to edge without towering. */
-  grid-template-columns: minmax(0, 1fr) minmax(270px, 304px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
   gap: clamp(32px, 4vw, 64px);
   align-items: start;
 }
@@ -12206,3 +12206,11 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .home-sheet.is-dash .dash-card.is-open { flex: none; margin-top: 18px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
 .home-sheet.is-dash .dash-card.is-open .home-figs { margin-top: 18px; padding-top: 0; }
 .home-sheet.is-dash .dash-split { align-items: start; }
+/* Calendar bigger, progress quieter (2026-11-04). */
+.home-sheet.is-dash .cal__day { font-size: 13px; border-radius: 9px; }
+.home-sheet.is-dash .cal__month-name { font-size: 21px; }
+.home-sheet.is-dash .cal { --cal-gap: 5px; }
+.home-sheet.is-dash .dash-card .home-bank__pct { font-size: clamp(26px, 2.2vw, 30px); letter-spacing: -0.8px; }
+.home-sheet.is-dash .dash-card .home-bank__bar { height: 10px; margin-top: 12px; }
+.home-sheet.is-dash .dash-card .home-fig__n { font-size: clamp(18px, 1.5vw, 21px); }
+.home-sheet.is-dash .dash-card .home-fig__l { font-size: 14.5px; }
