@@ -12148,3 +12148,10 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .cal__sum { font-size: 13px; color: var(--c-sub); }
 .cal__sum b { font-weight: 600; color: var(--c-text); }
 .cal__foot .cal__key { margin-left: auto; }
+/* Progress a size down (2026-11-04): smaller figures, tighter rows. */
+.dash-split .home-figs { margin-top: 10px; }
+.dash-split .home-figs > div { padding: clamp(14px, 2vh, 20px) 0; }
+.dash-split .home-fig__n { font-size: clamp(20px, 1.7vw, 24px); letter-spacing: -0.5px; }
+.dash-split .home-fig__l { font-size: 15px; }
+.dash-split .home-bank__pct { font-size: clamp(20px, 1.7vw, 24px); }
+.dash-split .home-bank__bar { height: 6px; margin-top: 12px; }
