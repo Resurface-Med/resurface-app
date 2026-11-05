@@ -2,6 +2,7 @@ import { useState } from "react";
 import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import { THEMES } from "../lib/themes";
+import { usePref, setPref } from "../lib/prefs";
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
 import Reminders from "../ui/Reminders";
@@ -93,6 +94,7 @@ export default function ProfileView({
   const [pwErr, setPwErr] = useState("");
 
   const [resetBusy, setResetBusy] = useState(false);
+  const hideOptions = usePref("hideOptions");
 
   const [nameErr, setNameErr] = useState("");
 
@@ -411,6 +413,15 @@ export default function ProfileView({
                 Save goal
               </button>
             </form>
+
+            {/* Saves on ticking, with the other study preferences (0068). */}
+            <label className="auth-consent profile-hide-opts">
+              <input type="checkbox" checked={hideOptions} onChange={e => setPref("hideOptions", e.target.checked)} />
+              <span>
+                Hide answer options until I&apos;m ready
+                <span className="profile-hint">Think of your answer first, then tap to see the options. The eye in a session switches it for that session.</span>
+              </span>
+            </label>
           </section>
 
           <Reminders />

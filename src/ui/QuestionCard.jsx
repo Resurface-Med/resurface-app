@@ -169,8 +169,12 @@ export function TopicNote({ topic, hl, qid, deckId }) {
   );
 }
 
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, onOpenNote = null }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, onOpenNote = null, coverOptions = false }) {
   const answered = sel !== null || timedOut;
+  /* Covered until you've thought of your answer (2026-11-05); one tap or
+     Space shows them. The card is keyed by question, so each starts covered. */
+  const [revealed, setRevealed] = useState(false);
+  const covered = coverOptions && !answered && !revealed;
 
   const [pending, setPending] = useState(null);
   const [eliminated, setEliminated] = useState(new Set());
@@ -256,6 +260,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         if (e.key === " " || e.key === "Enter") { e.preventDefault(); onNext?.(); }
         return;
       }
+      if (covered) {
+        if (e.key === " " || e.key === "Enter") { e.preventDefault(); setRevealed(true); }
+        return;
+      }
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -290,7 +298,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
 
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [q, answered, pending, eliminated, onAnswer, onNext, onPrev]);
+  }, [q, answered, covered, pending, eliminated, onAnswer, onNext, onPrev]);
 
   if (!q) return null;
 
@@ -422,6 +430,13 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           className={`q-ask${focusMode ? " q-ask--focus" : ""}`}
         />
       )}
+      {covered ? (
+        <button type="button" className="q-cover" onClick={() => setRevealed(true)}
+          style={{ "--n": q.opts.length }}>
+          <span className="q-cover__title">Think of your answer first</span>
+          <span className="q-cover__sub">Then tap to see the {q.opts.length} options<span className="q-cover__key"> · or press Space</span></span>
+        </button>
+      ) : (
       <div
         className={`q-opts${answered ? " is-review" : ""}${answered && !showAll ? " is-collapsed" : ""}`}
         role="listbox"
@@ -506,6 +521,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           );
         })}
       </div>
+      )}
       </div>
       </div>
 

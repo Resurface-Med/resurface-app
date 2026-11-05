@@ -12223,3 +12223,12 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (prefers-reduced-motion: no-preference) {
   .cal__day.is-today { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
 }
+/* Options covered until you're ready (2026-11-05): a quiet panel the size
+   of the list it hides, so nothing jumps when it opens. */
+.q-cover { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: calc(var(--n, 5) * 65px - 7px); padding: 20px; border: 1.5px dashed var(--c-border); border-radius: 16px; background: var(--c-surface2); font: inherit; text-align: center; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+.q-cover:hover { border-color: var(--c-accent-brd); }
+.q-cover__title { font-size: 16px; font-weight: 600; color: var(--c-text); }
+.q-cover__sub { font-size: 14px; color: var(--c-muted); }
+@media (hover: none) { .q-cover__key { display: none; } }
+.profile-hide-opts { margin-top: 18px; align-items: flex-start; }
+.profile-hint { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--c-muted); }

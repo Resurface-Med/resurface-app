@@ -3,7 +3,8 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import NavChevron from "./NavChevron";
-import { NotebookPen, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Eye, EyeOff, NotebookPen, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { usePref } from "../lib/prefs";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
 import { useNotes } from "../lib/notes";
@@ -40,6 +41,11 @@ export default function QuizShell({
   /* The practice session, so Resurface AI counts its replies per sitting. */
   sessionId = null,
 }) {
+  /* Options covered until you've thought of an answer (2026-11-05). Starts
+     from the Profile setting; the eye in the bar switches it for this
+     session only. */
+  const hidePref = usePref("hideOptions");
+  const [hideHere, setHideHere] = useState(hidePref);
   /* The flag is saved (2026-11-01): it is the same mark as the old
      Bookmark, kept on your account, so a flagged question shows in a past
      session's Flagged tab and in Study's Flagged pool. It used to belong to
@@ -354,6 +360,17 @@ export default function QuizShell({
 
           <button
             type="button"
+            className={`quiz-shell__tool btn-press${hideHere ? " is-on" : ""}`}
+            onClick={() => setHideHere(h => !h)}
+            title={hideHere ? "Show options straight away" : "Hide options until I'm ready"}
+            aria-label={hideHere ? "Show options straight away" : "Hide options until I'm ready"}
+            aria-pressed={hideHere}
+          >
+            {hideHere ? <EyeOff size={18} strokeWidth={2} aria-hidden="true" /> : <Eye size={18} strokeWidth={2} aria-hidden="true" />}
+          </button>
+
+          <button
+            type="button"
             className={`quiz-shell__tool btn-press${labsOpen ? " is-on" : ""}`}
             onClick={() => setLabsOpen(o => !o)}
             title="Lab values"
@@ -471,6 +488,7 @@ export default function QuizShell({
           <div className="quiz-shell__main">
             <QuestionCard
               key={q.id}
+              coverOptions={hideHere}
               q={q}
               sel={sel}
               onAnswer={onAnswer}
