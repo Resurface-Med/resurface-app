@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { UserRound, Palette, BookOpen, Bell, KeyRound, TriangleAlert, ChevronRight, ChevronLeft } from "lucide-react";
+import { UserRound, Palette, BookOpen, Bell, KeyRound, ChevronRight, ChevronLeft } from "lucide-react";
 import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import { THEMES } from "../lib/themes";
@@ -70,7 +70,6 @@ const CATS = [
   { k: "study", label: "Study", Icon: BookOpen },
   { k: "notifications", label: "Notifications", Icon: Bell },
   { k: "signin", label: "Sign-in", Icon: KeyRound },
-  { k: "danger", label: "Reset and delete", Icon: TriangleAlert },
 ];
 const narrow = () => typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)").matches;
 
@@ -260,7 +259,7 @@ export default function ProfileView({
           <div className={`settings${cat ? " has-cat" : ""}`}>
             <nav className="settings-nav" aria-label="Settings">
               {CATS.map(({ k, label, Icon }) => (
-                <button key={k} type="button" className={`settings-nav__item${cat === k ? " is-on" : ""}${k === "danger" ? " is-danger" : ""}`}
+                <button key={k} type="button" className={`settings-nav__item${cat === k ? " is-on" : ""}`}
                   aria-current={cat === k ? "page" : undefined} onClick={() => setCat(k)}>
                   <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
                   <span>{label}</span>
@@ -354,6 +353,15 @@ export default function ProfileView({
               </label>
             </div>
           </section>
+          {/* Out of the way (2026-11-05): a category headed in red made
+              deleting your account the most eye-catching thing in Settings.
+              Typing "delete" to confirm is still required. */}
+          <div className="profile-quiet">
+            <button type="button" className="btn-press profile-signout" onClick={onSignOut}>Sign out</button>
+            <button type="button" className="profile-quiet__delete" onClick={deleteAccount} disabled={deleteBusy}>
+              {deleteBusy ? "Deleting…" : "Delete my account"}
+            </button>
+          </div>
           </>
           )}
           {cat === "appearance" && (
@@ -472,6 +480,12 @@ export default function ProfileView({
               </span>
             </label>
           </section>
+          <div className="profile-quiet">
+            <button type="button" className="profile-quiet__delete" onClick={resetProgress} disabled={resetBusy || !onResetProgress}>
+              {resetBusy ? "Resetting…" : "Reset study progress"}
+            </button>
+            <p style={{ ...meta, margin: 0 }}>Wipes practice stats and review schedules. Your decks stay.</p>
+          </div>
           </>
           )}
           {cat === "notifications" && (
@@ -531,48 +545,6 @@ export default function ProfileView({
                 Signed in with Google. Use Google to manage that sign-in.
               </p>
             )}
-          </section>
-          </>
-          )}
-          {cat === "danger" && (
-          <>
-          <section className="profile-section is-danger" data-in="rise" style={{ "--i": 5 }}>
-            <h2 style={sectionH}>Danger zone</h2>
-            <p style={{ ...meta, marginTop: 4 }}>
-              Reset wipes practice stats and review schedules. Sign out leaves your data alone.
-            </p>
-
-            <div className="profile-danger-actions">
-              <button
-                type="button"
-                className="btn-press profile-danger-btn"
-                onClick={resetProgress}
-                disabled={resetBusy || !onResetProgress}
-              >
-                {resetBusy ? "Resetting…" : "Reset study progress"}
-              </button>
-              <button
-                type="button"
-                className="btn-press profile-signout"
-                onClick={onSignOut}
-              >
-                Sign out
-              </button>
-            </div>
-
-            <div className="profile-delete">
-              <button
-                type="button"
-                className="profile-delete-btn"
-                onClick={deleteAccount}
-                disabled={deleteBusy}
-              >
-                {deleteBusy ? "Deleting…" : "Delete my account"}
-              </button>
-              <p style={{ ...meta, marginTop: 6 }}>
-                Everything goes: decks, questions, progress. It cannot be undone.
-              </p>
-            </div>
           </section>
           </>
           )}
