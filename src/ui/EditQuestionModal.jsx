@@ -72,6 +72,23 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null, 
     }
   }
 
+  /* A picture under the explanation (2026-11-05), the same way: uploaded,
+     then placed where the cursor was in the explanation. */
+  const [expImgBusy, setExpImgBusy] = useState(false);
+  const [expAddedPath, setExpAddedPath] = useState(null);
+  async function handleExpImage(file) {
+    if (!file || !user) return;
+    setImgError("");
+    setExpImgBusy(true);
+    try {
+      setExpAddedPath(await uploadQuestionImage(user.id, file));
+    } catch (e) {
+      setImgError(e.message || "That image would not upload.");
+    } finally {
+      setExpImgBusy(false);
+    }
+  }
+
   function setOpt(i, val) { setOpts(o => o.map((v, j) => j === i ? val : v)); }
   function setOptExpItem(i, val) { setOptExp(o => o.map((v, j) => j === i ? val : v)); }
 
@@ -243,8 +260,17 @@ export default function EditQuestionModal({ q, onClose, onSave, persist = null, 
           </div>
 
           <div className="qe-field">
-            <label className="qe-label" htmlFor="qe-exp">Explanation</label>
-            <textarea id="qe-exp" className="qe-input" value={exp} onChange={e => setExp(e.target.value)} rows={3} />
+            <span className="qe-label">Explanation</span>
+            {/* Text, with any pictures as cards to caption, move or remove. */}
+            <NoteBodyEditor value={exp} onChange={setExp}
+              addedPath={expAddedPath} onAddedUsed={() => setExpAddedPath(null)} />
+            <div className="qedit-img-row">
+              <label className="qedit-img-btn">
+                {expImgBusy ? "Adding…" : "Add a picture"}
+                <input type="file" accept="image/*" style={{ display: "none" }} disabled={expImgBusy}
+                  onChange={e => { handleExpImage(e.target.files?.[0]); e.target.value = ""; }} />
+              </label>
+            </div>
           </div>
 
           <div className="qe-field">
