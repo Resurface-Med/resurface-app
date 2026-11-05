@@ -134,11 +134,13 @@ export default function App() {
   /* Where a stale-chunk reload was headed (see `go`): that screen, not Home,
      which is where a reload otherwise lands and read as being thrown out. */
   const [view, setView] = useState(() => {
-    /* A reminder notification opens the app on Study (?view=study). */
+    /* A reminder notification opens the app on Study (?view=study); a link
+       can open Profile the same way (?view=profile). */
     try {
-      if (new URLSearchParams(window.location.search).get("view") === "study") {
+      const asked = new URLSearchParams(window.location.search).get("view");
+      if (asked === "study" || asked === "profile") {
         window.history.replaceState(null, "", window.location.pathname);
-        return V.STUDY;
+        return asked === "study" ? V.STUDY : V.PROFILE;
       }
     } catch { /* fall through */ }
     try {
