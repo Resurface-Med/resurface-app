@@ -55,12 +55,16 @@ const band = {
 export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong, onOpenPast = null, reward = null }) {
   const [showWrong, setShowWrong] = useState(false);
 
-  const total = results.length;
-  const correct = results.filter(r => r.correct).length;
+  /* Skipped questions aren't scored (2026-11-05); they stay in the list of
+     ones to look at again. */
+  const answered = results.filter(r => !r.skipped);
+  const skipped = results.length - answered.length;
+  const total = answered.length;
+  const correct = answered.filter(r => r.correct).length;
   const wrongOnes = results.filter(r => !r.correct);
 
   const byCat = {};
-  for (const r of results) {
+  for (const r of answered) {
     if (!byCat[r.cat]) byCat[r.cat] = { correct: 0, total: 0 };
     byCat[r.cat].total += 1;
     if (r.correct) byCat[r.cat].correct += 1;
@@ -96,6 +100,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
 
         <p data-in="left" style={{ ...pageSub, maxWidth: "44ch", "--i": 2 }}>
           {verdictLine(correct, total)}
+          {skipped > 0 && <> {skipped} skipped, not counted.</>}
         </p>
       </div>
 

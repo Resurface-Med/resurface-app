@@ -12232,3 +12232,6 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (hover: none) { .q-cover__key { display: none; } }
 .profile-hide-opts { margin-top: 18px; align-items: flex-start; }
 .profile-hint { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--c-muted); }
+/* A picture under the explanation (2026-11-05), the note figure without
+   the note's gutter. */
+.q-exp-fig .ed__fig { margin: 12px 0 4px; }

@@ -13,10 +13,10 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
-import EditorialNote, { readTime } from "./EditorialNote";
+import EditorialNote, { readTime, NoteImage } from "./EditorialNote";
 import { BookOpen } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
-import { focusNote, stripImages } from "../lib/formatExplain";
+import { focusNote, stripImages, IMAGE_LINE } from "../lib/formatExplain";
 
 /* One paint list for every question. The stroke is drawn on the letters
    themselves, so the words are never split into a separate box. */
@@ -537,7 +537,12 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           the eye. What is left is the part that teaches. */}
       {answered && (
         <div className="q-review anim-fade-up">
-          <Highlighter as="p" text={q.exp} className="q-exp" />
+          <Highlighter as="p" text={stripImages(q.exp).replace(/\n{3,}/g, "\n\n").trim()} className="q-exp" />
+          {/* A picture in the explanation (2026-11-05): a line of its own,
+              ![caption](path), drawn as the notes draw theirs. */}
+          {String(q.exp ?? "").split(/\r?\n/).map(l => l.trim().match(IMAGE_LINE)).filter(Boolean).map((m, i) => (
+            <div key={i} className="q-exp-fig"><NoteImage src={m[2]} alt={m[1]} n={i + 1} /></div>
+          ))}
 
           {/* Under the explanation, not buried under the topic note.
               Shown on your own questions too: a featured deck's owner

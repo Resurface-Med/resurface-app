@@ -710,9 +710,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     }
   }
 
-  /* Finishing is the moment a blank becomes a wrong answer. Skipping through
-     the list does not score anything until then, so a session of nothing but
-     skips still has a result to review. */
+  /* Skipped questions are not answers (2026-11-05): they don't touch your
+     cards, your stats or your accuracy. Jacob skipped through a 23-question
+     session and every card went back to "learn again". They're still listed
+     on the results page, as skipped, to come back to. */
   async function handleNext() {
     if (!queue) return;
     if (idx + 1 < queue.length) { setIdx(i => i + 1); return; }
@@ -724,22 +725,20 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
         title: open.length === 1
           ? "You have an unanswered question."
           : `You have ${open.length} unanswered questions.`,
-        body: "Skipping them marks each one wrong.",
+        body: "Skipped questions don't count towards your stats.",
         action: "Skip them",
         cancel: "Go back",
       });
       if (!skip) return;
       const extra = {};
       for (const { q, i } of open) {
-        onAnswer(q.id, false);
         extra[i] = {
           id: q.id, q: q.q, cat: q.cat,
-          correct: false,
+          correct: false, skipped: true,
           correctAnswer: q.opts[q.ans],
         };
       }
       setResults(prev => ({ ...prev, ...extra }));
-      setST(t => t + open.length);
     }
     saveSession(true);
     localStorage.removeItem(SESSION_KEY);
