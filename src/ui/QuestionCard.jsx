@@ -597,7 +597,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               onClick={() => setPref("showAllOptions", !showAll)}
               aria-expanded={showAll}
             >
-              {showAll ? "Hide the others" : `All ${q.opts.length} options`}
+              {showAll ? "Hide other options" : `Show all ${q.opts.length} options`}
               <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
                 <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                   <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
