@@ -8,7 +8,7 @@ import { MarkedText } from "./RichText";
    than taking it over, with its caption beside it; tapping opens it full
    screen in the same viewer as a question's image. The path is the stored
    one (or a /qimg/ file), its link worked out when drawn. */
-function NoteImage({ src, alt, n }) {
+export function NoteImage({ src, alt, n }) {
   const [url, setUrl] = useState(null);
   const [failed, setFailed] = useState(false);
   const [zoomed, setZoomed] = useState(false);

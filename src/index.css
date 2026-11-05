@@ -12223,3 +12223,6 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (prefers-reduced-motion: no-preference) {
   .cal__day.is-today { animation: cal-in .42s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--d, 0) * 28ms); }
 }
+/* A picture under the explanation (2026-11-05), the note figure without
+   the note's gutter. */
+.q-exp-fig .ed__fig { margin: 12px 0 4px; }
