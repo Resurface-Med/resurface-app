@@ -2175,9 +2175,7 @@ select {
    different questions — what you have done, and what to do next. */
 .dash-split {
   display: grid;
-  /* The calendar's column is held to a calendar's width (2026-11-04), so
-     its square days fill it edge to edge without towering. */
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: clamp(32px, 4vw, 64px);
   align-items: start;
 }
