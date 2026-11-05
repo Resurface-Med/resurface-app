@@ -12235,3 +12235,30 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 /* A picture under the explanation (2026-11-05), the note figure without
    the note's gutter. */
 .q-exp-fig .ed__fig { margin: 12px 0 4px; }
+/* ─── Settings by category (2026-11-05) ──────────────────────────── */
+.settings { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: clamp(28px, 4vw, 56px); align-items: start; }
+.settings-nav { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 2px; }
+.settings-nav__item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border: 0; border-radius: 12px; background: none; font: inherit; font-size: 15px; font-weight: 500; color: var(--c-sub); text-align: left; cursor: pointer; }
+.settings-nav__item:hover { background: var(--c-surface2); color: var(--c-text); }
+.settings-nav__item.is-on { background: var(--c-accent-dim); color: var(--c-text); font-weight: 600; }
+.settings-nav__item.is-on svg:first-child { color: var(--c-accent); }
+.settings-nav__item.is-danger { color: var(--c-danger); }
+.settings-nav__item span { flex: 1; }
+.settings-nav__chev { display: none; opacity: .45; }
+.settings-page { min-width: 0; }
+.settings-page > .profile-section { padding-top: 0; border-top: 0; margin-top: 0; }
+.settings-back { display: none; }
+@media (max-width: 760px) {
+  .settings { grid-template-columns: 1fr; gap: 0; }
+  .settings-nav { position: static; gap: 0; border-radius: 16px; overflow: hidden; background: var(--c-surface2); }
+  .settings-nav__item { padding: 15px 16px; border-radius: 0; font-size: 15.5px; color: var(--c-text); }
+  .settings-nav__item + .settings-nav__item { border-top: 1px solid var(--c-border); }
+  .settings-nav__item.is-on { background: none; font-weight: 500; }
+  .settings-nav__item.is-danger { color: var(--c-danger); }
+  .settings-nav__chev { display: block; }
+  .settings.has-cat .settings-nav { display: none; }
+  .settings:not(.has-cat) .settings-page { display: none; }
+  .settings-back { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 14px -6px; padding: 6px; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--c-accent); cursor: pointer; }
+}
+.settings-page > .profile-section { border-bottom: 0; padding-bottom: 0; }
+.auth-consent .profile-hint { font-weight: 400; color: var(--c-muted); font-size: 13px; line-height: 1.45; }

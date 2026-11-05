@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { UserRound, Palette, BookOpen, Bell, KeyRound, TriangleAlert, ChevronRight, ChevronLeft } from "lucide-react";
 import { confirm } from "../ui/Confirm";
 import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body } from "../ui/theme";
 import { THEMES } from "../lib/themes";
@@ -60,6 +61,19 @@ function authProviders(user) {
   return one ? [one] : [];
 }
 
+/* Settings by category (2026-11-05), as apps lay them out: a list on the
+   left on a laptop, the chosen category beside it; on a phone the list
+   first, a category on its own page with a way back. */
+const CATS = [
+  { k: "account", label: "Account", Icon: UserRound },
+  { k: "appearance", label: "Appearance", Icon: Palette },
+  { k: "study", label: "Study", Icon: BookOpen },
+  { k: "notifications", label: "Notifications", Icon: Bell },
+  { k: "signin", label: "Sign-in", Icon: KeyRound },
+  { k: "danger", label: "Reset and delete", Icon: TriangleAlert },
+];
+const narrow = () => typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)").matches;
+
 export default function ProfileView({
   userId, email, displayName, showOnLeaderboard, marketingOptIn, dailyGoal, studyYear = null,
   onProfileChange, onSignOut, theme, customColor, onThemeChange, onCustomColor, onResetColor, onResetProgress,
@@ -95,6 +109,16 @@ export default function ProfileView({
 
   const [resetBusy, setResetBusy] = useState(false);
   const hideOptions = usePref("hideOptions");
+  /* Which category is open; on a phone none until one is chosen. */
+  const [cat, setCat] = useState(() => (narrow() ? null : "account"));
+  const [isNarrow, setIsNarrow] = useState(narrow);
+  useEffect(() => {
+    const mq = window.matchMedia?.("(max-width: 760px)");
+    if (!mq) return;
+    const on = () => { setIsNarrow(mq.matches); if (!mq.matches) setCat(c => c ?? "account"); };
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
 
   const [nameErr, setNameErr] = useState("");
 
@@ -231,8 +255,27 @@ export default function ProfileView({
       <Wave from="transparent" to="var(--c-card-solid)" />
 
       <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
-        <div className="profile-sheet" style={{ ...band, maxWidth: 560, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
+        <div className="profile-sheet" style={{ ...band, maxWidth: 920, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
 
+          <div className={`settings${cat ? " has-cat" : ""}`}>
+            <nav className="settings-nav" aria-label="Settings">
+              {CATS.map(({ k, label, Icon }) => (
+                <button key={k} type="button" className={`settings-nav__item${cat === k ? " is-on" : ""}${k === "danger" ? " is-danger" : ""}`}
+                  aria-current={cat === k ? "page" : undefined} onClick={() => setCat(k)}>
+                  <Icon size={18} strokeWidth={1.9} aria-hidden="true" />
+                  <span>{label}</span>
+                  <ChevronRight className="settings-nav__chev" size={16} strokeWidth={2} aria-hidden="true" />
+                </button>
+              ))}
+            </nav>
+            <div className="settings-page">
+              {isNarrow && cat && (
+                <button type="button" className="settings-back" onClick={() => setCat(null)}>
+                  <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" /> Settings
+                </button>
+              )}
+          {cat === "account" && (
+          <>
           <section className="profile-section" data-in="rise" style={{ "--i": 1 }}>
             <h2 style={sectionH}>Account</h2>
             <p style={{ ...meta, marginTop: 4 }}>How you appear on Resurface.</p>
@@ -311,9 +354,12 @@ export default function ProfileView({
               </label>
             </div>
           </section>
-
+          </>
+          )}
+          {cat === "appearance" && (
+          <>
           <section className="profile-section" data-in="rise" style={{ "--i": 2 }}>
-            <h2 style={sectionH}>Preferences</h2>
+            <h2 style={sectionH}>Appearance</h2>
             <p style={{ ...meta, marginTop: 4 }}>How Resurface looks on this device.</p>
 
             <div className="profile-stack">
@@ -382,10 +428,13 @@ export default function ProfileView({
               </div>
             </div>
           </section>
-
+          </>
+          )}
+          {cat === "study" && (
+          <>
           <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
             <h2 style={sectionH}>Study</h2>
-            <p style={{ ...meta, marginTop: 4 }}>Your year, and your daily target.</p>
+            <p style={{ ...meta, marginTop: 4 }}>Your year, your daily target, and how questions are shown.</p>
 
             {/* Saves on choosing (migration 0031). */}
             <label className="profile-field" style={{ marginTop: 14 }}>
@@ -423,9 +472,15 @@ export default function ProfileView({
               </span>
             </label>
           </section>
-
+          </>
+          )}
+          {cat === "notifications" && (
+          <>
           <Reminders />
-
+          </>
+          )}
+          {cat === "signin" && (
+          <>
           <section className="profile-section" data-in="rise" style={{ "--i": 4 }}>
             <h2 style={sectionH}>Sign-in</h2>
             <p style={{ ...meta, marginTop: 4 }}>
@@ -477,7 +532,10 @@ export default function ProfileView({
               </p>
             )}
           </section>
-
+          </>
+          )}
+          {cat === "danger" && (
+          <>
           <section className="profile-section is-danger" data-in="rise" style={{ "--i": 5 }}>
             <h2 style={sectionH}>Danger zone</h2>
             <p style={{ ...meta, marginTop: 4 }}>
@@ -516,6 +574,10 @@ export default function ProfileView({
               </p>
             </div>
           </section>
+          </>
+          )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
