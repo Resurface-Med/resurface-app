@@ -12225,10 +12225,11 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 /* Options covered until you're ready (2026-11-05): a quiet panel the size
    of the list it hides, so nothing jumps when it opens. */
-.q-cover { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: calc(var(--n, 5) * 65px - 7px); padding: 20px; border: 1.5px dashed var(--c-border); border-radius: 16px; background: var(--c-surface2); font: inherit; text-align: center; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
-.q-cover:hover { border-color: var(--c-accent-brd); }
-.q-cover__title { font-size: 16px; font-weight: 600; color: var(--c-text); }
-.q-cover__sub { font-size: 14px; color: var(--c-muted); }
+/* Calmer (2026-11-05): one quiet button where the options start, not a
+   panel the size of the list; the stem keeps the attention. */
+.q-cover { display: inline-flex; align-items: center; gap: 9px; margin-top: 6px; padding: 11px 16px; border: 1.5px solid var(--c-border); border-radius: 12px; background: none; font: inherit; font-size: 15px; font-weight: 500; color: var(--c-sub); cursor: pointer; transition: border-color .15s ease, color .15s ease; }
+.q-cover:hover { border-color: var(--c-accent-brd); color: var(--c-text); }
+.q-cover__key { margin-left: 4px; padding: 2px 7px; border-radius: 6px; background: var(--c-surface2); font: inherit; font-size: 12px; font-weight: 500; color: var(--c-muted); }
 @media (hover: none) { .q-cover__key { display: none; } }
 .profile-hide-opts { margin-top: 18px; align-items: flex-start; }
 .profile-hint { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--c-muted); }

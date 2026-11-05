@@ -14,7 +14,7 @@ import { canEdit, persistFor } from "../lib/adminFeatured";
 import QuestionImage from "./QuestionImage";
 import QuestionExhibit from "./QuestionExhibit";
 import EditorialNote, { readTime, NoteImage } from "./EditorialNote";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Eye } from "lucide-react";
 import { exhibitBeside, exhibitText } from "../lib/exhibits";
 import { focusNote, stripImages, IMAGE_LINE } from "../lib/formatExplain";
 
@@ -431,10 +431,10 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
         />
       )}
       {covered ? (
-        <button type="button" className="q-cover" onClick={() => setRevealed(true)}
-          style={{ "--n": q.opts.length }}>
-          <span className="q-cover__title">Think of your answer first</span>
-          <span className="q-cover__sub">Then tap to see the {q.opts.length} options<span className="q-cover__key"> · or press Space</span></span>
+        <button type="button" className="q-cover" onClick={() => setRevealed(true)}>
+          <Eye size={17} strokeWidth={2} aria-hidden="true" />
+          <span>Show {q.opts.length} options</span>
+          <kbd className="q-cover__key">Space</kbd>
         </button>
       ) : (
       <div
