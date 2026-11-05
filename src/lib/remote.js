@@ -424,7 +424,7 @@ export async function loadAll(userId) {
     nameChosen: profile.data?.name_chosen !== false,
     showOnLeaderboard: profile.data?.show_on_leaderboard !== false,
     marketingOptIn: profile.data?.marketing_opt_in ?? null,
-    showAllOptions: profile.data?.show_all_options === true,
+    showAllOptions: profile.data?.show_all_options !== false,
     introSeen: profile.data?.intro_seen === true,
     /* Year of study (migration 0031): 1–5, 0 something else, null not asked. */
     studyYear: profile.data?.study_year ?? null,
