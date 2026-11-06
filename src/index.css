@@ -11605,7 +11605,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge-up__n { font-size: 30px; }
   .nudge-board__row, .nudge-pass__row { grid-template-columns: 28px 24px minmax(0, 1fr) auto; gap: 8px; padding: 5px 10px 5px 8px; font-size: 13px; }
   .nudge-board__av { width: 24px; height: 24px; font-size: 10px; }
+  /* The grid shrinks with the phone: at 11px tiles it was 27px wide inside a
+     22px screen and spilled out of the right edge (2026-11-06). */
   .nudge-phone { width: 30px; height: 56px; padding: 8px 4px 6px; }
+  .nudge-phone__grid { grid-template-columns: repeat(2, 8px); grid-auto-rows: 8px; gap: 4px; }
+  .nudge-phone__app { width: 8px; height: 8px; border-radius: 2px; }
+  .nudge-phone__tile { border-radius: 2px; }
 }
 
 /* Resurface AI thinking: each stage fades in, nothing else moves. */
