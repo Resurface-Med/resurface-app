@@ -56,6 +56,26 @@ export function personalNote(note, featured, year) {
 }
 
 /**
+ * The first three questions a new account answers (2026-11-06). The welcome
+ * note's button used to open the deck list, and of 11 new people who never
+ * answered anything, 4 pressed it and gave up choosing decks there. Now it
+ * starts these straight away. Picked from the answer log: every student got
+ * each right first time, on basic material. Year 1 from Principles, Year 2
+ * from Renal. Database ids; if a deck is edited and they go, the note falls
+ * back to opening the deck list.
+ */
+export const STARTERS = {
+  1: [10562, 10726, 11239],   // axial/appendicular skeleton, osmosis, codon
+  2: [10056, 155, 158],       // Bowman's capsule, post-renal AKI, diabetes and AKI
+};
+
+/** The starter questions for a year that exist right now, as app ids. */
+export function starterIds(year, questions, base) {
+  const want = new Set((STARTERS[year] ?? []).map(id => base + id));
+  return (questions ?? []).filter(q => want.has(q.id)).map(q => q.id);
+}
+
+/**
  * Where "Start practising" takes a new account: the Year N heading in Study,
  * open, so they pick the topic they're on. Not a deck chosen for them:
  * people are at different stages of their revision (Rafil, 2026-10-26).

@@ -24,7 +24,7 @@ class ErrorBoundary extends Component {
 }
 import { V, C, NAV, card } from "./ui/theme";
 import { NotesContext } from "./lib/notes";
-import { QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
+import { GEN_ID_BASE, QUESTIONS, loadDecks, setUserQuestions, setQuestionEdits, getQuestionEdits } from "./data";
 import { sm2Review, isReviewDue } from "./lib/sm2";
 import { themeStore, readCustomColor, writeCustomColor, clearCustomColor, todayKey, nextStreak, liveStreak } from "./lib/storage";
 import { themeField, themeLight } from "./lib/themes";
@@ -61,7 +61,7 @@ import WelcomeReveal from "./ui/WelcomeReveal";
 import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge, DayOneNudge, PassedNudge, BestNudge } from "./ui/Nudges";
 
 const NUDGES_LIVE = true;
-import { personalNote, yearFolder, yearDecks } from "./lib/firstRun";
+import { personalNote, starterIds, yearFolder, yearDecks } from "./lib/firstRun";
 import PullToRefresh from "./ui/PullToRefresh";
 import UndoToast from "./ui/UndoToast";
 import UpdateNotice from "./ui/UpdateNotice";
@@ -284,6 +284,15 @@ export default function App() {
   function startFirst() {
     if (user) logStep(user.id, "note_start");
     const folder = firstFolder;
+    /* Three easy questions for your year, straight away (lib/firstRun
+       STARTERS); the deck list, with your year open, is where Study lands
+       after them. */
+    const starters = starterIds(studyYear, QUESTIONS, GEN_ID_BASE);
+    if (starters.length) {
+      setRevealDeckId(folder ?? null);
+      practise(starters);
+      return;
+    }
     setLaunchFilter({ deck: "All", cat: "All" });
     setStudyScope("all");
     setAutoStart(false);
