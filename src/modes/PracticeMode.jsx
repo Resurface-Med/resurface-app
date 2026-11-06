@@ -1062,7 +1062,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <div className="feat-soon__text">
                   <h3 className="feat-soon__title">We’re working hard to add more topics and years</h3>
                   <p className="feat-soon__body">
-                    More blocks are on the way. You can make questions from your own Anki decks, lecture slides, PDFs or notes.
+                    More blocks are on the way. In the meantime, if we’ve missed anything, you can make questions from your own Anki decks, lecture slides, PDFs or notes.
                   </p>
                 </div>
                 {onGenerateInto && (
