@@ -221,7 +221,7 @@ export function HomeScreenNudge({ onDone, onClose, inline, forceKind = null }) {
         <span className="nudge-phone" aria-hidden="true">
           <span className="nudge-phone__grid">
             {[...Array(6)].map((_, i) => i === 3
-              ? <img key={i} className="nudge-phone__app" src="/icon-192.png" alt="" />
+              ? <span key={i} className="nudge-phone__app" />
               : <span key={i} className="nudge-phone__tile" />)}
           </span>
         </span>

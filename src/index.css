@@ -11423,7 +11423,10 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-phone::before { content: ""; position: absolute; top: 4px; left: 50%; width: 10px; height: 2.5px; margin-left: -5px; border-radius: 2px; background: var(--c-text); opacity: .7; }
 .nudge-phone__grid { display: grid; grid-template-columns: repeat(2, 11px); grid-auto-rows: 11px; gap: 5px; justify-content: center; }
 .nudge-phone__tile { border-radius: 3px; background: var(--c-surface3); }
-.nudge-phone__app { width: 11px; height: 11px; border-radius: 3px; display: block; animation: appDrop .7s .4s cubic-bezier(0.34, 1.5, 0.5, 1) both; }
+/* Resurface on the little home screen: a tile in the theme's accent with the
+   books in white. The app icon itself is a white tile, which vanished on
+   the white phone and left a speck of books off-centre (2026-11-06). */
+.nudge-phone__app { width: 11px; height: 11px; border-radius: 3px; display: block; background: var(--c-accent) url(/books-white.png) center / 72% no-repeat; box-shadow: 0 1px 3px rgba(15, 27, 61, 0.25); animation: appDrop .7s .4s cubic-bezier(0.34, 1.5, 0.5, 1) both; }
 .nudge-share-glyph { vertical-align: -2px; margin-right: 2px; }
 .nudge.is-home .nudge__body strong { color: var(--c-text); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .nudge-phone__app { animation: none; opacity: 1; } }
