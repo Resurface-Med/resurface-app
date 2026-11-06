@@ -10745,9 +10745,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* Home, on a laptop: the greeting is up to 42px and the streak was stuck
    at 32, so it read as a caption on the band. Phones keep the smaller one. */
 @media (min-width: 901px) {
-  .streak--home { gap: 8px; }
-  .streak--home .streak__n { font-size: 42px; letter-spacing: -1.5px; }
-  .streak--home .streak__flame { width: 34px; height: 42px; }
+  .streak--home { gap: 10px; }
+  .streak--home .streak__n { font-size: 52px; letter-spacing: -1.8px; }
+  .streak--home .streak__flame { width: 42px; height: 52px; }
 }
 .streak__flame { overflow: visible; filter: drop-shadow(0 2px 6px rgba(255, 110, 30, 0.35)); }
 .streak__outer, .streak__inner { transform-box: fill-box; transform-origin: 50% 100%; }
