@@ -140,7 +140,7 @@ export default function Dashboard({ displayName = "",
 
           {streak.streak > 0 && (
             <div data-in="right" style={{ flexShrink: 0, "--i": 1 }}>
-              <StreakFlame days={streak.streak} best={streak.longest} />
+              <StreakFlame className="streak--home" days={streak.streak} best={streak.longest} />
             </div>
           )}
         </header>
