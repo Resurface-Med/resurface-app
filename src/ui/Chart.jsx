@@ -58,13 +58,33 @@ function useWidth(ref, fallback) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const set = () => setW(Math.max(120, Math.round(el.getBoundingClientRect().width)));
+    // offsetWidth, not getBoundingClientRect. #root is zoomed on a short
+    // laptop, and a rect comes back already multiplied. The SVG width is a
+    // layout length, so the rect drew the chart short of its box.
+    const set = () => setW(Math.max(120, Math.round(el.offsetWidth)));
     set();
     const ro = new ResizeObserver(set);
     ro.observe(el);
     return () => ro.disconnect();
   }, [ref]);
   return w;
+}
+
+/**
+ * Which day the pointer is on.
+ *
+ * `x` is a screen pixel and `origin`/`width` are the chart's screen box.
+ * `laid` is that same width in SVG units. Zoom makes the screen box smaller
+ * than the drawing, so the ratio puts the pointer back into the space the
+ * days are drawn in. Without it the marker lags the cursor, further the
+ * closer you get to the right, and the recent days sit past where it can land.
+ */
+export function dayIndex(x, origin, width, laid, pad, step, count) {
+  if (!(count > 0)) return 0;
+  const scale = laid > 0 && width > 0 ? width / laid : 1;
+  const local = (x - origin) / scale;
+  if (!(step > 0)) return 0;
+  return Math.max(0, Math.min(count - 1, Math.round((local - pad) / step)));
 }
 
 /**
@@ -110,31 +130,32 @@ export function TrendChart({ points, days, unit = "", height = 260, picked = nul
   const ticks = [0, top / 2, top];
   const labelEvery = Math.max(1, Math.ceil(points.length / Math.max(2, Math.floor(iw / 90))));
 
-  const indexAt = clientX => {
-    const r = box.current.getBoundingClientRect();
-    return Math.max(0, Math.min(points.length - 1, Math.round((clientX - r.left - L) / step)));
+  const indexAt = e => {
+    const svg = e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    return dayIndex(e.clientX, rect.left, rect.width, svg.width?.baseVal?.value || W, L, step, points.length);
   };
   const drag = useRef(null);
   function down(e) {
     drag.current = { x: e.clientX, y: e.clientY, scrub: e.pointerType === "mouse" };
-    if (e.pointerType === "mouse") setHover(indexAt(e.clientX));
+    if (e.pointerType === "mouse") setHover(indexAt(e));
   }
   function move(e) {
     const d = drag.current;
-    if (e.pointerType === "mouse") { setHover(indexAt(e.clientX)); return; }
+    if (e.pointerType === "mouse") { setHover(indexAt(e)); return; }
     if (!d) return;
     if (!d.scrub && Math.abs(e.clientX - d.x) > 6 && Math.abs(e.clientX - d.x) > Math.abs(e.clientY - d.y)) {
       d.scrub = true;
       e.currentTarget.setPointerCapture?.(e.pointerId);
     }
-    if (d.scrub) setHover(indexAt(e.clientX));
+    if (d.scrub) setHover(indexAt(e));
   }
   function up(e) {
     const d = drag.current;
     drag.current = null;
     if (!d) return;
     const moved = Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y);
-    const i = indexAt(e.clientX);
+    const i = indexAt(e);
     if (moved < 8 || d.scrub) onPick?.(i);
     if (e.pointerType !== "mouse") setHover(null);
   }
