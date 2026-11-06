@@ -8,12 +8,10 @@ const GOOD = 3, AGAIN = 1, HARD = 2, EASY = 4;
 const DAY = 24 * 60 * 60 * 1000;
 
 describe("sm2Review — graduating a new card", () => {
-  it("gives a new card a 1 day interval on Good", () => {
+  it("gives a new card a 3 day interval on Good (retuned 2026-11-06)", () => {
     const r = sm2Review({}, GOOD);
     expect(r.repetitions).toBe(1);
-    expect(r.interval).toBeGreaterThanOrEqual(1);
-    // ±5% fuzz on a 1-day interval, floored at 1
-    expect(r.interval).toBeLessThanOrEqual(2);
+    expect(r.interval).toBe(3);
   });
 
   it("jumps a new card straight to ~4 days on Easy", () => {
@@ -23,27 +21,35 @@ describe("sm2Review — graduating a new card", () => {
     expect(r.easeFactor).toBeCloseTo(2.65, 5);
   });
 
-  it("holds a new card in learning steps on Hard, without counting a lapse", () => {
+  it("brings a new card back tomorrow on Hard, without counting a lapse", () => {
     const r = sm2Review({}, HARD);
     expect(r.repetitions).toBe(0);
-    expect(r.intervalMinutes).toBe(10);
+    expect(r.intervalMinutes).toBeUndefined();
+    expect(Math.round((r.dueDate - Date.now()) / DAY)).toBe(1);
     expect(r.lapses).toBe(0);
   });
 
-  it("uses the second review to set ~6 days on Good", () => {
-    const r = sm2Review({ interval: 1, repetitions: 1, easeFactor: 2.5 }, GOOD);
+  it("uses the second review to set ~10 days on Good", () => {
+    const r = sm2Review({ interval: 3, repetitions: 1, easeFactor: 2.5 }, GOOD);
     expect(r.repetitions).toBe(2);
-    expect(r.interval).toBeGreaterThanOrEqual(5);
-    expect(r.interval).toBeLessThanOrEqual(7);
+    expect(r.interval).toBeGreaterThanOrEqual(9);
+    expect(r.interval).toBeLessThanOrEqual(11);
+  });
+
+  it("starts a card relearnt after a wrong answer at 2 days", () => {
+    const wrong = sm2Review({ interval: 10, repetitions: 2, easeFactor: 2.5, lapses: 0 }, AGAIN);
+    expect(sm2Review(wrong, GOOD).interval).toBe(2);
+    expect(sm2Review(sm2Review({}, AGAIN), GOOD).interval).toBe(2);
   });
 });
 
 describe("sm2Review — lapses", () => {
-  it("sends a mature card back to a 1 minute step and counts the lapse", () => {
+  it("sends a wrong card back to tomorrow, not a minute, and counts the lapse", () => {
     const r = sm2Review({ interval: 30, repetitions: 5, easeFactor: 2.5, lapses: 0 }, AGAIN);
     expect(r.repetitions).toBe(0);
     expect(r.interval).toBe(0);
-    expect(r.intervalMinutes).toBe(1);
+    expect(r.intervalMinutes).toBeUndefined();
+    expect(Math.round((r.dueDate - Date.now()) / DAY)).toBe(1);
     expect(r.lapses).toBe(1);
   });
 
