@@ -190,6 +190,9 @@ self.addEventListener("fetch", (event) => {
   }
   if (url.origin !== self.location.origin) return;
   if (url.pathname === "/sw.js") return;
+  /* The Claude connector's consent page is not the app: answering it from
+     here would keep it as the app's offline shell. */
+  if (url.pathname.startsWith("/oauth/") || url.pathname === "/oauth-consent.html") return;
   /* The featured decks download is cached by version at the edge and kept
      in IndexedDB by the app; a second copy here would only cost space. */
   if (url.pathname.startsWith("/api/")) return;

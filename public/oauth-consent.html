@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Connect to Resurface</title>
+<link rel="icon" href="/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  The consent screen for the Claude connector (2026-11-06).
+
+  Supabase's OAuth server sends people here (Authentication → OAuth Server →
+  Authorization Path) with ?authorization_id=… when Claude asks to sign in.
+  It is a page on its own, outside the app's bundle, on purpose: shipping it
+  does not change the app's script, so students get no "new version" notice
+  and nothing in the app mentions it. It reads the same saved login as the
+  app (same origin, same Supabase project), and the service worker leaves
+  /oauth/ alone. Who may actually use the connector is decided by the server
+  (MCP_USERS in resurface-backend), not here.
+-->
+<style>
+  :root {
+    --bg: #eef2fb; --card: #fff; --text: #0f1b3d; --muted: #8a93ae; --accent: #3562f5;
+    --border: rgba(15, 27, 61, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0b1220; --card: #131c2e; --text: #e8eef8; --muted: #8b9bb4; --border: rgba(160, 180, 220, 0.14); }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: clamp(18px, 5vw, 40px); background: var(--bg); color: var(--text);
+    font-family: Poppins, system-ui, sans-serif;
+  }
+  .np {
+    width: min(500px, 100%); background: var(--card); border-radius: 24px;
+    padding: clamp(28px, 5vw, 44px); box-shadow: 0 24px 60px rgba(12, 22, 56, 0.16);
+  }
+  .np__brand { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+  .np__brand img { height: 28px; }
+  .np__title { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.5px; }
+  .np__sub { margin: 8px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+  .np__list { margin: 22px 0 0; padding: 0; list-style: none; font-size: 14.5px; line-height: 1.5; }
+  .np__list li { padding: 10px 0; border-top: 1px solid var(--border); }
+  .np__row { display: flex; align-items: center; gap: 12px; margin-top: 34px; }
+  .np__save {
+    flex: 1; padding: 13px 20px; border: 0; border-radius: 999px; background: var(--accent); color: #fff;
+    font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .np__save:disabled { opacity: 0.5; cursor: default; }
+  .np__skip { border: 0; background: none; padding: 8px 6px; font: inherit; font-size: 14.5px; color: var(--muted); cursor: pointer; }
+  .np__skip:hover { color: var(--text); }
+  .np__who { margin-top: 18px; font-size: 13px; color: var(--muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main class="np" aria-live="polite">
+  <div class="np__brand"><img id="logo" src="/logo-lockup.png" alt="Resurface"></div>
+
+  <section id="loading"><p class="np__sub">One moment…</p></section>
+
+  <section id="signin" hidden>
+    <h1 class="np__title">Sign in to Resurface first</h1>
+    <p class="np__sub">Open Resurface in this browser and sign in, then come back to this tab and press Try again.</p>
+    <div class="np__row">
+      <button class="np__save" id="retry" type="button">Try again</button>
+      <a class="np__skip" href="/" target="_blank" rel="noopener">Open Resurface</a>
+    </div>
+  </section>
+
+  <section id="ask" hidden>
+    <h1 class="np__title"><span id="client">Claude</span> wants to use your Resurface account</h1>
+    <p class="np__sub">It will be able to work on your decks while you chat with it.</p>
+    <ul class="np__list">
+      <li>See your decks and questions</li>
+      <li>Add, edit, move and delete questions and decks</li>
+      <li>Add pictures and make your decks public or hidden</li>
+    </ul>
+    <div class="np__row">
+      <button class="np__save" id="allow" type="button">Allow</button>
+      <button class="np__skip" id="deny" type="button">Cancel</button>
+    </div>
+    <p class="np__who" id="who"></p>
+  </section>
+
+  <section id="done" hidden>
+    <h1 class="np__title" id="doneTitle">Done</h1>
+    <p class="np__sub" id="doneText">You can close this tab.</p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.109.0/dist/umd/supabase.js"></script>
+<script>
+(async () => {
+  const URL_ = "https://uhqpljteohitvytwfadp.supabase.co";
+  const KEY = "sb_publishable_0ZlQhc0Gn_bD5-AFIgPOrw_xKVHv8hJ";
+  const $ = id => document.getElementById(id);
+  const show = id => { for (const s of ["loading", "signin", "ask", "done"]) $(s).hidden = s !== id; };
+  const finish = (title, text) => { $("doneTitle").textContent = title; $("doneText").textContent = text; show("done"); };
+
+  if (matchMedia("(prefers-color-scheme: dark)").matches) $("logo").src = "/logo-lockup-white.png";
+
+  const authId = new URLSearchParams(location.search).get("authorization_id");
+  if (!authId || !window.supabase) return finish("Nothing to approve", "Start again from Claude.");
+
+  const sb = window.supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+  $("retry").onclick = () => location.reload();
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return show("signin");
+
+  const { data, error } = await sb.auth.oauth.getAuthorizationDetails(authId);
+  if (error) return finish("This link has expired", "Start the connection again from Claude.");
+  if (data.redirect_url) { location.assign(data.redirect_url); return; }   // already allowed before
+
+  $("client").textContent = data.client?.name || "Claude";
+  $("who").textContent = data.user?.email ? `Signed in as ${data.user.email}` : "";
+  show("ask");
+
+  const decide = async approve => {
+    $("allow").disabled = $("deny").disabled = true;
+    const res = approve ? await sb.auth.oauth.approveAuthorization(authId) : await sb.auth.oauth.denyAuthorization(authId);
+    if (res.error) { $("allow").disabled = $("deny").disabled = false; return finish("That did not work", res.error.message); }
+    if (!approve) finish("Cancelled", "Claude was not given access. You can close this tab.");
+  };
+  $("allow").onclick = () => decide(true);
+  $("deny").onclick = () => decide(false);
+})();
+</script>
+</body>
+</html>
