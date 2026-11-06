@@ -106,7 +106,7 @@
   const KEY = "sb_publishable_0ZlQhc0Gn_bD5-AFIgPOrw_xKVHv8hJ";
   const BUCKET = "question-images";
   const TYPES = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" };
-  const MAX = 4 * 1024 * 1024;
+  const MAX = 20 * 1024 * 1024;      // before shrinking
   const $ = id => document.getElementById(id);
   const show = id => { for (const s of ["loading", "signin", "ask", "done"]) $(s).hidden = s !== id; };
   const finish = (title, text) => { $("doneTitle").textContent = title; $("doneText").textContent = text; show("done"); };
@@ -141,12 +141,29 @@
   $("question").textContent = row.payload.q || "";
   show("ask");
 
+  /* The app's own setting (src/lib/questionImage.js): 1600 px on the long
+     edge, WebP at 0.82, so the stored copy is tens of KB, not MB. */
+  const downscale = async f => {
+    const bitmap = await createImageBitmap(f);
+    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const c = canvas.getContext("2d");
+    c.imageSmoothingQuality = "high";
+    c.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close?.();
+    const webp = await new Promise(r => canvas.toBlob(r, "image/webp", 0.82));
+    if (webp && webp.type === "image/webp") return webp;
+    return new Promise(r => canvas.toBlob(r, "image/jpeg", 0.82));
+  };
+
   let file = null;
   const take = f => {
     $("err").textContent = "";
     if (!f) return;
     if (!TYPES[f.type]) { $("err").textContent = "That is not a JPEG, PNG or WebP picture."; return; }
-    if (f.size > MAX) { $("err").textContent = "That picture is over 4 MB."; return; }
+    if (f.size > MAX) { $("err").textContent = "That picture is over 20 MB."; return; }
     file = f;
     $("preview").src = URL.createObjectURL(f); $("preview").hidden = false; $("dropText").hidden = true;
     $("save").disabled = false;
@@ -161,8 +178,9 @@
   $("save").onclick = async () => {
     $("save").disabled = true; $("err").textContent = "";
     try {
-      const path = `${uid}/${crypto.randomUUID()}.${TYPES[file.type]}`;
-      const up = await sb.storage.from(BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+      const blob = await downscale(file);
+      const path = `${uid}/${crypto.randomUUID()}.${blob.type === "image/webp" ? "webp" : "jpg"}`;
+      const up = await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, upsert: false });
       if (up.error) throw up.error;
       const fresh = await load();              // the latest text, in case it changed since the page opened
       const p = { ...fresh.payload };
