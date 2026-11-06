@@ -5647,6 +5647,14 @@ html.is-deck-dragging * {
   border-radius: var(--r-card);
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.26);
+  transition: opacity 0.22s ease;
+}
+.setup-resume.is-out {
+  opacity: 0;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-resume { transition: none; }
 }
 /* Phone: under the title rather than beside it. */
 .setup-resume.is-stacked {

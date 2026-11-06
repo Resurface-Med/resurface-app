@@ -30,6 +30,61 @@ import SessionSummary from "../ui/SessionSummary";
 
 const resumeBtn = { ...fieldBtn, padding: "9px 18px", fontSize: 14 };
 const resumeGhostBtn = { ...fieldGhostBtn, padding: "9px 16px", fontSize: 14 };
+/* Left on the deck list, the bar stayed up for the whole visit (Rafil,
+   2026-11-06). It folds itself away. The session stays, so the next visit
+   offers it again. Hovering or focusing holds it. */
+const RESUME_MS = 12_000;
+
+function ResumeBar({ saved, stacked, onContinue, onDiscard }) {
+  const [out, setOut] = useState(false);
+  const [gone, setGone] = useState(false);
+  const hold = useRef(false);
+  const timer = useRef(null);
+
+  function arm() {
+    window.clearTimeout(timer.current);
+    if (hold.current) return;
+    timer.current = window.setTimeout(() => setOut(true), RESUME_MS);
+  }
+
+  useEffect(() => {
+    arm();
+    return () => window.clearTimeout(timer.current);
+  }, []);
+
+  useEffect(() => {
+    if (!out) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const t = window.setTimeout(() => setGone(true), reduce ? 0 : 220);
+    return () => window.clearTimeout(t);
+  }, [out]);
+
+  if (gone) return null;
+
+  return (
+    <div
+      className={`setup-resume${stacked ? " is-stacked" : ""}${out ? " is-out" : ""}`}
+      style={stacked ? undefined : { marginTop: 14 }}
+      onPointerEnter={() => { hold.current = true; window.clearTimeout(timer.current); }}
+      onPointerLeave={() => { hold.current = false; if (!out) arm(); }}
+      onFocus={() => { hold.current = true; window.clearTimeout(timer.current); }}
+      onBlur={e => {
+        if (e.currentTarget.contains(e.relatedTarget)) return;
+        hold.current = false;
+        if (!out) arm();
+      }}
+    >
+      <div className="setup-resume-body">
+        <p className="setup-resume-q">Continue this session?</p>
+        <p className="setup-resume-meta">{describeSession(saved)}</p>
+      </div>
+      <div className="setup-resume-acts">
+        <button className="btn-press" style={resumeBtn} onClick={onContinue}>Continue</button>
+        <button className="btn-press" style={resumeGhostBtn} onClick={onDiscard}>Discard</button>
+      </div>
+    </div>
+  );
+}
 
 /** Same measure as the dashboard, so the two screens sit on one grid. */
 const band = {
@@ -1246,16 +1301,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
             )}
 
             {savedSession && step === "topic" && (
-              <div className="setup-resume is-stacked">
-                <div className="setup-resume-body">
-                  <p className="setup-resume-q">Continue this session?</p>
-                  <p className="setup-resume-meta">{describeSession(savedSession)}</p>
-                </div>
-                <div className="setup-resume-acts">
-                  <button className="btn-press" style={resumeBtn} onClick={resumeSession}>Continue</button>
-                  <button className="btn-press" style={resumeGhostBtn} onClick={discardSession}>Discard</button>
-                </div>
-              </div>
+              <ResumeBar saved={savedSession} stacked onContinue={resumeSession} onDiscard={discardSession} />
             )}
           </div>
 
@@ -1390,16 +1436,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           )}
 
           {savedSession && step === "topic" && (
-            <div className="setup-resume" style={{ marginTop: 14 }}>
-              <div className="setup-resume-body">
-                <p className="setup-resume-q">Continue this session?</p>
-                <p className="setup-resume-meta">{describeSession(savedSession)}</p>
-              </div>
-              <div className="setup-resume-acts">
-                <button className="btn-press" style={resumeBtn} onClick={resumeSession}>Continue</button>
-                <button className="btn-press" style={resumeGhostBtn} onClick={discardSession}>Discard</button>
-              </div>
-            </div>
+            <ResumeBar saved={savedSession} onContinue={resumeSession} onDiscard={discardSession} />
           )}
         </div>
 
