@@ -990,9 +990,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     const featRoots = activeRoot ? [] : forest.filter(n => n.featured);
     const featMatch = !qNorm || prune(featRoots, qNorm).length > 0;
     const allCount = forest.reduce((n, r) => n + r.avail, 0);
-    /* Only one year is covered so far. Said where the decks are — just
-       above their heading, so it reads as about them (2026-10-20) — with the way
-       round it, so nobody in another year thinks the app is not for them. */
+    /* What is on the app now, said where the decks are — just above their
+       heading, so it reads as about them (2026-10-20). */
     const soonNote = !qNorm ? <div className="feat-soon-wrap" ref={soonWrap}>{soonHidden ? (
               <button type="button" className="feat-soon-line btn-press" onClick={toggleSoon} aria-expanded="false">
                 <img src="/icon-192.png" alt="" aria-hidden="true" width="22" height="22" />
@@ -1008,10 +1007,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 <div className="feat-soon__text">
                   <h3 className="feat-soon__title">We’re working hard to add more topics and years</h3>
                   <p className="feat-soon__body">
-                    Year 1 has Principles and Respiratory, and Year 2 has Renal and Endocrine.
-                    We’re adding the next blocks as the year goes on, and working on the other
-                    years. In the meantime, you can make questions from your own Anki decks,
-                    lecture slides, PDFs or notes.
+                    Year 1 has Principles, Respiratory and Gastrointestinal. Year 2 has Renal and Endocrine. More blocks are on the way.
                   </p>
                 </div>
                 {onGenerateInto && (
