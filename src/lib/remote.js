@@ -590,12 +590,19 @@ function shapeFeatured(data) {
      itself — and carries the byline; `id` is the real deck. */
   const roots = (data.roots ?? []).map(r => ({ ...r, top: r.top ?? r.id, name: names.get(r.top ?? r.id) ?? "" }));
   const byTop = new Map(roots.map((r, i) => [r.top, { byline: r.byline, at: i }]));
+  /* The credit sits on each ready-made deck itself (Principles by Rafil),
+     not on the year heading it is filed under (Rafil, 2026-11-06): a year
+     can hold decks by different people. `top` still marks what heads the
+     list, which is what can be hidden. */
+  const byRoot = new Map(roots.map(r => [r.id, r]));
+  const tops = new Set(roots.map(r => r.top));
   return {
     roots,
     decks: (data.decks ?? []).map(d => ({
       id: d.id, name: d.name, parentId: d.parentId,
       position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
-      featured: true, root: d.root, byline: d.parentId ? null : byTop.get(d.id)?.byline ?? null,
+      featured: true, root: d.root, top: tops.has(d.id),
+      byline: byRoot.has(d.id) ? byRoot.get(d.id).byline ?? null : null,
       /* A heading the decks are grouped under ("Year 2"), not a deck: there
          is no row behind it, so nothing can be put in it. */
       folder: roots.some(r => r.top === d.id && r.top !== r.id),

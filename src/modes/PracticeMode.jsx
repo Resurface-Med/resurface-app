@@ -842,7 +842,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
 
     /* What a row's menu offers: your decks the lot. A ready-made folder can
        be hidden. An admin also manages questions on every deck inside it —
-       the byline, and so the hide, live only on the folder. */
+       the hide lives only on what heads the list (the folder); each deck
+       inside carries its own byline. */
     /* Rows carry the id drawn at the top (a folder, perhaps); hiding is
        keyed on the real deck. */
     const hideFeatured = topId => {
@@ -959,7 +960,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       ...(adminSub(node).length ? [{ label: "Admin", sub: adminSub(node) }] : []),
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
-    ] : node.byline && onHideFeatured ? featuredMenu(node)
+    ] : node.top && onHideFeatured ? featuredMenu(node)
       : node.featured && (manageFeatured.length || fileItems(node).length) ? [...manageFeatured, ...featuredAdmin(node)]
       : null;
     const qNorm = topicQuery.trim().toLowerCase();
@@ -970,7 +971,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       <>
         {hiddenFeatured.map(r => (
           <p key={r.id} className="feat-hidden">
-            {r.byline}’s {r.name} deck is hidden.{" "}
+            {r.top && r.top !== r.id ? `${r.name} is hidden.` : `${r.byline ? `${r.byline}’s ` : ""}${r.name} deck is hidden.`}{" "}
             <button type="button" className="gen-link" onClick={() => onHideFeatured?.(r.id, false)}>Show it</button>
           </p>
         ))}
@@ -1308,7 +1309,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                       )}
                       {activeRoot?.featured && (
                         <div className="tg-editbar">
-                          <span className="tg-editbar-meta">{activeRoot.total} question{activeRoot.total === 1 ? "" : "s"} · by {activeRoot.byline}</span>
+                          <span className="tg-editbar-meta">{activeRoot.total} question{activeRoot.total === 1 ? "" : "s"}{activeRoot.byline ? ` · by ${activeRoot.byline}` : ""}</span>
                           <button type="button" className="gen-link" onClick={() => hideFeatured(activeRoot.id)}>Hide</button>
                         </div>
                       )}

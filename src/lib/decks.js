@@ -85,7 +85,7 @@ export function buildForest({ questions, decks, pStats, eligible, due = null, ro
     /* A featured deck (someone else's, read live) is drawn like yours but
        is not yours: no menu of yours, no dragging, and its byline. */
     const n = node(d.id, d.name, parent, !d.featured);
-    if (d.featured) { n.featured = true; n.byline = d.byline ?? null; if (d.folder) n.folder = true; }
+    if (d.featured) { n.featured = true; n.byline = d.byline ?? null; if (d.top) n.top = true; if (d.folder) n.folder = true; }
     /* A folder of yours inside a ready-made deck: marked, since nobody
        else sees it. Only the top one; what is in it is plainly yours too. */
     else if (parent?.featured) { n.yours = true; if (parent.folder) n.shelved = true; }

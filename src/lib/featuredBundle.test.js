@@ -39,6 +39,15 @@ describe("assembleFeatured", () => {
     expect(f.questions.find(q => q.id === GEN_ID_BASE + 2).topic).toBeUndefined();
   });
 
+  it("credits each deck, not the year heading it is filed under", () => {
+    const f = assembleFeatured(bundle, mine);
+    const by = Object.fromEntries(f.decks.map(d => [d.id, [d.byline, d.top]]));
+    expect(by.F).toEqual([null, true]);       // "Year 1": no credit, but it is what can be hidden
+    expect(by.A).toEqual(["Rafil", false]);   // Resp inside it carries its own
+    expect(by.B).toEqual(["Jacob", true]);    // a deck with no heading keeps both
+    expect(by.A1[0]).toBeNull();
+  });
+
   it("merges the per-person part and keeps the featured shape", () => {
     const f = assembleFeatured(bundle, mine);
     expect(f.roots.map(r => [r.id, r.hidden, r.copyId, r.name])).toEqual([["A", true, null, "Year 1"], ["B", false, "c1", "Renal"]]);
