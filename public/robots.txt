@@ -1,0 +1,6 @@
+# app.tryresurface.com: the sign-in page can be found; the rest is behind a login.
+User-agent: *
+Allow: /$
+Disallow: /oauth/
+
+Sitemap: https://tryresurface.com/sitemap.xml
