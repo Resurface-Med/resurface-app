@@ -9,6 +9,10 @@
       "destination": "/oauth-consent.html"
     },
     {
+      "source": "/oauth/upload",
+      "destination": "/oauth-upload.html"
+    },
+    {
       "source": "/((?!assets/|api/).*)",
       "destination": "/index.html"
     }
