@@ -213,7 +213,10 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     }
     return { ...defaultFilter, year: ["Year 1"], leaves: NONE };
   });
-  const [countOpt, setCountOpt] = useState(20);
+  /* 10, not 20 (2026-11-06). Of 828 sessions, those of 1-10 questions were
+     finished 87% of the time and those of 11-20 only 63%; finishing is what
+     reaches the results page. Still one slide away for anyone who wants more. */
+  const [countOpt, setCountOpt] = useState(10);
   const [topicQuery, setTopicQuery] = useState("");
 
   /* The tab across the top: null is All, otherwise a root deck's id. A
@@ -322,7 +325,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     onAutoStartConsumed?.();
     if (autoStart.ids) startWith(autoStart.ids, autoStart.limit);
     /* "Review 87 due" (and Wrong, Saved) means all of them, not the Study
-       screen's default 20 (2026-10-28: a friend got 20 at a time). Every
+       screen's default (2026-10-28: a friend got 20 at a time). Every
        answer saves, so stopping halfway loses nothing. */
     else start({ ...filter, leaves: ["All"] }, "All");
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
