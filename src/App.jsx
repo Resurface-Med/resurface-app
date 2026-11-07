@@ -242,7 +242,11 @@ export default function App() {
   const [featured, setFeatured] = useState({ roots: [], decks: [], questions: [] });
   const featuredRef = useRef(featured);
   const hiddenRoots = new Set(featured.roots.filter(r => r.hidden).map(r => r.id));
-  const featuredDecks = featured.decks.filter(d => !hiddenRoots.has(d.root));
+  /* Your year's heading first among the ready-made decks (Rafil,
+     2026-11-06): a Year 1 student sees Year 1 above Year 2. The rest keep
+     the order they were published in. */
+  const featuredDecks = featured.decks.filter(d => !hiddenRoots.has(d.root))
+    .map(d => (d.folder && !d.parentId && studyYear && d.name === `Year ${studyYear}` ? { ...d, position: d.position - 1e9 } : d));
   /* Yours, less any served back to you as ready-made (lib/decks servedTree). */
   const served = servedTree(decks, featured.roots);
   const shownDecks = served.size ? decks.filter(d => !served.has(d.id)) : decks;
@@ -272,11 +276,16 @@ export default function App() {
   useEffect(() => { if (reveal && welcomeNote && user) logStep(user.id, "note_shown"); }, [reveal, Boolean(welcomeNote)]); // eslint-disable-line react-hooks/exhaustive-deps
   const firstFolder = yearFolder(featured, studyYear);
   /* Home's "attempted" counts your year's Resurface decks and your own
-     decks; another year's ready-made decks are left out (2026-11-04). */
+     decks; another year's ready-made decks are left out (2026-11-04), and
+     so is your own copy of one (2026-11-07): a Year 2 student with a kept
+     copy of a Year 1 deck saw it counted in their progress. */
   const inBank = useMemo(() => {
     const ids = new Set(yearDecks(featured, studyYear).map(d => d.id));
     if (!ids.size) return null;
-    return q => !q.featured || (q.path ?? []).some(p => ids.has(p.id));
+    const otherCopies = new Set((featured.roots ?? []).filter(r => r.copyId && !ids.has(r.id)).map(r => r.copyId));
+    return q => (q.featured
+      ? (q.path ?? []).some(p => ids.has(p.id))
+      : !(q.path ?? []).some(p => otherCopies.has(p.id)));
   }, [featured, studyYear]);
   /* The note's way in: Study, with your year's ready-made decks expanded
      (Rafil, 2026-10-26, after trying a taster picker that muddied it). */
@@ -1107,6 +1116,34 @@ export default function App() {
    * It has to be measured: no stylesheet knows the height of two bands.
    */
   const stackRef = useRef(null);
+  /* The wheel scrolls the page from anywhere around it (Rafil, 2026-11-06).
+     The page scrolls inside .app-main, so the strip between the sidebar and
+     the content, and the empty sidebar, had nothing under the pointer to
+     scroll: you had to move onto the content first. A wheel that nothing
+     else would use now scrolls the page. Dialogs and a running session are
+     left alone. */
+  useEffect(() => {
+    const canScroll = (el, dy) => {
+      for (let n = el; n && n !== document.body; n = n.parentElement) {
+        if (n.classList?.contains("app-main")) return true;
+        const oy = getComputedStyle(n).overflowY;
+        if ((oy === "auto" || oy === "scroll") && n.scrollHeight > n.clientHeight + 1) {
+          if (dy > 0 ? n.scrollTop + n.clientHeight < n.scrollHeight - 1 : n.scrollTop > 0) return true;
+        }
+      }
+      return false;
+    };
+    const onWheel = e => {
+      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const t = e.target instanceof Element ? e.target : null;
+      if (!t || !t.closest(".app-shell") || t.closest('[role="dialog"], .quiz-shell, .app-shell.is-session')) return;
+      if (canScroll(t, e.deltaY)) return;
+      const main = document.querySelector(".app-main");
+      if (main) main.scrollBy({ top: e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * main.clientHeight : e.deltaY });
+    };
+    window.addEventListener("wheel", onWheel, { passive: true });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, []);
   useLayoutEffect(() => {
     if (!switching) return;
     let done = false;
