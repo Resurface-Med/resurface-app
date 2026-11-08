@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { formatClock } from "../lib/timed";
 import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
@@ -40,6 +41,8 @@ export default function QuizShell({
   peerSplit = null,
   /* The practice session, so Resurface AI counts its replies per sitting. */
   sessionId = null,
+  /* A timed session's clock (lib/timed): { startedAt, limitMs, onUp }. */
+  clock = null,
 }) {
   /* Options covered until you've thought of an answer (2026-11-05). Starts
      from the Profile setting; the eye in the bar switches it for this
@@ -343,6 +346,7 @@ export default function QuizShell({
           <span className="quiz-shell__count">
             {position}/{total}
           </span>
+          <SessionClock clock={clock} />
 
           <button
             type="button"
@@ -599,5 +603,32 @@ export default function QuizShell({
         </div>
       </footer>
     </div>
+  );
+}
+
+/* The time left in a timed session, counting down beside the question count.
+   It turns red in the last minute and calls onUp once when it reaches zero. */
+function SessionClock({ clock }) {
+  const [now, setNow] = useState(() => Date.now());
+  const started = clock?.startedAt ?? null;
+  const onUp = useRef(null);
+  useEffect(() => { onUp.current = clock?.onUp ?? null; });
+  const fired = useRef(null);
+  useEffect(() => {
+    if (started == null) return;
+    const t = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(t);
+  }, [started]);
+  const left = clock ? clock.startedAt + clock.limitMs - now : 0;
+  useEffect(() => {
+    if (started == null || left > 0 || fired.current === started) return;
+    fired.current = started;
+    onUp.current?.();
+  }, [started, left]);
+  if (!clock) return null;
+  return (
+    <span className={`quiz-shell__clock${left < 60_000 ? " is-low" : ""}`} role="timer" aria-label={`Time left ${formatClock(left)}`}>
+      {formatClock(left)}
+    </span>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { timedLine } from "../lib/timed";
 import { C, h1, pageSub, sectionH, eyebrowField, primaryBtn, btnGhost } from "./theme";
 import ProgressBar from "./ProgressBar";
 import Wave from "./Wave";
@@ -52,7 +53,7 @@ const band = {
   width: "100%",
 };
 
-export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong, onOpenPast = null, reward = null }) {
+export default function SessionSummary({ results, title, onRestart, onChangeSettings, onDrillWrong, onOpenPast = null, reward = null, timed = null }) {
   const [showWrong, setShowWrong] = useState(false);
 
   /* Skipped questions aren't scored (2026-11-05); they stay in the list of
@@ -101,6 +102,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
         <p data-in="left" style={{ ...pageSub, maxWidth: "44ch", "--i": 2 }}>
           {verdictLine(correct, total)}
           {skipped > 0 && <> {skipped} skipped, not counted.</>}
+          {timed && <> {timedLine(timed)}</>}
         </p>
       </div>
 

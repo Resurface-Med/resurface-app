@@ -6130,6 +6130,15 @@ html.is-deck-dragging * {
   color: var(--c-on-field-soft);
   font-variant-numeric: tabular-nums;
 }
+/* A timed session's countdown, beside the count and in the same type. */
+.quiz-shell__clock {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-on-field-soft);
+  font-variant-numeric: tabular-nums;
+}
+.quiz-shell__clock.is-low { color: var(--c-danger); }
 /* Two tracks in both states, the first collapsing to nothing when the rail is
    shut. One track closed and two open cannot be interpolated, so it snapped —
    and the question jumped sideways the instant the button was pressed. Now the

@@ -9,6 +9,7 @@ import { useAuth } from "../lib/auth";
 import Wave from "../ui/Wave";
 import QuizShell from "../ui/QuizShell";
 import { filteredQuestions, defaultFilter } from "../ui/FilterPanel";
+import { timeLimit } from "../lib/timed";
 import DeckTree, { prune } from "../ui/DeckTree";
 import { DeckControls, DeckNameForm, ShareSheet } from "../ui/DeckControls";
 import { buildForest, leavesUnder, findNode, deckShareUrl, walk, shelve, questionsInDeck } from "../lib/decks";
@@ -272,6 +273,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
      finished 87% of the time and those of 11-20 only 63%; finishing is what
      reaches the results page. Still one slide away for anyone who wants more. */
   const [countOpt, setCountOpt] = useState(10);
+  /* Timed sessions (lib/timed): the clock for the session running now,
+     { startedAt, limitMs }, and how the last timed one went, for the
+     results page. Only Start makes a timed session; redoing past ones,
+     drilling the wrong ones and resuming are untimed. */
+  const [timer, setTimer] = useState(null);
+  const [timedResult, setTimedResult] = useState(null);
   const [topicQuery, setTopicQuery] = useState("");
 
   /* The tab across the top: null is All, otherwise a root deck's id. A
@@ -557,6 +564,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setSessionFilter(f);
     newSid();
     setQueue(q); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
+    setTimedResult(null);
+    setTimer(f.timed === true ? { startedAt: Date.now(), limitMs: timeLimit(q.length) } : null);
   }
 
   /* Someone who has never answered a question: the deck list explains
@@ -586,6 +595,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setSessionFilter(null);
     newSid();
     setQueue(qs.map(shuffleOptions)); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
+    setTimer(null); setTimedResult(null);
   }
 
 
@@ -617,6 +627,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
     setQueue(restoredQueue); setIdx(s.idx ?? 0); setSels(restoredSels);
     setSC(s.sC ?? 0); setST(s.sT ?? 0);
     setResults(restoredResults); setSavedSession(null);
+    setTimer(null); setTimedResult(null);
   }
 
   /* A past session: carried on from where it was left ("continue", which
@@ -654,6 +665,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       : Math.min(got.queue.length - 1, (rec.items ?? []).slice(0, at).filter(it => live.has(it.id)).length);
     setQueue(got.queue); setIdx(startAt); setSels(got.sels); setResults(restored);
     setSC(answered.filter(r => r.correct).length); setST(answered.length);
+    setTimer(null); setTimedResult(null);
   }
   const [pastOpen, setPastOpen] = useState(false);
 
@@ -798,6 +810,24 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       }
       setResults(prev => ({ ...prev, ...extra }));
     }
+    if (timer) setTimedResult({ limitMs: timer.limitMs, usedMs: Date.now() - timer.startedAt, ranOut: false });
+    setTimer(null);
+    saveSession(true);
+    localStorage.removeItem(SESSION_KEY);
+    setQueue(null);
+  }
+
+  /* The clock ran out: what was left unanswered is skipped, as when you
+     finish with questions open, and the session ends on the results page. */
+  function handleTimeUp() {
+    if (!queue || !timer) return;
+    const extra = {};
+    queue.forEach((q, i) => {
+      if (sels[i] === undefined) extra[i] = { id: q.id, q: q.q, cat: q.cat, correct: false, skipped: true, correctAnswer: q.opts[q.ans] };
+    });
+    setResults(prev => ({ ...prev, ...extra }));
+    setTimedResult({ limitMs: timer.limitMs, usedMs: timer.limitMs, ranOut: true });
+    setTimer(null);
     saveSession(true);
     localStorage.removeItem(SESSION_KEY);
     setQueue(null);
@@ -832,9 +862,11 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
           localStorage.removeItem(SESSION_KEY);
           newSid();
           setQueue(qs); setIdx(0); setSels({}); setResults({}); setSC(0); setST(0);
+          setTimer(null); setTimedResult(null);
         }}
         onChangeSettings={() => { setResults({}); setStep("topic"); setScope("all"); }}
         onOpenPast={onSessionSave ? () => setPastOpen(true) : null}
+        timed={timedResult}
       />
       </>
     );
@@ -1186,6 +1218,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                 onChange={() => setFilter(f => ({ ...f, retryWrong: f.retryWrong !== true }))}
                 label="Repeat wrong"
                 hint="Ask a question again later in the session if you get it wrong"
+              />
+              <OptCheck
+                on={filter.timed === true}
+                onChange={() => setFilter(f => ({ ...f, timed: f.timed !== true }))}
+                label="Timed"
+                hint="One minute per question, like the exam"
               />
             </div>
           </div>
@@ -1604,6 +1642,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       }
       onRequestExit={onRequestExit}
       peerSplit={peerSplit}
+      clock={timer ? { ...timer, onUp: handleTimeUp } : null}
     />
   );
 }
