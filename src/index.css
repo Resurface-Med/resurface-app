@@ -6130,15 +6130,28 @@ html.is-deck-dragging * {
   color: var(--c-on-field-soft);
   font-variant-numeric: tabular-nums;
 }
-/* A timed session's countdown, beside the count and in the same type. */
-.quiz-shell__clock {
-  flex-shrink: 0;
-  font-size: 14px;
+/* A timed session's countdown (Rafil, 2026-11-08: floating at the top
+   right, not in the bar). A solid white capsule, red in the last minute:
+   the session sits on the blue band, so it separates by colour, not by a
+   shadow or a tint. */
+.session-clock {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 76px);
+  right: max(16px, calc((100vw - 1180px) / 2));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px 7px 11px;
+  border-radius: 999px;
+  background: #fff;
+  color: #0f1b3d;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--c-on-field-soft);
   font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
-.quiz-shell__clock.is-low { color: var(--c-danger); }
+.session-clock.is-low { background: var(--c-danger); color: #fff; }
 /* Two tracks in both states, the first collapsing to nothing when the rail is
    shut. One track closed and two open cannot be interpolated, so it snapped —
    and the question jumped sideways the instant the button was pressed. Now the

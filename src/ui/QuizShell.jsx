@@ -4,7 +4,7 @@ import EditQuestionModal from "./EditQuestionModal";
 import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import NavChevron from "./NavChevron";
-import { Eye, EyeOff, NotebookPen, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Eye, EyeOff, NotebookPen, PanelLeftClose, PanelLeftOpen, Timer } from "lucide-react";
 import { usePref } from "../lib/prefs";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
@@ -323,6 +323,7 @@ export default function QuizShell({
         document.body,
       )}
       <SideVideos videos={videos} railOpen={railOpen} aiOpen={showAi} />
+      {clock && createPortal(<SessionClock clock={clock} />, document.body)}
       <header className="quiz-shell__header">
         <button
           type="button"
@@ -346,7 +347,6 @@ export default function QuizShell({
           <span className="quiz-shell__count">
             {position}/{total}
           </span>
-          <SessionClock clock={clock} />
 
           <button
             type="button"
@@ -606,7 +606,7 @@ export default function QuizShell({
   );
 }
 
-/* The time left in a timed session, counting down beside the question count.
+/* The time left in a timed session, floating at the top right of the screen.
    It turns red in the last minute and calls onUp once when it reaches zero. */
 function SessionClock({ clock }) {
   const [now, setNow] = useState(() => Date.now());
@@ -627,8 +627,9 @@ function SessionClock({ clock }) {
   }, [started, left]);
   if (!clock) return null;
   return (
-    <span className={`quiz-shell__clock${left < 60_000 ? " is-low" : ""}`} role="timer" aria-label={`Time left ${formatClock(left)}`}>
-      {formatClock(left)}
-    </span>
+    <div className={`session-clock${left < 60_000 ? " is-low" : ""}`} role="timer" aria-label={`Time left ${formatClock(left)}`}>
+      <Timer size={15} strokeWidth={2.4} aria-hidden="true" />
+      <span>{formatClock(left)}</span>
+    </div>
   );
 }
