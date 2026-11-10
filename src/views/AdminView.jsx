@@ -62,6 +62,13 @@ function joinedAgo(iso) {
   if (hrs < 48) return `${hrs} h ago`;
   return t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
+/* "Today, 14:32": the day from activity, the time of the last answer
+   (answer_log, 0079) when it fell on that same day. */
+function lastStudied(p) {
+  const base = ago(p.last_active);
+  if (!p.last_at || !p.last_active || dayKey(p.last_at) !== String(p.last_active).slice(0, 10)) return base;
+  return `${base}, ${new Date(p.last_at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+}
 const nameOf = p => p.display_name || p.email?.split("@")[0] || "Unknown";
 
 /** Where someone stands, from when they last studied and on how many days. */
@@ -514,7 +521,7 @@ function People() {
   const inYear = rows.filter(yf.test);
   const shown = inYear.filter(f.test).filter(p => !q || [p.display_name, p.email].some(t => (t ?? "").toLowerCase().includes(q)));
   const sorted = [...shown].sort((a, b) =>
-    sort === "seen" ? String(b.last_active ?? "").localeCompare(String(a.last_active ?? ""))
+    sort === "seen" ? String(b.last_active ?? "").localeCompare(String(a.last_active ?? "")) || String(b.last_at ?? "").localeCompare(String(a.last_at ?? ""))
     : sort === "week" ? (week.get(b.user_id) ?? 0) - (week.get(a.user_id) ?? 0)
     : sort === "total" ? Number(b.answered) - Number(a.answered)
     : String(b.joined).localeCompare(String(a.joined)));
@@ -576,7 +583,7 @@ function People() {
                     </span>
                   </th>
                   <td className="ax-dim" data-label="Joined">{dmy(p.joined)}</td>
-                  <td className={p.last_active ? "" : "ax-dim"} data-label="Last studied">{ago(p.last_active)}</td>
+                  <td className={p.last_active ? "" : "ax-dim"} data-label="Last studied">{lastStudied(p)}</td>
                   <td className="ax-num" data-label="This week">{nf(week.get(p.user_id) ?? 0)}</td>
                   <td className="ax-num ax-dim" data-label="Answered">{nf(p.answered)}</td>
                   <td className="ax-trend"><Spark points={trend.get(p.user_id) ?? Array(30).fill(0)} /></td>
