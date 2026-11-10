@@ -6193,7 +6193,8 @@ html.is-deck-dragging * {
 .quiz-rail__head {
   animation: rs-left 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  min-height: 26px;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 8px;
@@ -8717,33 +8718,26 @@ html.is-deck-dragging * {
 }
 .app-nav__signout:hover { background: var(--c-surface2); color: var(--c-text); }
 
-/* Score at the foot of a session's question list (2026-11-10): the number
-   does the work, by size and weight — no card, no fill. */
-.quiz-rail__score {
-  flex-shrink: 0;
-  margin-top: 10px;
-  padding: 14px 4px 2px 10px;
-  border-top: 1px solid var(--c-border);
-}
-.score-fig__top {
-  display: flex;
+/* This session's score beside the list's title (2026-11-10). */
+.rail-score {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--c-muted);
+  white-space: nowrap;
 }
-.score-fig__pct {
-  font-size: 34px;
+.rail-score__pct {
+  font-size: 16px;
   font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.03em;
   color: var(--c-text);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
 }
-.score-fig__pct.is-hidden { color: var(--c-muted); letter-spacing: -0.12em; }
-.score-fig__unit { font-size: 18px; margin-left: 1px; color: var(--c-muted); letter-spacing: 0; }
-.score-fig__eye {
-  width: 32px;
-  height: 32px;
+.rail-score__eye {
+  width: 26px;
+  height: 26px;
+  margin-left: -2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -8753,14 +8747,7 @@ html.is-deck-dragging * {
   color: var(--c-muted);
   cursor: pointer;
 }
-.score-fig__eye:hover { background: var(--c-surface2); color: var(--c-text); }
-.score-fig__sub {
-  margin: 2px 0 0;
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--c-muted);
-}
-.score-fig__top + .score-fig__sub { margin-top: 8px; }
+.rail-score__eye:hover { background: var(--c-surface2); color: var(--c-text); }
 
 /* Share on a phone: a full-screen page rather than a card in a scrim, the
    link and both buttons full width, clear of the notch and home bar. */
