@@ -11209,6 +11209,10 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .ax-who { font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ax-meta { font-size: 13.5px; color: var(--c-muted); white-space: nowrap; }
 .ax-rows .ax-num { font-weight: 600; }
+/* Sign-ups: how long ago, right-aligned before the answered count, which
+   keeps a fixed width so the times line up. */
+.ax-when { margin-left: auto; font-size: 13.5px; color: var(--c-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ax-when + span { min-width: 84px; text-align: right; }
 
 .ax-attention { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 48px; padding: 26px 0 0; margin-top: 18px; border-top: 1px solid var(--c-border); }
 .ax-attention__head { display: flex; justify-content: space-between; align-items: baseline; }

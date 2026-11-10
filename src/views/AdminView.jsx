@@ -52,6 +52,16 @@ function ago(key) {
   if (n < 14) return `${n} days ago`;
   return dmy(key);
 }
+/* How long ago someone joined: minutes, then hours up to two days, then the
+   time of day (the calendar already says which day). */
+function joinedAgo(iso) {
+  const t = new Date(iso);
+  const mins = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (mins < 60) return mins <= 1 ? "Just now" : `${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 48) return `${hrs} h ago`;
+  return t.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+}
 const nameOf = p => p.display_name || p.email?.split("@")[0] || "Unknown";
 
 /** Where someone stands, from when they last studied and on how many days. */
@@ -357,7 +367,10 @@ function Activity() {
   const byId = useMemo(() => new Map((rows ?? []).map(p => [p.user_id, p])), [rows]);
   const list = [...(source.get(day) ?? new Map())]
     .map(([id, n]) => ({ p: byId.get(id), n })).filter(x => x.p)
-    .sort((a, b) => b.n - a.n || nameOf(a.p).localeCompare(nameOf(b.p)));
+    /* Sign-ups newest first, by when they joined (Rafil, 2026-11-10); the
+       rest by how much they did. */
+    .sort((a, b) => (mode === "signed" ? new Date(b.p.joined) - new Date(a.p.joined) : 0)
+      || b.n - a.n || nameOf(a.p).localeCompare(nameOf(b.p)));
   const total = list.reduce((a, x) => a + x.n, 0);
   const m = MODES.find(x => x.k === mode);
 
@@ -413,6 +426,7 @@ function Activity() {
               {list.map(({ p, n }) => (
                 <li key={p.user_id}>
                   <span className="ax-who">{nameOf(p)}{p.study_year ? <span className="ax-year">Y{p.study_year}</span> : null}</span>
+                  {mode === "signed" && <span className="ax-when" title={new Date(p.joined).toLocaleString("en-GB")}>{joinedAgo(p.joined)}</span>}
                   <span className={mode === "signed" && !n ? "ax-meta" : "ax-num"}>{mode === "signed" && !n ? "Not started" : nf(n)}</span>
                 </li>
               ))}
