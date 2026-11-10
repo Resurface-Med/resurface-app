@@ -38,12 +38,20 @@ describe("selectAll", () => {
     const t = fakeTable(2500);
     const { data } = await selectAll(t.query, "id");
     expect(data).toHaveLength(2500);
-    expect(t.calls).toEqual([[0, PAGE - 1], [PAGE, 2 * PAGE - 1], [2 * PAGE, 3 * PAGE - 1]]);
+    expect(t.calls.slice(0, 3)).toEqual([[0, PAGE - 1], [PAGE, 2 * PAGE - 1], [2 * PAGE, 3 * PAGE - 1]]);
+  });
+  it("asks for one page alone, then the rest in parallel batches", async () => {
+    const small = fakeTable(10);
+    await selectAll(small.query, "id");
+    expect(small.calls).toHaveLength(1);
+    const big = fakeTable(6400);
+    expect((await selectAll(big.query, "id")).data.map(r => r.id)).toEqual(Array.from({ length: 6400 }, (_, i) => i));
+    expect(big.calls).toHaveLength(9);
   });
   it("stops after an exact multiple with one empty page", async () => {
     const t = fakeTable(PAGE);
     expect((await selectAll(t.query, "id")).data).toHaveLength(PAGE);
-    expect(t.calls).toHaveLength(2);
+    expect(t.calls).toHaveLength(1 + 4);
   });
   it("passes an error through rather than returning a partial list", async () => {
     const query = () => ({ order: () => ({ range: () => Promise.resolve({ data: null, error: new Error("x") }) }) });

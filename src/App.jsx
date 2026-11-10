@@ -526,12 +526,19 @@ export default function App() {
      everything still queued, and anything sent while this was in flight
      (lib/overlay). Without that, an answer given offline showed as undone
      until the next load, and answering again counted from the old total. */
+  /* The queue drains alongside the load, not before it: a long queue, or a
+     slow write, held every load behind it (15 to 90 s on some phones,
+     2026-11-10), which the app then reported as being offline. Every op
+     overlays absolute values, so one sent during the load is laid over it
+     either way — except new questions (generated-add), which the overlay
+     cannot rebuild, so a queue holding those still goes first. */
   async function fetchFresh(uid) {
     const since = Date.now();
-    await flushQueue();
-    mark("flush");
+    const queued = pendingOps();
+    const flush = flushQueue().catch(() => {}).then(() => mark("flush"));
+    if (queued.some(op => op.kind === "generated-add")) await flush;
     const d = await loadAll(uid);
-    return overlayOps(d, pendingOps(since));
+    return overlayOps(d, [...queued, ...pendingOps(since)].sort((a, b) => (a.at ?? 0) - (b.at ?? 0)));
   }
 
   /* A link to a featured deck has nothing to add: it is already on
@@ -650,8 +657,15 @@ export default function App() {
         if (cancelled) return;
         /* Nothing is applied on this path, so the pool keeps whatever it had
            rather than being replaced with the empty results of a failed
-           fetch. With a copy on screen, that is all this means: offline. */
-        setOnline(false);
+           fetch. A slow or failed load is not being offline: only if the
+           server cannot be reached at all is it called that — otherwise
+           Admin and everything server-only was shut off on a good network. */
+        const reachable = await probe(SUPABASE_URL);
+        if (cancelled) return;
+        if (!reachable) setOnline(false);
+        /* Reachable with the device's copy on screen: try again shortly,
+           without the loading screen (offline is retried by the timer). */
+        else if (cached) setTimeout(() => { if (!cancelled) refreshData(); }, 3000);
         if (cached) return;
         setLoadError(prev => (prev === "offline" ? prev : e?.message || "Could not reach the server."));
         setDataLoading(false);

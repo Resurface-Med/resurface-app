@@ -278,6 +278,12 @@ function apply(op) {
  * questions twice. A second caller waits for the first instead.
  */
 let flushing = null;
+const OP_LIMIT_MS = 10000;
+const withLimit = (p, ms) => {
+  let t;
+  return Promise.race([p, new Promise((_, reject) => { t = setTimeout(() => reject(new Error("timeout")), ms); })])
+    .finally(() => clearTimeout(t));
+};
 export function flushQueue() {
   if (!flushing) flushing = runFlush().finally(() => { flushing = null; });
   return flushing;
@@ -291,14 +297,18 @@ async function runFlush() {
   let flushed = 0;
   for (const op of start) {
     try {
-      const { error } = await apply(op);
+      const { error } = await withLimit(apply(op), OP_LIMIT_MS);
       if (error) throw error;
       flushed += 1;
       writeQueue(dropOnce(readQueue(), op));
     } catch (e) {
-      /* Left where it is, to be tried again next time — unless the server
-         will never take it. */
+      /* The server will never take it: dropped. The server was not reached
+         at all (no network, a timeout — an error with no code): every op
+         behind it would fail the same way, so they wait for the next flush
+         instead of each spending a timeout finding that out. Any other
+         answer from the server is about this op only, and the rest go on. */
       if (isPermanent(e)) writeQueue(dropOnce(readQueue(), op));
+      else if (!e?.code) break;
     }
   }
   return { flushed, remaining: readQueue().length };
@@ -318,13 +328,20 @@ export function queuedCount() {
  * fixed order so the pages neither overlap nor skip, until a short page.
  */
 export const PAGE = 1000;
+/* Pages after the first are fetched BATCH at a time, in parallel: an
+   account that owns the featured decks has 6,000+ rows, and seven pages one
+   after another were seven round trips on every load. */
+const BATCH = 4;
 export async function selectAll(query, orderBy) {
+  const page = from => query().order(orderBy).range(from, from + PAGE - 1);
   const rows = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await query().order(orderBy).range(from, from + PAGE - 1);
-    if (error) return { data: null, error };
-    rows.push(...(data ?? []));
-    if (!data || data.length < PAGE) return { data: rows, error: null };
+  for (let from = 0, n = 1; ; from += n * PAGE, n = BATCH) {
+    const pages = await Promise.all(Array.from({ length: n }, (_, i) => page(from + i * PAGE)));
+    for (const { data, error } of pages) {
+      if (error) return { data: null, error };
+      rows.push(...(data ?? []));
+      if (!data || data.length < PAGE) return { data: rows, error: null };
+    }
   }
 }
 
@@ -737,23 +754,24 @@ export async function adminDeleteAnnouncement(id) {
 }
 
 /* Admin control of the Resurface (featured) decks — migration 0021. Ids
-   from the pool carry GEN_ID_BASE; the table's do not. */
-export async function adminEditFeatured(id, payload) {
-  const { error } = await supabase.rpc("admin_edit_featured_question", { qid: Number(id) - GEN_ID_BASE, body: payload });
+   from the pool carry GEN_ID_BASE; the table's do not. Every change is
+   followed by featured_bundle_publish (0076), which rebuilds the shared
+   bundle now rather than at the next minute's cron, so the admin's next
+   load already shows it. A failed publish costs only that minute. */
+async function featuredWrite(fn, args) {
+  const { data, error } = await supabase.rpc(fn, args);
   if (error) throw new Error(error.message);
+  await supabase.rpc("featured_bundle_publish").then(() => {}, () => {});
+  return data;
 }
+export const adminEditFeatured = (id, payload) =>
+  featuredWrite("admin_edit_featured_question", { qid: Number(id) - GEN_ID_BASE, body: payload }).then(() => {});
 /* Questions added to a Resurface deck by an admin (migration 0064). Returns
    their app ids. */
-export async function adminAddFeatured(deckId, payloads) {
-  const { data, error } = await supabase.rpc("admin_add_featured_questions", { deck: deckId, rows: payloads });
-  if (error) throw new Error(error.message);
-  return (data ?? []).map(id => GEN_ID_BASE + Number(id));
-}
-export async function adminDeleteFeatured(ids) {
-  const { data, error } = await supabase.rpc("admin_delete_featured_questions", { ids: ids.map(id => Number(id) - GEN_ID_BASE) });
-  if (error) throw new Error(error.message);
-  return data ?? 0;
-}
+export const adminAddFeatured = async (deckId, payloads) =>
+  ((await featuredWrite("admin_add_featured_questions", { deck: deckId, rows: payloads })) ?? []).map(id => GEN_ID_BASE + Number(id));
+export const adminDeleteFeatured = async ids =>
+  (await featuredWrite("admin_delete_featured_questions", { ids: ids.map(id => Number(id) - GEN_ID_BASE) })) ?? 0;
 export async function fetchAdminFeatured() {
   const { data, error } = await supabase.rpc("admin_featured_decks");
   if (error) throw new Error(error.message);
@@ -764,19 +782,11 @@ export async function fetchFeatureCandidates() {
   if (error) throw new Error(error.message);
   return data ?? [];
 }
-export async function adminSetFeatured(deck, byline, folder, renames = {}) {
-  const { error } = await supabase.rpc("admin_set_featured", { deck, p_byline: byline ?? "", p_folder: folder ?? "", p_renames: renames });
-  if (error) throw new Error(error.message);
-}
-export async function adminUnfeature(deck) {
-  const { error } = await supabase.rpc("admin_unfeature", { deck });
-  if (error) throw new Error(error.message);
-}
+export const adminSetFeatured = (deck, byline, folder, renames = {}) =>
+  featuredWrite("admin_set_featured", { deck, p_byline: byline ?? "", p_folder: folder ?? "", p_renames: renames }).then(() => {});
+export const adminUnfeature = deck => featuredWrite("admin_unfeature", { deck }).then(() => {});
 /* An unlisted featured deck (migration 0040) becomes visible to every student. */
-export async function adminPublishFeatured(deck) {
-  const { error } = await supabase.rpc("admin_publish_featured", { deck });
-  if (error) throw new Error(error.message);
-}
+export const adminPublishFeatured = deck => featuredWrite("admin_publish_featured", { deck }).then(() => {});
 
 /* Who sent whose deck to whom, newest first (migration 0020). */
 export async function fetchShareLog(lim = 300) {
