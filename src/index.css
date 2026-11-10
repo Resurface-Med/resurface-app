@@ -8717,19 +8717,21 @@ html.is-deck-dragging * {
 }
 .app-nav__signout:hover { background: var(--c-surface2); color: var(--c-text); }
 
-/* Your score, above the account row (2026-11-10): the number does the
-   work, by size and weight — no card, no fill. */
-.app-nav__score {
+/* Score at the foot of a session's question list (2026-11-10): the number
+   does the work, by size and weight — no card, no fill. */
+.quiz-rail__score {
   flex-shrink: 0;
-  padding: 14px 20px 14px 26px;
+  margin-top: 10px;
+  padding: 14px 4px 2px 10px;
+  border-top: 1px solid var(--c-border);
 }
-.app-nav__score-top {
+.score-fig__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
-.app-nav__score-pct {
+.score-fig__pct {
   font-size: 34px;
   font-weight: 600;
   line-height: 1;
@@ -8737,9 +8739,9 @@ html.is-deck-dragging * {
   color: var(--c-text);
   font-variant-numeric: tabular-nums;
 }
-.app-nav__score-pct.is-hidden { color: var(--c-muted); letter-spacing: -0.12em; }
-.app-nav__score-unit { font-size: 18px; margin-left: 1px; color: var(--c-muted); letter-spacing: 0; }
-.app-nav__score-eye {
+.score-fig__pct.is-hidden { color: var(--c-muted); letter-spacing: -0.12em; }
+.score-fig__unit { font-size: 18px; margin-left: 1px; color: var(--c-muted); letter-spacing: 0; }
+.score-fig__eye {
   width: 32px;
   height: 32px;
   display: inline-flex;
@@ -8751,18 +8753,14 @@ html.is-deck-dragging * {
   color: var(--c-muted);
   cursor: pointer;
 }
-.app-nav__score-eye:hover { background: var(--c-surface2); color: var(--c-text); }
-.app-nav__score-sub {
-  margin: 6px 0 0;
+.score-fig__eye:hover { background: var(--c-surface2); color: var(--c-text); }
+.score-fig__sub {
+  margin: 2px 0 0;
   font-size: 13px;
   line-height: 1.35;
   color: var(--c-muted);
 }
-.app-nav__score-top + .app-nav__score-sub { margin-top: 8px; }
-.app-nav__score-sub + .app-nav__score-sub { margin-top: 2px; }
-@media (max-width: 900px) {
-  .app-nav__score { padding: 14px 18px 14px 30px; }
-}
+.score-fig__top + .score-fig__sub { margin-top: 8px; }
 
 /* Share on a phone: a full-screen page rather than a card in a scrim, the
    link and both buttons full width, clear of the notch and home bar. */

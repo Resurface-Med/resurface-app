@@ -243,6 +243,12 @@ const isNone = leaves => !leaves?.length || (leaves.length === 1 && leaves[0] ==
 
 export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBookmark, launchFilter, onSessionActive, onRequestExit, srCards = {}, scope: initialScope = "all", decks = [], deckActions = null, featured = [], featuredDecks = [], onHideFeatured = null, featuredActions = null, openDeckId = null, onOpenDeckConsumed = null, revealDeckId = null, onGenerateInto = null, autoStart = false, onAutoStartConsumed = null, sessions = [], onSessionSave = null, onStudyTime = null }) {
   const [scope, setScope] = useState(initialScope);
+  /* Every answer you have given, for the score in the question list. */
+  const overall = useMemo(() => {
+    let correct = 0, answered = 0;
+    for (const x of Object.values(pStats)) { correct += Number(x?.correct) || 0; answered += Number(x?.total) || 0; }
+    return { correct, answered };
+  }, [pStats]);
 
   /** Live counts, so a scope with nothing in it says so before you pick it. */
   function scopeCount(k) {
@@ -1643,6 +1649,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       onRequestExit={onRequestExit}
       peerSplit={peerSplit}
       clock={timer ? { ...timer, onUp: handleTimeUp } : null}
+      overall={overall}
     />
   );
 }

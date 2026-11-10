@@ -5,6 +5,7 @@ import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import NavChevron from "./NavChevron";
 import { Eye, EyeOff, NotebookPen, PanelLeftClose, PanelLeftOpen, Timer } from "lucide-react";
+import ScoreFigure from "./ScoreFigure";
 import { usePref } from "../lib/prefs";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
@@ -43,6 +44,8 @@ export default function QuizShell({
   sessionId = null,
   /* A timed session's clock (lib/timed): { startedAt, limitMs, onUp }. */
   clock = null,
+  /* Every answer before this session: { correct, answered }. */
+  overall = null,
 }) {
   /* Options covered until you've thought of an answer (2026-11-05). Starts
      from the Profile setting; the eye in the bar switches it for this
@@ -457,6 +460,7 @@ export default function QuizShell({
               flagged={flagged}
               onJump={onJump}
             />
+            <RailScore results={results} overall={overall} />
             </div>
           </aside>
         )}
@@ -630,6 +634,32 @@ function SessionClock({ clock }) {
     <div className={`session-clock${left < 60_000 ? " is-low" : ""}`} role="timer" aria-label={`Time left ${formatClock(left)}`}>
       <Timer size={15} strokeWidth={2.4} aria-hidden="true" />
       <span>{formatClock(left)}</span>
+    </div>
+  );
+}
+
+/* This session's share right, with your overall score under it; before the
+   first answer of a session, the overall one. */
+function RailScore({ results, overall }) {
+  const nf = n => n.toLocaleString("en-GB");
+  const done = Object.values(results ?? {}).filter(Boolean);
+  const right = done.filter(r => r.correct).length;
+  const all = hidden => (overall?.answered
+    ? (hidden ? `${nf(overall.answered)} answers overall` : `${Math.round((overall.correct / overall.answered) * 100)}% overall, ${nf(overall.answered)} answers`)
+    : null);
+  if (done.length) {
+    return (
+      <div className="quiz-rail__score">
+        <ScoreFigure pct={Math.round((right / done.length) * 100)}
+          lines={hidden => ["correct this session", all(hidden)].filter(Boolean)} />
+      </div>
+    );
+  }
+  if (!overall?.answered) return null;
+  return (
+    <div className="quiz-rail__score">
+      <ScoreFigure pct={Math.round((overall.correct / overall.answered) * 100)}
+        lines={["correct overall", `from ${nf(overall.answered)} answers`]} />
     </div>
   );
 }
