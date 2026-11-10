@@ -6477,6 +6477,8 @@ html.is-deck-dragging * {
   max-width: none;
   white-space: pre-line;
 }
+.quiz-shell .q-stem--focus.is-long { font-size: clamp(19px, 2.3vw, 24.5px); letter-spacing: -0.45px; line-height: 1.34; }
+.quiz-shell .q-stem--focus.is-longest { font-size: clamp(18px, 2.05vw, 22px); letter-spacing: -0.35px; line-height: 1.38; }
 .quiz-shell .q-card--focus .q-opts {
   gap: 10px;
 }
@@ -7069,6 +7071,8 @@ html.is-deck-dragging * {
     letter-spacing: -0.3px;
     line-height: 1.35;
   }
+  .quiz-shell .q-stem--focus.is-long { font-size: 17px; letter-spacing: -0.2px; line-height: 1.38; }
+  .quiz-shell .q-stem--focus.is-longest { font-size: 16px; letter-spacing: -0.1px; line-height: 1.42; }
   .quiz-shell .q-card--focus .q-opts { gap: 7px; }
   .quiz-shell .q-card--focus .q-opt {
     padding: 11px 13px;

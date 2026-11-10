@@ -110,6 +110,13 @@ const TIP_KEY = "rs_topic_tip_seen";
 const tipSeen = () => { try { return localStorage.getItem(TIP_KEY) === "1"; } catch { return true; } };
 const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { /* fine */ } };
 
+/* Long stems step down in size (Rafil, 2026-11-10): a clinical case set at
+   the headline size filled the screen and pushed the options below it. */
+const stemSize = text => {
+  const n = String(text ?? "").length;
+  return n > 320 ? " is-longest" : n > 180 ? " is-long" : "";
+};
+
 export function TopicNote({ topic, hl, qid, deckId }) {
   const [open, setOpen] = useState(false);
   /* Your notes on the other questions from this topic, at the foot of the
@@ -403,7 +410,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       <Highlighter
         as="p"
         text={q.q}
-        className={`anim-fade-up delay-0${focusMode ? " q-stem--focus" : ""}`}
+        className={`anim-fade-up delay-0${focusMode ? " q-stem--focus" : ""}${stemSize(q.q)}`}
         style={focusMode ? undefined : { ...qstem, marginBottom: 20 }}
       />
 
