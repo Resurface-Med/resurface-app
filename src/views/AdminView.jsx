@@ -69,17 +69,72 @@ const STATUS = {
   new: { label: "Not started", hint: "Hasn't answered a question" },
 };
 
-/** Loads when its tab is opened. */
-function useSection(load) {
-  const [state, setState] = useState({ rows: null, error: "" });
+/*
+ * Admin data, kept between tabs (2026-11-10).
+ *
+ * Each tab used to fetch on opening and drop it on leaving, so every switch
+ * started from a blank tab and a round trip, and People and Activity each
+ * fetched the same list. Now a section's rows are kept by key for the
+ * session: a tab opens on what was last fetched, and refetches in the
+ * background once that is over a minute old. Requests for the same key
+ * share one fetch. All of Admin is warmed when it opens (prefetchAdmin).
+ */
+const FRESH_MS = 60_000;
+const store = new Map(); /* key -> { rows, at } | { p } while in flight */
+
+function fetchSection(key, load) {
+  const hit = store.get(key);
+  if (hit?.p) return hit.p;
+  const p = load().then(
+    rows => { store.set(key, { rows, at: Date.now() }); return rows; },
+    err => { if (hit) store.set(key, hit); else store.delete(key); throw err; },
+  );
+  store.set(key, { ...hit, p });
+  return p;
+}
+
+/* Every tab's data at once, so switching never waits. Errors stay for the
+   tab itself to show. */
+function prefetchAdmin() {
+  const all = [
+    ["overview", fetchOverview], ["overviewDaily:30", () => fetchOverviewDaily(30)],
+    ["aiQuota", fetchAiQuota], ["storage", fetchStorage], ["people", fetchPeople],
+    ["peopleDaily:30", () => fetchPeopleDaily(30)],
+    [`peopleDaily:${CAL_SPAN + 2}`, () => fetchPeopleDaily(CAL_SPAN + 2)],
+    [`generatedDaily:${CAL_SPAN + 2}`, () => fetchGeneratedDaily(CAL_SPAN + 2)],
+  ];
+  for (const [key, load] of all) {
+    const h = store.get(key);
+    if (!(h?.at && Date.now() - h.at < FRESH_MS)) fetchSection(key, load).catch(() => {});
+  }
+}
+
+function useSection(key, load) {
+  const kept = k => { const h = store.get(k); return { key: k, rows: h && "rows" in h ? h.rows : null, error: "" }; };
+  const [state, setState] = useState(() => kept(key));
+  const loadRef = useRef(load);
+  useLayoutEffect(() => { loadRef.current = load; });
   useEffect(() => {
     let cancelled = false;
-    load()
-      .then(rows => { if (!cancelled) setState({ rows, error: "" }); })
-      .catch(err => { if (!cancelled) setState({ rows: null, error: err.message || "Couldn’t load that." }); });
+    const h = store.get(key);
+    if (h?.at && Date.now() - h.at < FRESH_MS) return;
+    fetchSection(key, () => loadRef.current())
+      .then(rows => { if (!cancelled) setState({ key, rows, error: "" }); })
+      .catch(err => { if (!cancelled && !(h && "rows" in h)) setState({ key, rows: null, error: err.message || "Couldn’t load that." }); });
     return () => { cancelled = true; };
-  }, [load]);
-  return [state, setState];
+  }, [key]);
+  /* A change made on screen (admin granted, a flag cleared) is kept too. */
+  const update = useCallback(fn => setState(s => {
+    const cur = s.key === key ? s : kept(key);
+    const next = { ...(typeof fn === "function" ? fn(cur) : fn), key };
+    const h = store.get(key);
+    if (h && "rows" in h) store.set(key, { ...h, rows: next.rows });
+    return next;
+  }), [key]);
+  /* Another key (Overview's range) shows what is kept for it until its own
+     fetch lands. */
+  const shown = state.key === key ? state : kept(key);
+  return [{ rows: shown.rows, error: shown.error }, update];
 }
 
 function Empty({ children }) {
@@ -130,11 +185,10 @@ const SERIES = [
 ];
 
 function Overview() {
-  const [totals] = useSection(fetchOverview);
+  const [totals] = useSection("overview", fetchOverview);
   const [range, setRange] = useState(30);
   const [candles, setCandles] = useState(() => { try { return localStorage.getItem("rs_admin_candles") === "1"; } catch { return false; } });
-  const loadDaily = useCallback(() => fetchOverviewDaily(range), [range]);
-  const [daily] = useSection(loadDaily);
+  const [daily] = useSection(`overviewDaily:${range}`, () => fetchOverviewDaily(range));
   const [show, setShow] = useState("active");
   const [picked, setPicked] = useState(null);
 
@@ -221,8 +275,8 @@ function Meter({ label, used, of, fmt = nf, sub, warnAt = 0.8 }) {
   );
 }
 function Limits() {
-  const [quota] = useSection(fetchAiQuota);
-  const [size] = useSection(fetchStorage);
+  const [quota] = useSection("aiQuota", fetchAiQuota);
+  const [size] = useSection("storage", fetchStorage);
   const q = quota.rows ?? {};
   const resets = q.resets_at ? new Date(q.resets_at).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" }) : "8:00";
   const MB = 1024 * 1024;
@@ -262,11 +316,9 @@ const MODES = [
 ];
 
 function Activity() {
-  const [{ rows, error }] = useSection(fetchPeople);
-  const loadDaily = useCallback(() => fetchPeopleDaily(CAL_SPAN + 2), []);
-  const [daily] = useSection(loadDaily);
-  const loadGen = useCallback(() => fetchGeneratedDaily(CAL_SPAN + 2), []);
-  const [generated] = useSection(loadGen);
+  const [{ rows, error }] = useSection("people", fetchPeople);
+  const [daily] = useSection(`peopleDaily:${CAL_SPAN + 2}`, () => fetchPeopleDaily(CAL_SPAN + 2));
+  const [generated] = useSection(`generatedDaily:${CAL_SPAN + 2}`, () => fetchGeneratedDaily(CAL_SPAN + 2));
   const today = dayKey(Date.now());
   const todayDate = parseDay(today);
   const earliest = parseDay(dayKey(Date.now() - (CAL_SPAN - 1) * DAY));
@@ -394,9 +446,8 @@ const FILTERS = [
 ];
 
 function People() {
-  const [{ rows, error }, setState] = useSection(fetchPeople);
-  const loadDaily = useCallback(() => fetchPeopleDaily(30), []);
-  const [daily] = useSection(loadDaily);
+  const [{ rows, error }, setState] = useSection("people", fetchPeople);
+  const [daily] = useSection("peopleDaily:30", () => fetchPeopleDaily(30));
   const [filter, setFilter] = useState("all");
   const [year, setYear] = useState("all");
   const [statusOpen, setStatusOpen] = useState(false);
@@ -608,7 +659,7 @@ function FlagRow({ row, index, onCleared }) {
 }
 
 function Flags({ onCount }) {
-  const [{ rows, error }, setState] = useSection(fetchFlags);
+  const [{ rows, error }, setState] = useSection("flags", fetchFlags);
   useEffect(() => { if (rows) onCount?.(rows.length); }, [rows, onCount]);
   if (error) return <Empty>{error}</Empty>;
   if (!rows) return <Empty>&nbsp;</Empty>;
@@ -790,7 +841,10 @@ export default function AdminView({ me = null }) {
   const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
 
   /* The Reported count on its tab, whichever tab is open. */
-  useEffect(() => { fetchFlags().then(r => setFlagCount(r.length), () => {}); }, []);
+  useEffect(() => {
+    fetchSection("flags", fetchFlags).then(r => setFlagCount(r.length), () => {});
+    prefetchAdmin();
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
