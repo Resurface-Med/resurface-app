@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDrawerSwipe } from "../ui/useDrawerSwipe";
-import { BookOpen, ChartColumn, Flag, House, LogOut, Megaphone, NotebookPen, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, ChartColumn, Eye, EyeOff, Flag, House, LogOut, Megaphone, NotebookPen, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 import Avatar from "../ui/Avatar";
 
@@ -15,7 +15,7 @@ const ICONS = {
   [V.NOTES]: NotebookPen,
 };
 
-export function Sidebar({ view, setView, dueCount, showNotes = false, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
+export function Sidebar({ view, setView, dueCount, showNotes = false, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null, score = null }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
   const navRef = useRef(null);
@@ -169,6 +169,8 @@ export function Sidebar({ view, setView, dueCount, showNotes = false, email, dis
             ))}
         </nav>
 
+        {score && <Score {...score} />}
+
         <div className="app-nav__foot">
 
           <div className={`app-nav__account${activeProfile ? " is-active" : ""}`}>
@@ -193,5 +195,48 @@ export function Sidebar({ view, setView, dueCount, showNotes = false, email, dis
         </div>
       </aside>
     </>
+  );
+}
+
+/*
+ * Your score, always in view (2026-11-10): the share of answers you got
+ * right, how many you have answered and how many today. The percentage can
+ * be hidden — some people would rather not look at it while they revise —
+ * and stays hidden on this device until shown again.
+ */
+const HIDE_KEY = "rs_hide_score";
+const readHidden = () => { try { return localStorage.getItem(HIDE_KEY) === "1"; } catch { return false; } };
+
+function Score({ correct, answered, today }) {
+  const [hidden, setHidden] = useState(readHidden);
+  const toggle = () => {
+    const next = !hidden;
+    setHidden(next);
+    try { localStorage.setItem(HIDE_KEY, next ? "1" : "0"); } catch { /* private mode: this visit only */ }
+  };
+  const nf = n => n.toLocaleString("en-GB");
+  if (!answered) {
+    return (
+      <div className="app-nav__score">
+        <p className="app-nav__score-sub">Your score appears here once you answer a question.</p>
+      </div>
+    );
+  }
+  const pct = Math.round((correct / answered) * 100);
+  const Icon = hidden ? Eye : EyeOff;
+  return (
+    <div className="app-nav__score">
+      <div className="app-nav__score-top">
+        <span className={`app-nav__score-pct${hidden ? " is-hidden" : ""}`} aria-label={hidden ? "Score hidden" : `${pct}% correct`}>
+          {hidden ? "••" : pct}<span className="app-nav__score-unit">%</span>
+        </span>
+        <button type="button" className="app-nav__score-eye btn-press" onClick={toggle}
+          aria-label={hidden ? "Show score" : "Hide score"} title={hidden ? "Show score" : "Hide score"}>
+          <Icon size={16} strokeWidth={1.9} aria-hidden="true" />
+        </button>
+      </div>
+      <p className="app-nav__score-sub">correct, from {nf(answered)} {answered === 1 ? "answer" : "answers"}</p>
+      <p className="app-nav__score-sub">{today ? `${nf(today)} answered today` : "Nothing answered today yet"}</p>
+    </div>
   );
 }

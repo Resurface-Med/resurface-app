@@ -1361,6 +1361,13 @@ export default function App() {
     setAnnouncements(list => list.filter(a => a.id !== id));
   }
 
+  /* The sidebar's score: every answer you have given, right or wrong. */
+  const score = useMemo(() => {
+    let correct = 0, answered = 0;
+    for (const x of Object.values(pStats)) { correct += Number(x?.correct) || 0; answered += Number(x?.total) || 0; }
+    return { correct, answered, today: Number(activity[todayKey()]) || 0 };
+  }, [pStats, activity]);
+
   const nav = {
     view, setView: handleNav, dueCount, isAdmin,
     /* My notes only gets its tab once you've written one (Rafil,
@@ -1373,6 +1380,7 @@ export default function App() {
     unreadAnnouncements,
     onOpenAnnouncements: openAnnouncements,
     onSignOut: signOut,
+    score,
   };
 
 
