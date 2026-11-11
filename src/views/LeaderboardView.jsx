@@ -256,14 +256,21 @@ function FriendTools({ editable, onChanged }) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
+      setTimeout(() => setCopied(false), 2600);
     } catch { setErr(url); }
   }
   return (
     <>
-      <button type="button" className="lb-friend-add btn-press" onClick={share}>
-        {copied ? "Link copied" : "Add friends"}
-      </button>
+      <button type="button" className="lb-friend-add btn-press" onClick={share}>Add friends</button>
+      {/* A small note at the bottom that the link is on the clipboard
+          (Rafil, 2026-11-11); the button changing its own words was missed. */}
+      {copied && createPortal(
+        <div className="lb-copied" role="status">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l3 3 6-6.4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          Link copied. Send it to your friends.
+        </div>,
+        document.body,
+      )}
       {editable && <button type="button" className="lb-friend-edit" onClick={() => setEditing(true)}>Edit friends</button>}
       {err && <span className="lb-friend-err">{err}</span>}
       {editing && <FriendsWindow onClose={() => setEditing(false)} onChanged={onChanged} />}
