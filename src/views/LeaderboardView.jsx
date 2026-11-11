@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import StreakFlame from "../ui/StreakFlame";
 import { h1, OF, C } from "../ui/theme";
 import Wave from "../ui/Wave";
-import { fetchLeaderboardWeek } from "../lib/remote";
+import { fetchLeaderboardWeek, fetchLeaderboardFriends, fetchMyFriendCode, fetchMyFriends, removeFriend } from "../lib/remote";
+import { friendUrl } from "../lib/friendLink";
+import { confirm } from "../ui/Confirm";
+import { createPortal } from "react-dom";
 import Avatar from "../ui/Avatar";
 import { avatarSrc } from "../lib/avatar";
 import { useOnline } from "../lib/online";
@@ -21,11 +24,21 @@ import { todayKey } from "../lib/storage";
  *
  * Today / This week (2026-10-25): the same board, one day or seven. This
  * week is what opens. A day is the phone's calendar day.
+ *
+ * Friends (2026-11-11, migration 0080): you and the people you are friends
+ * with, on the same count. Mutual, made only by opening someone's link, so
+ * the board offers the link and nothing to search. Anyone hidden from the
+ * leaderboard is hidden here too.
  */
-const YEARS = [["all", "All"], [1, "Year 1"], [2, "Year 2"], [3, "Year 3"], [4, "Year 4"], [5, "Year 5"]];
+const YEARS = [["all", "All"], ["friends", "Friends"], [1, "Year 1"], [2, "Year 2"], [3, "Year 3"], [4, "Year 4"], [5, "Year 5"]];
 const YEAR_KEY = "lb-year";
 function savedYear() {
-  try { const v = Number(localStorage.getItem(YEAR_KEY)); return v >= 1 && v <= 5 ? v : "all"; } catch { return "all"; }
+  try {
+    const raw = localStorage.getItem(YEAR_KEY);
+    if (raw === "friends") return "friends";
+    const v = Number(raw);
+    return v >= 1 && v <= 5 ? v : "all";
+  } catch { return "all"; }
 }
 
 const band = {
@@ -78,7 +91,9 @@ export default function LeaderboardView({ userId }) {
     setError("");
     (async () => {
       try {
-        const data = await fetchLeaderboardWeek(year === "all" ? null : year, day);
+        const data = year === "friends"
+          ? await fetchLeaderboardFriends(day)
+          : await fetchLeaderboardWeek(year === "all" ? null : year, day);
         if (!cancelled) setBoards(b => ({ ...b, [boardKey]: data }));
       } catch (err) {
         if (!cancelled) setError(err.message || "Couldn’t load the board.");
@@ -132,10 +147,20 @@ export default function LeaderboardView({ userId }) {
               ))}
             </div>
             <select className="year-select lb-years" aria-label="Year" value={year}
-              onChange={e => pickYear(e.target.value === "all" ? "all" : Number(e.target.value))}>
+              onChange={e => pickYear(e.target.value === "all" || e.target.value === "friends" ? e.target.value : Number(e.target.value))}>
               {YEARS.map(([k, label]) => <option key={k} value={k}>{k === "all" ? "All years" : label}</option>)}
             </select>
+            {year === "friends" && online && (
+              <FriendTools onChanged={() => setBoards(b => Object.fromEntries(Object.entries(b).filter(([k]) => !k.includes(":friends:"))))} />
+            )}
           </div>
+          {year === "friends" && listed && listed.filter(r => r.user_id !== userId).length === 0 && (
+            <p className="lb-friends-empty">
+              {span === "day" && rows?.some(r => r.user_id !== userId)
+                ? "None of your friends has answered anything today."
+                : "Add friends to see how you’re doing against them. Send them your link, and when they open it you’re friends."}
+            </p>
+          )}
           {!rows && !online && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
               You’re offline. The board shows when you’re back online.
@@ -150,7 +175,7 @@ export default function LeaderboardView({ userId }) {
             <p style={{ color: C.muted, fontSize: 14.5 }}>Loading the board…</p>
           )}
 
-          {listed && listed.length === 0 && (
+          {listed && listed.length === 0 && year !== "friends" && (
             <p style={{ color: C.muted, fontSize: 14.5, lineHeight: 1.5 }}>
               {span === "day"
                 ? "Nobody has answered anything today."
@@ -209,5 +234,84 @@ export default function LeaderboardView({ userId }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/* Add friends (share or copy your link) and Edit friends, above the
+   Friends board. The link is fetched once, the first time it is wanted. */
+function FriendTools({ onChanged }) {
+  const [copied, setCopied] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [err, setErr] = useState("");
+  async function share() {
+    setErr("");
+    let url;
+    try { url = friendUrl(await fetchMyFriendCode()); } catch { setErr("Couldn’t get your link. Try again."); return; }
+    const text = "Add me on Resurface so we can see each other on the leaderboard.";
+    if (navigator.share) {
+      try { await navigator.share({ title: "Resurface", text, url }); return; } catch (e) { if (e?.name === "AbortError") return; }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch { setErr(url); }
+  }
+  return (
+    <>
+      <button type="button" className="lb-friend-add btn-press" onClick={share}>
+        {copied ? "Link copied" : "Add friends"}
+      </button>
+      <button type="button" className="lb-friend-edit" onClick={() => setEditing(true)}>Edit friends</button>
+      {err && <span className="lb-friend-err">{err}</span>}
+      {editing && <FriendsWindow onClose={() => setEditing(false)} onChanged={onChanged} />}
+    </>
+  );
+}
+
+function FriendsWindow({ onClose, onChanged }) {
+  const [list, setList] = useState(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    fetchMyFriends().then(r => { if (!cancelled) setList(r); }, e => { if (!cancelled) setError(e.message || "Couldn’t load your friends."); });
+    const onKey = e => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => { cancelled = true; document.removeEventListener("keydown", onKey); };
+  }, [onClose]);
+  async function remove(f) {
+    const first = String(f.display_name || "").split(/\s+/)[0] || "this friend";
+    const yes = await confirm({ title: `Remove ${first}?`, body: "You’ll stop seeing each other on the Friends board. They aren’t told.", action: "Remove", danger: true });
+    if (!yes) return;
+    try {
+      await removeFriend(f.user_id);
+      setList(l => l.filter(x => x.user_id !== f.user_id));
+      onChanged();
+    } catch (e) { setError(e.message || "Couldn’t remove them."); }
+  }
+  return createPortal(
+    <div className="np-scrim" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="np" role="dialog" aria-modal="true" aria-labelledby="friends-title">
+        <h2 className="np__title" id="friends-title">Friends</h2>
+        {error ? <p className="np__sub">{error}</p>
+          : !list ? <p className="np__sub">Loading…</p>
+          : list.length === 0 ? <p className="np__sub">No friends yet. Send your link to add some.</p>
+          : (
+            <ul className="fr-list">
+              {list.map(f => (
+                <li key={f.user_id}>
+                  <Avatar className="lb-avatar" src={avatarSrc(f.user_id, f.avatar)} name={f.display_name} />
+                  <span className="fr-name">{f.display_name}</span>
+                  <button type="button" className="fr-remove" onClick={() => remove(f)}>Remove</button>
+                </li>
+              ))}
+            </ul>
+          )}
+        <div className="np__row">
+          <button type="button" className="np__save btn-press" onClick={onClose}>Done</button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }

@@ -932,6 +932,43 @@ export async function fetchLeaderboardWeek(year = null, day = null) {
   return data ?? [];
 }
 
+/* Friends (migration 0080). Mutual, made only by opening someone's link. */
+export async function fetchLeaderboardFriends(day = null) {
+  const { data, error } = await supabase.rpc("leaderboard_friends", day ? { on_day: day } : {});
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchMyFriendCode() {
+  const { data, error } = await supabase.rpc("my_friend_code");
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchMyFriends() {
+  const { data, error } = await supabase.rpc("my_friends");
+  if (error) throw error;
+  return data ?? [];
+}
+
+/* Resolves { friendId, name, already }, or throws an Error whose `reason`
+   is "own" (your own link) or "unknown" (no such link). */
+export async function addFriend(code) {
+  const { data, error } = await supabase.rpc("add_friend", { code });
+  if (error) {
+    const e = new Error(error.message);
+    e.reason = /friend_link_own/.test(error.message) ? "own" : /friend_link_unknown/.test(error.message) ? "unknown" : null;
+    throw e;
+  }
+  const r = Array.isArray(data) ? data[0] : data;
+  return { friendId: r?.friend_id, name: r?.display_name || "", already: Boolean(r?.already) };
+}
+
+export async function removeFriend(friendId) {
+  const { error } = await supabase.rpc("remove_friend", { friend: friendId });
+  if (error) throw error;
+}
+
 // ── Writes ────────────────────────────────────────────────────────────────
 // Each returns a promise the caller is free to ignore.
 

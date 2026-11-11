@@ -11117,6 +11117,30 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .lb-span__thumb, .lb-span__b { transition: none; }
 }
 
+/* Friends board (2026-11-11): Add friends is a third capsule beside the two
+   above, Edit friends a plain link after it. */
+.lb-friend-add {
+  height: 42px; box-sizing: border-box; padding: 0 20px; margin: 0;
+  border-radius: 999px; border: 1px solid rgba(15, 27, 61, 0.06); background: #fff;
+  box-shadow: 0 8px 22px rgba(15, 27, 61, 0.06);
+  font: inherit; font-size: 14.5px; font-weight: 600; letter-spacing: -0.2px; color: var(--c-accent);
+  cursor: pointer;
+}
+[data-theme="dark"] .lb-friend-add { background: var(--c-surface2); border-color: var(--c-border); box-shadow: none; }
+.lb-friend-add:focus-visible, .lb-friend-edit:focus-visible, .fr-remove:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 3px; }
+.lb-friend-edit {
+  border: 0; background: none; padding: 6px 4px; margin: 0; cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--c-muted);
+}
+.lb-friend-edit:hover { color: var(--c-text); }
+.lb-friend-err { flex-basis: 100%; text-align: center; font-size: 13.5px; color: var(--c-muted); overflow-wrap: anywhere; user-select: all; }
+.lb-friends-empty { margin: -32px auto 36px; max-width: 34em; text-align: center; font-size: 14.5px; line-height: 1.5; color: var(--c-muted); }
+.fr-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; max-height: 46vh; overflow-y: auto; }
+.fr-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--c-border); }
+.fr-list li:last-child { border-bottom: 0; }
+.fr-name { flex: 1; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fr-remove { border: 0; background: none; padding: 6px 2px; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 500; color: var(--c-danger, #d33); }
+
 /* First visit to Study only (2026-10-26): how the deck list works, once. */
 .setup-hint { margin: -2px 0 12px; font-size: 14px; line-height: 1.45; color: var(--c-sub); }
 

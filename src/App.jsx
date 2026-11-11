@@ -35,7 +35,7 @@ import { supabase } from "./lib/supabase";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
   adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
-  liteFeatured, hydrateFeatured } from "./lib/remote";
+  liteFeatured, hydrateFeatured, addFriend } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
 import { mergeSessions } from "./lib/pastSessions";
@@ -51,6 +51,7 @@ import { loadPrefs, getPrefs } from "./lib/prefs";
 import { chunk, chunkLoadedOk } from "./lib/chunk";
 import ReceiveDeck from "./views/ReceiveDeck";
 import { rememberShare, pendingShare, forgetShare } from "./lib/pendingShare";
+import { friendCodeFromPath, rememberFriend, pendingFriend, forgetFriend } from "./lib/friendLink";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -375,6 +376,17 @@ export default function App() {
     if (!code) forgetShare();
     setShareCodeState(code);
   }
+  /* A friend link (/f/<code>, migration 0080): read and kept the same way,
+     and used once they are signed in and the app has loaded. */
+  const [friendCode, setFriendCode] = useState(() => {
+    const code = friendCodeFromPath(window.location.pathname);
+    if (code) {
+      window.history.replaceState(null, "", "/");
+      rememberFriend(code);
+      return code;
+    }
+    return pendingFriend();
+  });
   const [dataLoading, setDataLoading] = useState(true);
   /* Set when the sign-in snapshot could not be fetched. Without this the
      effect had no catch at all, so a throw left the app on "Loading your
@@ -929,6 +941,39 @@ export default function App() {
      load that works sends what was queued, brings in anything new, and takes
      the offline bar away. */
   const online = useOnline();
+  /* Opening a friend's link makes you friends, then offers their board.
+     A failure that is not about the link (offline, a timeout) keeps the code
+     to try again on the next load. */
+  useEffect(() => {
+    if (!user || dataLoading || !friendCode || !online) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { name } = await addFriend(friendCode);
+        if (cancelled) return;
+        forgetFriend(); setFriendCode(null);
+        const first = String(name || "").trim().split(/\s+/)[0] || "your friend";
+        const see = await confirm({
+          title: `You and ${first} are friends`,
+          body: "You’ll each see the other on the Friends leaderboard.",
+          action: "See the board",
+          cancel: "Later",
+        });
+        if (see) {
+          try { localStorage.setItem("lb-year", "friends"); } catch { /* storage refused */ }
+          go(V.LEADERBOARD);
+        }
+      } catch (e) {
+        if (cancelled || !e?.reason) return;
+        forgetFriend(); setFriendCode(null);
+        await confirm(e.reason === "own"
+          ? { title: "That’s your own friend link", body: "Send it to friends. When they open it, you’ll be friends.", action: "OK", cancel: null }
+          : { title: "That friend link doesn’t work", body: "Ask your friend to send it again.", action: "OK", cancel: null });
+      }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, dataLoading, friendCode, online]);
   /* Woken up (2026-10-29). Most people leave the app open and put the
      phone to sleep, so coming back after a while is the usual way in, not
      a fresh load: queued writes go, the sign-in token is renewed if it ran
@@ -1436,7 +1481,7 @@ export default function App() {
     );
   }
 
-  if (!user) return <LoginPage sentDeck={Boolean(shareCode)} />;
+  if (!user) return <LoginPage sentDeck={Boolean(shareCode)} sentFriend={Boolean(friendCode) && !shareCode} />;
 
   /* Before the app proper: somebody following a link is here to answer one
      question, and the nav behind it is noise until they have. After the data

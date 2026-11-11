@@ -5,6 +5,10 @@
       "destination": "/api/deck-page?code=:code"
     },
     {
+      "source": "/f/:code",
+      "destination": "/api/friend-page?code=:code"
+    },
+    {
       "source": "/oauth/consent",
       "destination": "/oauth-consent.html"
     },
