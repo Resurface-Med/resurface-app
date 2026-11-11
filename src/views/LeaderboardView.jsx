@@ -112,11 +112,16 @@ export default function LeaderboardView({ userId }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+      <div className="page-band lb-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+        <div>
         <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Leaderboard</h1>
         <p style={{ marginTop: 8, fontSize: 15, color: OF.soft, fontWeight: 500, letterSpacing: -0.2, maxWidth: "36em" }}>
           {span === "day" ? "Questions answered today." : "Questions answered in the last seven days."}
         </p>
+        </div>
+        {/* In the blue on the right, big (Rafil, 2026-11-11): in the
+            controls row it was easy to miss and too wide for one line. */}
+        <AddFriends disabled={!online} />
         {/* Always rendered, blank until the board arrives. The wave sits
             directly under the band, so anything that grows the band after
             first paint moves the wave — and the switch animation has
@@ -132,6 +137,7 @@ export default function LeaderboardView({ userId }) {
           {/* A dropdown (Rafil, 2026-10-24): five years plus All was too wide
               for a pill switch. The sign-up pop-up's year select, compact. */}
           <div className="lb-tools">
+            <div className="lb-tools__view">
             <div className="lb-span" role="group" aria-label="When">
               <span className={`lb-span__thumb${span === "day" ? " is-day" : ""}`} aria-hidden="true" />
               {[["week", "This week"], ["day", "Today"]].map(([id, label]) => (
@@ -150,10 +156,9 @@ export default function LeaderboardView({ userId }) {
               onChange={e => pickYear(e.target.value === "all" || e.target.value === "friends" ? e.target.value : Number(e.target.value))}>
               {YEARS.map(([k, label]) => <option key={k} value={k}>{k === "all" ? "All years" : label}</option>)}
             </select>
-            {/* Always here (Rafil, 2026-11-11): behind the Friends choice
-                nobody found it. Edit friends only on the Friends board. */}
-            {online && (
-              <FriendTools editable={year === "friends"} onChanged={() => setBoards(b => Object.fromEntries(Object.entries(b).filter(([k]) => !k.includes(":friends:"))))} />
+            </div>
+            {year === "friends" && online && (
+              <EditFriends onChanged={() => setBoards(b => Object.fromEntries(Object.entries(b).filter(([k]) => !k.includes(":friends:"))))} />
             )}
           </div>
           {year === "friends" && listed && listed.filter(r => r.user_id !== userId).length === 0 && (
@@ -239,11 +244,10 @@ export default function LeaderboardView({ userId }) {
   );
 }
 
-/* Add friends (share or copy your link) and Edit friends, above the
-   Friends board. The link is fetched once, the first time it is wanted. */
-function FriendTools({ editable, onChanged }) {
+/* Add friends (share or copy your link), in the band, and Edit friends,
+   on the Friends board. The link is fetched the first time it is wanted. */
+function AddFriends({ disabled }) {
   const [copied, setCopied] = useState(false);
-  const [editing, setEditing] = useState(false);
   const [err, setErr] = useState("");
   async function share() {
     setErr("");
@@ -260,8 +264,14 @@ function FriendTools({ editable, onChanged }) {
     } catch { setErr(url); }
   }
   return (
-    <>
-      <button type="button" className="lb-friend-add btn-press" onClick={share}>Add friends</button>
+    <div className="lb-friend-tools">
+      <button type="button" className="lb-friend-add btn-press" onClick={share} disabled={disabled}>
+        <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+          <circle cx="8" cy="6.5" r="3.2" /><path d="M2.5 16.5c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6M15.5 6v5M13 8.5h5" />
+        </svg>
+        Add friends
+      </button>
+      {err && <span className="lb-friend-err">{err}</span>}
       {/* Link copied: a capsule in the band's blue rising from the bottom,
           the tick drawing itself with a small burst (Rafil picked option D
           of four mockups, 2026-11-11). */}
@@ -281,8 +291,15 @@ function FriendTools({ editable, onChanged }) {
         </div>,
         document.body,
       )}
-      {editable && <button type="button" className="lb-friend-edit" onClick={() => setEditing(true)}>Edit friends</button>}
-      {err && <span className="lb-friend-err">{err}</span>}
+    </div>
+  );
+}
+
+function EditFriends({ onChanged }) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <>
+      <button type="button" className="lb-friend-edit" onClick={() => setEditing(true)}>Edit friends</button>
       {editing && <FriendsWindow onClose={() => setEditing(false)} onChanged={onChanged} />}
     </>
   );
