@@ -150,8 +150,10 @@ export default function LeaderboardView({ userId }) {
               onChange={e => pickYear(e.target.value === "all" || e.target.value === "friends" ? e.target.value : Number(e.target.value))}>
               {YEARS.map(([k, label]) => <option key={k} value={k}>{k === "all" ? "All years" : label}</option>)}
             </select>
-            {year === "friends" && online && (
-              <FriendTools onChanged={() => setBoards(b => Object.fromEntries(Object.entries(b).filter(([k]) => !k.includes(":friends:"))))} />
+            {/* Always here (Rafil, 2026-11-11): behind the Friends choice
+                nobody found it. Edit friends only on the Friends board. */}
+            {online && (
+              <FriendTools editable={year === "friends"} onChanged={() => setBoards(b => Object.fromEntries(Object.entries(b).filter(([k]) => !k.includes(":friends:"))))} />
             )}
           </div>
           {year === "friends" && listed && listed.filter(r => r.user_id !== userId).length === 0 && (
@@ -239,7 +241,7 @@ export default function LeaderboardView({ userId }) {
 
 /* Add friends (share or copy your link) and Edit friends, above the
    Friends board. The link is fetched once, the first time it is wanted. */
-function FriendTools({ onChanged }) {
+function FriendTools({ editable, onChanged }) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [err, setErr] = useState("");
@@ -262,7 +264,7 @@ function FriendTools({ onChanged }) {
       <button type="button" className="lb-friend-add btn-press" onClick={share}>
         {copied ? "Link copied" : "Add friends"}
       </button>
-      <button type="button" className="lb-friend-edit" onClick={() => setEditing(true)}>Edit friends</button>
+      {editable && <button type="button" className="lb-friend-edit" onClick={() => setEditing(true)}>Edit friends</button>}
       {err && <span className="lb-friend-err">{err}</span>}
       {editing && <FriendsWindow onClose={() => setEditing(false)} onChanged={onChanged} />}
     </>
