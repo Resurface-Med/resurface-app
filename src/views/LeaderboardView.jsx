@@ -256,18 +256,28 @@ function FriendTools({ editable, onChanged }) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2600);
+      setTimeout(() => setCopied(false), 3600);
     } catch { setErr(url); }
   }
   return (
     <>
       <button type="button" className="lb-friend-add btn-press" onClick={share}>Add friends</button>
-      {/* A small note at the bottom that the link is on the clipboard
-          (Rafil, 2026-11-11); the button changing its own words was missed. */}
+      {/* Link copied: a capsule in the band's blue rising from the bottom,
+          the tick drawing itself with a small burst (Rafil picked option D
+          of four mockups, 2026-11-11). */}
       {copied && createPortal(
         <div className="lb-copied" role="status">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.4l3 3 6-6.4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          Link copied. Send it to your friends.
+          <span className="lb-copied__burst" aria-hidden="true">
+            {[[-16, -18], [18, -20], [24, 6], [-20, 10], [2, -26], [4, 24]].map(([x, y]) => (
+              <i key={`${x}${y}`} style={{ "--x": `${x}px`, "--y": `${y}px` }} />
+            ))}
+          </span>
+          <svg className="lb-copied__tick" width="26" height="26" viewBox="0 0 22 22" aria-hidden="true">
+            <circle className="lb-copied__disc" cx="11" cy="11" r="11" />
+            <path className="lb-copied__check" pathLength="1" d="M6.5 11.4l3 3 6-6.6" />
+          </svg>
+          <strong>Link copied</strong>
+          <span className="lb-copied__sub">Send it to your friends</span>
         </div>,
         document.body,
       )}
