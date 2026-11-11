@@ -250,24 +250,30 @@ export default function LeaderboardView({ userId }) {
 /* Add friends (share or copy your link), in the band, and Edit friends,
    on the Friends board. The link is fetched the first time it is wanted. */
 function AddFriends({ disabled }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(0);
   const [err, setErr] = useState("");
+  /* The link is fetched as the page opens, so the tap can copy at once:
+     Safari refuses a copy that waits on the network after the tap. */
+  const [url, setUrl] = useState(null);
+  useEffect(() => {
+    if (disabled || url) return;
+    fetchMyFriendCode().then(c => setUrl(friendUrl(c)), () => {});
+  }, [disabled, url]);
+  useEffect(() => {
+    if (!copied) return;
+    const t = setTimeout(() => setCopied(0), 3600);
+    return () => clearTimeout(t);
+  }, [copied]);
+  /* Copy and show the note, on every device (Rafil, 2026-11-11: the share
+     sheet on phones and macOS meant the note never appeared). */
   async function share() {
     setErr("");
-    let url;
-    try { url = friendUrl(await fetchMyFriendCode()); } catch { setErr("Couldn’t get your link. Try again."); return; }
-    const text = "Add me on Resurface so we can see each other on the leaderboard.";
-    /* The share sheet on phones; a computer copies and says so. macOS
-       browsers have navigator.share too, and its window hid the note. */
-    const phone = window.matchMedia?.("(pointer: coarse)").matches;
-    if (phone && navigator.share) {
-      try { await navigator.share({ title: "Resurface", text, url }); return; } catch (e) { if (e?.name === "AbortError") return; }
+    let link = url;
+    if (!link) {
+      try { link = friendUrl(await fetchMyFriendCode()); setUrl(link); } catch { setErr("Couldn’t get your link. Try again."); return; }
     }
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3600);
-    } catch { setErr(url); }
+    if (await copyText(link)) setCopied(Date.now());
+    else setErr(link);
   }
   return (
     <div className="lb-friend-tools">
@@ -281,8 +287,8 @@ function AddFriends({ disabled }) {
       {/* Link copied: a capsule in the band's blue rising from the bottom,
           the tick drawing itself with a small burst (Rafil picked option D
           of four mockups, 2026-11-11). */}
-      {copied && createPortal(
-        <div className="lb-copied" role="status">
+      {copied > 0 && createPortal(
+        <div key={copied} className="lb-copied" role="status">
           <span className="lb-copied__burst" aria-hidden="true">
             {[[-16, -18], [18, -20], [24, 6], [-20, 10], [2, -26], [4, 24]].map(([x, y]) => (
               <i key={`${x}${y}`} style={{ "--x": `${x}px`, "--y": `${y}px` }} />
@@ -356,4 +362,21 @@ function FriendsWindow({ onClose, onChanged }) {
     </div>,
     document.body,
   );
+}
+
+/* Clipboard, with the old select-and-copy for browsers that refuse the
+   modern call. True when it worked. */
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { /* fall through */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch { return false; }
 }
