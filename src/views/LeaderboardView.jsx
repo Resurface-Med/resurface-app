@@ -119,9 +119,6 @@ export default function LeaderboardView({ userId }) {
           {span === "day" ? "Questions answered today." : "Questions answered in the last seven days."}
         </p>
         </div>
-        {/* In the blue on the right, big (Rafil, 2026-11-11): in the
-            controls row it was easy to miss and too wide for one line. */}
-        <AddFriends disabled={!online} />
         {/* Always rendered, blank until the board arrives. The wave sits
             directly under the band, so anything that grows the band after
             first paint moves the wave — and the switch animation has
@@ -132,7 +129,13 @@ export default function LeaderboardView({ userId }) {
 
       <Wave from="transparent" to="var(--c-card-solid)" />
 
-      <div style={{ background: "var(--c-card-solid)", flex: 1 }}>
+      <div style={{ background: "var(--c-card-solid)", flex: 1, position: "relative" }}>
+        {/* On the white, at the right edge level with the controls, solid
+            blue (Rafil, 2026-11-11: not on the wave, not white). Narrower
+            screens give it its own line above the controls. */}
+        <div className="lb-add-slot" style={{ ...band }}>
+          <AddFriends disabled={!online} />
+        </div>
         <div style={{ ...band, maxWidth: 720, paddingTop: "clamp(20px, 3vh, 28px)", paddingBottom: "clamp(36px, 5vh, 56px)" }}>
           {/* A dropdown (Rafil, 2026-10-24): five years plus All was too wide
               for a pill switch. The sign-up pop-up's year select, compact. */}
@@ -254,7 +257,10 @@ function AddFriends({ disabled }) {
     let url;
     try { url = friendUrl(await fetchMyFriendCode()); } catch { setErr("Couldn’t get your link. Try again."); return; }
     const text = "Add me on Resurface so we can see each other on the leaderboard.";
-    if (navigator.share) {
+    /* The share sheet on phones; a computer copies and says so. macOS
+       browsers have navigator.share too, and its window hid the note. */
+    const phone = window.matchMedia?.("(pointer: coarse)").matches;
+    if (phone && navigator.share) {
       try { await navigator.share({ title: "Resurface", text, url }); return; } catch (e) { if (e?.name === "AbortError") return; }
     }
     try {
