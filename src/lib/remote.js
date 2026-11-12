@@ -616,7 +616,7 @@ function shapeFeatured(data) {
   return {
     roots,
     decks: (data.decks ?? []).map(d => ({
-      id: d.id, name: d.name, parentId: d.parentId,
+      id: d.id, name: d.name, parentId: d.parentId, covers: d.covers ?? null,
       position: d.parentId ? d.position : -1e9 + (byTop.get(d.id)?.at ?? 0),
       featured: true, root: d.root, top: tops.has(d.id),
       byline: byRoot.has(d.id) ? byRoot.get(d.id).byline ?? null : null,

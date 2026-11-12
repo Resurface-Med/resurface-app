@@ -166,7 +166,9 @@ function Marked({ text, q }) {
 /** Prune to rows matching the query, keeping the ancestors above a match. */
 export function prune(nodes, q) {
   return nodes.flatMap(n => {
-    if (n.name.toLowerCase().includes(q)) return [n];
+    /* What a deck covers counts too (2026-11-12): Addison's finds Adrenal
+       Insufficiency. */
+    if (n.name.toLowerCase().includes(q) || n.covers?.toLowerCase().includes(q)) return [n];
     const kids = prune(n.children, q);
     return kids.length ? [{ ...n, children: kids }] : [];
   });
@@ -502,7 +504,7 @@ export default function DeckTree({
             onKeyDown={e => onRowKey(e, n)}
           >
             <Check state={st} />
-            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}><Marked text={n.name} q={q} />{n.byline && <span className="topic-by">by {n.byline}</span>}{n.yours && <span className="topic-by">{n.suggestion ? `Yours · ${n.suggestion}` : "Yours"}</span>}</span>
+            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}><Marked text={n.name} q={q} />{n.byline && <span className="topic-by">by {n.byline}</span>}{n.yours && <span className="topic-by">{n.suggestion ? `Yours · ${n.suggestion}` : "Yours"}</span>}{n.covers && <span className="topic-covers"><Marked text={n.covers} q={q} /></span>}</span>
             <Coverage seen={n.seen} total={n.total} avail={n.avail} due={n.due} dim={n.avail === 0 && !(allowEmpty && n.mine)} empty={n.mine && n.total === 0} bar={depth !== 0} />
           </button>
           )}

@@ -9341,6 +9341,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 @media (max-width: 640px) { .setup-count-input { font-size: 17px; } }
 
 /* A featured deck's byline, inside its name: "Renal  by Jacob". */
+/* What a deck covers, under its name (2026-11-12). */
+.topic-covers {
+  display: block;
+  margin-top: 1px;
+  font-size: 12.5px; font-weight: 400; letter-spacing: -0.05px;
+  color: var(--c-muted);
+}
+
 .topic-by {
   margin-left: 8px;
   font-size: 13px; font-weight: 500; letter-spacing: -0.1px;
