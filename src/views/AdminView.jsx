@@ -5,7 +5,7 @@ import PopupPreview from "./PopupPreview";
 import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGeneratedDaily,
-  setAdmin, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured, fetchLeaderboardWeek,
+  setAdmin, fetchIsOwner, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured, fetchLeaderboardWeek,
 } from "../lib/remote";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import NavChevron from "../ui/NavChevron";
@@ -476,6 +476,8 @@ function People() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("seen");
   const [busy, setBusy] = useState(null);
+  const [owner, setOwner] = useState(false);
+  useEffect(() => { fetchIsOwner().then(setOwner); }, []);
 
   const trend = useMemo(() => {
     const days = [];
@@ -588,9 +590,11 @@ function People() {
                   <td className="ax-num ax-dim" data-label="Answered">{nf(p.answered)}</td>
                   <td className="ax-trend"><Spark points={trend.get(p.user_id) ?? Array(30).fill(0)} /></td>
                   <td className="ax-row-act">
-                    <button type="button" className="ax-link" disabled={busy === p.user_id} onClick={() => toggleAdmin(p)}>
-                      {busy === p.user_id ? "…" : p.is_admin ? "Remove admin" : "Make admin"}
-                    </button>
+                    {owner && (
+                      <button type="button" className="ax-link" disabled={busy === p.user_id} onClick={() => toggleAdmin(p)}>
+                        {busy === p.user_id ? "…" : p.is_admin ? "Remove admin" : "Make admin"}
+                      </button>
+                    )}
                   </td>
                 </tr>
               );

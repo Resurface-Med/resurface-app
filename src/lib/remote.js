@@ -815,6 +815,13 @@ export async function fetchMarketingList() {
   return data ?? [];
 }
 
+/* Only the owner may make or remove admins (migration 0081). */
+export async function fetchIsOwner() {
+  const { data, error } = await supabase.rpc("is_owner");
+  if (error) return false;
+  return data === true;
+}
+
 export async function setAdmin(userId, make) {
   const { error } = await supabase.rpc("admin_set_admin", { uid: userId, make });
   if (error) throw new Error(error.message);
