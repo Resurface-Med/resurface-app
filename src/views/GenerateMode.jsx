@@ -201,15 +201,21 @@ let pdfjsPromise = null;
  * so it is fetched when someone actually picks a PDF rather than when the page
  * opens. Cached after the first call, because a second lecture should not wait
  * for the same download twice.
+ *
+ * The legacy build with our polyfills first, on the page and in the worker
+ * (2026-11-13): pdf.js 6 reads page text with `for await` over a
+ * ReadableStream, which Safari cannot do, so every PDF failed on Macs and
+ * iPhones; the default build also needs Iterator, Promise.try and
+ * Uint8Array.toHex, which older browsers lack. See pdfPolyfills.js.
  */
 async function loadPdfjs() {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
-      const [pdfjs, worker] = await chunk(() => Promise.all([
-        import("pdfjs-dist"),
-        import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-      ]))();
-      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+      const pdfjs = await chunk(async () => {
+        await import("../lib/pdfPolyfills.js");
+        return import("pdfjs-dist/legacy/build/pdf.mjs");
+      })();
+      pdfjs.GlobalWorkerOptions.workerPort = new Worker(new URL("../lib/pdfWorker.js", import.meta.url), { type: "module" });
       return pdfjs;
     })();
   }
