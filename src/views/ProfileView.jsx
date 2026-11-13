@@ -108,6 +108,7 @@ export default function ProfileView({
 
   const [resetBusy, setResetBusy] = useState(false);
   const hideOptions = usePref("hideOptions");
+  const showSource = usePref("showSource");
   /* Which category is open; on a phone none until one is chosen. */
   const [cat, setCat] = useState(() => (narrow() ? null : "account"));
   const [isNarrow, setIsNarrow] = useState(narrow);
@@ -477,6 +478,15 @@ export default function ProfileView({
               <span>
                 Hide answer options until I&apos;m ready
                 <span className="profile-hint">Think of your answer first, then tap to see the options. The eye in a session switches it for that session.</span>
+              </span>
+            </label>
+
+            {/* Saves on ticking, with the other study preferences (0084). */}
+            <label className="auth-consent profile-hide-opts">
+              <input type="checkbox" checked={showSource} onChange={e => setPref("showSource", e.target.checked)} />
+              <span>
+                Show where each question is from
+                <span className="profile-hint">A line above each question names the deck and lecture it comes from.</span>
               </span>
             </label>
           </section>

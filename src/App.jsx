@@ -457,7 +457,7 @@ export default function App() {
     /* null: they could not be loaded this time — keep what is shown. */
     if (Array.isArray(d.sessions)) setSessions(d.sessions);
     if (d.notes && typeof d.notes === "object") setNotesHeld({ uid: user.id, map: d.notes });
-    loadPrefs({ showAllOptions: d.showAllOptions, hideOptions: d.hideOptions, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
+    loadPrefs({ showAllOptions: d.showAllOptions, hideOptions: d.hideOptions, showSource: d.showSource, introSeen: d.introSeen }, patch => remote.profile(user.id, patch));
     // Before the questions, so the pool is only rebuilt with both in hand.
     setQuestionEdits(d.questionEdits);
     featuredRef.current = d.featured ?? featuredRef.current;
@@ -699,7 +699,7 @@ export default function App() {
     pStats, srCards, bookmarks, notes, activity, streak, dailyGoal, displayName, avatarV,
     announcements, announcementsSeenAt: annSeenAt, nameChosen, showOnLeaderboard, marketingOptIn, studyYear,
     ...(studyTrusted.current ? { studySeconds: studyTotal.current } : {}),
-    showAllOptions: getPrefs().showAllOptions, hideOptions: getPrefs().hideOptions, introSeen: getPrefs().introSeen,
+    showAllOptions: getPrefs().showAllOptions, hideOptions: getPrefs().hideOptions, showSource: getPrefs().showSource, introSeen: getPrefs().introSeen,
     generated: genRowsRef.current, questionEdits: getQuestionEdits(),
     decks: decksRef.current, featured: liteFeatured(featuredRef.current), sessions,
   });

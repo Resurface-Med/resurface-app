@@ -177,6 +177,7 @@ export function TopicNote({ topic, hl, qid, deckId }) {
 }
 
 export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, onOpenNote = null, coverOptions = false }) {
+  const showSource = usePref("showSource");
   const answered = sel !== null || timedOut;
   /* Covered until you've thought of your answer (2026-11-05); one tap or
      Space shows them. The card is keyed by question, so each starts covered. */
@@ -405,8 +406,13 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
       </div>
       )}
 
-      {/* In a session (focus mode) the meta row above is not drawn, so the
-          source goes on a line of its own over the stem. */}
+      {/* Where it is from, when they have asked to see it (Settings › Study,
+          2026-11-13): the deck path, top to bottom, on one quiet line. */}
+      {showSource && q.path?.length > 0 && (
+        <p className={`q-source${focusMode ? " q-source--focus" : ""}`} title={q.path.map(s => s.name).join(" › ")}>
+          {q.path.map(s => s.name).join(" › ")}
+        </p>
+      )}
       <Highlighter
         as="p"
         text={q.q}

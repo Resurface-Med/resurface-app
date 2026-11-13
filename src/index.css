@@ -12460,3 +12460,20 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .rp__more.is-open svg { transform: rotate(90deg); }
 .rp__more.is-blank { cursor: default; }
 .rp .np__row { margin-top: 28px; }
+
+/* Where a question is from (Settings › Study, 2026-11-13). One quiet line
+   over the stem; clipped rather than wrapped, the full path on hover. */
+.q-source {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--c-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.q-source--focus { margin-bottom: 12px; }
+/* Clear of the Flagged badge in the corner. */
+.q-card.is-flagged .q-source { padding-right: 110px; }
+@media (max-width: 900px) { .q-card.is-flagged .q-source { padding-right: 96px; } }
