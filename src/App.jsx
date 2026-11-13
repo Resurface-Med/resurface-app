@@ -57,6 +57,8 @@ import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
 import { Sidebar } from "./views/Nav";
 import NamePrompt from "./ui/NamePrompt";
+import ReviewPicker from "./ui/ReviewPicker";
+import { reviewGroups } from "./lib/reviewGroups";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
 import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge, DayOneNudge, PassedNudge, BestNudge } from "./ui/Nudges";
@@ -223,6 +225,8 @@ export default function App() {
   /* Bumped by practise() so Study remounts, and so starts, even when it is
      already the view on screen. */
   const [startNonce, setStartNonce] = useState(0);
+  /* Topics to choose from before a review starts (ReviewPicker). */
+  const [reviewPick, setReviewPick] = useState(null);
 
   /* Every screen that shows or serves a question reads QUESTIONS, and this
      is the one place anything gets into it — there is no shipped bank any
@@ -1584,6 +1588,17 @@ export default function App() {
         />
       )}
       <ConfirmHost />
+      {reviewPick && (
+        <ReviewPicker groups={reviewPick} onClose={() => setReviewPick(null)}
+          onStart={ids => {
+            setReviewPick(null);
+            setLaunchFilter({ deck: "All", cat: "All" });
+            setStudyScope("due");
+            setAutoStart({ ids, limit: null });
+            setStartNonce(n => n + 1);
+            go(V.STUDY);
+          }} />
+      )}
       {/* Leaving a session, in the standard popup (NamePrompt's np-*
           layout, 2026-11-01) rather than a card of its own on a blurred
           blue backdrop. "Save and leave" says what happens. */}
@@ -1634,6 +1649,12 @@ export default function App() {
             studySeconds={studyReady ? studySeconds : null}
             onGoalChange={g => { setDailyGoal(g); remote.goal(user.id, g); }}
             onStudy={s => {
+              /* "Review N due" asks which topics first, unless they are all
+                 in one lecture and there is nothing to choose (2026-11-13). */
+              if (s === "due") {
+                const groups = reviewGroups(QUESTIONS.filter(q => isReviewDue(srCards[q.id])));
+                if (groups.length > 1 || groups[0]?.children.length > 1) { setReviewPick(groups); return; }
+              }
               setLaunchFilter({ deck: "All", cat: "All" });
               setStudyScope(s);
               /* "Review N due" starts the review; "Practice" opens Study on

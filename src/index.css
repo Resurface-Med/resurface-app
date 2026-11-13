@@ -12441,3 +12441,22 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .profile-quiet { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--c-border); }
 .profile-quiet__delete { padding: 0; border: 0; background: none; font: inherit; font-size: 14px; font-weight: 500; color: var(--c-muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .profile-quiet__delete:hover:not(:disabled) { color: var(--c-danger); }
+
+/* ── Choosing what to review (ReviewPicker, 2026-11-13) ─────────────────── */
+.rp { width: min(520px, 100%); }
+.rp__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.rp__all { border: 0; background: none; padding: 4px 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--c-accent); cursor: pointer; white-space: nowrap; }
+.rp__list { list-style: none; margin: 22px 0 0; padding: 0; max-height: min(52vh, 440px); overflow-y: auto; overscroll-behavior: contain; }
+.rp__sub { list-style: none; margin: 0 0 6px; padding: 0 0 0 28px; }
+.rp__row { display: flex; align-items: center; gap: 10px; min-height: 46px; }
+.rp__pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.rp__pick input { flex: none; width: 18px; height: 18px; margin: 0; accent-color: var(--c-accent); }
+.rp__name { font-size: 16px; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rp__sub .rp__name { font-size: 15px; color: var(--c-sub); }
+.rp__n { flex: none; font-size: 15px; font-variant-numeric: tabular-nums; color: var(--c-muted); }
+.rp__more { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: var(--c-muted); cursor: pointer; }
+.rp__more:hover { color: var(--c-text); }
+.rp__more svg { transition: transform 0.18s ease; }
+.rp__more.is-open svg { transform: rotate(90deg); }
+.rp__more.is-blank { cursor: default; }
+.rp .np__row { margin-top: 28px; }
