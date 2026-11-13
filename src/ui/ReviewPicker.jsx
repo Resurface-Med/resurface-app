@@ -10,7 +10,8 @@ import { allKeys, idsFor } from "../lib/reviewGroups";
  */
 export default function ReviewPicker({ groups, onStart, onClose }) {
   const [selected, setSelected] = useState(() => new Set(allKeys(groups)));
-  const [open, setOpen] = useState(() => new Set());
+  /* Every topic opens already showing its lectures (Rafil, 2026-11-13). */
+  const [open, setOpen] = useState(() => new Set(groups.filter(g => g.children.length > 1).map(g => g.key)));
   const startRef = useRef(null);
 
   useEffect(() => {
