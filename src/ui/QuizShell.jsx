@@ -15,6 +15,7 @@ import QuestionNavigator from "./QuestionNavigator";
 import LabValues, { BeakerIcon } from "./LabValues";
 import { ComboPop, isComboMilestone, COMBO_POP_MS } from "./Nudges";
 import SideVideos, { useSideVideos } from "./SubwaySurfers";
+import LiveStrip from "./LiveStrip";
 
 /**
  * Full-screen study mode: no sidebar until you ask for the question list.
@@ -478,6 +479,9 @@ export default function QuizShell({
             ? <PanelLeftClose size={20} strokeWidth={2} aria-hidden="true" />
             : <PanelLeftOpen size={20} strokeWidth={2} aria-hidden="true" />}
         </button>
+
+        {/* Who else from your year is doing questions (2026-11-14). */}
+        {!showAi && !showNote && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} />}
 
         {railOpen && (
           <button

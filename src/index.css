@@ -12477,3 +12477,46 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 /* Clear of the Flagged badge in the corner. */
 .q-card.is-flagged .q-source { padding-right: 110px; }
 @media (max-width: 900px) { .q-card.is-flagged .q-source { padding-right: 96px; } }
+
+/* Coursemates doing questions now (ui/LiveStrip, 2026-11-14): a row of
+   photos at the top right of a session, mirroring the questions-list toggle
+   on the left. Each carries a solid count of what they have answered. */
+.live-strip {
+  position: absolute; grid-column: 2; grid-row: 1; top: 14px; right: clamp(12px, 2vw, 24px); z-index: 6;
+  display: inline-flex; align-items: center; gap: 0; padding: 4px 8px 9px;
+  border: 0; border-radius: 999px; background: none; cursor: pointer;
+  font: inherit; transition: background .15s ease;
+  animation: rs-fade-in .25s ease both;
+}
+.live-strip:hover, .live-strip.is-on { background: var(--c-surface3); }
+.live-strip__who { position: relative; display: block; }
+.live-strip__who + .live-strip__who { margin-left: 8px; }
+.live-strip__avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-card-solid); box-shadow: inset 0 0 0 1px var(--c-border); color: var(--c-sub);
+  font-size: 11.5px; font-weight: 700; letter-spacing: -0.2px;
+}
+.live-strip__n {
+  position: absolute; left: 50%; bottom: -7px; translate: -50% 0; min-width: 18px; height: 16px; padding: 0 4px;
+  display: grid; place-items: center; border-radius: 999px;
+  background: var(--c-accent); color: #fff; font-size: 10.5px; font-weight: 700; line-height: 1;
+  box-shadow: 0 0 0 2px var(--c-surface2);
+  animation: live-tick .35s ease both;
+}
+@keyframes live-tick { from { transform: translateY(3px); opacity: .4; } to { transform: none; opacity: 1; } }
+.live-strip__more { margin-left: 8px; font-size: 13px; font-weight: 600; color: var(--c-muted); }
+@media (max-width: 900px) {
+  .live-strip { top: 6px; right: 12px; }
+  .live-strip__avatar { width: 30px; height: 30px; }
+}
+.live-pop { min-width: 240px; padding: 8px; }
+.live-pop__head { margin: 4px 8px 6px; font-size: 13px; color: var(--c-muted); }
+.live-pop__row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; }
+.live-pop__avatar {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--c-surface3); color: var(--c-sub); font-size: 11px; font-weight: 700;
+}
+.live-pop__name { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-pop__n { font-size: 13px; color: var(--c-muted); white-space: nowrap; }

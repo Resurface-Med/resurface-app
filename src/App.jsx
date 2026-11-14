@@ -73,6 +73,7 @@ import { mark, report } from "./lib/loadTiming";
 import { ConfirmHost, confirm } from "./ui/Confirm";
 import Dashboard from "./views/Dashboard";
 import { avatarSrc, ownAvatar } from "./lib/avatar";
+import { setLiveMe } from "./lib/live";
 
 /* How long the outgoing view is held behind the arriving one. Must outlast
    `view-enter` in index.css — drop it early and the hole comes back. */
@@ -1409,6 +1410,12 @@ export default function App() {
     await adminDeleteAnnouncement(id);
     setAnnouncements(list => list.filter(a => a.id !== id));
   }
+
+  /* Who you are to the live strip in a session (lib/live). */
+  setLiveMe(user?.id && !dataLoading ? {
+    id: user.id, name: displayName || "Someone", avatar: avatarSrc(user.id, ownAvatar(avatarV)),
+    year: studyYear ?? 0, show: showOnLeaderboard,
+  } : null);
 
   const nav = {
     view, setView: handleNav, dueCount, isAdmin,
