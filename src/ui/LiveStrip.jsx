@@ -14,7 +14,7 @@ const SHOWN = 4;
  * the cross turns it off for good (Settings › Study turns it back on).
  */
 export default function LiveStrip({ answered, onDismiss }) {
-  const peers = useLivePeers(answered);
+  const peers = useLivePeers();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   if (!peers.length) return null;
