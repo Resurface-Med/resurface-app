@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { X } from "lucide-react";
 import Avatar from "./Avatar";
 import Popover from "./Popover";
 import { useLivePeers } from "../lib/live";
@@ -8,9 +9,10 @@ const SHOWN = 4;
 /*
  * People from your year doing questions right now, at the top right of a
  * session (2026-11-14): their photos, each with how many they have answered
- * this session. Nothing shows when no one else is on. Tapping it lists them.
+ * this session. Nothing shows when no one else is on. Tapping it lists them;
+ * the cross hides it for the rest of the session.
  */
-export default function LiveStrip({ answered }) {
+export default function LiveStrip({ answered, onDismiss }) {
   const peers = useLivePeers(answered);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -20,7 +22,7 @@ export default function LiveStrip({ answered }) {
   const label = `${peers.length} ${peers.length === 1 ? "person" : "people"} from your year doing questions now`;
 
   return (
-    <>
+    <div className="live">
       <button ref={ref} type="button" className={`live-strip btn-press${open ? " is-on" : ""}`}
         onClick={() => setOpen(o => !o)} aria-label={label} title={label} aria-expanded={open}>
         {shown.map(p => (
@@ -31,6 +33,12 @@ export default function LiveStrip({ answered }) {
         ))}
         {more > 0 && <span className="live-strip__more">+{more}</span>}
       </button>
+      {onDismiss && (
+        <button type="button" className="live-close btn-press" onClick={onDismiss}
+          aria-label="Hide for this session" title="Hide for this session">
+          <X size={14} strokeWidth={2.4} aria-hidden="true" />
+        </button>
+      )}
       <Popover anchorRef={ref} open={open} onClose={() => setOpen(false)} className="live-pop">
         <p className="live-pop__head">Doing questions now</p>
         {peers.map(p => (
@@ -41,6 +49,6 @@ export default function LiveStrip({ answered }) {
           </div>
         ))}
       </Popover>
-    </>
+    </div>
   );
 }

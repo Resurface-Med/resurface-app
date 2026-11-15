@@ -78,6 +78,8 @@ export default function QuizShell({
     onToggleBookmark();
   }
   const [railOpen, setRailOpen] = useState(false);
+  /* The live strip's cross: gone until this session ends. */
+  const [liveHidden, setLiveHidden] = useState(false);
   const [railMounted, setRailMounted] = useState(false);
   /* The editor is opened from the header here rather than from the card. The
      card's own tools are suppressed in focus mode, and this needs to be
@@ -481,7 +483,7 @@ export default function QuizShell({
         </button>
 
         {/* Who else from your year is doing questions (2026-11-14). */}
-        {!showAi && !showNote && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} />}
+        {!showAi && !showNote && !liveHidden && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} onDismiss={() => setLiveHidden(true)} />}
 
         {railOpen && (
           <button
