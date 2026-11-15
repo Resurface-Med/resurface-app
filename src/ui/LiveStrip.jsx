@@ -1,46 +1,102 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import Avatar from "./Avatar";
 import Popover from "./Popover";
 import { useLivePeers, getLiveMe } from "../lib/live";
 import { logStep } from "../lib/remote";
 
-const SHOWN = 4;
-
 /*
- * People from your year doing questions right now, at the top right of a
- * session (2026-11-14): their photos, each with how many they have answered
- * this session. Nothing shows when no one else is on. Tapping it lists them;
- * the cross turns it off for good (Settings › Study turns it back on).
+ * People from your year doing questions right now, as bubbles scattered in
+ * the space at the top right of a session (2026-11-15; a straight row of
+ * photos before that). The more someone has answered this session, the
+ * bigger their bubble, and each drifts a little on its own timing. Nothing
+ * shows when no one else is on. Tapping one lists everyone; the cross turns
+ * it off for good (Settings › Study turns it back on).
+ *
+ * Places are fixed, not random, so a bubble never jumps when the list
+ * changes: the busiest person takes the first (largest) place, and so on.
+ * Each is { x, y } in from the cluster's top right corner, and a size.
  */
+const WIDE = [
+  { x: 22, y: 6, s: 56 },
+  { x: 96, y: 40, s: 46 },
+  { x: 40, y: 84, s: 42 },
+  { x: 154, y: 0, s: 38 },
+  { x: 124, y: 110, s: 36 },
+  { x: 4, y: 140, s: 34 },
+];
+const NARROW = [
+  { x: 10, y: 8, s: 44 },
+  { x: 64, y: 0, s: 38 },
+  { x: 112, y: 16, s: 36 },
+  { x: 160, y: 2, s: 34 },
+];
+
+function useNarrow() {
+  const q = "(max-width: 900px)";
+  const [n, setN] = useState(() => typeof window !== "undefined" && window.matchMedia(q).matches);
+  useEffect(() => {
+    const m = window.matchMedia(q);
+    const on = () => setN(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return n;
+}
+
 export default function LiveStrip({ answered, onDismiss }) {
   const peers = useLivePeers(answered);
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+  const narrow = useNarrow();
+  const [open, setOpen] = useState(null);
+  const els = useRef(new Map());
+  const anchor = useRef(null);
+  anchor.current = open ? els.current.get(open) ?? null : null;
   if (!peers.length) return null;
-  const shown = peers.slice(0, SHOWN);
+  const places = narrow ? NARROW : WIDE;
+  const shown = peers.slice(0, places.length);
+  const used = places.slice(0, shown.length);
   const more = peers.length - shown.length;
   const label = `${peers.length} ${peers.length === 1 ? "person" : "people"} from your year doing questions now`;
+  const width = Math.max(...used.map(p => p.x + p.s)) + (more > 0 && !narrow ? 6 : 0);
+  const height = Math.max(...used.map(p => p.y + p.s)) + 10;
+  const keep = id => el => { if (el) els.current.set(id, el); else els.current.delete(id); };
+  const toggle = id => setOpen(o => (o === id ? null : id));
 
   return (
-    <div className="live">
-      <button ref={ref} type="button" className={`live-strip btn-press${open ? " is-on" : ""}`}
-        onClick={() => setOpen(o => !o)} aria-label={label} title={label} aria-expanded={open}>
-        {shown.map(p => (
-          <span key={p.id} className="live-strip__who">
-            <Avatar src={p.avatar} name={p.name} className="live-strip__avatar" />
-            <span key={p.answered} className="live-strip__n">{p.answered}</span>
-          </span>
-        ))}
-        {more > 0 && <span className="live-strip__more">+{more}</span>}
-      </button>
-      {onDismiss && (
-        <button type="button" className="live-close btn-press" onClick={() => { logStep(getLiveMe()?.id, "live_close"); onDismiss(); }}
-          aria-label="Hide this" title="Hide this. You can turn it back on in Settings.">
-          <X size={14} strokeWidth={2.4} aria-hidden="true" />
+    <div className={`live-bubbles${narrow ? " is-narrow" : ""}`} style={{ width, height }} role="group" aria-label={label}>
+      {shown.map((p, i) => {
+        const at = places[i];
+        return (
+          <button key={p.id} ref={keep(p.id)} type="button"
+            className={`live-bubble btn-press${open === p.id ? " is-on" : ""}`}
+            style={{
+              right: at.x, top: at.y, width: at.s, height: at.s,
+              fontSize: Math.round(at.s * 0.27),
+              "--d": `${-(i * 1.7) % 7}s`, "--t": `${6 + (i % 3) * 1.4}s`, "--in": `${i * 80}ms`,
+            }}
+            onClick={() => toggle(p.id)}
+            aria-label={`${p.name}, ${p.answered} answered`} title={`${p.name} · ${p.answered} answered`}>
+            <span className="live-bubble__float">
+              <Avatar src={p.avatar} name={p.name} className="live-bubble__face" />
+              <span key={p.answered} className="live-bubble__n">{p.answered}</span>
+            </span>
+          </button>
+        );
+      })}
+      {more > 0 && (
+        <button type="button" ref={keep("more")} className="live-bubble__more btn-press"
+          style={narrow ? { right: width + 2, top: 14 } : { right: 0, top: height - 22 }} onClick={() => toggle("more")} aria-label={label}>
+          +{more}
         </button>
       )}
-      <Popover anchorRef={ref} open={open} onClose={() => setOpen(false)} className="live-pop">
+      {onDismiss && (
+        <button type="button" className="live-close btn-press"
+          onClick={() => { logStep(getLiveMe()?.id, "live_close"); onDismiss(); }}
+          aria-label="Hide this" title="Hide this. You can turn it back on in Settings.">
+          <X size={13} strokeWidth={2.4} aria-hidden="true" />
+        </button>
+      )}
+      <Popover anchorRef={anchor} open={Boolean(open && anchor.current)} onClose={() => setOpen(null)} className="live-pop">
         <p className="live-pop__head">Doing questions now</p>
         {peers.map(p => (
           <div key={p.id} className="live-pop__row">
