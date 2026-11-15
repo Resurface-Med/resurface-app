@@ -4,9 +4,10 @@ import { supabase } from "./supabase";
 /*
  * Who else is doing questions right now (2026-11-14, suggested by a student).
  *
- * Supabase Realtime presence, one channel per study year: nothing is written
- * to the database. Each person in a session joins their year's channel with
- * their name, photo and how many questions they have answered this session.
+ * Supabase Realtime presence, one channel for everyone (per study year until
+ * 2026-11-15, which left it nearly always empty): nothing is written to the
+ * database. Each person in a session joins with their name, photo, year and
+ * how many questions they have answered this session.
  * Leaving the session (or closing the tab) takes them off. Someone hidden from
  * the leaderboard still sees others but is never sent.
  *
@@ -24,11 +25,11 @@ const DEMO = typeof __PREVIEW_TOOLS__ !== "undefined" && __PREVIEW_TOOLS__
   && typeof window !== "undefined" && new URLSearchParams(window.location.search).has("livedemo");
 
 const DEMO_PEOPLE = [
-  { id: "demo-1", name: "Alfie Elliot", answered: 14 },
-  { id: "demo-2", name: "Priya Shah", answered: 31 },
-  { id: "demo-3", name: "Jacob Mensah", answered: 6 },
-  { id: "demo-4", name: "Hannah Cole", answered: 22 },
-  { id: "demo-5", name: "Omar Haddad", answered: 9 },
+  { id: "demo-1", name: "Alfie Elliot", answered: 14, year: 2 },
+  { id: "demo-2", name: "Priya Shah", answered: 31, year: 1 },
+  { id: "demo-3", name: "Jacob Mensah", answered: 6, year: 2 },
+  { id: "demo-4", name: "Hannah Cole", answered: 22, year: 1 },
+  { id: "demo-5", name: "Omar Haddad", answered: 9, year: 2 },
 ];
 
 function useDemoPeers() {
@@ -43,7 +44,7 @@ function useDemoPeers() {
   return DEMO ? peers : null;
 }
 
-/** Everyone else in your year's live session channel, most answered first. */
+/** Everyone else in a session right now, any year, most answered first. */
 export function useLivePeers(answered) {
   const demo = useDemoPeers();
   const [peers, setPeers] = useState([]);
@@ -55,7 +56,9 @@ export function useLivePeers(answered) {
 
   useEffect(() => {
     if (DEMO || !supabase || !self?.id) return;
-    const ch = supabase.channel(`practice:y${self.year || 0}`, { config: { presence: { key: self.id } } });
+    /* One channel for every year (2026-11-15): split by year it was nearly
+       always empty. Each person's year travels with them for the list. */
+    const ch = supabase.channel("practice:all", { config: { presence: { key: self.id } } });
     chRef.current = ch;
     ch.on("presence", { event: "sync" }, () => {
       const state = ch.presenceState();
@@ -64,22 +67,22 @@ export function useLivePeers(answered) {
         if (id === self.id || !metas?.length) continue;
         /* The same person in two tabs: their busiest one. */
         const m = metas.reduce((a, b) => ((b.answered ?? 0) > (a.answered ?? 0) ? b : a));
-        list.push({ id, name: m.name || "Someone", avatar: m.avatar || null, answered: m.answered ?? 0 });
+        list.push({ id, name: m.name || "Someone", avatar: m.avatar || null, answered: m.answered ?? 0, year: m.year ?? null });
       }
       setPeers(list);
     });
     ch.subscribe(status => {
       if (status !== "SUBSCRIBED") return;
       ready.current = true;
-      if (self.show) ch.track({ name: self.name, avatar: self.avatar, answered: answeredRef.current });
+      if (self.show) ch.track({ name: self.name, avatar: self.avatar, year: self.year || null, answered: answeredRef.current });
     });
     return () => { ready.current = false; chRef.current = null; supabase.removeChannel(ch); };
-  }, [self?.id, self?.year, self?.show]);
+  }, [self?.id, self?.show]);
 
   useEffect(() => {
     const ch = chRef.current;
     if (!ch || !ready.current || !self?.show) return;
-    ch.track({ name: self.name, avatar: self.avatar, answered });
+    ch.track({ name: self.name, avatar: self.avatar, year: self.year || null, answered });
   }, [answered]);
 
   const list = demo ?? peers;

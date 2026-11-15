@@ -8,9 +8,9 @@ import { logStep } from "../lib/remote";
 const SHOWN = 4;
 
 /*
- * People from your year doing questions right now, at the top right of a
+ * People doing questions right now, from any year, at the top right of a
  * session (2026-11-14): their photos, each with how many they have answered
- * this session. Nothing shows when no one else is on. Tapping it lists them;
+ * this session. The list tags each name with their year. Nothing shows when no one else is on. Tapping it lists them;
  * the cross turns it off for good (Settings › Study turns it back on).
  */
 export default function LiveStrip({ answered, onDismiss }) {
@@ -20,7 +20,7 @@ export default function LiveStrip({ answered, onDismiss }) {
   if (!peers.length) return null;
   const shown = peers.slice(0, SHOWN);
   const more = peers.length - shown.length;
-  const label = `${peers.length} ${peers.length === 1 ? "person" : "people"} from your year doing questions now`;
+  const label = `${peers.length} ${peers.length === 1 ? "person" : "people"} doing questions now`;
 
   return (
     <div className="live">
@@ -45,7 +45,10 @@ export default function LiveStrip({ answered, onDismiss }) {
         {peers.map(p => (
           <div key={p.id} className="live-pop__row">
             <Avatar src={p.avatar} name={p.name} className="live-pop__avatar" />
-            <span className="live-pop__name">{p.name}</span>
+            <span className="live-pop__name">
+              {p.name}
+              {p.year > 0 && <span className="live-pop__year">Y{p.year}</span>}
+            </span>
             <span className="live-pop__n">{p.answered} answered</span>
           </div>
         ))}
