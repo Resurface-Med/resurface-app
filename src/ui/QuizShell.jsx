@@ -290,6 +290,15 @@ export default function QuizShell({
     return () => clearTimeout(t);
   }, [comboPop]);
   const answered = Object.keys(sels).length;
+  /* For the live strip: answers checked so far, and how many right in a row
+     up to the latest one. */
+  const liveAnswered = Object.values(results ?? {}).filter(Boolean).length;
+  const liveRun = (() => {
+    const done = Object.keys(results ?? {}).map(Number).filter(i => results[i]).sort((a, b) => b - a);
+    let n = 0;
+    for (const i of done) { if (!results[i].correct) break; n++; }
+    return n;
+  })();
   const answeredThis = sel !== null;
   /* The dock is a window you keep open, not a reaction to being wrong: it
      stays across questions and asks about whichever one is in front of
@@ -481,7 +490,7 @@ export default function QuizShell({
         </button>
 
         {/* Who else from your year is doing questions (2026-11-14). */}
-        {!showAi && !showNote && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} />}
+        {!showAi && !showNote && <LiveStrip answered={liveAnswered} total={queue.length} deck={q?.path?.[0]?.name || q?.block || ""} run={liveRun} />}
 
         {railOpen && (
           <button
