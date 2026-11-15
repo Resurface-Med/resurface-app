@@ -60,23 +60,38 @@ export function useLivePeers(answered) {
        always empty. Each person's year travels with them for the list. */
     const ch = supabase.channel("practice:all", { config: { presence: { key: self.id } } });
     chRef.current = ch;
-    ch.on("presence", { event: "sync" }, () => {
-      const state = ch.presenceState();
-      const list = [];
-      for (const [id, metas] of Object.entries(state)) {
-        if (id === self.id || !metas?.length) continue;
-        /* The same person in two tabs: their busiest one. */
-        const m = metas.reduce((a, b) => ((b.answered ?? 0) > (a.answered ?? 0) ? b : a));
-        list.push({ id, name: m.name || "Someone", avatar: m.avatar || null, answered: m.answered ?? 0, year: m.year ?? null });
-      }
-      setPeers(list);
-    });
+    /* Until everyone has reloaded, people on the version before 2026-11-15
+       are still on the per-year channels. Listen to those too, without
+       joining them, and take their year from the channel's name. */
+    const legacy = [0, 1, 2, 3, 4, 5].map(y => ({ y, ch: supabase.channel(`practice:y${y}`) }));
+    const sync = () => {
+      const byId = new Map();
+      const add = (state, year) => {
+        for (const [id, metas] of Object.entries(state)) {
+          if (id === self.id || !metas?.length) continue;
+          /* The same person in two tabs: their busiest one. */
+          const m = metas.reduce((a, b) => ((b.answered ?? 0) > (a.answered ?? 0) ? b : a));
+          const p = { id, name: m.name || "Someone", avatar: m.avatar || null, answered: m.answered ?? 0, year: m.year ?? year };
+          const had = byId.get(id);
+          if (!had || p.answered > had.answered) byId.set(id, p);
+        }
+      };
+      add(ch.presenceState(), null);
+      for (const l of legacy) add(l.ch.presenceState(), l.y || null);
+      setPeers([...byId.values()]);
+    };
+    ch.on("presence", { event: "sync" }, sync);
+    for (const l of legacy) { l.ch.on("presence", { event: "sync" }, sync); l.ch.subscribe(); }
     ch.subscribe(status => {
       if (status !== "SUBSCRIBED") return;
       ready.current = true;
       if (self.show) ch.track({ name: self.name, avatar: self.avatar, year: self.year || null, answered: answeredRef.current });
     });
-    return () => { ready.current = false; chRef.current = null; supabase.removeChannel(ch); };
+    return () => {
+      ready.current = false; chRef.current = null;
+      supabase.removeChannel(ch);
+      for (const l of legacy) supabase.removeChannel(l.ch);
+    };
   }, [self?.id, self?.show]);
 
   useEffect(() => {
