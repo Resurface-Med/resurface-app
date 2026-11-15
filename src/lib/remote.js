@@ -188,6 +188,7 @@ function apply(op) {
         ...(op.showAllOptions !== undefined ? { show_all_options: op.showAllOptions } : {}),
         ...(op.hideOptions !== undefined ? { hide_options: op.hideOptions } : {}),
         ...(op.showSource !== undefined ? { show_source: op.showSource } : {}),
+        ...(op.showLive !== undefined ? { show_live: op.showLive } : {}),
         ...(op.introSeen !== undefined ? { intro_seen: op.introSeen } : {}),
         ...(op.studyYear !== undefined ? { study_year: op.studyYear } : {}),
         updated_at: new Date().toISOString(),
@@ -446,6 +447,8 @@ export async function loadAll(userId) {
     showAllOptions: profile.data?.show_all_options !== false,
     hideOptions: profile.data?.hide_options === true,
     showSource: profile.data?.show_source === true,
+    /* The live strip in sessions (0085): on until closed. */
+    showLive: profile.data?.show_live !== false,
     introSeen: profile.data?.intro_seen === true,
     /* Year of study (migration 0031): 1–5, 0 something else, null not asked. */
     studyYear: profile.data?.study_year ?? null,
@@ -1007,6 +1010,7 @@ export const remote = {
     showAllOptions: patch.showAllOptions,
     hideOptions: patch.hideOptions,
     showSource: patch.showSource,
+    showLive: patch.showLive,
     introSeen: patch.introSeen,
     studyYear: patch.studyYear,
   }),

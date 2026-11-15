@@ -5,7 +5,7 @@ import { canEdit, persistFor } from "../lib/adminFeatured";
 import ExplainChat from "./ExplainChat";
 import NavChevron from "./NavChevron";
 import { Eye, EyeOff, NotebookPen, PanelLeftClose, PanelLeftOpen, Timer } from "lucide-react";
-import { usePref } from "../lib/prefs";
+import { usePref, setPref } from "../lib/prefs";
 import NoteDock from "./NoteDock";
 import { createPortal } from "react-dom";
 import { useNotes } from "../lib/notes";
@@ -78,8 +78,9 @@ export default function QuizShell({
     onToggleBookmark();
   }
   const [railOpen, setRailOpen] = useState(false);
-  /* The live strip's cross: gone until this session ends. */
-  const [liveHidden, setLiveHidden] = useState(false);
+  /* The live strip (0085): on until its cross is pressed, which turns it
+     off for good; Settings › Study brings it back. */
+  const showLive = usePref("showLive");
   const [railMounted, setRailMounted] = useState(false);
   /* The editor is opened from the header here rather than from the card. The
      card's own tools are suppressed in focus mode, and this needs to be
@@ -483,7 +484,7 @@ export default function QuizShell({
         </button>
 
         {/* Who else from your year is doing questions (2026-11-14). */}
-        {!showAi && !showNote && !liveHidden && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} onDismiss={() => setLiveHidden(true)} />}
+        {!showAi && !showNote && showLive && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} onDismiss={() => setPref("showLive", false)} />}
 
         {railOpen && (
           <button

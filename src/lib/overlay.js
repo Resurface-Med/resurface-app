@@ -75,6 +75,7 @@ export function overlayOps(snap, ops) {
         if (op.showAllOptions !== undefined) s.showAllOptions = op.showAllOptions;
         if (op.hideOptions !== undefined) s.hideOptions = op.hideOptions;
         if (op.showSource !== undefined) s.showSource = op.showSource;
+        if (op.showLive !== undefined) s.showLive = op.showLive;
         if (op.introSeen !== undefined) s.introSeen = op.introSeen;
         if (op.studyYear !== undefined) s.studyYear = op.studyYear;
         break;

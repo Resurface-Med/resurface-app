@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 import { X } from "lucide-react";
 import Avatar from "./Avatar";
 import Popover from "./Popover";
-import { useLivePeers } from "../lib/live";
+import { useLivePeers, getLiveMe } from "../lib/live";
+import { logStep } from "../lib/remote";
 
 const SHOWN = 4;
 
@@ -10,7 +11,7 @@ const SHOWN = 4;
  * People from your year doing questions right now, at the top right of a
  * session (2026-11-14): their photos, each with how many they have answered
  * this session. Nothing shows when no one else is on. Tapping it lists them;
- * the cross hides it for the rest of the session.
+ * the cross turns it off for good (Settings › Study turns it back on).
  */
 export default function LiveStrip({ answered, onDismiss }) {
   const peers = useLivePeers(answered);
@@ -34,8 +35,8 @@ export default function LiveStrip({ answered, onDismiss }) {
         {more > 0 && <span className="live-strip__more">+{more}</span>}
       </button>
       {onDismiss && (
-        <button type="button" className="live-close btn-press" onClick={onDismiss}
-          aria-label="Hide for this session" title="Hide for this session">
+        <button type="button" className="live-close btn-press" onClick={() => { logStep(getLiveMe()?.id, "live_close"); onDismiss(); }}
+          aria-label="Hide this" title="Hide this. You can turn it back on in Settings.">
           <X size={14} strokeWidth={2.4} aria-hidden="true" />
         </button>
       )}

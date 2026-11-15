@@ -109,6 +109,7 @@ export default function ProfileView({
   const [resetBusy, setResetBusy] = useState(false);
   const hideOptions = usePref("hideOptions");
   const showSource = usePref("showSource");
+  const showLive = usePref("showLive");
   /* Which category is open; on a phone none until one is chosen. */
   const [cat, setCat] = useState(() => (narrow() ? null : "account"));
   const [isNarrow, setIsNarrow] = useState(narrow);
@@ -487,6 +488,16 @@ export default function ProfileView({
               <span>
                 Show where each question is from
                 <span className="profile-hint">A line above each question names the deck and lecture it comes from.</span>
+              </span>
+            </label>
+
+            {/* The live strip in sessions (0085). Closing it there turns
+                this off; this is the way back. */}
+            <label className="auth-consent profile-hide-opts">
+              <input type="checkbox" checked={showLive} onChange={e => setPref("showLive", e.target.checked)} />
+              <span>
+                Show who's doing questions now
+                <span className="profile-hint">People from your year who are in a session at the same time appear at the top of yours, with how many they've answered.</span>
               </span>
             </label>
           </section>

@@ -82,3 +82,5 @@ export function useLivePeers(answered) {
   const list = demo ?? peers;
   return [...list].sort((a, b) => b.answered - a.answered);
 }
+
+export function getLiveMe() { return me; }
