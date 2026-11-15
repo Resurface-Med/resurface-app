@@ -11,6 +11,9 @@ import { supabase } from "./supabase";
  * the leaderboard still sees others but is never sent.
  *
  * App sets `me` once the profile has loaded; the session reads it.
+ *
+ * On main from 2026-11-15. Closing the strip turns profiles.show_live off
+ * (0085); Settings › Study turns it back on.
  */
 let me = null;
 export function setLiveMe(next) { me = next; }
