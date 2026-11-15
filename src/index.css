@@ -12480,8 +12480,8 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 
 /* Coursemates doing questions now (ui/LiveStrip): bubbles scattered in the
    space at the top right of a session (2026-11-15; a row before that). Size
-   follows how many they have answered; each drifts a few pixels on its own
-   slow timing, never a pulse or a glow. White discs, like the row was. */
+   follows how many they have answered. Still and close together: a version
+   that drifted and spread out was too distracting. White discs, like the row. */
 .live-bubbles {
   position: absolute; grid-column: 2; grid-row: 1; top: 12px; right: clamp(14px, 2.4vw, 32px); z-index: 6;
 }
@@ -12491,31 +12491,23 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   animation: live-pop-in .5s var(--in, 0ms) cubic-bezier(0.34, 1.4, 0.5, 1) both;
 }
 @keyframes live-pop-in { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: none; } }
-.live-bubble__float {
-  position: absolute; inset: 0; display: block;
-  animation: live-drift var(--t, 6s) var(--d, 0s) ease-in-out infinite;
-}
-@keyframes live-drift {
-  0%, 100% { transform: translate(0, 0); }
-  33% { transform: translate(1.5px, -3px); }
-  66% { transform: translate(-1.5px, -1px); }
-}
-@media (prefers-reduced-motion: reduce) { .live-bubble__float { animation: none; } }
+.live-bubble__float { position: absolute; inset: 0; display: block; }
+
 .live-bubble__face {
   width: 100%; height: 100%; border-radius: 50%;
   display: grid; place-items: center;
   background: var(--c-card-solid); color: var(--c-sub);
-  box-shadow: inset 0 0 0 1px var(--c-border), 0 8px 20px -10px rgba(var(--c-shade), 0.28);
+  box-shadow: inset 0 0 0 1px var(--c-border), 0 0 0 2px var(--c-surface2);
   font-weight: 700; letter-spacing: -0.2px;
   transition: box-shadow .15s ease;
 }
 .live-bubble:hover .live-bubble__face, .live-bubble.is-on .live-bubble__face {
-  box-shadow: inset 0 0 0 2px var(--c-accent), 0 8px 20px -10px rgba(var(--c-shade), 0.28);
+  box-shadow: inset 0 0 0 2px var(--c-accent), 0 0 0 2px var(--c-surface2);
 }
 .live-bubble__n {
-  position: absolute; right: -7px; bottom: -4px; min-width: 18px; height: 17px; padding: 0 5px;
+  position: absolute; right: -6px; bottom: -3px; min-width: 16px; height: 15px; padding: 0 4px;
   display: grid; place-items: center; border-radius: 999px;
-  background: var(--c-accent); color: #fff; font-size: 10.5px; font-weight: 700; line-height: 1;
+  background: var(--c-accent); color: #fff; font-size: 9.5px; font-weight: 700; line-height: 1;
   font-variant-numeric: tabular-nums;
   box-shadow: 0 0 0 2px var(--c-surface2);
   animation: live-tick .35s ease both;
@@ -12527,7 +12519,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 /* Turns it off for good. Quiet until hovered. */
 .live-close {
-  position: absolute; top: -6px; right: -22px;
+  position: absolute; top: -4px; right: -24px;
   width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%;
   display: grid; place-items: center; background: none; color: var(--c-muted); cursor: pointer;
   opacity: .6; transition: background .15s ease, opacity .15s ease, color .15s ease;
@@ -12536,7 +12528,6 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (max-width: 900px) {
   .live-bubbles { top: 6px; right: 36px; }
   .live-close { top: 10px; right: -30px; }
-  .live-bubble__n { min-width: 16px; height: 15px; padding: 0 4px; font-size: 9.5px; right: -6px; bottom: -3px; }
 }
 .live-pop { min-width: 240px; padding: 8px; }
 .live-pop__head { margin: 4px 8px 6px; font-size: 13px; color: var(--c-muted); }

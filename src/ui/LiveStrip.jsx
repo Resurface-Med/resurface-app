@@ -9,8 +9,9 @@ import { logStep } from "../lib/remote";
  * People from your year doing questions right now, as bubbles scattered in
  * the space at the top right of a session (2026-11-15; a straight row of
  * photos before that). The more someone has answered this session, the
- * bigger their bubble, and each drifts a little on its own timing. Nothing
- * shows when no one else is on. Tapping one lists everyone; the cross turns
+ * bigger their bubble; they sit still, packed close (Rafil, 2026-11-15: the
+ * drifting, spread-out version was distracting). Nothing shows when no one
+ * else is on. Tapping one lists everyone; the cross turns
  * it off for good (Settings › Study turns it back on).
  *
  * Places are fixed, not random, so a bubble never jumps when the list
@@ -18,18 +19,18 @@ import { logStep } from "../lib/remote";
  * Each is { x, y } in from the cluster's top right corner, and a size.
  */
 const WIDE = [
-  { x: 22, y: 6, s: 56 },
-  { x: 96, y: 40, s: 46 },
-  { x: 40, y: 84, s: 42 },
-  { x: 154, y: 0, s: 38 },
-  { x: 124, y: 110, s: 36 },
-  { x: 4, y: 140, s: 34 },
+  { x: 0, y: 6, s: 40 },
+  { x: 50, y: 0, s: 36 },
+  { x: 96, y: 10, s: 34 },
+  { x: 140, y: 2, s: 32 },
+  { x: 182, y: 12, s: 30 },
+  { x: 222, y: 4, s: 30 },
 ];
 const NARROW = [
-  { x: 10, y: 8, s: 44 },
-  { x: 64, y: 0, s: 38 },
-  { x: 112, y: 16, s: 36 },
-  { x: 160, y: 2, s: 34 },
+  { x: 0, y: 6, s: 36 },
+  { x: 46, y: 0, s: 34 },
+  { x: 90, y: 10, s: 32 },
+  { x: 132, y: 2, s: 30 },
 ];
 
 function useNarrow() {
@@ -57,7 +58,7 @@ export default function LiveStrip({ answered, onDismiss }) {
   const used = places.slice(0, shown.length);
   const more = peers.length - shown.length;
   const label = `${peers.length} ${peers.length === 1 ? "person" : "people"} from your year doing questions now`;
-  const width = Math.max(...used.map(p => p.x + p.s)) + (more > 0 && !narrow ? 6 : 0);
+  const width = Math.max(...used.map(p => p.x + p.s));
   const height = Math.max(...used.map(p => p.y + p.s)) + 10;
   const keep = id => el => { if (el) els.current.set(id, el); else els.current.delete(id); };
   const toggle = id => setOpen(o => (o === id ? null : id));
@@ -71,8 +72,8 @@ export default function LiveStrip({ answered, onDismiss }) {
             className={`live-bubble btn-press${open === p.id ? " is-on" : ""}`}
             style={{
               right: at.x, top: at.y, width: at.s, height: at.s,
-              fontSize: Math.round(at.s * 0.27),
-              "--d": `${-(i * 1.7) % 7}s`, "--t": `${6 + (i % 3) * 1.4}s`, "--in": `${i * 80}ms`,
+              fontSize: Math.round(at.s * 0.28),
+              "--in": `${i * 60}ms`,
             }}
             onClick={() => toggle(p.id)}
             aria-label={`${p.name}, ${p.answered} answered`} title={`${p.name} · ${p.answered} answered`}>
@@ -85,7 +86,7 @@ export default function LiveStrip({ answered, onDismiss }) {
       })}
       {more > 0 && (
         <button type="button" ref={keep("more")} className="live-bubble__more btn-press"
-          style={narrow ? { right: width + 2, top: 14 } : { right: 0, top: height - 22 }} onClick={() => toggle("more")} aria-label={label}>
+          style={{ right: width + 4, top: 14 }} onClick={() => toggle("more")} aria-label={label}>
           +{more}
         </button>
       )}
