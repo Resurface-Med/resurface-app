@@ -20,8 +20,16 @@ export function setLiveMe(next) { me = next; }
 
 /* The preview's demo: `?livedemo` on the dev build fills the strip with made-
    up coursemates who answer a question every few seconds. Never on main. */
-const DEMO = typeof __PREVIEW_TOOLS__ !== "undefined" && __PREVIEW_TOOLS__
-  && typeof window !== "undefined" && new URLSearchParams(window.location.search).has("livedemo");
+const DEMO = (() => {
+  if (typeof __PREVIEW_TOOLS__ === "undefined" || !__PREVIEW_TOOLS__ || typeof window === "undefined") return false;
+  /* Remembered on the device, because signing in (Google) comes back to the
+     plain address and would drop the flag. ?livedemo=0 turns it off. */
+  try {
+    const q = new URLSearchParams(window.location.search);
+    if (q.has("livedemo")) localStorage.setItem("rs_livedemo", q.get("livedemo") === "0" ? "0" : "1");
+    return localStorage.getItem("rs_livedemo") === "1";
+  } catch { return new URLSearchParams(window.location.search).has("livedemo"); }
+})();
 
 const DEMO_PEOPLE = [
   { id: "demo-1", name: "Alfie Elliot", answered: 14 },
