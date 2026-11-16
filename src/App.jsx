@@ -1509,11 +1509,13 @@ export default function App() {
           applyDecks(fresh.decks ?? []);
           applyGenerated(fresh.generated, fresh.decks ?? []);
           setOpenDeckId(id);
-          /* A deck someone sent you is a deck to practise, not to file. Ten
-             to start, so the first session is one sitting, not two hundred
-             questions; the rest are in the deck, which is now open. */
+          /* A deck someone sent you is a deck to practise, not to file.
+             Three to start (2026-11-16, was ten): most new accounts answer
+             about three questions before leaving, so the first session ends
+             on the results page instead of halfway through. The rest are in
+             the deck, which is now open. */
           const ids = questionsInDeck(id).map(q => q.id);
-          if (ids.length) practise(ids, 10);
+          if (ids.length) practise(ids, 3);
           else setView(V.STUDY);
           setShareCode(null);
         }}
