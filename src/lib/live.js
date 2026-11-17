@@ -1,122 +1,96 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "./supabase";
+import { avatarSrc } from "./avatar";
 
 /*
  * Who else is doing questions right now (2026-11-14, suggested by a student).
  *
- * Supabase Realtime presence, one channel for everyone (per study year until
- * 2026-11-15, which left it nearly always empty): nothing is written to the
- * database. Each person shows with their name, photo, year and how many
- * questions they have answered in this sitting.
+ * Read from the answers themselves (live_now, migration 0087), not from
+ * Realtime presence (2026-11-17). Presence only showed someone whose own app
+ * reported them: an app left open from before an update, or one whose
+ * connection dropped and never rejoined, answered all evening and never
+ * appeared. Every version of the app saves its answers, and the server times
+ * them, so a wrong phone clock can't hide anyone either.
  *
- * Live means answering, not being on the question screen (2026-11-15):
- * people do ten questions, look at their results, start another set, and
- * counting only the question screen made everyone flicker off between sets.
- * So your first answer puts you on, and you stay on until ten minutes after
- * your last, as long as the app is open. A gap of more than ten minutes
- * starts a new sitting and the count from zero. Someone hidden from the
- * leaderboard still sees others but is never sent.
- *
- * App sets `me` once the profile has loaded (and connects); remote.answer
- * calls noteAnswer. Closing the strip turns profiles.show_live off (0085);
- * Settings › Study turns it back on — that only hides the strip, it does not
- * stop you being shown to others.
+ * Live means an answer in the last ten minutes; the count is the answers
+ * since the last gap of more than ten. Anyone hidden from the leaderboard is
+ * never listed (but still sees others). The list is asked for every 15
+ * seconds while the strip is on screen and the tab is visible, and at once
+ * when the tab comes back or the connection returns.
  */
-const IDLE_MS = 10 * 60_000;
-const CHANNEL = "practice:all";
+const EVERY_MS = 15_000;
+const STALE_MS = 2 * 60_000;     // no answer from the server this long: show no one
+const TIMEOUT_MS = 10_000;
 
 let me = null;
-let ch = null;
-let chFor = null;
-let joined = false;
-let legacy = [];
 let peers = [];
-let sitting = { count: 0, last: 0 };
-let leaveTimer = null;
+let lastOk = 0;
+let timer = null;
+let inFlight = false;
 const subs = new Set();
 const emit = () => subs.forEach(fn => fn());
 
 export function getLiveMe() { return me; }
 
-const active = () => sitting.count > 0 && Date.now() - sitting.last < IDLE_MS;
-
-function track() {
-  if (!ch || !joined || !me?.show || !active()) return;
-  ch.track({ name: me.name, avatar: me.avatar, year: me.year || null, answered: sitting.count, at: sitting.last });
-}
-
-function untrack() {
-  if (ch && joined) ch.untrack();
-}
-
-/* Everyone on the channel bar you, plus anyone still on the version before
-   2026-11-15's, who sit on the old per-year channels (listened to, never
-   joined). Anyone whose last answer is over ten minutes old is left out, in
-   case their app never said they had gone. */
-function collect() {
-  const now = Date.now();
-  const byId = new Map();
-  const add = (state, year) => {
-    for (const [id, metas] of Object.entries(state || {})) {
-      if (id === me?.id || !metas?.length) continue;
-      /* The same person in two tabs: their busiest one. */
-      const m = metas.reduce((a, b) => ((b.answered ?? 0) > (a.answered ?? 0) ? b : a));
-      if (m.at && now - m.at > IDLE_MS + 60_000) continue;
-      const p = { id, name: m.name || "Someone", avatar: m.avatar || null, answered: m.answered ?? 0, year: m.year ?? year };
-      const had = byId.get(id);
-      if (!had || p.answered > had.answered) byId.set(id, p);
-    }
-  };
-  if (ch) add(ch.presenceState(), null);
-  for (const l of legacy) add(l.ch.presenceState(), l.y || null);
-  peers = [...byId.values()];
+function setPeers(next) {
+  const same = next.length === peers.length && next.every((p, i) =>
+    p.id === peers[i].id && p.answered === peers[i].answered && p.avatar === peers[i].avatar && p.name === peers[i].name);
+  if (same) return;
+  peers = next;
   emit();
 }
 
-function disconnect() {
-  if (ch) supabase.removeChannel(ch);
-  for (const l of legacy) supabase.removeChannel(l.ch);
-  ch = null; legacy = []; joined = false; peers = []; chFor = null;
-  emit();
+async function poll() {
+  if (inFlight || !supabase || !me?.id || !subs.size) return;
+  if (typeof document !== "undefined" && document.hidden) return;
+  inFlight = true;
+  const asked = me.id;
+  try {
+    let q = supabase.rpc("live_now");
+    if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) q = q.abortSignal(AbortSignal.timeout(TIMEOUT_MS));
+    const { data, error } = await q;
+    if (error) throw error;
+    if (me?.id !== asked) return;     // signed out or switched account meanwhile
+    lastOk = Date.now();
+    setPeers((data ?? []).map(r => ({
+      id: r.user_id,
+      name: r.display_name || "Someone",
+      avatar: avatarSrc(r.user_id, r.avatar),
+      answered: r.answered ?? 0,
+      year: r.study_year ?? 0,
+    })));
+  } catch {
+    if (Date.now() - lastOk > STALE_MS) setPeers([]);
+  } finally {
+    inFlight = false;
+  }
 }
 
-function connect(id) {
-  disconnect();
-  if (!supabase || !id) return;
-  chFor = id;
-  ch = supabase.channel(CHANNEL, { config: { presence: { key: id } } });
-  ch.on("presence", { event: "sync" }, collect);
-  legacy = [0, 1, 2, 3, 4, 5].map(y => ({ y, ch: supabase.channel(`practice:y${y}`) }));
-  for (const l of legacy) { l.ch.on("presence", { event: "sync" }, collect); l.ch.subscribe(); }
-  /* Fires again after a dropped connection comes back (a phone waking),
-     which is when you need putting back on. */
-  ch.subscribe(status => {
-    joined = status === "SUBSCRIBED";
-    if (joined) track();
-  });
+function start() {
+  if (timer) return;
+  timer = setInterval(poll, EVERY_MS);
+  poll();
 }
 
-/** Who you are; set by App on every render, so only a change of account reconnects. */
+function stop() {
+  clearInterval(timer);
+  timer = null;
+}
+
+if (typeof window !== "undefined") {
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(); });
+  window.addEventListener("online", poll);
+}
+
+/** Who you are; set by App on every render, so only a change of account matters. */
 export function setLiveMe(next) {
+  const changed = (next?.id ?? null) !== (me?.id ?? null);
   me = next;
-  if (DEMO) return;
-  const id = next?.id ?? null;
-  if (id !== chFor) connect(id);
+  if (!changed) return;
+  lastOk = 0;
+  setPeers([]);
+  poll();
 }
-
-/** Called for every answer you give (lib/remote). */
-export function noteAnswer() {
-  if (!me) return;
-  const now = Date.now();
-  if (now - sitting.last > IDLE_MS) sitting = { count: 0, last: 0 };
-  sitting = { count: sitting.count + 1, last: now };
-  track();
-  clearTimeout(leaveTimer);
-  leaveTimer = setTimeout(untrack, IDLE_MS);
-}
-
-/* Drop anyone gone quiet even if no presence event comes. */
-if (typeof window !== "undefined") setInterval(() => { if (ch) collect(); }, 60_000);
 
 /* The preview's demo: `?livedemo` on the dev build fills the strip with made-
    up coursemates who answer a question every few seconds. Never on main. */
@@ -143,10 +117,18 @@ function useDemoPeers() {
   return DEMO ? peers : null;
 }
 
+function subscribe(fn) {
+  subs.add(fn);
+  start();
+  return () => {
+    subs.delete(fn);
+    if (!subs.size) stop();
+  };
+}
+
 /** Everyone else live right now, any year, most answered first. */
 export function useLivePeers() {
   const demo = useDemoPeers();
-  const live = useSyncExternalStore(fn => { subs.add(fn); return () => subs.delete(fn); }, () => peers);
-  const list = demo ?? live;
-  return [...list].sort((a, b) => b.answered - a.answered);
+  const live = useSyncExternalStore(subscribe, () => peers);
+  return demo ? [...demo].sort((a, b) => b.answered - a.answered) : live;
 }

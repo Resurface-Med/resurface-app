@@ -1,5 +1,4 @@
 import { supabase } from "./supabase";
-import { noteAnswer } from "./live";
 import { timed } from "./loadTiming";
 import { GEN_ID_BASE } from "../data";
 import { append, dropOnce } from "./queue";
@@ -988,7 +987,7 @@ export async function removeFriend(friendId) {
 export const remote = {
   practice: (userId, questionId, correct, total) => send({ kind: "practice", userId, questionId, correct, total }),
   pick:     (userId, questionId, optionText)     => send({ kind: "pick", userId, questionId, optionText }),
-  answer:   (userId, questionId, correct, ms)    => { noteAnswer(); return send({ kind: "answer", userId, questionId, correct, ms, answeredAt: new Date().toISOString() }); },
+  answer:   (userId, questionId, correct, ms)    => send({ kind: "answer", userId, questionId, correct, ms, answeredAt: new Date().toISOString() }),
   sr:       (userId, questionId, card)           => send({ kind: "sr", userId, questionId, card }),
   addBookmark:    (userId, questionId) => send({ kind: "bookmark-add", userId, questionId }),
   removeBookmark: (userId, questionId) => send({ kind: "bookmark-remove", userId, questionId }),
