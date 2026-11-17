@@ -3502,6 +3502,8 @@ html.is-deck-dragging * {
   letter-spacing: -1px;
 }
 
+.sum-pct { white-space: nowrap; }
+
 .sum-section {
   padding-top: clamp(20px, 3vh, 28px);
   margin-top: clamp(20px, 3vh, 28px);

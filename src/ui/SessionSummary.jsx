@@ -31,19 +31,19 @@ import Wave from "./Wave";
  * above this line, so "All correct" underneath it was the same redundancy in
  * miniature.
  *
- * The bottom tier is the one that must not be a joke at the reader's expense —
- * a laugh aimed at someone who has just scored 40% is the exact thing that
- * makes them close the app. "Lock in" is the opposite: it is said to someone,
- * not about them. It also stays out of the way of the Practice again button
- * directly below, where "Worth another go" was telling them to press it.
+ * None of them may be at the reader's expense (Rafil, 2026-11-17: "make the
+ * statements less harsh"). "Rough one. Lock in." under a 40% read as a
+ * telling-off, and "Nearly perfect. Nearly." took the shine off a good score.
+ * Low scores get the most care: they are who is closest to closing the app.
  */
 function verdictLine(correct, total) {
   if (total === 0) return "Nothing answered.";
-  if (correct === total) return "Suspiciously good.";
+  if (correct === total) return "Clean sweep. Nicely done.";
   const pct = correct / total;
-  if (pct >= 0.8) return "Nearly perfect. Nearly.";
-  if (pct >= 0.6) return "Getting there.";
-  return "Rough one. Lock in.";
+  if (pct >= 0.8) return "Really solid.";
+  if (pct >= 0.6) return "Good going.";
+  if (pct >= 0.4) return "Decent effort. The misses are below.";
+  return "A tough set. That's what practice is for.";
 }
 
 const band = {
@@ -62,6 +62,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
   const skipped = results.length - answered.length;
   const total = answered.length;
   const correct = answered.filter(r => r.correct).length;
+  const pct = total ? Math.round((correct / total) * 100) : null;
   const wrongOnes = results.filter(r => !r.correct);
 
   const byCat = {};
@@ -92,11 +93,12 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
       <div className="page-band" style={{ ...band, paddingTop: "clamp(24px, 4vh, 40px)", paddingBottom: "clamp(22px, 3vh, 32px)" }}>
         <span style={eyebrowField} data-in="left">{title}</span>
 
-        {/* The count, not a percentage. A single-question session scoring
-            "100%" in 88px type is the sort of thing only a computer thinks is
-            impressive, and the fraction carries the sample size with it. */}
+        {/* The count leads, because it carries the sample size; the
+            percentage sits beside it, quieter, for comparing one session with
+            the next (Rafil, 2026-11-17). It never wraps away from itself. */}
         <h1 data-in="left" style={{ ...h1, fontSize: "clamp(38px, 5.6vw, 60px)", letterSpacing: "-2.2px", margin: "12px 0 0", "--i": 1 }}>
           {correct} <span className="sum-of">of</span> {total} <span className="sum-of">correct</span>
+          {pct !== null && <> <span className="sum-pct"><span className="sum-of">·</span> {pct}%</span></>}
         </h1>
 
         <p data-in="left" style={{ ...pageSub, maxWidth: "44ch", "--i": 2 }}>
