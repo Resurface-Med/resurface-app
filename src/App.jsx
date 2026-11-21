@@ -35,7 +35,7 @@ import { supabase } from "./lib/supabase";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
   adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
-  liteFeatured, hydrateFeatured, addFriend } from "./lib/remote";
+  liteFeatured, hydrateFeatured, addFriend, fetchResolvedReports, markReportsSeen } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
 import { mergeSessions } from "./lib/pastSessions";
@@ -61,6 +61,7 @@ import ReviewPicker from "./ui/ReviewPicker";
 import { reviewGroups } from "./lib/reviewGroups";
 import { YearPrompt } from "./ui/YearSelect";
 import WelcomeReveal from "./ui/WelcomeReveal";
+import ReportResolved from "./ui/ReportResolved";
 import NudgeCenter, { PreviewHost, StreakNudge, LeaderNudge, MilestoneNudge, ImproveNudge, HomeScreenNudge, InviteNudge, DayOneNudge, PassedNudge, BestNudge } from "./ui/Nudges";
 
 const NUDGES_LIVE = true;
@@ -393,6 +394,10 @@ export default function App() {
     return pendingFriend();
   });
   const [dataLoading, setDataLoading] = useState(true);
+  /* Reports of theirs that have been resolved (ui/ReportResolved). Asked
+     once per opening of the app, after the data is in. */
+  const [resolvedReports, setResolvedReports] = useState(null);
+  const askedResolved = useRef(false);
   /* Set when the sign-in snapshot could not be fetched. Without this the
      effect had no catch at all, so a throw left the app on "Loading your
      progress…" for ever. */
@@ -909,6 +914,27 @@ export default function App() {
     return ids;
   }
   const deckActions = { createDeck, renameDeck, deleteDeck, moveDeck, deleteQuestion, moveQuestion, deleteQuestions, moveQuestions, addQuestions };
+
+  useEffect(() => {
+    if (!user || dataLoading || askedResolved.current) return;
+    askedResolved.current = true;
+    fetchResolvedReports().then(rows => { if (rows.length) setResolvedReports(rows); }, () => {});
+  }, [user, dataLoading]);
+  /* Seen whichever way it was closed, so it shows once. If the write fails
+     it shows again next time, which is the better way to be wrong. */
+  function closeResolved() {
+    const ids = (resolvedReports ?? []).map(r => r.questionId);
+    setResolvedReports(null);
+    if (ids.length) markReportsSeen(ids).catch(() => {});
+  }
+  /* One popup a visit: not over a session, the name or year prompts, the
+     welcome reveal, or a nudge card already up. Held back, it waits for the
+     next opening of the app, since it is only marked seen once shown. */
+  const blockedResolved = practiceSessionActive || !nameChosen || studyYear === null || reveal
+    || (isGoogleUser(user) && marketingOptIn === null);
+  useEffect(() => {
+    if (resolvedReports && !blockedResolved && document.querySelector(".nudge")) setResolvedReports(null);
+  }, [resolvedReports, blockedResolved]);
 
   /* Straight into a session on these questions (see PracticeMode.startWith). */
   function practise(ids, limit = null) {
@@ -1558,6 +1584,14 @@ export default function App() {
         onAction={a => { setReveal(false); a.run(); }}
       />
     )}
+    {resolvedReports && !blockedResolved && (
+      <ReportResolved
+        reports={resolvedReports}
+        canOpen={id => QUESTIONS.some(q => q.id === id)}
+        onOpen={id => { closeResolved(); practise([id]); }}
+        onClose={closeResolved}
+      />
+    )}
     <PullToRefresh onRefresh={refreshData} />
     <UndoToast />
     <UpdateNotice hold={practiceSessionActive} />
@@ -1575,6 +1609,7 @@ export default function App() {
       if (C) return <C {...p.props} onAction={close} onClose={close} onDone={close} />;
       if (p.kind === "welcome" && welcomeNote) return <WelcomeReveal welcome={welcomeNote} actions={[welcomeStart]} onAction={close} onClose={close} />;
       if (p.kind === "name") return <NamePrompt suggestion={displayName || "Preview"} onSave={close} />;
+      if (p.kind === "resolved") return <ReportResolved reports={p.props.reports} canOpen={() => !p.props.gone} onOpen={close} onClose={close} />;
       return null;
     }} />}
     <OfflineBar hold={practiceSessionActive} />

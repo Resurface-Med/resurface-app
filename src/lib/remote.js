@@ -904,6 +904,18 @@ export async function fetchFlags() {
   return data ?? [];
 }
 
+/* This person's reports that have been resolved and not yet shown to them
+   (migration 0091), for ReportResolved. App ids, as the flags hold them. */
+export async function fetchResolvedReports() {
+  const { data, error } = await supabase.rpc("my_resolved_reports");
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(r => ({ questionId: r.question_id, reason: r.reason, stem: r.stem }));
+}
+export async function markReportsSeen(questionIds) {
+  const { error } = await supabase.rpc("mark_reports_seen", { qids: questionIds });
+  if (error) throw new Error(error.message);
+}
+
 export async function clearFlags(questionId) {
   const { error } = await supabase.rpc("admin_clear_flags", { qid: questionId });
   if (error) throw new Error(error.message);

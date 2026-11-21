@@ -793,6 +793,17 @@ function Popups({ me = null }) {
     { k: "best", label: "Personal best", short: "Most questions in a day",
       when: "After a session that beats someone’s most questions in a day, when the old best was 30 or more. Once a week at most.",
       props: () => ({ today: 92, best: 64 }), El: BestNudge },
+    { group: "After a report" },
+    { k: "resolved", label: "Report resolved", short: "Their reported question was dealt with",
+      when: "Once, on opening the app, after an admin resolves a question they reported or deletes it. Always says fixed. Waits for a visit with no other popup. Full screen.",
+      full: true,
+      variants: [["one", "One"], ["gone", "Deleted"], ["several", "Several"]],
+      props: v => {
+        const a = { questionId: 1, reason: "unclear", stem: "A pregnant woman presents with external genital warts. Which treatment is contraindicated in her pregnancy?" };
+        const b = { questionId: 2, reason: "wrong-answer", stem: "Which statement about ovarian masses is correct?" };
+        const c = { questionId: 3, reason: "bad-explanation", stem: "Which orthotic is used to offload the tendon origin in epicondylitis?" };
+        return { reports: v === "several" ? [a, b, c] : [a], gone: v === "gone" };
+      } },
     { group: "Once, for new accounts" },
     { k: "name", label: "Name and year", short: "The first thing they see", when: "Once, the first thing a new account sees. Full screen.", full: true },
     { k: "welcome", label: "Welcome note", short: "Straight after name and year", when: "Once, straight after a new account picks its name and year. Full screen.", full: true },
