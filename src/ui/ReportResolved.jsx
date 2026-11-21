@@ -40,7 +40,9 @@ export default function ReportResolved({ reports, canOpen, onOpen, onClose }) {
           {shown.map(r => (
             <div className="rr-field" key={r.questionId}>
               {r.stem && <p className="rr-field__q">{r.stem}</p>}
-              <p className="rr-field__why">You reported it as <b>{REASON[r.reason] ?? "Something else"}</b></p>
+              {/* Reports restored from the request logs (2026-11-21) have no
+                  reason on record, so the line is left out rather than guessed. */}
+              {REASON[r.reason] && <p className="rr-field__why">You reported it as <b>{REASON[r.reason]}</b></p>}
             </div>
           ))}
         </div>

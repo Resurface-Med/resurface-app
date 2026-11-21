@@ -12549,6 +12549,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .rr-fields { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; max-height: min(46vh, 360px); overflow-y: auto; overscroll-behavior: contain; }
 .rr-field { padding: 16px 18px; border: 1.5px solid var(--c-border); border-radius: var(--r-ctrl); background: var(--c-surface2); }
 .rr-field__q { margin: 0 0 10px; font-size: 15px; font-weight: 500; line-height: 1.5; color: var(--c-text); }
+.rr-field__q:last-child { margin-bottom: 0; }
 .rr-field__why { margin: 0; font-size: 13.5px; color: var(--c-muted); }
 .rr-field__why b { font-weight: 500; color: var(--c-sub); }
 @media (prefers-reduced-motion: reduce) {
