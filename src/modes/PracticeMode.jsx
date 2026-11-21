@@ -1,5 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import CountField from "../ui/CountField";
+import { countStops, nearestStop } from "../lib/countStops";
 import { C, h1, sectionH, lg, primaryBtn, fieldBtn, fieldGhostBtn, OF, chipBtn, chipBtnActive } from "../ui/theme";
 import { shuffle, shuffleOptions } from "../ui/theme";
 import { QUESTIONS, applyQuestionEdit } from "../data";
@@ -1141,6 +1142,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       );
     };
     const willAsk = countOpt === "All" ? scoped : Math.min(countOpt, scoped);
+    const countTrack = countStops(scoped);
     /* One topic names itself; several are counted. Spelling out four topic
        names would not fit the button this ends up on, and a list that gets
        truncated tells you less than the number does. */
@@ -1189,12 +1191,12 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               id="setup-count"
               className="gen-count-slider"
               type="range"
-              min={1}
-              max={Math.max(1, scoped)}
+              min={0}
+              max={countTrack.length - 1}
               step={1}
-              value={Math.max(1, willAsk)}
+              value={nearestStop(countTrack, Math.max(1, willAsk))}
               disabled={scoped === 0}
-              onChange={e => { const v = Number(e.target.value); setCountOpt(v >= scoped ? "All" : v); }}
+              onChange={e => { const v = countTrack[Number(e.target.value)]; setCountOpt(v >= scoped ? "All" : v); }}
               aria-label="How many questions"
               aria-valuetext={`${willAsk} question${willAsk === 1 ? "" : "s"}`}
             />
