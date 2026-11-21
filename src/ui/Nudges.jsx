@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import StreakFlame from "./StreakFlame";
+import StreakFlame, { FLAME_LEVELS } from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
 import { fetchLeaderboardWeek, fetchMyRecentAnswers, logStep } from "../lib/remote";
@@ -66,6 +66,29 @@ export function StreakNudge({ days, onAction, onClose, inline }) {
       art={<span className="nudge-streak"><StreakFlame days={days} size={58} /></span>}
       title={`You’re on a ${days}-day streak, don’t lose it!`}
       action="Start studying" onAction={onAction} onClose={onClose} />
+  );
+}
+
+/* The flames a streak unlocks. Earned ones are lit, the rest wait.
+   Shown once per level, at the end of the session that reaches it. */
+export function FlamesNudge({ days = 14, onAction, onClose, inline }) {
+  return (
+    <NudgeCard kind="flames" inline={inline}
+      art={
+        <span className="nudge-flames" aria-hidden="true">
+          {FLAME_LEVELS.map(L => {
+            const locked = Number(days) < L.at;
+            return (
+              <span key={L.at} className={`nudge-flames__b${locked ? " is-locked" : ""}`}>
+                <StreakFlame days={L.at} size={40} bare dim={locked} />
+                <span>{L.label}</span>
+              </span>
+            );
+          })}
+        </span>
+      }
+      title="Unlock more as your streak grows."
+      action="Keep going" onAction={onAction} onClose={onClose} />
   );
 }
 
@@ -414,6 +437,7 @@ export function PreviewHost({ render }) {
  *
  * At the end of a session, the first that is due wins:
  *   Day 1           the very first session                       once ever
+ *   Streak flames   reaches 7, 14, 30, 50, 100 or 365            each once
  *   Milestone       passes 100 … 50,000 answered                 each once
  *   Passed someone  moved up their year's board this session     once a day
  *   Personal best   most in a day, old best 30+                  once a week
@@ -497,6 +521,14 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       /* Day 1: the first day anyone studied, once ever. */
       if (studyDays <= 1 && !store.get(userId, "dayone").done) {
         if (show({ kind: "dayone" })) store.set(userId, "dayone", { done: true });
+        return;
+      }
+      /* A new streak flame. Once per level, ahead of the question milestones. */
+      const flameDays = Number(streak?.streak) || 0;
+      const flameSeen = Number(store.get(userId, "flames").n) || 0;
+      const flameHit = [...FLAME_LEVELS].reverse().find(L => L.at > 1 && flameDays >= L.at)?.at ?? 0;
+      if (flameHit > flameSeen) {
+        if (show({ kind: "flames", days: flameDays })) store.set(userId, "flames", { n: flameHit });
         return;
       }
       /* A milestone: a handful of times in anyone's life. */
@@ -595,6 +627,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
 
   if (shown.kind === "dayone") return <DayOneNudge inline={inline} onAction={ok} onClose={close} />;
   if (shown.kind === "streak") return <StreakNudge inline={inline} days={shown.days} onAction={study} onClose={close} />;
+  if (shown.kind === "flames") return <FlamesNudge inline={inline} days={shown.days} onAction={ok} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge inline={inline} {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "passed") return <PassedNudge inline={inline} me={shown.me} them={shown.them} rank={shown.rank} onAction={study} onClose={close} />;
   if (shown.kind === "best") return <BestNudge inline={inline} today={shown.today} best={shown.best} onAction={study} onClose={close} />;

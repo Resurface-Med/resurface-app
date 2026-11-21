@@ -4,7 +4,7 @@ import Dashboard from "./Dashboard";
 import QuizShell from "../ui/QuizShell";
 import {
   DayOneNudge, MilestoneNudge, PassedNudge, BestNudge, ImproveNudge, LeaderNudge,
-  HomeScreenNudge, InviteNudge, StreakNudge,
+  HomeScreenNudge, InviteNudge, StreakNudge, FlamesNudge,
 } from "../ui/Nudges";
 import { todayKey, yesterdayKey } from "../lib/storage";
 
@@ -42,6 +42,7 @@ function rewardFor(kind, v) {
   const p = { onAction: f, onClose: f };
   switch (kind) {
     case "dayone": return <DayOneNudge {...p} />;
+    case "flames": return <FlamesNudge {...p} days={Number(v) || 14} />;
     case "milestone": return <MilestoneNudge {...p} n={Number(v) || 500} />;
     case "passed": return <PassedNudge {...p} me={{ ...ME, week_count: 255 }} them={RIVAL} rank={3} />;
     case "best": return <BestNudge {...p} today={92} best={64} />;

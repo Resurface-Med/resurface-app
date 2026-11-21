@@ -10817,11 +10817,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* Home, on a laptop: the greeting is up to 42px and the streak was stuck
    at 32, so it read as a caption on the band. Phones keep the smaller one. */
 @media (min-width: 901px) {
-  .streak--home { gap: 10px; }
-  .streak--home .streak__n { font-size: 52px; letter-spacing: -1.8px; }
-  .streak--home .streak__flame { width: 42px; height: 52px; }
+  /* The number sits on the flame's base. Centred, it floats beside the
+     middle and the glow hangs underneath. The height steps with the
+     streak and stops at the greeting. */
+  .streak--home { gap: 6px; align-items: flex-end; }
+  .streak--home .streak__n { font-size: 52px; letter-spacing: -1.8px; transform: translateY(-4px); }
+  .streak--home .streak__flame { width: calc(var(--fh, 52px) * 0.82); height: var(--fh, 52px); }
 }
-.streak__flame { overflow: visible; filter: drop-shadow(0 2px 6px rgba(255, 110, 30, 0.35)); }
+.streak__flame { overflow: visible; }
 .streak__outer, .streak__inner { transform-box: fill-box; transform-origin: 50% 100%; }
 .streak__outer { animation: flameOuter 1.6s ease-in-out infinite; }
 .streak__inner { animation: flameInner 1.1s ease-in-out infinite; }
@@ -11503,8 +11506,24 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 /* Streak: the flame on a warm tile, the number under it. */
 .nudge.is-streak .nudge__art { background: linear-gradient(160deg, #fff4e3, #ffe2c6); }
 .nudge-streak .streak { flex-direction: column; gap: 0; }
-.nudge-streak .streak__n { font-size: 22px; font-weight: 700; color: #e8590c; line-height: 1; margin-top: -2px; }
+.nudge-streak .streak__n { font-size: 22px; font-weight: 700; color: var(--flame-ink, #e8590c); line-height: 1; margin-top: -2px; }
 .nudge.is-streak .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
+
+/* Streak flames: the row of badges, earned ones lit, the rest waiting.
+   Full width, like the leaderboard card, so seven of them fit. */
+.nudge.is-flames { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.nudge.is-flames .nudge__art { width: 100%; height: auto; border-radius: 0; display: block; justify-self: stretch; }
+.nudge.is-flames .nudge__text { padding-right: 0; }
+.nudge-flames {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 4px; width: 100%; box-sizing: border-box; padding: 6px 28px 0 0;
+}
+.nudge-flames__b { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.nudge-flames__b > span { font-size: 12px; font-weight: 600; letter-spacing: -0.2px; line-height: 1; color: var(--c-text); }
+.nudge-flames__b.is-locked > span { color: var(--c-muted); font-weight: 500; }
+.nudge-flames__b.is-locked .streak__flame { opacity: 0.32; }
+.nudge-flames__b.is-locked .streak__outer,
+.nudge-flames__b.is-locked .streak__inner { animation: none; }
 
 /* Leaderboard: a mini board, three rows sliding up into place one after
    another, counts ticking, your row marked by a blue edge and bold type. */
@@ -11766,7 +11785,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .nudge__later { font-size: 13px; }
   .nudge__x { top: 7px; right: 7px; width: 26px; height: 26px; }
   /* The full-width pictures. */
-  .nudge.is-milestone, .nudge.is-improve, .nudge.is-leader, .nudge.is-passed, .nudge.is-best, .nudge.is-invite { gap: 10px; }
+  .nudge.is-milestone, .nudge.is-improve, .nudge.is-leader, .nudge.is-passed, .nudge.is-best, .nudge.is-invite, .nudge.is-flames { gap: 10px; }
+  .nudge-flames { padding-right: 22px; }
+  .nudge-flames .streak__flame { width: 26px; height: 32px; }
   .nudge-mile__n { font-size: 40px; letter-spacing: -1.3px; }
   .nudge-mile__label { font-size: 12.5px; margin-top: 3px; }
   .nudge-mile__burst { left: 40px; top: 22px; }

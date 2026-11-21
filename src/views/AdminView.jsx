@@ -13,7 +13,7 @@ import { persistFor } from "../lib/adminFeatured";
 import { TrendChart, Spark } from "../ui/Chart";
 import { confirm } from "../ui/Confirm";
 import Popover, { MenuItems } from "../ui/Popover";
-import { StreakNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, DayOneNudge, ComboPreview, PassedNudge, BestNudge, showPreview } from "../ui/Nudges";
+import { StreakNudge, FlamesNudge, LeaderNudge, InviteNudge, MilestoneNudge, MILESTONES, HomeScreenNudge, ImproveNudge, DayOneNudge, ComboPreview, PassedNudge, BestNudge, showPreview } from "../ui/Nudges";
 
 /**
  * Admin, redone for where Resurface is now (2026-10-26): a few dozen
@@ -760,8 +760,12 @@ function Popups({ me = null }) {
   const noop = () => {};
   const ITEMS = [
     { group: "Cards" },
+    { k: "flames", label: "Streak flames", short: "The flames a streak unlocks",
+      when: "After a finished session, the first time a streak reaches 7, 14, 30, 50, 100 or 365 days. Once per level, ahead of the question milestones.",
+      variants: [[14, "14 days"], [7, "7 days"], [30, "30 days"], [100, "100 days"], [365, "365 days"]],
+      props: v => ({ days: Number(v) || 14 }), El: FlamesNudge },
     { k: "milestone", label: "Milestone", short: "100, 250, 500… questions answered",
-      when: "After the session that passes 100, 250, 500, 1,000, 2,500, 5,000, 7,500, 10,000, 15,000, 20,000, 25,000 or 50,000 questions answered. Each one once. Second in line after Day 1.",
+      when: "After the session that passes 100, 250, 500, 1,000, 2,500, 5,000, 7,500, 10,000, 15,000, 20,000, 25,000 or 50,000 questions answered. Each one once, after Day 1 and a new streak flame.",
       variants: MILESTONES.map(([m]) => [m, m.toLocaleString("en-GB")]),
       props: v => ({ n: v }), El: MilestoneNudge },
     { k: "improve", label: "Getting better", short: "A deck 10+ points better",
