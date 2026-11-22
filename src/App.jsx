@@ -33,7 +33,8 @@ import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor
 import { useAuth } from "./lib/auth";
 import { supabase } from "./lib/supabase";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured,
-  pendingOps, onWrite, logStep,
+  fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
+  adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
   liteFeatured, hydrateFeatured, addFriend, fetchResolvedReports, markReportsSeen } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
@@ -91,6 +92,7 @@ const CHUNK = {
   [V.PROFILE]:     chunk(() => import("./views/ProfileView")),
   [V.GENERATE]:    chunk(() => import("./views/GenerateMode")),
   [V.ADMIN]:       chunk(() => import("./views/AdminView")),
+  [V.NEWS]:        chunk(() => import("./views/AnnouncementsView")),
   [V.NOTES]:       chunk(() => import("./views/NotesView")),
 };
 const StudyMode       = lazy(CHUNK[V.STUDY]);
@@ -99,6 +101,7 @@ const LeaderboardView = lazy(CHUNK[V.LEADERBOARD]);
 const ProfileView     = lazy(CHUNK[V.PROFILE]);
 const GenerateMode    = lazy(CHUNK[V.GENERATE]);
 const AdminView       = lazy(CHUNK[V.ADMIN]);
+const AnnouncementsView = lazy(CHUNK[V.NEWS]);
 const NotesView = lazy(CHUNK[V.NOTES]);
 
 const PRACTICE_SESSION_KEY = "pq_practice_session";
@@ -204,6 +207,7 @@ export default function App() {
      — while the panel is open — what counted as new when you opened it. */
   const [announcements, setAnnouncements] = useState([]);
   const [annSeenAt, setAnnSeenAt] = useState(null);
+  const [annNewSince, setAnnNewSince] = useState(null);
   const [generated, setGenerated] = useState([]);
   /* Past sessions (lib/pastSessions), newest first. */
   const [sessions, setSessions] = useState([]);
@@ -955,6 +959,7 @@ export default function App() {
       import("./views/LeaderboardView").catch(quiet);
       import("./views/ProfileView").catch(quiet);
       import("./views/GenerateMode").catch(quiet);
+      import("./views/AnnouncementsView").catch(quiet);
     };
     const ric = window.requestIdleCallback;
     const id = ric ? ric(warm, { timeout: 3000 }) : setTimeout(warm, 1500);
@@ -1392,6 +1397,46 @@ export default function App() {
     return () => clearTimeout(t);
   }, [practiceSessionActive]);
 
+  /* New means newer than when you last opened the panel — or, if you never
+     have, than when your account was made, so a new account is not greeted
+     by a backlog. */
+  const annSince = annSeenAt ?? user?.created_at ?? null;
+  /* Drafts never count; a post is new from when it was published. */
+  const unreadAnnouncements = announcements.filter(a => a.published_at && (!annSince || a.published_at > annSince)).length;
+  function openAnnouncements() {
+    setAnnNewSince(annSince ?? "");   // "" — never looked: everything is new
+    handleNav(V.NEWS);
+    if (unreadAnnouncements > 0 && user?.id) {
+      setAnnSeenAt(new Date().toISOString());
+      markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
+    }
+    fetchAnnouncements().then(setAnnouncements, () => {});
+  }
+  async function postAnnouncement(post) {
+    await adminPostAnnouncement(post);
+    const list = await fetchAnnouncements();
+    setAnnouncements(list);
+    setAnnSeenAt(new Date().toISOString());
+    if (user?.id) markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
+  }
+  async function updateAnnouncement(id, post) {
+    await adminUpdateAnnouncement(id, post);
+    setAnnouncements(await fetchAnnouncements());
+  }
+  async function setWelcomeAnnouncement(id) {
+    await adminSetWelcome(id);
+    setAnnouncements(await fetchAnnouncements());
+  }
+  async function publishAnnouncement(id, publish) {
+    await adminSetAnnouncementPublished(id, publish);
+    setAnnouncements(await fetchAnnouncements());
+    if (publish && user?.id) markAnnouncementsSeen(user.id).then(setAnnSeenAt, () => {});
+  }
+  async function deleteAnnouncement(id) {
+    await adminDeleteAnnouncement(id);
+    setAnnouncements(list => list.filter(a => a.id !== id));
+  }
+
   /* Who you are to the live strip in a session (lib/live). */
   setLiveMe(user?.id && !dataLoading ? {
     id: user.id, name: displayName || "Someone", avatar: avatarSrc(user.id, ownAvatar(avatarV)),
@@ -1407,6 +1452,8 @@ export default function App() {
     email: user?.email,
     displayName,
     avatar: avatarSrc(user?.id, ownAvatar(avatarV)),
+    unreadAnnouncements,
+    onOpenAnnouncements: openAnnouncements,
     onSignOut: signOut,
   };
 
@@ -1680,8 +1727,6 @@ export default function App() {
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {v === V.PROGRESS && <ProgressView pStats={pStats} decks={progressDecks} setView={go}
-            activity={activity} streak={streak} sessions={sessions} srCards={srCards}
-            onPractise={ids => practise(ids)}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}
@@ -1691,6 +1736,12 @@ export default function App() {
           {v === V.NOTES && <NotesView onStudy={() => go(V.STUDY)} />}
 
           {v === V.ADMIN && (online ? <AdminView me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
+
+          {v === V.NEWS && <AnnouncementsView
+            /* Everyone reads the welcome post filled in; an edit opens it as
+               written, {decks} and all, so the template is what gets saved. */
+            items={announcements} fill={a => (welcomeNote && a.id === welcomeNote.id ? welcomeNote : a)} newSince={annNewSince}
+            isAdmin={isAdmin} onPost={postAnnouncement} onDelete={deleteAnnouncement} onPublish={publishAnnouncement} onUpdate={updateAnnouncement} onSetWelcome={setWelcomeAnnouncement} />}
 
           {v === V.PROFILE && (
             <ProfileView
