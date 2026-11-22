@@ -227,7 +227,7 @@ export default function StatsView({
                   <h2 className="prog-card-title">By deck</h2>
                   <span className="pv-fig"><b>{seenAll.toLocaleString("en-GB")}</b> of {totalAll.toLocaleString("en-GB")} seen</span>
                 </div>
-                <DeckProgress own={ownRoots} featured={featRoots} onPractice={practice} />
+                <TopicMap roots={[...ownRoots, ...featRoots]} onPractice={practice} />
               </section>
             )}
 
@@ -410,82 +410,6 @@ function withAccuracy(forest, pStats) {
   return forest.map(walk);
 }
 
-function Chevron({ open }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"
-      style={{ display: "block", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
-      <path d="M6.5 3.5L12 9l-5.5 5.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-/*
- * The deck list's own rows (DeckTree's classes): a chevron where there is
- * more underneath, the name with its byline and covers line, the seen bar,
- * and on the right how many you've seen and how many you get right. No tick
- * box: tapping a deck practises it. A percentage appears once there are
- * enough answers behind it to mean something.
- */
-function DeckProgress({ own, featured, onPractice }) {
-  const [open, setOpen] = useState(() => new Set([...own, ...featured].filter(r => r.seen > 0).map(r => r.id)));
-  const toggle = id => setOpen(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
-  const STEP = 26, PAD = 14;
-
-  function row(n, isLast) {
-    const depth = n.depth;
-    const kids = n.children;
-    const isOpen = open.has(n.id);
-    const pct = n.attempts >= minFor(depth) ? Math.round((n.correct / n.attempts) * 100) : null;
-    const share = n.total ? Math.min(100, Math.round((n.seen / n.total) * 100)) : 0;
-    const cls = ["topic-row", depth <= 1 ? "topic-row-roomy" : "is-child", depth === 0 ? "is-block" : "", n.seen === 0 ? "pv-deck--untouched" : ""].filter(Boolean).join(" ");
-    return (
-      <div key={n.id} className={`tree-node${depth === 0 ? " topic-block" : ""}${depth > 0 ? " is-nested" : ""}${isLast ? " is-last" : ""}`}>
-        <div className={cls} style={{ paddingLeft: PAD + depth * STEP, "--depth": depth }}>
-          <span className="topic-twist">
-            {kids.length > 0 && (
-              <button type="button" onClick={() => toggle(n.id)} aria-expanded={isOpen}
-                aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
-                <Chevron open={isOpen} />
-              </button>
-            )}
-          </span>
-          <button type="button" className="topic-hit pv-deck__hit" onClick={() => onPractice(n)} aria-label={`Practise ${n.name}`}>
-            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>
-              {n.name}
-              {n.byline && <span className="topic-by">by {n.byline}</span>}
-              {n.covers && <span className="topic-covers">{n.covers}</span>}
-            </span>
-            <span className="topic-meta">
-              <span className="topic-bar" role="img" aria-label={`${n.seen} of ${n.total} seen`}>
-                <span className="topic-bar-fill" style={{ width: `${share}%` }} />
-              </span>
-              <span className="topic-avail pv-deck__fig">
-                <span className="topic-count__n">{n.seen.toLocaleString("en-GB")}</span>
-                <span className="topic-count__unit">of {n.total.toLocaleString("en-GB")}</span>
-              </span>
-              <span className="pv-deck__pct">{pct === null ? "" : `${pct}%`}</span>
-            </span>
-          </button>
-          <span className="topic-menu-slot" aria-hidden="true" />
-        </div>
-        {isOpen && kids.length > 0 && (
-          <div className="tree-kids">{kids.map((k, i) => row(k, i === kids.length - 1))}</div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <div className="topic-tree-drop pv-decks" role="group" aria-label="Decks">
-      {own.length > 0 && featured.length > 0 && <h3 className="deck-section-h">Your decks</h3>}
-      {own.map((r, i) => row(r, i === own.length - 1))}
-      {featured.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
-      {featured.map((r, i) => row(r, i === featured.length - 1))}
-      <p className="pv-deck__key">Seen of total, and how many you get right. Tap a deck to practise it.</p>
-    </div>
-  );
-}
-
 /* ── Accuracy over time ───────────────────────────────────────────────── */
 
 const fmtWeek = start => new Date(`${start}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -619,6 +543,97 @@ function AccuracyChart({ weeks }) {
         </svg>
       </div>
       <p className="pv-acc__hint">Drag along the chart to see any week. Bars show how many you answered.</p>
+    </div>
+  );
+}
+
+/* ── Topic map ─────────────────────────────────────────────────────────── */
+
+/*
+ * Every lecture at once (Rafil, 2026-11-22: "they need to be able to see
+ * everything, every available topic, but make it compact"). No expanding:
+ * each deck at the top is a heading; under it, each group of lectures (the
+ * deck that holds them, named by its path: "Neuro · Anatomy") has a small
+ * heading of its own, and its lectures are one short row each, flowed into
+ * as many columns as fit. A row is the name, the seen-and-right bar and the
+ * percentage; a lecture not started is greyed. Tap a lecture to practise it,
+ * a group's heading to practise the group.
+ */
+function sectionsOf(root) {
+  const out = [];
+  (function walk(n, path) {
+    const leaves = n.children.filter(c => !c.children.length);
+    const deeper = n.children.filter(c => c.children.length);
+    if (!n.children.length) out.push({ node: n, path, items: [n] });
+    else if (leaves.length) out.push({ node: n, path, items: leaves });
+    for (const c of deeper) walk(c, n === root ? [c.name] : [...path, c.name]);
+  })(root, []);
+  return out;
+}
+
+function figs(n) {
+  const pct = n.attempts >= 5 ? Math.round((n.correct / n.attempts) * 100) : null;
+  const seen = n.total ? n.seen / n.total : 0;
+  const right = pct === null ? 0 : seen * (pct / 100);
+  return { pct, seen, right };
+}
+
+function TopicMap({ roots, onPractice }) {
+  /* A deck with nothing inside it would be a heading over a row of its own
+     name. Those are gathered into one group of rows instead. */
+  const singles = roots.filter(r => !r.children.length);
+  const grouped = singles.length
+    ? [{ id: "__singles", name: "Your decks", seen: singles.reduce((a, r) => a + r.seen, 0), total: singles.reduce((a, r) => a + r.total, 0),
+        attempts: singles.reduce((a, r) => a + r.attempts, 0), correct: singles.reduce((a, r) => a + r.correct, 0), children: singles, singles: true },
+      ...roots.filter(r => r.children.length)]
+    : roots;
+  return (
+    <div className="tm">
+      {grouped.map(root => {
+        const r = figs(root);
+        return (
+          <section key={root.id} className="tm-root">
+            <div className="tm-root__head">
+              <h3 className="tm-root__name">{root.name}{root.byline && root.children.length === 0 ? <span className="topic-by"> by {root.byline}</span> : null}</h3>
+              <span className="tm-root__fig">{root.seen.toLocaleString("en-GB")} of {root.total.toLocaleString("en-GB")}{r.pct !== null && <b> · {r.pct}%</b>}</span>
+            </div>
+            {(root.singles ? [{ node: root, path: [], items: root.children }] : sectionsOf(root)).map(sec => {
+              const f = figs(sec.node);
+              const title = sec.path.length ? sec.path.join(" · ") : null;
+              return (
+                <div key={sec.node.id} className="tm-sec">
+                  {title && (
+                    <button type="button" className="tm-sec__head" onClick={() => onPractice(sec.node)} aria-label={`Practise ${title}`}>
+                      <span className="tm-sec__name">{title}{sec.node.byline && <span className="topic-by"> by {sec.node.byline}</span>}</span>
+                      <span className="tm-sec__fig">{sec.node.seen} of {sec.node.total}{f.pct !== null && <> · {f.pct}%</>}</span>
+                    </button>
+                  )}
+                  <ul className="tm-grid">
+                    {sec.items.map(n => {
+                      const g = figs(n);
+                      return (
+                        <li key={n.id}>
+                          <button type="button" className={`tm-row${n.seen === 0 ? " is-untouched" : ""}`} onClick={() => onPractice(n)} title={`${n.name}: ${n.seen} of ${n.total} seen${g.pct !== null ? `, ${g.pct}% right` : ""}`}>
+                            <span className="tm-row__line">
+                              <span className="tm-row__name">{n.name}</span>
+                              <span className="tm-row__pct">{g.pct === null ? (n.seen ? "" : "—") : `${g.pct}%`}</span>
+                            </span>
+                            <span className="tm-bar" aria-hidden="true">
+                              <span className="tm-bar__seen" style={{ width: `${g.seen * 100}%` }} />
+                              <span className="tm-bar__right" style={{ width: `${g.right * 100}%` }} />
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
+          </section>
+        );
+      })}
+      <p className="pv-deck__key">The bar is how much you’ve seen; its solid part is how much you got right. Tap a lecture, or a heading, to practise it.</p>
     </div>
   );
 }

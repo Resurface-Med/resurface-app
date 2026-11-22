@@ -12748,3 +12748,26 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (prefers-reduced-motion: reduce) { .pv-acc__at { transition: none; } }
 .pv-acc__bridge { stroke: var(--c-accent); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; opacity: .55; }
 .pv-acc__tick.is-at { fill: var(--c-text); font-weight: 600; }
+
+/* Topic map on Progress (2026-11-22): every lecture visible, compact. */
+.tm { margin-top: 4px; }
+.tm-root + .tm-root { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--c-border); }
+.tm-root__head { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.tm-root__name { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.4px; color: var(--c-text); }
+.tm-root__fig { flex: none; font-size: 14px; color: var(--c-sub); font-variant-numeric: tabular-nums; }
+.tm-root__fig b { font-weight: 600; color: var(--c-text); }
+.tm-sec { margin-top: 14px; }
+.tm-sec__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; width: 100%; padding: 4px 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.tm-sec__name { min-width: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; text-transform: uppercase; color: var(--c-muted); }
+.tm-sec__fig { flex: none; font-size: 12.5px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.tm-sec__head:hover .tm-sec__name { color: var(--c-accent); }
+.tm-grid { list-style: none; margin: 4px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 2px 22px; }
+.tm-row { display: grid; gap: 5px; width: 100%; padding: 7px 0 8px; border: 0; border-bottom: 1px solid var(--c-border); background: none; font: inherit; text-align: left; cursor: pointer; }
+.tm-row__line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+.tm-row__name { min-width: 0; font-size: 14px; font-weight: 500; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color .15s ease; }
+.tm-row__pct { flex: none; font-size: 13px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.tm-row:hover .tm-row__name { color: var(--c-accent); }
+.tm-row.is-untouched .tm-row__name, .tm-row.is-untouched .tm-row__pct { color: var(--c-muted); font-weight: 400; }
+.tm-bar { position: relative; display: block; height: 4px; border-radius: 2px; background: var(--c-surface3); overflow: hidden; }
+.tm-bar__seen, .tm-bar__right { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--c-accent); }
+.tm-bar__seen { opacity: .3; }
