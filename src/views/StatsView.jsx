@@ -6,6 +6,7 @@ import { confirm } from "../ui/Confirm";
 import StreakFlame from "../ui/StreakFlame";
 import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
 import { buildForest } from "../lib/decks";
+import { isReviewDue } from "../lib/sm2";
 import { waitingMistakes } from "../lib/pastSessions";
 import { fetchAnswerDays } from "../lib/remote";
 import { weekDays, weekLine, weeklyAccuracy, smoothPath, calendar, weakest } from "../lib/progressPage";
@@ -175,7 +176,10 @@ export default function StatsView({
      same deck ui as the decks"): buildForest, which knows ready-made decks
      and the ones of yours served back as them, so no duplicate "Year 3, 0
      of 0"; yours first, the ready-made ones under their heading. */
-  const forest = useMemo(() => withAccuracy(prune(buildForest({ questions: QUESTIONS, decks, pStats, eligible: new Set(QUESTIONS.map(q => q.id)) })), pStats), [decks, pStats]);
+  const forest = useMemo(() => withAccuracy(prune(buildForest({
+    questions: QUESTIONS, decks, pStats, eligible: new Set(QUESTIONS.map(q => q.id)),
+    due: new Set(QUESTIONS.filter(q => isReviewDue(srCards[q.id])).map(q => q.id)),
+  })), pStats), [decks, pStats, srCards]);
   const ownRoots = forest.filter(n => !n.featured);
   const featRoots = forest.filter(n => n.featured);
   const seenAll = forest.reduce((a, r) => a + r.seen, 0);
@@ -578,12 +582,13 @@ function DeckProgress({ own, featured, onPractice }) {
     const depth = n.depth;
     const kids = n.children;
     const isOpen = open.has(n.id);
-    const pct = n.attempts >= minFor(depth) ? Math.round((n.correct / n.attempts) * 100) : null;
+    const pct = n.attempts > 0 ? Math.round((n.correct / n.attempts) * 100) : null;
+    const few = n.attempts > 0 && n.attempts < 5;
     const share = n.total ? Math.min(100, Math.round((n.seen / n.total) * 100)) : 0;
     const cls = ["topic-row", depth <= 1 ? "topic-row-roomy" : "is-child", depth === 0 ? "is-block" : "", n.seen === 0 ? "pv-deck--untouched" : ""].filter(Boolean).join(" ");
     return (
       <div key={n.id} className={`tree-node${depth === 0 ? " topic-block" : ""}${depth > 0 ? " is-nested" : ""}${isLast ? " is-last" : ""}`}>
-        <div className={cls} style={{ paddingLeft: PAD + depth * STEP, "--depth": depth }}>
+        <div className={cls} style={{ paddingLeft: `calc(${PAD}px + ${depth} * var(--pv-step, ${STEP}px))`, "--depth": depth }}>
           <span className="topic-twist">
             {kids.length > 0 && (
               <button type="button" onClick={() => toggle(n.id)} aria-expanded={isOpen}
@@ -598,15 +603,22 @@ function DeckProgress({ own, featured, onPractice }) {
               {n.byline && <span className="topic-by">by {n.byline}</span>}
               {n.covers && <span className="topic-covers">{n.covers}</span>}
             </span>
-            <span className="topic-meta">
+            {/* Every figure says what it is (Rafil, 2026-11-22: "no label, what
+                are the percentages"). The share right shows from the first
+                answer, set quieter under five so a lucky one-from-one is not
+                read as a strength. */}
+            <span className="topic-meta pv-deck__meta">
+              {n.due > 0 && <span className="topic-due pv-deck__due"><span className="topic-count__n">{n.due}</span><span className="topic-count__unit"><span className="pv-long">to review</span><span className="pv-short">due</span></span></span>}
               <span className="topic-bar" role="img" aria-label={`${n.seen} of ${n.total} seen`}>
                 <span className="topic-bar-fill" style={{ width: `${share}%` }} />
               </span>
               <span className="topic-avail pv-deck__fig">
-                <span className="topic-count__n">{n.seen.toLocaleString("en-GB")}</span>
-                <span className="topic-count__unit">of {n.total.toLocaleString("en-GB")}</span>
+                <span className="topic-count__n">{n.seen.toLocaleString("en-GB")}/{n.total.toLocaleString("en-GB")}</span>
+                <span className="topic-count__unit">seen</span>
               </span>
-              <span className="pv-deck__pct">{pct === null ? "" : `${pct}%`}</span>
+              <span className={`pv-deck__pct${pct === null ? " is-none" : few ? " is-few" : ""}`} title={pct === null ? "Not answered yet" : `${n.correct} right of ${n.attempts} answers${few ? ", too few to judge yet" : ""}`}>
+                {pct === null ? "—" : <>{pct}%<span className="pv-deck__unit"> right</span></>}
+              </span>
             </span>
           </button>
           <span className="topic-menu-slot" aria-hidden="true" />
@@ -624,7 +636,7 @@ function DeckProgress({ own, featured, onPractice }) {
       {own.map((r, i) => row(r, i === own.length - 1))}
       {featured.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
       {featured.map((r, i) => row(r, i === featured.length - 1))}
-      <p className="pv-deck__key">Seen of total, and how many you get right. Tap a deck to practise it.</p>
+      <p className="pv-deck__key">The bar and “seen” are how many of a deck’s questions you’ve answered at least once; “right” is the share of your answers that were right, greyed until there are five; “to review” is how many are due. Tap a deck to practise it.</p>
     </div>
   );
 }

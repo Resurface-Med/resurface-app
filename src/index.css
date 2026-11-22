@@ -12789,3 +12789,32 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .pv-decks .tree-node.is-nested .tree-node.is-nested .tree-node.is-nested .topic-name,
 .pv-decks .topic-name.is-child { font-size: 13.5px; font-weight: 500; }
 .pv-decks .topic-covers { display: none; }
+.pv-deck__meta { gap: 12px; }
+.pv-deck__fig { min-width: 5.6em; }
+.pv-deck__pct { width: 5.4em; }
+.pv-deck__unit { font-weight: 500; color: var(--c-muted); font-size: 12.5px; }
+.pv-deck__pct.is-few { color: var(--c-muted); font-weight: 500; }
+.pv-deck__pct.is-none { color: var(--c-muted-dim); font-weight: 500; }
+.pv-deck__due { min-width: 0; }
+@media (max-width: 560px) {
+  .pv-deck__meta .topic-bar { display: none; }
+  .pv-deck__pct { width: 4.6em; }
+}
+/* On a phone the figures sit on their own line under the name (Study's
+   layout); here they flow left to right and wrap rather than overlap. */
+@media (max-width: 720px) {
+  .pv-deck__meta { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+  .pv-deck__meta > * { flex: none; width: auto; min-width: 0; position: static; }
+  .pv-deck__fig, .pv-deck__pct { min-width: 0; width: auto; text-align: left; font-size: 12px; }
+}
+.pv-short { display: none; }
+@media (max-width: 720px) {
+  .pv-long { display: none; }
+  .pv-short { display: inline; }
+  .pv-deck__meta { gap: 2px 8px; }
+}
+.pv-decks .topic-menu-slot { display: none; }
+@media (max-width: 720px) {
+  .pv-decks { --pv-step: 12px; }
+  .pv-decks .topic-row { padding-right: 6px; }
+}
