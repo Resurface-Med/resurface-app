@@ -2,7 +2,8 @@ import { supabase } from "./supabase";
 import { timed } from "./loadTiming";
 import { GEN_ID_BASE } from "../data";
 import { append, dropOnce } from "./queue";
-import { readBundle, saveBundle } from "./offlineStore";
+import { readBundle, saveBundle, readShard, saveShard, pruneShards } from "./offlineStore";
+import { composeParts, partsKey, validParts } from "./featuredParts";
 import { mark } from "./loadTiming";
 import { batchable, addToBatch, batchBody, allLazy } from "./writeBatch";
 
@@ -570,7 +571,11 @@ export async function loadFeatured() {
   const { data: mine, error } = await supabase.rpc("featured_mine");
   if (error || !mine || mine.version == null) return loadFeaturedLegacy();
   let bundle;
-  try { bundle = await featuredBundle(mine.version); } catch { return loadFeaturedLegacy(); }
+  try {
+    bundle = validParts(mine.parts)
+      ? await featuredFromParts(mine.version, mine.parts).catch(() => featuredBundle(mine.version))
+      : await featuredBundle(mine.version);
+  } catch { return loadFeaturedLegacy(); }
   const out = assembleFeatured(bundle, mine);
   /* An older copy stood in because the new one could not be fetched: said,
      so the app tries again rather than keeping it until the next reload
@@ -597,12 +602,16 @@ async function loadFeaturedLegacy() {
  * featured_mine carries the version and the per-person part.
  */
 let bundleMem = null;
+/* The pieces bundleMem was put together from (featuredFromParts), and each
+   piece as fetched. */
+let bundleKey = null;
+const shardMem = new Map();
 const withTimeoutSignal = ms => (typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined);
 
 export async function featuredBundle(version) {
   if (bundleMem && bundleMem.version === version) return bundleMem;
-  const kept = await readBundle();
-  if (kept && kept.version === version) return (bundleMem = kept);
+  const kept = await keptBundle();
+  if (kept && kept.version === version) { bundleKey = null; return (bundleMem = kept); }
   let b = null;
   try {
     const res = await fetch(`/api/featured?v=${encodeURIComponent(version)}`, { signal: withTimeoutSignal(20000) });
@@ -611,22 +620,90 @@ export async function featuredBundle(version) {
   if (!b || b.version == null) {
     const { data, error } = await supabase.rpc("featured_bundle");
     if (error || !data) {
-      if (kept) return (bundleMem = kept); /* an older copy beats none */
+      if (kept) { bundleKey = null; return (bundleMem = kept); } /* an older copy beats none */
       throw error || new Error("featured bundle");
     }
     b = data;
   }
   bundleMem = b;
+  bundleKey = null;
   saveBundle(b);
   return b;
+}
+
+/*
+ * The bundle from its pieces (lib/featuredParts, migration 0099): each
+ * root's shard from memory, then the device, then the edge
+ * (/api/featured?root=…&h=…, cached for good per hash), then the database.
+ * Only pieces whose hash has changed are downloaded, so an edit to one deck
+ * costs that deck's shard, not the whole 14 MB. The device keeps the
+ * pieces and a list of them, not the bundle a second time.
+ */
+/* One download per piece at a time: the sign-in screen and the load can ask
+   for the same pieces at once. */
+const shardInFlight = new Map();
+function shardFor(p) {
+  const k = `${p.root}:${p.hash}`;
+  if (!shardInFlight.has(k)) shardInFlight.set(k, fetchShard(p).finally(() => shardInFlight.delete(k)));
+  return shardInFlight.get(k);
+}
+
+async function fetchShard(p) {
+  const mem = shardMem.get(p.root);
+  if (mem?.hash === p.hash) return mem;
+  const kept = await readShard(p.root);
+  if (kept?.hash === p.hash && kept.body) { shardMem.set(p.root, kept); return kept; }
+  let got = null;
+  try {
+    const res = await fetch(`/api/featured?root=${encodeURIComponent(p.root)}&h=${encodeURIComponent(p.hash)}`, { signal: withTimeoutSignal(20000) });
+    if (res.ok && (res.headers.get("content-type") || "").includes("json")) got = await res.json();
+  } catch { /* edge unreachable: the database below */ }
+  if (!got?.body) {
+    const { data, error } = await supabase.rpc("featured_shard", { root: p.root });
+    if (error || !data?.body) throw error || new Error("featured shard");
+    got = data;
+  }
+  shardMem.set(p.root, got);
+  saveShard(got);
+  return got;
+}
+
+export async function featuredFromParts(version, parts) {
+  const key = partsKey(parts);
+  if (bundleMem && bundleKey === key) return bundleMem;
+  const shards = await Promise.all(parts.map(shardFor));
+  const b = composeParts(version, shards.map(x => x.body));
+  bundleMem = b;
+  bundleKey = key;
+  saveBundle({ manifest: true, version, parts: shards.map(x => ({ root: x.root, hash: x.hash })) })
+    .then(() => pruneShards(shards.map(x => x.root)));
+  return b;
+}
+
+/* What the device has: a list of pieces put back together, or a whole
+   bundle kept by a copy of the app from before the pieces. */
+async function keptBundle() {
+  const kept = await readBundle();
+  if (!kept?.manifest) { bundleKey = null; return kept; }
+  const shards = await Promise.all((kept.parts ?? []).map(p => readShard(p.root)));
+  if (shards.some(x => !x?.body)) return null;
+  shards.forEach(x => shardMem.set(x.root, x));
+  bundleKey = partsKey(shards);
+  return composeParts(kept.version, shards.map(x => x.body));
 }
 
 /* From the sign-in screen, so a first sign-in finds the decks already here.
    Never throws. */
 export async function prefetchFeatured() {
   try {
-    const { data: v, error } = await supabase.rpc("featured_version");
-    if (!error && v != null) await featuredBundle(v);
+    const { data: parts, error } = await supabase.rpc("featured_parts");
+    if (!error && validParts(parts)) {
+      const { data: v } = await supabase.rpc("featured_version");
+      await featuredFromParts(v ?? null, parts);
+      return;
+    }
+    const { data: v, error: e2 } = await supabase.rpc("featured_version");
+    if (!e2 && v != null) await featuredBundle(v);
   } catch { /* the load after sign-in will try again */ }
 }
 
@@ -671,7 +748,7 @@ export function liteFeatured(f) {
 /** The other way: a kept copy back to what the screen uses. */
 export async function hydrateFeatured(f) {
   if (!f?.lite) return f;
-  const b = bundleMem ?? await readBundle();
+  const b = bundleMem ?? await keptBundle();
   if (!b) return undefined;
   bundleMem = b;
   return assembleFeatured(b, f.mine);

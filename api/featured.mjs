@@ -9,41 +9,30 @@
  *
  * Compressed here rather than left to the edge: the response body limit is
  * 4.5 MB and the bundle is over 3 MB of JSON.
+ *
+ * One piece (2026-11-22, migration 0099): /api/featured?root=<id>&h=<hash>
+ * is that root's shard, cached for good when its hash is the one asked
+ * for. The app fetches only the pieces whose hash it does not already have.
  */
 import { brotliCompressSync, gzipSync, constants } from "node:zlib";
 
 const SUPABASE_URL = "https://uhqpljteohitvytwfadp.supabase.co";
 const ANON_KEY = "sb_publishable_0ZlQhc0Gn_bD5-AFIgPOrw_xKVHv8hJ";
 
-export async function GET(request) {
-  const url = new URL(request.url);
-  const want = url.searchParams.get("v");
-  let text;
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/featured_bundle`, {
-      method: "POST",
-      headers: { apikey: ANON_KEY, authorization: `Bearer ${ANON_KEY}`, "content-type": "application/json" },
-      body: "{}",
-      signal: AbortSignal.timeout(15000),
-    });
-    if (!res.ok) return new Response("upstream", { status: 502, headers: { "cache-control": "no-store" } });
-    text = await res.text();
-  } catch {
-    return new Response("upstream", { status: 504, headers: { "cache-control": "no-store" } });
-  }
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  /* Only cache for good when the content really is the version asked for:
-     a request for a version that does not exist yet must not pin today's
-     content under tomorrow's number. */
-  const got = /"version":\s*(\d+)/.exec(text)?.[1];
-  const exact = want != null && got === want;
-  const headers = {
-    "content-type": "application/json; charset=utf-8",
-    "cache-control": exact ? "public, max-age=31536000, immutable" : "no-store",
-    "x-featured-version": got ?? "",
-    vary: "accept-encoding",
-  };
+async function upstream(fn, args) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: { apikey: ANON_KEY, authorization: `Bearer ${ANON_KEY}`, "content-type": "application/json" },
+    body: JSON.stringify(args),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw Object.assign(new Error("upstream"), { status: 502 });
+  return res.text();
+}
 
+function compressed(request, text, headers) {
   const accept = request.headers.get("accept-encoding") || "";
   let body = text;
   if (/\bbr\b/.test(accept)) {
@@ -54,4 +43,42 @@ export async function GET(request) {
     headers["content-encoding"] = "gzip";
   }
   return new Response(body, { status: 200, headers });
+}
+
+const failed = e => new Response("upstream", { status: e?.status ?? 504, headers: { "cache-control": "no-store" } });
+
+export async function GET(request) {
+  const url = new URL(request.url);
+  const root = url.searchParams.get("root");
+  if (root != null) {
+    if (!UUID.test(root)) return new Response("bad root", { status: 400, headers: { "cache-control": "no-store" } });
+    const wantHash = url.searchParams.get("h");
+    let text;
+    try { text = await upstream("featured_shard", { root }); } catch (e) { return failed(e); }
+    if (text === "null") return new Response("not listed", { status: 404, headers: { "cache-control": "no-store" } });
+    let got = null;
+    try { got = JSON.parse(text)?.hash ?? null; } catch { /* not JSON: not cached */ }
+    return compressed(request, text, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": wantHash && got === wantHash ? "public, max-age=31536000, immutable" : "no-store",
+      "x-featured-hash": got ?? "",
+      vary: "accept-encoding",
+    });
+  }
+
+  const want = url.searchParams.get("v");
+  let text;
+  try { text = await upstream("featured_bundle", {}); } catch (e) { return failed(e); }
+
+  /* Only cache for good when the content really is the version asked for:
+     a request for a version that does not exist yet must not pin today's
+     content under tomorrow's number. */
+  const got = /"version":\s*(\d+)/.exec(text)?.[1];
+  const exact = want != null && got === want;
+  return compressed(request, text, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": exact ? "public, max-age=31536000, immutable" : "no-store",
+    "x-featured-version": got ?? "",
+    vary: "accept-encoding",
+  });
 }

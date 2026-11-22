@@ -101,6 +101,32 @@ export async function saveBundle(bundle) {
   catch { return false; }
 }
 
+/* The bundle's pieces (0099): each root's shard, { root, hash, body },
+   under "shard:<root>". The "featured" key then holds only the list of
+   pieces ({ manifest: true, version, parts }), not the whole bundle a
+   second time. */
+export async function readShard(root) {
+  try { return (await run("shared", "readonly", s => req2p(s.get(`shard:${root}`)))) ?? null; }
+  catch { return null; }
+}
+
+export async function saveShard(shard) {
+  if (!shard?.root) return false;
+  try { await run("shared", "readwrite", s => { s.put(shard, `shard:${shard.root}`); }); return true; }
+  catch { return false; }
+}
+
+/** Drops kept shards of roots no longer listed. */
+export async function pruneShards(keepRoots) {
+  const keep = new Set((keepRoots ?? []).map(r => `shard:${r}`));
+  try {
+    await run("shared", "readwrite", async s => {
+      const keys = await req2p(s.getAllKeys());
+      for (const k of keys) if (typeof k === "string" && k.startsWith("shard:") && !keep.has(k)) s.delete(k);
+    });
+  } catch { /* kept as they were */ }
+}
+
 /* ── Question images ───────────────────────────────────────────────── */
 
 export async function readImage(path) {
