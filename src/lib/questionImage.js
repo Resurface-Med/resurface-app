@@ -70,13 +70,16 @@ const urlCache = new Map();
 const localUrls = new Map();
 
 /*
- * Whose image it is: the first segment of its path. Someone else's can only
- * be on your screen because it is in a ready-made deck, and those come
- * through /api/qimg (2026-11-22), cached at the edge and in the browser, so
- * Supabase sends each one once per edge region rather than once per
- * student. Signed links changed every hour and could not be cached; with
- * every device keeping every image, Year 3's 859 took the project past its
- * monthly egress in a day. Your own images keep signed links.
+ * Where an image comes from (2026-11-22). Every image is asked for at
+ * /api/qimg first: a ready-made deck's image comes back from Vercel's edge
+ * cache, which fetches it from Supabase once per region rather than once
+ * per student, and the browser keeps it too. Only your own images that are
+ * not in a ready-made deck are refused there, and those come through a
+ * signed link, which only their owner can make. Signed links changed every
+ * hour and could not be cached; with every device keeping every image,
+ * Year 3's 859 took the project past its monthly egress in a day. The
+ * owner of the ready-made decks owns their images too, so whose path it is
+ * cannot decide this: the route can.
  */
 let me;
 async function myId() {
@@ -88,11 +91,32 @@ async function myId() {
 }
 supabase.auth.onAuthStateChange((_e, session) => { me = session?.user?.id ?? null; });
 
-async function linkFor(path) {
-  if (path.startsWith("/")) return path;
-  const owner = path.split("/")[0];
-  if (owner && owner !== await myId()) return `/api/qimg?p=${encodeURIComponent(path)}`;
-  return signedUrl(path);
+/* Paths the edge refused this page: private, so straight to a signed link. */
+const notShared = new Set();
+const MAX_BYTES = 3 * 1024 * 1024;
+
+async function imageFrom(url) {
+  const res = await fetch(url);
+  if (!res.ok) return { status: res.status, blob: null };
+  const blob = await res.blob();
+  if (!blob.type.startsWith("image/") || blob.size > MAX_BYTES) return { status: 415, blob: null };
+  return { status: 200, blob };
+}
+
+/** The image itself, from wherever it is allowed to come; null if not. */
+async function fetchImage(path) {
+  try {
+    if (path.startsWith("/")) return (await imageFrom(path)).blob;
+    if (!notShared.has(path)) {
+      const shared = await imageFrom(`/api/qimg?p=${encodeURIComponent(path)}`);
+      if (shared.blob) return shared.blob;
+      if (shared.status !== 404) return null;
+      notShared.add(path);
+    }
+    if (path.split("/")[0] !== await myId()) return null;
+    const url = await signedUrl(path);
+    return url ? (await imageFrom(url)).blob : null;
+  } catch { return null; }
 }
 
 async function signedUrl(path) {
@@ -108,38 +132,31 @@ async function signedUrl(path) {
   } catch { return null; }
 }
 
+function localUrl(path, blob) {
+  const url = URL.createObjectURL(blob);
+  localUrls.set(path, url);
+  return url;
+}
+
 /*
  * Offline (2026-10-19): the device's copy when there is one — it is the same
- * image, it draws with no connection, and it costs no request — otherwise a
- * signed link, keeping the image for next time.
+ * image, it draws with no connection, and it costs no request. Otherwise it
+ * is fetched once, kept, and drawn from what was kept: the page used to
+ * point the picture at the link and fetch the link again to keep it, two
+ * downloads for one image.
  */
 export async function questionImageUrl(path) {
   if (!path) return null;
   /* An image shipped with the app (public/qimg/…), for questions built from
      openly licensed sources such as the chest X-rays from Wikimedia Commons
-     (2026-10-28). It is served from our own domain, so it is used as is and
-     the service worker keeps it for offline. */
+     (2026-10-28), comes the same way, from our own domain. */
   if (localUrls.has(path)) return localUrls.get(path);
-  const blob = await readImage(path);
-  if (blob) {
-    const url = URL.createObjectURL(blob);
-    localUrls.set(path, url);
-    return url;
-  }
-  const url = await linkFor(path);
-  if (url) keepOne(path, url);
-  return url;
-}
-
-const MAX_BYTES = 3 * 1024 * 1024;
-async function keepOne(path, url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return false;
-    const blob = await res.blob();
-    if (!blob.type.startsWith("image/") || blob.size > MAX_BYTES) return false;
-    return saveImage(path, blob);
-  } catch { return false; }
+  const kept = await readImage(path);
+  if (kept) return localUrl(path, kept);
+  const blob = await fetchImage(path);
+  if (!blob) return null;
+  saveImage(path, blob);
+  return localUrl(path, blob);
 }
 
 /*
@@ -158,8 +175,8 @@ export function keepImagesOffline(paths) {
     for (let i = 0; i < todo.length; i += 4) {
       if (typeof navigator !== "undefined" && navigator.onLine === false) return;
       await Promise.all(todo.slice(i, i + 4).map(async p => {
-        const url = await linkFor(p);
-        if (url) await keepOne(p, url);
+        const blob = await fetchImage(p);
+        if (blob) await saveImage(p, blob);
       }));
     }
   })().catch(() => {}).finally(() => { keeping = null; });
