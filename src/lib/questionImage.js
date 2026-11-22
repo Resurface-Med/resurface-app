@@ -69,6 +69,32 @@ const urlCache = new Map();
    for the life of the page. */
 const localUrls = new Map();
 
+/*
+ * Whose image it is: the first segment of its path. Someone else's can only
+ * be on your screen because it is in a ready-made deck, and those come
+ * through /api/qimg (2026-11-22), cached at the edge and in the browser, so
+ * Supabase sends each one once per edge region rather than once per
+ * student. Signed links changed every hour and could not be cached; with
+ * every device keeping every image, Year 3's 859 took the project past its
+ * monthly egress in a day. Your own images keep signed links.
+ */
+let me;
+async function myId() {
+  if (me === undefined) {
+    try { me = (await supabase.auth.getSession()).data.session?.user?.id ?? null; }
+    catch { me = null; }
+  }
+  return me;
+}
+supabase.auth.onAuthStateChange((_e, session) => { me = session?.user?.id ?? null; });
+
+async function linkFor(path) {
+  if (path.startsWith("/")) return path;
+  const owner = path.split("/")[0];
+  if (owner && owner !== await myId()) return `/api/qimg?p=${encodeURIComponent(path)}`;
+  return signedUrl(path);
+}
+
 async function signedUrl(path) {
   const hit = urlCache.get(path);
   if (hit && hit.expires > Date.now()) return hit.url;
@@ -100,8 +126,7 @@ export async function questionImageUrl(path) {
     localUrls.set(path, url);
     return url;
   }
-  if (path.startsWith("/")) { keepOne(path, path); return path; }
-  const url = await signedUrl(path);
+  const url = await linkFor(path);
   if (url) keepOne(path, url);
   return url;
 }
@@ -118,10 +143,11 @@ async function keepOne(path, url) {
 }
 
 /*
- * Every question image you have, onto the device, so a question you have not
- * opened yet still shows its image offline. In the background, a few at a
- * time, skipping ones already kept; run again after each load from the
- * server, so it catches up on whatever a previous run missed.
+ * Question images onto the device, so a question not opened yet still shows
+ * its image offline. In the background, a few at a time, skipping ones
+ * already kept; run again after each load from the server, so it catches up
+ * on whatever a previous run missed. App passes only the images of decks
+ * you study (2026-11-22), not every ready-made image there is.
  */
 let keeping = null;
 export function keepImagesOffline(paths) {
@@ -132,7 +158,7 @@ export function keepImagesOffline(paths) {
     for (let i = 0; i < todo.length; i += 4) {
       if (typeof navigator !== "undefined" && navigator.onLine === false) return;
       await Promise.all(todo.slice(i, i + 4).map(async p => {
-        const url = p.startsWith("/") ? p : await signedUrl(p);
+        const url = await linkFor(p);
         if (url) await keepOne(p, url);
       }));
     }

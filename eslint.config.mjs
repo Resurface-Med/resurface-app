@@ -57,7 +57,7 @@ export default [
   },
 
   {
-    files: ["api/**/*.js", "scripts/**/*.mjs", "tests/**/*.js", "vite.config.js"],
+    files: ["api/**/*.{js,mjs}", "scripts/**/*.mjs", "tests/**/*.js", "vite.config.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",

@@ -161,6 +161,9 @@ export default function App() {
 
   // Server-first: these start empty and are filled from Postgres on sign-in.
   const [pStats, setPStats] = useState({});
+  /* Read by the image keeping below without re-running it on every answer. */
+  const pStatsRef = useRef(pStats);
+  pStatsRef.current = pStats;
   const [srCards, setSrCards] = useState({});
   const [bookmarks, setBookmarks] = useState([]);
   /* My notes (lib/notes, migration 0063): { [questionId]: { body, at } }.
@@ -775,11 +778,21 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  /* Question images, kept on the device for questions you have, once the
-     server has answered (lib/questionImage). */
+  /* Question images, kept on the device once the server has answered
+     (lib/questionImage): your own questions', and a ready-made deck's only
+     where you have answered something in it (2026-11-22). Keeping every
+     ready-made image on every device was 50 MB a student once Year 3's
+     859 came, and took Supabase past its monthly egress in a day. Any other
+     image is fetched, and kept, when its question is first shown. */
   useEffect(() => {
     if (!user?.id || dataLoading || sourceRef.current !== "server") return;
-    const t = setTimeout(() => keepImagesOffline(QUESTIONS.flatMap(q => [q.img, ...noteImages(q.topic?.body)]).filter(p => typeof p === "string" && p)), 4000);
+    const t = setTimeout(() => {
+      const studied = new Set(QUESTIONS.filter(q => pStatsRef.current[q.id]?.total > 0).map(q => q.leaf));
+      keepImagesOffline(QUESTIONS
+        .filter(q => !q.featured || studied.has(q.leaf))
+        .flatMap(q => [q.img, ...noteImages(q.topic?.body)])
+        .filter(p => typeof p === "string" && p));
+    }, 4000);
     return () => clearTimeout(t);
   }, [user?.id, dataLoading, generated, featured]);
 
