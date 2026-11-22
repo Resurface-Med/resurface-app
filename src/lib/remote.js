@@ -506,7 +506,13 @@ export async function loadFeatured() {
   if (error || !mine || mine.version == null) return loadFeaturedLegacy();
   let bundle;
   try { bundle = await featuredBundle(mine.version); } catch { return loadFeaturedLegacy(); }
-  return assembleFeatured(bundle, mine);
+  const out = assembleFeatured(bundle, mine);
+  /* An older copy stood in because the new one could not be fetched: said,
+     so the app tries again rather than keeping it until the next reload
+     (2026-11-22, Year 3 missing from Rafil's screen while /api/featured
+     timed out). */
+  if (bundle.version !== mine.version) out.stale = true;
+  return out;
 }
 
 /* Before migration 0062, and if the new path fails: everything in one go. */

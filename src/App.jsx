@@ -325,6 +325,19 @@ export default function App() {
     featuredRef.current = f;
     setFeatured(f);
     applyGenerated(genRowsRef.current);
+    retryIfStale(next);
+  }
+  /* An older bundle stood in for the new one (lib/remote loadFeatured):
+     fetched again shortly, a few times, further apart each time. Without
+     this it stayed until a reload, with nothing to say so (2026-11-22). */
+  const staleRetry = useRef({ timer: null, tries: 0 });
+  function retryIfStale(f) {
+    const s = staleRetry.current;
+    if (!f) return;
+    if (!f.stale) { s.tries = 0; return; }
+    if (s.timer || s.tries >= 4) return;
+    s.tries += 1;
+    s.timer = setTimeout(() => { s.timer = null; refreshData(); }, 15000 * s.tries);
   }
   /* The featured decks when the load went on without them (lib/remote
      loadAll): applied when they land, with any hide still queued laid on. */
@@ -528,9 +541,11 @@ export default function App() {
      failure leaves what is on screen alone. */
   async function refreshData() {
     if (!user?.id) return false;
+    lastLoadAt.current = Date.now();
     try {
       const d = await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT);
       applySnapshot(d, { seed: true });
+      retryIfStale(d.featured);
       applyFeaturedLater(d);
       sourceRef.current = "server";
       setOnline(true);
@@ -608,6 +623,9 @@ export default function App() {
   /* Where what is on screen came from: null until this account's data is
      applied, then "device" (the offline copy) or "server". */
   const sourceRef = useRef(null);
+  /* When the server was last asked for everything (refreshData), for the
+     refresh on focus below. */
+  const lastLoadAt = useRef(Date.now());
   const userIdRef = useRef(null);
   userIdRef.current = user?.id ?? null;
 
@@ -667,6 +685,7 @@ export default function App() {
         if (cancelled) return;
         if (!cached) mark("data");
         applySnapshot(d, { seed: true });
+        retryIfStale(d.featured);
         applyFeaturedLater(d, () => !cancelled);
         sourceRef.current = "server";
         setOnline(true);
@@ -1029,8 +1048,17 @@ export default function App() {
         flushQueue();
       }
     };
+    /* Two windows side by side are both visible, so going back to one
+       never fires visibilitychange: on focus too, a quiet refresh when the
+       last was a minute or more ago (Jacob, 2026-11-22: a deck made through
+       the connector never reached his other window). */
+    const onFocus = () => {
+      if (!online || sessionActiveRef.current) return;
+      if (Date.now() - lastLoadAt.current >= WAKE_REFRESH_MS) refreshData();
+    };
     const onOffline = () => setOnline(false);
     document.addEventListener("visibilitychange", onBack);
+    window.addEventListener("focus", onFocus);
     window.addEventListener("online", onBack);
     window.addEventListener("offline", onOffline);
     const tick = online ? null : setInterval(async () => {
@@ -1039,6 +1067,7 @@ export default function App() {
     }, 20000);
     return () => {
       document.removeEventListener("visibilitychange", onBack);
+      window.removeEventListener("focus", onFocus);
       window.removeEventListener("online", onBack);
       window.removeEventListener("offline", onOffline);
       if (tick) clearInterval(tick);
