@@ -177,3 +177,27 @@ export const ordinal = n => {
   const s = ["th", "st", "nd", "rd"], v = n % 100;
   return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 };
+
+/** A smooth line through points that never overshoots them (monotone
+    cubic, Fritsch–Carlson), as an SVG path. A run of one point is a move. */
+export function smoothPath(pts) {
+  const n = pts.length;
+  if (!n) return "";
+  if (n === 1) return `M${pts[0][0]},${pts[0][1]}`;
+  const dx = [], dy = [], m = [];
+  for (let i = 0; i < n - 1; i++) { dx.push(pts[i + 1][0] - pts[i][0]); dy.push((pts[i + 1][1] - pts[i][1]) / (dx[i] || 1)); }
+  m.push(dy[0]);
+  for (let i = 1; i < n - 1; i++) m.push(dy[i - 1] * dy[i] <= 0 ? 0 : (dy[i - 1] + dy[i]) / 2);
+  m.push(dy[n - 2]);
+  for (let i = 0; i < n - 1; i++) {
+    if (dy[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / dy[i], b = m[i + 1] / dy[i], h = a * a + b * b;
+    if (h > 9) { const t = 3 / Math.sqrt(h); m[i] = t * a * dy[i]; m[i + 1] = t * b * dy[i]; }
+  }
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1], h = dx[i] / 3;
+    d += ` C${(x0 + h).toFixed(1)},${(y0 + m[i] * h).toFixed(1)} ${(x1 - h).toFixed(1)},${(y1 - m[i + 1] * h).toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  return d;
+}

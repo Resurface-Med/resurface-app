@@ -96,3 +96,19 @@ describe("ordinal", () => {
     expect([1, 2, 3, 4, 11, 12, 13, 21, 22, 38].map(ordinal)).toEqual(["1st", "2nd", "3rd", "4th", "11th", "12th", "13th", "21st", "22nd", "38th"]);
   });
 });
+
+import { smoothPath } from "../src/lib/progressPage";
+describe("smoothPath", () => {
+  it("passes through every point and stays within them", () => {
+    const d = smoothPath([[0, 100], [10, 50], [20, 50], [30, 0]]);
+    expect(d.startsWith("M0.0,100.0")).toBe(true);
+    expect(d.endsWith("30.0,0.0")).toBe(true);
+    const ys = [...d.matchAll(/,(-?\d+\.\d)/g)].map(m => Number(m[1]));
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(100);
+  });
+  it("is a move for one point and nothing for none", () => {
+    expect(smoothPath([[5, 5]])).toBe("M5,5");
+    expect(smoothPath([])).toBe("");
+  });
+});

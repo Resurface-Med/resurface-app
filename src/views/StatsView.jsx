@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { V, h1 } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import Wave from "../ui/Wave";
@@ -8,7 +8,7 @@ import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
 import { buildForest } from "../lib/decks";
 import { waitingMistakes } from "../lib/pastSessions";
 import { fetchAnswerDays } from "../lib/remote";
-import { weekDays, weekLine, calendar, weakest } from "../lib/progressPage";
+import { weekDays, weekLine, weeklyAccuracy, smoothPath, calendar, weakest } from "../lib/progressPage";
 
 /**
  * Progress — coverage and accuracy over your decks, as deep as you made them.
@@ -168,6 +168,7 @@ export default function StatsView({
   const weekRight = answerDays ? week.reduce((a, d) => a + (d.correct ?? 0), 0) : null;
   const weekNote = weekTotal ? weekLine(week, answerDays, activity) : "Nothing answered yet this week.";
   const cal = useMemo(() => calendar(activity), [activity]);
+  const weeks = useMemo(() => (answerDays ? weeklyAccuracy(answerDays, undefined, 12) : []), [answerDays]);
   const weak = useMemo(() => weakest(roots), [roots]);
   const mistakes = useMemo(() => waitingMistakes(sessions, srCards, new Set(QUESTIONS.map(q => q.id))), [sessions, srCards]);
   /* By deck is the deck list as Study draws it (Rafil, 2026-11-22: "the
@@ -245,7 +246,17 @@ export default function StatsView({
                   <div className="pv-key"><span><i className="is-right" />Right</span><span><i className="is-wrong" />Wrong</span></div>
                 )}
               </section>
-              <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
+              {weeks.filter(w => w.pct !== null).length >= 2 && (
+                <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
+                  <div className="prog-card-head">
+                    <h2 className="prog-card-title">Accuracy over time</h2>
+                    <span className="pv-fig">Last {weeks.length} weeks</span>
+                  </div>
+                  <AccuracyChart weeks={weeks} />
+                </section>
+              )}
+
+              <section className="prog-card anim-scale-in" style={{ "--i": 3 }}>
                 <div className="prog-card-head">
                   <h2 className="prog-card-title">Days studied</h2>
                   <span className="pv-fig">Last 16 weeks</span>
@@ -471,6 +482,143 @@ function DeckProgress({ own, featured, onPractice }) {
       {featured.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
       {featured.map((r, i) => row(r, i === featured.length - 1))}
       <p className="pv-deck__key">Seen of total, and how many you get right. Tap a deck to practise it.</p>
+    </div>
+  );
+}
+
+/* ── Accuracy over time ───────────────────────────────────────────────── */
+
+const fmtWeek = start => new Date(`${start}T12:00:00`).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+/*
+ * Weekly accuracy, scrubbable (Rafil, 2026-11-22: "much better, and
+ * scrubbable"). Drawn at the card's real width, so the type stays its size
+ * on any screen. The line is smooth but never overshoots a week; each week's
+ * answers are faint bars along the floor. Move across it — pointer, finger
+ * (a sideways drag; the page still scrolls up and down) or arrow keys — and
+ * the readout above follows; it rests on this week. A week with under 20
+ * answers is a gap in the line, and says so when you land on it.
+ */
+function AccuracyChart({ weeks }) {
+  const box = useRef(null);
+  const [w, setW] = useState(640);
+  const last = weeks.length - 1;
+  /* null rests on this week, however many weeks there are. */
+  const [picked, setAt] = useState(null);
+  const at = picked === null ? last : Math.min(picked, last);
+  const [scrub, setScrub] = useState(false);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setW(Math.max(260, Math.round(e.contentRect.width))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const H = 230, L = 40, R = 14, T = 18, B = 34;
+  const rated = weeks.filter(x => x.pct !== null).map(x => x.pct);
+  const lo = Math.max(0, Math.min(50, Math.floor((Math.min(...rated) - 5) / 10) * 10));
+  const hi = 100;
+  const x = i => L + (i * (w - L - R)) / Math.max(1, last);
+  const y = v => T + ((hi - v) / (hi - lo)) * (H - T - B);
+  const floor = H - B;
+  const maxAns = Math.max(1, ...weeks.map(k => k.answered));
+  const barW = Math.max(6, Math.min(26, ((w - L - R) / weeks.length) * 0.42));
+
+  /* Segments of consecutive rated weeks, so a quiet week breaks the line. */
+  const segs = [];
+  let cur = [];
+  weeks.forEach((k, i) => { if (k.pct === null) { if (cur.length) segs.push(cur); cur = []; } else cur.push([x(i), y(k.pct), i]); });
+  if (cur.length) segs.push(cur);
+
+  const ticks = [];
+  for (let v = lo; v <= hi; v += (hi - lo) > 50 ? 20 : 10) ticks.push(v);
+
+  const k = weeks[at];
+  const prev = weeks.slice(0, at).reverse().find(p => p.pct !== null);
+  const delta = k.pct !== null && prev ? k.pct - prev.pct : null;
+  const pick = clientX => {
+    const r = box.current.getBoundingClientRect();
+    const i = Math.round(((clientX - r.left - L) / Math.max(1, w - L - R)) * last);
+    setAt(Math.max(0, Math.min(last, i)));
+  };
+
+  return (
+    <div className="pv-acc">
+      <div className="pv-acc__read" aria-live="polite">
+        <span className="pv-acc__pct">{k.pct === null ? "—" : `${k.pct}%`}</span>
+        <span className="pv-acc__meta">
+          <span className="pv-acc__when">{at === last ? "This week" : `Week of ${fmtWeek(k.start)}`}</span>
+          <span className="pv-acc__sub">
+            {k.pct === null
+              ? (k.answered ? `${k.answered} answered, too few to judge` : "Nothing answered")
+              : <>{k.answered} answered{delta !== null && <> · {delta === 0 ? "the same as the week before" : <><b className={delta > 0 ? "is-up" : "is-down"}>{delta > 0 ? "+" : "−"}{Math.abs(delta)} {Math.abs(delta) === 1 ? "point" : "points"}</b> on the week before</>}</>}</>}
+          </span>
+        </span>
+      </div>
+      <div
+        ref={box}
+        className={`pv-acc__plot${scrub ? " is-scrubbing" : ""}`}
+        tabIndex={0}
+        role="slider"
+        aria-label="Week"
+        aria-valuemin={0}
+        aria-valuemax={last}
+        aria-valuenow={at}
+        aria-valuetext={`${at === last ? "This week" : `Week of ${fmtWeek(k.start)}`}: ${k.pct === null ? "not enough answers" : `${k.pct}% right`}`}
+        onPointerDown={e => { setScrub(true); pick(e.clientX); e.currentTarget.setPointerCapture?.(e.pointerId); }}
+        onPointerMove={e => { if (scrub || e.pointerType === "mouse") pick(e.clientX); }}
+        onPointerUp={() => setScrub(false)}
+        onPointerCancel={() => { setScrub(false); setAt(null); }}
+        onPointerLeave={e => { if (e.pointerType === "mouse" && !scrub) setAt(null); }}
+        onKeyDown={e => {
+          if (e.key === "ArrowLeft") { e.preventDefault(); setAt(Math.max(0, at - 1)); }
+          if (e.key === "ArrowRight") { e.preventDefault(); setAt(Math.min(last, at + 1)); }
+          if (e.key === "Home") { e.preventDefault(); setAt(0); }
+          if (e.key === "End") { e.preventDefault(); setAt(null); }
+        }}
+      >
+        <svg width={w} height={H} viewBox={`0 0 ${w} ${H}`} aria-hidden="true">
+          <defs>
+            <linearGradient id="pv-acc-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="var(--c-accent)" stopOpacity="0.22" />
+              <stop offset="1" stopColor="var(--c-accent)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {ticks.map(v => (
+            <g key={v}>
+              <line x1={L} x2={w - R} y1={y(v)} y2={y(v)} className="pv-acc__grid" />
+              <text x={L - 10} y={y(v) + 4} textAnchor="end" className="pv-acc__tick">{v}%</text>
+            </g>
+          ))}
+          {weeks.map((wk, i) => {
+            const h = (wk.answered / maxAns) * (H - T - B) * 0.32;
+            return h > 0 && <rect key={wk.start} x={x(i) - barW / 2} y={floor - h} width={barW} height={h} rx={Math.min(4, barW / 3)} className={`pv-acc__vol${i === at ? " is-at" : ""}`} />;
+          })}
+          {segs.map((sg, si) => sg.length > 1 && (
+            <path key={`a${si}`} d={`${smoothPath(sg)} L${sg[sg.length - 1][0]},${floor} L${sg[0][0]},${floor} Z`} fill="url(#pv-acc-fill)" />
+          ))}
+          {/* A quiet week is a gap; a dashed bridge keeps the line readable. */}
+          {segs.slice(1).map((sg, si) => {
+            const a = segs[si][segs[si].length - 1], b = sg[0];
+            return <line key={`g${si}`} x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} className="pv-acc__bridge" />;
+          })}
+          {segs.map((sg, si) => (sg.length > 1
+            ? <path key={`l${si}`} d={smoothPath(sg)} className="pv-acc__line" />
+            : <circle key={`l${si}`} cx={sg[0][0]} cy={sg[0][1]} r="3.5" className="pv-acc__dot" />))}
+          <line x1={x(at)} x2={x(at)} y1={T - 6} y2={floor} className="pv-acc__guide" />
+          {k.pct !== null && <circle cx={x(at)} cy={y(k.pct)} r="7" className="pv-acc__at" />}
+          {weeks.map((wk, i) => {
+            /* A date under every few weeks, as many as fit, always the ends. */
+            const every = Math.max(1, Math.ceil(weeks.length / Math.max(2, Math.floor((w - L - R) / 78))));
+            /* Never so near "This week" that the two run together. */
+            const show = i === last || (i % every === 0 && x(last) - x(i) >= 92);
+            if (!show) return null;
+            return <text key={`t${wk.start}`} x={x(i)} y={H - 10} textAnchor={i === 0 ? "start" : i === last ? "end" : "middle"} className={`pv-acc__tick${i === at ? " is-at" : ""}`}>{i === last ? "This week" : fmtWeek(wk.start)}</text>;
+          })}
+        </svg>
+      </div>
+      <p className="pv-acc__hint">Drag along the chart to see any week. Bars show how many you answered.</p>
     </div>
   );
 }

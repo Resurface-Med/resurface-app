@@ -12722,3 +12722,29 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .pv-tab-n { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: 999px; background: var(--c-accent); color: #fff; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pv-sheet.is-tabs .pv-foot { margin-top: 4px; }
 .tg-tab.is-active .pv-tab-n { background: #fff; color: var(--c-accent); }
+
+/* Accuracy over time, scrubbable (2026-11-22) */
+.pv-acc { margin-top: 10px; }
+.pv-acc__read { display: flex; align-items: baseline; gap: 14px; min-height: 52px; }
+.pv-acc__pct { font-size: 44px; font-weight: 600; letter-spacing: -1.6px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; min-width: 2.6ch; }
+.pv-acc__meta { display: flex; flex-direction: column; gap: 2px; }
+.pv-acc__when { font-size: 15px; font-weight: 600; color: var(--c-text); }
+.pv-acc__sub { font-size: 14px; color: var(--c-sub); font-variant-numeric: tabular-nums; }
+.pv-acc__sub b { font-weight: 600; color: var(--c-text); }
+.pv-acc__sub b.is-up { color: var(--c-success); }
+.pv-acc__sub b.is-down { color: var(--c-sub); }
+.pv-acc__plot { position: relative; margin-top: 12px; touch-action: pan-y; cursor: crosshair; border-radius: 12px; outline: none; user-select: none; -webkit-user-select: none; }
+.pv-acc__plot:focus-visible { box-shadow: 0 0 0 2px var(--c-accent); }
+.pv-acc__plot svg { display: block; overflow: visible; }
+.pv-acc__grid { stroke: var(--c-border); stroke-width: 1; }
+.pv-acc__tick { font-family: inherit; font-size: 12px; fill: var(--c-muted); font-variant-numeric: tabular-nums; }
+.pv-acc__vol { fill: color-mix(in srgb, var(--c-accent) 14%, transparent); transition: fill .15s ease; }
+.pv-acc__vol.is-at { fill: color-mix(in srgb, var(--c-accent) 32%, transparent); }
+.pv-acc__line { fill: none; stroke: var(--c-accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pv-acc__dot { fill: var(--c-accent); }
+.pv-acc__guide { stroke: var(--c-text); stroke-opacity: .18; stroke-width: 1.5; stroke-dasharray: 3 4; }
+.pv-acc__at { fill: var(--c-card-solid); stroke: var(--c-accent); stroke-width: 3.5; transition: cx .12s ease, cy .12s ease; }
+.pv-acc__hint { margin: 10px 0 0; font-size: 13px; color: var(--c-muted); }
+@media (prefers-reduced-motion: reduce) { .pv-acc__at { transition: none; } }
+.pv-acc__bridge { stroke: var(--c-accent); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; opacity: .55; }
+.pv-acc__tick.is-at { fill: var(--c-text); font-weight: 600; }
