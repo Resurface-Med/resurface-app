@@ -77,7 +77,11 @@ export async function GET(request) {
   const exact = want != null && got === want;
   return compressed(request, text, {
     "content-type": "application/json; charset=utf-8",
-    "cache-control": exact ? "public, max-age=31536000, immutable" : "no-store",
+    /* Not the version asked for: still kept at the edge for a minute
+       (never in the browser), so copies of the app asking for an old
+       version cost one database read a minute, not one each. That was
+       128 full bundles a day from here (2026-11-22). */
+    "cache-control": exact ? "public, max-age=31536000, immutable" : "public, max-age=0, s-maxage=60",
     "x-featured-version": got ?? "",
     vary: "accept-encoding",
   });
