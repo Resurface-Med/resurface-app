@@ -396,8 +396,10 @@ export const NAV_GROUPS = [
     { k: V.NOTES,       label: "My notes" },
   ],
   [
+    /* Progress has a tab of its own, in What's new's place (Rafil,
+       2026-11-22: "remove the announcements tab completely"). */
+    { k: V.PROGRESS,    label: "Progress" },
     { k: V.LEADERBOARD, label: "Leaderboard" },
-    { k: V.NEWS,        label: "What’s new" },
   ],
 ];
 

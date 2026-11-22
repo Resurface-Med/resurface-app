@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useDrawerSwipe } from "../ui/useDrawerSwipe";
-import { BookOpen, ChartColumn, Flag, House, LogOut, Megaphone, NotebookPen, Sparkles, Trophy } from "lucide-react";
+import { BookOpen, ChartColumn, Flag, House, LogOut, NotebookPen, Sparkles, Trophy } from "lucide-react";
 import { NAV_GROUPS, V } from "../ui/theme";
 import Avatar from "../ui/Avatar";
 
@@ -11,11 +11,10 @@ const ICONS = {
   [V.PROGRESS]: ChartColumn,
   [V.LEADERBOARD]: Trophy,
   [V.ADMIN]: Flag,
-  [V.NEWS]: Megaphone,
   [V.NOTES]: NotebookPen,
 };
 
-export function Sidebar({ view, setView, dueCount, showNotes = false, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
+export function Sidebar({ view, setView, dueCount, showNotes = false, email, displayName, avatar = null, onSignOut, isAdmin = false }) {
   const activeProfile = view === V.PROFILE;
   const [open, setOpen] = useState(false);
   const navRef = useRef(null);
@@ -95,8 +94,7 @@ export function Sidebar({ view, setView, dueCount, showNotes = false, email, dis
         <span className="app-nav__burger-line" />
         <span className="app-nav__burger-line" />
         <span className="app-nav__burger-line" />
-        {dueCount > 0 ? <span className="app-nav__burger-dot">{dueCount}</span>
-          : unreadAnnouncements > 0 ? <span className="app-nav__burger-dot is-news" aria-label="New announcements" /> : null}
+        {dueCount > 0 ? <span className="app-nav__burger-dot">{dueCount}</span> : null}
       </button>
 
       <div
@@ -147,20 +145,18 @@ export function Sidebar({ view, setView, dueCount, showNotes = false, email, dis
                   const active = view === item.k;
                   const Icon = ICONS[item.k];
                   const review = item.k === V.STUDY ? dueCount : 0;
-                  const fresh = item.k === V.NEWS ? unreadAnnouncements : 0;
 
                   return (
                     <button
                       key={item.k}
                       type="button"
-                      onClick={() => (item.k === V.NEWS && onOpenAnnouncements ? (onOpenAnnouncements(), setOpen(false)) : go(item.k))}
+                      onClick={() => go(item.k)}
                       className={`btn-press app-nav__item${active ? " is-active" : ""}`}
                       aria-current={active ? "page" : undefined}
                       title={item.label}
                     >
                       {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
                       <span className="app-nav__label">{item.label}</span>
-                      {fresh > 0 && <span className="app-nav__review app-nav__fresh" title={`${fresh} new`} aria-label={`${fresh} new`}>{fresh > 9 ? "9+" : fresh}</span>}
                       {review > 0 && <span className="app-nav__review" title={`${review} to review`} aria-label={`${review} to review`}>{review > 99 ? "99+" : review}</span>}
                     </button>
                   );
