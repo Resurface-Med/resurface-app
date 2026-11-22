@@ -421,6 +421,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   }
   function endNaming(id, name) {
     const fresh = Boolean(naming?.fresh);
+    /* Not one of yours: a ready-made deck an admin is renaming for everyone. */
+    if (name && !decksById.has(id) && featuredActions?.renameDeck) { setNaming(null); featuredActions.renameDeck(id, name); return; }
     if (name) deckActions.renameDeck(id, name, { quiet: fresh });
     else if (fresh) deckActions.deleteDeck(id, { quiet: true });
     setNaming(null);
@@ -1020,8 +1022,16 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       const sub = [...(isFeaturedAdmin() && featuredActions ? uploadItem(true) : []), ...fileItems(node)];
       return sub.length ? [{ label: "Admin", sub }] : [];
     };
+    /* Admins rename any ready-made deck, for everyone (Rafil, 2026-11-22).
+       Not a year heading: that is not a deck, and a student's year is found
+       by its name. */
+    const yearHeadings = new Set(featured.filter(r => r.top && r.top !== r.id).map(r => r.top));
+    const renameFeatured = node => (isFeaturedAdmin() && featuredActions?.renameDeck && !yearHeadings.has(node.id)
+      ? [{ label: "Rename", onSelect: n => setNaming({ mode: "rename", deckId: n.id }) }]
+      : []);
     const featuredMenu = node => [
       ...manageFeatured,
+      ...renameFeatured(node),
       ...featuredAdmin(node),
       { label: "Hide from my decks", onSelect: n => hideFeatured(n.id) },
     ];
@@ -1049,7 +1059,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
       /* No "are you sure": the undo that follows is the safety net. */
       { label: "Delete", danger: true, onSelect: n => deckActions.deleteDeck(n.id) },
     ] : node.top && onHideFeatured ? featuredMenu(node)
-      : node.featured && (manageFeatured.length || fileItems(node).length) ? [...manageFeatured, ...featuredAdmin(node)]
+      : node.featured && (manageFeatured.length || renameFeatured(node).length || fileItems(node).length) ? [...manageFeatured, ...renameFeatured(node), ...featuredAdmin(node)]
       : null;
     const qNorm = topicQuery.trim().toLowerCase();
     /* A featured deck you hid can be brought back. (An old copy of one is
@@ -1135,7 +1145,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                itself, under Everything, as "Your decks" does — so a new
                account can see what these are (Rafil, 2026-10-20). */
             heading="Ready-made decks" intro={soonNote}
-            rowMenu={rowMenu} allowEmpty revealId={revealDeckId} />
+            rowMenu={rowMenu} allowEmpty revealId={revealDeckId}
+            renamingId={rest.renamingId} onRename={rest.onRename} />
         )}
         {hiddenNotes}
       </>
@@ -1373,7 +1384,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
                     <DeckNameForm onSubmit={n => createDeckNamed(n)} onCancel={() => setCreatingDeck(false)} />
                   ) : naming && !inlineRename ? (
                     <DeckNameForm
-                      initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
+                      initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? findNode(fullForest, naming.deckId)?.name ?? "" : ""}
                       placeholder={naming.mode === "rename" ? "Name" : "Name the sub-deck"}
                       onCancel={() => endNaming(naming.deckId, null)}
                       onSubmit={n => { if (naming.mode === "rename") endNaming(naming.deckId, n); else createDeckNamed(n, naming.deckId); }}
@@ -1526,7 +1537,7 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
               )}
               {naming && !inlineRename && (
                 <DeckNameForm
-                  initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? "" : ""}
+                  initial={naming.mode === "rename" ? decksById.get(naming.deckId)?.name ?? findNode(fullForest, naming.deckId)?.name ?? "" : ""}
                   placeholder={naming.mode === "rename" ? "Name" : `Name the sub-deck of ${decksById.get(naming.deckId)?.name ?? ""}`}
                   onCancel={() => endNaming(naming.deckId, null)}
                   onSubmit={n => { if (naming.mode === "rename") endNaming(naming.deckId, n); else createDeckNamed(n, naming.deckId); }}

@@ -32,7 +32,7 @@ import { noteImages } from "./lib/formatExplain";
 import { applyThemeColor, clearThemeColor, normalizeHex } from "./lib/themeColor";
 import { useAuth } from "./lib/auth";
 import { supabase } from "./lib/supabase";
-import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured,
+import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured, adminRenameFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
   adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
   liteFeatured, hydrateFeatured, addFriend, fetchResolvedReports, markReportsSeen } from "./lib/remote";
@@ -351,6 +351,19 @@ export default function App() {
      it). Deletes go to the deck itself, for everyone, then the pool is
      reloaded; there is no Move — its questions stay in it. */
   const featuredActions = {
+    /* A ready-made deck renamed by an admin, for everyone (2026-11-22):
+       shown at once, then the decks are reloaded with it. */
+    renameDeck: async (id, name) => {
+      const f = featuredRef.current;
+      applyFeatured({
+        ...f,
+        decks: f.decks.map(d => (d.id === id ? { ...d, name } : d)),
+        roots: f.roots.map(r => (r.id === id ? { ...r, name } : r)),
+      });
+      try { await adminRenameFeatured(id, name); }
+      catch (e) { confirm({ title: "Couldn’t rename that deck", body: e?.message || "Try again in a moment.", action: "OK", cancel: null }); }
+      finally { await refreshData(); }
+    },
     deleteQuestions: async ids => {
       try { await adminDeleteFeatured(ids); } finally { await refreshData(); }
     },

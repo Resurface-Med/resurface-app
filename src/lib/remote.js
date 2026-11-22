@@ -923,6 +923,9 @@ export const adminEditFeatured = (id, payload) =>
    their app ids. */
 export const adminAddFeatured = async (deckId, payloads) =>
   ((await featuredWrite("admin_add_featured_questions", { deck: deckId, rows: payloads })) ?? []).map(id => GEN_ID_BASE + Number(id));
+/* Any deck in a ready-made deck, renamed for everyone (migration 0101). */
+export const adminRenameFeatured = (deck, name) =>
+  featuredWrite("admin_rename_featured_deck", { deck, new_name: name }).then(() => {});
 export const adminDeleteFeatured = async ids =>
   (await featuredWrite("admin_delete_featured_questions", { ids: ids.map(id => Number(id) - GEN_ID_BASE) })) ?? 0;
 export async function fetchAdminFeatured() {
