@@ -1,0 +1,11 @@
+-- Ready-made images only through the edge (2026-11-22).
+--
+-- Since 114561a the app asks /api/qimg for every image first, and signs a
+-- link only for your own image in no ready-made deck (the owner policy
+-- covers that). The rule that let any signed-in user read ready-made images
+-- directly is then used only by copies of the app from before today, whose
+-- open tabs re-downloaded every image through hourly signed links on each
+-- refresh: 857 images from one tab at 08:00, after the fix had shipped.
+-- Without it those tabs cannot spend egress; a reload brings them onto the
+-- current app. Anon read of ready-made images (0103) is what the edge uses.
+drop policy if exists "question images on featured decks are readable by everyone" on storage.objects;
