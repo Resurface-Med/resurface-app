@@ -947,6 +947,13 @@ export async function fetchOptionSplit(questionId) {
 
 /* year: 1, 2 … to rank within one study year; null for everyone.
    day: the phone's calendar day, for the today board; null is the week. */
+/* Right and wrong per day, last 16 weeks, for Progress (migration 0093). */
+export async function fetchAnswerDays(days = 112) {
+  const { data, error } = await supabase.rpc("my_answer_days", { days });
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export async function fetchLeaderboardWeek(year = null, day = null) {
   const args = {};
   if (year) args.yr = year;

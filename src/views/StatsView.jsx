@@ -1,9 +1,13 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { V, h1 } from "../ui/theme";
 import { QUESTIONS } from "../data";
 import Wave from "../ui/Wave";
 import { confirm } from "../ui/Confirm";
+import StreakFlame from "../ui/StreakFlame";
 import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
+import { waitingMistakes } from "../lib/pastSessions";
+import { fetchAnswerDays, fetchLeaderboardWeek } from "../lib/remote";
+import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal } from "../lib/progressPage";
 
 /**
  * Progress — coverage and accuracy over your decks, as deep as you made them.
@@ -24,6 +28,12 @@ import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
  * of those, since a new deck with no parent is one level. So this walks the
  * decks themselves now. Depth stops being something you can get wrong,
  * because nothing is being flattened into a shape it does not have.
+ *
+ * 2026-11-22: the page Rafil approved in the mockup. Around the deck tree:
+ * this week by day, accuracy by week, what to go over (mistakes waiting and
+ * the weakest topics), the days studied, and where you stand in your year.
+ * Right and wrong by day come from my_answer_days (0093); offline, the week
+ * falls back to the device's own counts and the accuracy line waits.
  *
  * The band says where you stand in a sentence: the numbers are on the sheet,
  * and a sentence says what they mean. Accuracy appears only once there is
@@ -132,7 +142,7 @@ function Node({ node, depth, open, onToggle, onPractice }) {
         <button type="button" className="prog-topic-row" onClick={() => onPractice(node)}>
           <span className="prog-topic-line">
             <span className="prog-topic-name">{node.name}</span>
-            <Figure node={node} depth={depth} />
+            <Figure node={node} depth={depth} withPct />
             <span className="prog-topic-go" aria-hidden="true">→</span>
           </span>
           <Bar node={node} depth={depth} />
@@ -148,7 +158,7 @@ function Node({ node, depth, open, onToggle, onPractice }) {
           <span className="prog-subject-name">{node.name}</span>
           <Figure node={node} depth={depth} withPct={isOpen} />
         </span>
-        {isOpen && <Bar node={node} depth={depth} />}
+        <Bar node={node} depth={depth} />
       </button>
 
       {isOpen && (
@@ -191,23 +201,33 @@ function Blank({ onGenerate }) {
 
 export default function StatsView({
   pStats, decks = [], setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
+  activity = {}, streak = null, sessions = [], srCards = {}, studyYear = null, userId = null, onPractise,
 }) {
   const [open, setOpen] = useState(() => new Set());
+  const [answerDays, setAnswerDays] = useState(null);
+  const [board, setBoard] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    fetchAnswerDays().then(d => { if (live) setAnswerDays(d); }, () => {});
+    if (studyYear) fetchLeaderboardWeek(studyYear).then(r => { if (live) setBoard(r); }, () => {});
+    return () => { live = false; };
+  }, [studyYear]);
 
   const roots = useMemo(
     () => buildTree(QUESTIONS, decks, pStats),
     [decks, pStats],
   );
 
-  /* By leaf id, not by name. Study filters on leaves — the deck ids with
-     nothing under them — and that is the only identifier here that cannot be
-     ambiguous: two decks may share a name, and the block/subject/topic labels
-     this page used to read were manufactured and wrong at most depths. */
-  function practice(node) {
+  function practiceLeaves(leaves) {
     setStudyScope?.("all");
-    setLaunchFilter({ leaves: leavesUnder(node) });
+    setLaunchFilter({ leaves });
     setView(V.STUDY);
   }
+  /* By leaf id, not by name. Study filters on leaves — the deck ids with
+     nothing under them — and that is the only identifier here that cannot be
+     ambiguous: two decks may share a name. */
+  const practice = node => practiceLeaves(leavesUnder(node));
 
   function toggle(id) {
     setOpen(prev => {
@@ -218,19 +238,48 @@ export default function StatsView({
   }
 
   const summary = useMemo(() => summarise(roots, pStats), [roots, pStats]);
-  /* Against the questions that exist, not the rows that are stored — progress
-     outlives the question it was recorded against. */
   const attempted = useMemo(() => seenCount(QUESTIONS, pStats) > 0, [pStats]);
+  const answeredAll = useMemo(() => Object.values(activity).reduce((a, n) => a + (Number(n) || 0), 0), [activity]);
+  const lead = (answerDays && headline(answerDays)) || summary?.lead;
+  const rest = [
+    answeredAll > 0 ? `You’ve answered ${answeredAll.toLocaleString("en-GB")} question${answeredAll === 1 ? "" : "s"}.` : "",
+    summary?.rest ?? "",
+  ].filter(Boolean).join(" ");
+
+  const week = useMemo(() => weekDays(answerDays, activity), [answerDays, activity]);
+  const weekTotal = week.reduce((a, d) => a + d.answered, 0);
+  const weekRight = answerDays ? week.reduce((a, d) => a + (d.correct ?? 0), 0) : null;
+  const weekNote = weekTotal ? weekLine(week, answerDays, activity) : "Nothing answered yet this week.";
+  const weeks = useMemo(() => (answerDays ? weeklyAccuracy(answerDays) : []), [answerDays]);
+  const drawn = weeks.filter(w => w.pct !== null);
+  const cal = useMemo(() => calendar(activity), [activity]);
+  const weak = useMemo(() => weakest(roots), [roots]);
+  const mistakes = useMemo(() => waitingMistakes(sessions, srCards, new Set(QUESTIONS.map(q => q.id))), [sessions, srCards]);
+  const year = useMemo(() => (board ? yearStanding(board, userId) : null), [board, userId]);
+  const seenAll = roots.reduce((a, r) => a + r.seen, 0);
+  const totalAll = roots.reduce((a, r) => a + r.total, 0);
+  const days = Number(streak?.streak) || 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
-      <div className="page-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
-        <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
-        {summary && (
-          <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
-            <span className="prog-lead-first">{summary.lead}</span>
-            {summary.rest ? <> {summary.rest}</> : null}
-          </p>
+      <div className="page-band pv-band" style={{ ...band, paddingTop: "clamp(22px, 3.6vh, 36px)", paddingBottom: "clamp(18px, 2.8vh, 28px)" }}>
+        <div className="pv-band__text">
+          <h1 data-in="left" style={{ ...h1, margin: 0, "--i": 0 }}>Progress</h1>
+          {lead && (
+            <p className="prog-lead" data-in="left" style={{ "--i": 1 }}>
+              <span className="prog-lead-first">{lead}</span>
+              {rest ? <> {rest}</> : null}
+            </p>
+          )}
+        </div>
+        {days > 0 && (
+          <div className="pv-streak" data-in="left" style={{ "--i": 2 }} aria-label={`${days}-day streak, best ${Math.max(days, Number(streak?.longest) || 0)}`}>
+            <StreakFlame days={days} bare size={44} />
+            <span>
+              <span className="pv-streak__n">{days}</span>
+              <span className="pv-streak__t">day streak<br />best {Math.max(days, Number(streak?.longest) || 0)}</span>
+            </span>
+          </div>
         )}
       </div>
 
@@ -238,54 +287,224 @@ export default function StatsView({
 
       <div style={{ background: "var(--c-surface2)", flex: 1, display: "flex", flexDirection: "column" }}>
         {roots.length === 0 ? <Blank onGenerate={() => setView(V.GENERATE)} /> : (
-          <div className="prog-sheet" style={{ ...band, maxWidth: 760 }}>
-            {/* One card per deck at the top of your tree, whatever you have
-                called them. There is no fixed level here any more. */}
-            {roots.map((r, i) => (
-              <section key={r.id} className="prog-card anim-scale-in" style={{ "--i": i }}>
+          <div className="pv-sheet" style={{ ...band }}>
+            <div className="pv-col">
+              <section className="prog-card anim-scale-in" style={{ "--i": 0 }}>
                 <div className="prog-card-head">
-                  <h2 className="prog-card-title">{r.name}</h2>
-                  <span className="prog-card-fig">{r.seen} of {r.total}</span>
+                  <h2 className="prog-card-title">This week</h2>
+                  {weekTotal > 0 && (
+                    <span className="pv-fig"><b>{weekTotal}</b> question{weekTotal === 1 ? "" : "s"}{weekRight !== null && weekTotal ? <> · <b>{Math.round((weekRight / weekTotal) * 100)}%</b> right</> : null}</span>
+                  )}
                 </div>
-                {r.children.length > 0 ? (
-                  <ul className="prog-subjects">
-                    {r.children.map(c => (
-                      <Node key={c.id} node={c} depth={1} open={open} onToggle={toggle} onPractice={practice} />
-                    ))}
-                  </ul>
-                ) : (
-                  /* A deck at the top of the tree with nothing under it is the
-                     commonest shape of all — one lecture, filed on its own —
-                     and used to render as a card with an empty body. */
-                  <ul className="prog-subjects">
-                    <Node node={r} depth={1} open={open} onToggle={toggle} onPractice={practice} />
-                  </ul>
+                <p className="pv-line">{weekNote}</p>
+                <WeekBars week={week} split={!!answerDays} />
+                {answerDays && weekTotal > 0 && (
+                  <div className="pv-key"><span><i className="is-right" />Right</span><span><i className="is-wrong" />Wrong</span></div>
                 )}
               </section>
-            ))}
 
-            {/* Only once there is something to undo. Two destructive buttons
-                are not an introduction to a page. */}
-            {attempted && (
-              <div className="prog-reset">
-                <button
-                  type="button"
-                  className="prog-reset-btn"
-                  onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
-                >
-                  Reset practice stats
-                </button>
-                <button
-                  type="button"
-                  className="prog-reset-btn"
-                  onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
-                >
-                  Reset review schedule
-                </button>
-              </div>
-            )}
+              {drawn.length >= 2 && (
+                <section className="prog-card anim-scale-in" style={{ "--i": 1 }}>
+                  <div className="prog-card-head">
+                    <h2 className="prog-card-title">Accuracy over time</h2>
+                    <span className="pv-fig">Last {weeks.length} weeks</span>
+                  </div>
+                  <p className="pv-line">From <b>{drawn[0].pct}%</b> to <b>{drawn[drawn.length - 1].pct}%</b>. Every week with 20 or more answers counts.</p>
+                  <AccuracyChart weeks={weeks} />
+                </section>
+              )}
+
+              <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
+                <div className="prog-card-head">
+                  <h2 className="prog-card-title">By deck</h2>
+                  <span className="pv-fig"><b>{seenAll.toLocaleString("en-GB")}</b> of {totalAll.toLocaleString("en-GB")} seen</span>
+                </div>
+                <ul className="prog-subjects">
+                  {roots.map(r => (
+                    <Node key={r.id} node={r} depth={0} open={open} onToggle={toggle} onPractice={practice} />
+                  ))}
+                </ul>
+              </section>
+            </div>
+
+            <div className="pv-col">
+              {(mistakes.length > 0 || weak.length > 0) && (
+                <section className="prog-card anim-scale-in" style={{ "--i": 1 }}>
+                  <div className="prog-card-head"><h2 className="prog-card-title">Go over these</h2></div>
+                  {mistakes.length > 0 && (
+                    <>
+                      <div className="pv-big">
+                        <span className="pv-big__n">{mistakes.length}</span>
+                        <span className="pv-big__t">question{mistakes.length === 1 ? "" : "s"} you got wrong<br />the last time you saw {mistakes.length === 1 ? "it" : "them"}</span>
+                      </div>
+                      <button type="button" className="pv-go btn-press" onClick={() => onPractise?.(mistakes)}>Go over {mistakes.length === 1 ? "it" : "them"}</button>
+                    </>
+                  )}
+                  {weak.length > 0 && (
+                    <>
+                      <div className={`pv-sub${mistakes.length ? "" : " is-first"}`}>
+                        <h3>Weakest topics</h3>
+                        {weak.length > 1 && (
+                          <button type="button" className="pv-link" onClick={() => practiceLeaves(weak.flatMap(w => leavesUnder(w.node)))}>
+                            Practise all {weak.length} <span aria-hidden="true">→</span>
+                          </button>
+                        )}
+                      </div>
+                      <ul className="pv-weak">
+                        {weak.map(w => (
+                          <li key={w.node.id}>
+                            <button type="button" className="pv-weak__row" onClick={() => practice(w.node)}>
+                              <span className="pv-weak__line">
+                                <span className="pv-weak__name">{w.node.name} {w.root !== w.node.name && <span className="pv-weak__deck">· {w.root}</span>}</span>
+                                <span className="pv-weak__pct">{w.pct}% <span>of {w.node.attempts}</span></span>
+                              </span>
+                              <span className="prog-bar"><span className="prog-bar-seen" style={{ transform: "scaleX(1)" }} /><span className="prog-bar-right" style={{ transform: `scaleX(${w.pct / 100})` }} /></span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </section>
+              )}
+
+              <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
+                <div className="prog-card-head">
+                  <h2 className="prog-card-title">Days studied</h2>
+                  <span className="pv-fig">Last 16 weeks</span>
+                </div>
+                <Calendar cal={cal} />
+                <dl className="pv-pair">
+                  <div><dt>Days studied</dt><dd>{cal.studied} of {cal.total}</dd></div>
+                  {cal.mostActive && <div><dt>Most active</dt><dd>{cal.mostActive}</dd></div>}
+                </dl>
+              </section>
+
+              {studyYear && year && (
+                <section className="prog-card anim-scale-in" style={{ "--i": 3 }}>
+                  <div className="prog-card-head">
+                    <h2 className="prog-card-title">Your year</h2>
+                    <span className="pv-fig">This week</span>
+                  </div>
+                  {year.onBoard ? (
+                    <>
+                      <p className="pv-line">You’re <b>{ordinal(year.rank)} of {year.people}</b> in Year {studyYear}{year.people >= 5 ? <>, in the top {year.topPct}%</> : null}.</p>
+                      <div className="pv-rank" style={{ "--p": `${Math.round(year.position * 100)}%` }}>
+                        <div className="pv-rank__track" /><div className="pv-rank__fill" /><div className="pv-rank__you" aria-hidden="true" />
+                      </div>
+                      <div className="pv-rank__ends"><span>{ordinal(year.people)}</span><span>1st</span></div>
+                      <dl className="pv-pair">
+                        <div><dt>Your questions</dt><dd>{year.mine.toLocaleString("en-GB")}</dd></div>
+                        <div><dt>Year {studyYear} average</dt><dd>{year.avg.toLocaleString("en-GB")}</dd></div>
+                      </dl>
+                    </>
+                  ) : (
+                    <p className="pv-line">Answer a question this week to join Year {studyYear}’s board{year.people ? <>, with {year.people} {year.people === 1 ? "other" : "others"}</> : null}.</p>
+                  )}
+                </section>
+              )}
+            </div>
+
+            <div className="pv-full pv-foot">
+              <button type="button" className="pv-link" onClick={() => setView(V.STUDY)}>Past sessions <span aria-hidden="true">→</span></button>
+              {/* Only once there is something to undo. Two destructive buttons
+                  are not an introduction to a page. */}
+              {attempted && (
+                <div className="prog-reset pv-reset">
+                  <button
+                    type="button"
+                    className="prog-reset-btn"
+                    onClick={async () => { if (await confirm({ title: "Reset practice stats?", body: "Every question goes back to unseen. This can’t be undone.", action: "Reset", danger: true })) onClearP?.(); }}
+                  >
+                    Reset practice stats
+                  </button>
+                  <button
+                    type="button"
+                    className="prog-reset-btn"
+                    onClick={async () => { if (await confirm({ title: "Reset review schedules?", body: "Nothing will be due until you answer again. This can’t be undone.", action: "Reset", danger: true })) onClearSR?.(); }}
+                  >
+                    Reset review schedule
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* Monday to Sunday: right solid, wrong faded, the count above. Offline the
+   days have no split, so each bar is one colour. */
+function WeekBars({ week, split }) {
+  const peak = Math.max(1, ...week.map(d => d.answered));
+  return (
+    <div className="pv-week">
+      {week.map((d, i) => {
+        const h = d.answered ? Math.max(4, (d.answered / peak) * 110) : 3;
+        const right = split ? d.correct ?? 0 : d.answered;
+        return (
+          <div key={d.day} className={`pv-day${d.answered ? "" : " is-empty"}${d.today ? " is-today" : ""}${d.future ? " is-future" : ""}`} style={{ "--i": i }}>
+            <span className="pv-day__n">{d.answered || ""}</span>
+            <span className="pv-day__stack" style={{ height: h }}>
+              {d.answered > 0 && <span className="pv-day__right" style={{ flex: right }} />}
+              {d.answered > 0 && split && d.answered - right > 0 && <span className="pv-day__wrong" style={{ flex: d.answered - right }} />}
+            </span>
+            <span className="pv-day__d">{d.today ? "Today" : d.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* Weekly accuracy on one fixed scale, 50 to 100% (below 50 sits on the floor),
+   so a rise looks like a rise. Weeks with too few answers are gaps. */
+function AccuracyChart({ weeks }) {
+  const W = 560, H = 210, L = 38, R = 50, T = 14, B = 30;
+  const lo = Math.min(50, ...weeks.filter(w => w.pct !== null).map(w => Math.floor(w.pct / 10) * 10));
+  const hi = 100;
+  const x = i => L + (i * (W - L - R)) / Math.max(1, weeks.length - 1);
+  const y = v => T + ((hi - v) / (hi - lo)) * (H - T - B);
+  const ticks = [];
+  for (let v = lo; v <= hi; v += lo <= 30 ? 20 : 10) ticks.push(v);
+  const pts = weeks.map((w, i) => (w.pct === null ? null : [x(i), y(w.pct), w.pct])).filter(Boolean);
+  const line = pts.map(([px, py], i) => `${i ? "L" : "M"}${px.toFixed(1)},${py.toFixed(1)}`).join(" ");
+  const area = pts.length ? `${line} L${pts[pts.length - 1][0]},${y(lo)} L${pts[0][0]},${y(lo)} Z` : "";
+  const end = pts[pts.length - 1];
+  const last = weeks.length - 1;
+  return (
+    <svg className="pv-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Weekly accuracy from ${pts[0][2]}% to ${end[2]}%`}>
+      {ticks.map(v => (
+        <g key={v}>
+          <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="pv-chart__grid" />
+          <text x={L - 8} y={y(v) + 4} textAnchor="end">{v}%</text>
+        </g>
+      ))}
+      <path d={area} className="pv-chart__area" />
+      <path d={line} className="pv-chart__line" />
+      {pts.map(([px, py], i) => i < pts.length - 1 && <circle key={i} cx={px} cy={py} r="3" className="pv-chart__dot" />)}
+      <circle cx={end[0]} cy={end[1]} r="6" className="pv-chart__end" />
+      <text className="t-end" x={end[0] + 12} y={end[1] + 4}>{end[2]}%</text>
+      <text x={x(0)} y={H - 8} textAnchor="start">{weeks.length} weeks ago</text>
+      <text x={x(last)} y={H - 8} textAnchor="end">This week</text>
+    </svg>
+  );
+}
+
+function Calendar({ cal }) {
+  return (
+    <div className="pv-cal-wrap">
+      <div className="pv-cal-box">
+        <div className="pv-cal" role="img" aria-label={`Studied on ${cal.studied} of the last ${cal.total} days`}>
+          {cal.cells.map((c, i) => (c
+            ? <i key={i} data-l={c.level} className={c.today ? "is-today" : undefined} title={`${c.day}: ${c.n} answered`} />
+            : <i key={i} className="is-future" />))}
+        </div>
+        <div className="pv-cal-months">
+          {cal.months.map(m => <span key={`${m.name}${m.week}`} style={{ gridColumn: m.week + 1 }}>{m.name}</span>)}
+        </div>
       </div>
     </div>
   );

@@ -1679,6 +1679,8 @@ export default function App() {
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {v === V.PROGRESS && <ProgressView pStats={pStats} decks={progressDecks} setView={go}
+            activity={activity} streak={streak} sessions={sessions} srCards={srCards} studyYear={studyYear} userId={user.id}
+            onPractise={ids => practise(ids)}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}
             onClearSR={() => { remote.clearSR(user.id); setSrCards({}); }} />}

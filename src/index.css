@@ -12576,3 +12576,100 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 @media (prefers-reduced-motion: reduce) {
   .rr-tick__disc, .rr-tick__check { animation: none; stroke-dashoffset: 0; }
 }
+
+/* ── Progress (StatsView, 2026-11-22) ─────────────────────────────────────
+   Rafil's approved mockup: the deck tree with this week, accuracy by week,
+   what to go over, the days studied and the year around it, in two columns
+   that stack on a phone. Built from the page's own prog-card and prog-bar. */
+.pv-band { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px 28px; flex-wrap: wrap; box-sizing: border-box; }
+.pv-band__text { min-width: 0; flex: 1 1 420px; }
+.pv-streak { display: flex; align-items: center; gap: 12px; color: var(--c-on-field); }
+.pv-streak .streak { line-height: 0; }
+.pv-streak__n { display: block; font-size: 40px; font-weight: 600; letter-spacing: -1.2px; line-height: 1; font-variant-numeric: tabular-nums; }
+.pv-streak__t { display: block; margin-top: 4px; font-size: 14px; font-weight: 500; color: var(--c-on-field-soft); line-height: 1.35; }
+
+.pv-sheet { box-sizing: border-box; padding-top: clamp(18px, 2.8vh, 28px); padding-bottom: clamp(36px, 5vh, 56px); display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(16px, 2.4vh, 22px); align-items: start; }
+.pv-col { display: grid; gap: clamp(16px, 2.4vh, 22px); min-width: 0; }
+.pv-full { grid-column: 1 / -1; }
+.pv-fig { flex-shrink: 0; font-size: 15px; font-weight: 500; color: var(--c-sub); font-variant-numeric: tabular-nums; letter-spacing: -0.2px; }
+.pv-fig b { color: var(--c-text); font-weight: 600; }
+.pv-line { margin: 4px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--c-sub); }
+.pv-line b { font-weight: 600; color: var(--c-text); }
+
+.pv-week { margin-top: 18px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: clamp(8px, 1.6vw, 18px); align-items: end; }
+.pv-day { display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; min-width: 0; }
+.pv-day__stack { display: flex; flex-direction: column-reverse; border-radius: 8px; overflow: hidden; transform-origin: bottom; animation: pvGrow .7s cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: calc(var(--i) * 45ms); }
+.pv-day__right { background: var(--c-accent); }
+.pv-day__wrong { background: color-mix(in srgb, var(--c-accent) 28%, transparent); }
+.pv-day.is-empty .pv-day__stack { background: var(--c-surface3); }
+.pv-day.is-future .pv-day__stack { background: none; }
+.pv-day__n { min-height: 1.2em; font-size: 13px; font-weight: 600; color: var(--c-text); text-align: center; font-variant-numeric: tabular-nums; }
+.pv-day__d { font-size: 12.5px; font-weight: 500; color: var(--c-muted); text-align: center; }
+.pv-day.is-today .pv-day__d { color: var(--c-accent); font-weight: 600; }
+@keyframes pvGrow { from { transform: scaleY(0); } to { transform: none; } }
+.pv-key { display: flex; gap: 18px; margin-top: 16px; font-size: 13px; color: var(--c-muted); }
+.pv-key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.pv-key i.is-right { background: var(--c-accent); }
+.pv-key i.is-wrong { background: color-mix(in srgb, var(--c-accent) 28%, transparent); }
+
+.pv-chart { margin-top: 14px; width: 100%; height: auto; display: block; overflow: visible; }
+.pv-chart text { font-family: inherit; font-size: 12px; fill: var(--c-muted); font-variant-numeric: tabular-nums; }
+.pv-chart .t-end { fill: var(--c-text); font-weight: 600; font-size: 13px; }
+.pv-chart__grid { stroke: var(--c-border); stroke-width: 1; }
+.pv-chart__area { fill: color-mix(in srgb, var(--c-accent) 12%, transparent); }
+.pv-chart__line { fill: none; stroke: var(--c-accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.pv-chart__dot { fill: var(--c-accent); }
+.pv-chart__end { fill: var(--c-card-solid); stroke: var(--c-accent); stroke-width: 3; }
+
+.pv-big { display: flex; align-items: baseline; gap: 12px; margin-top: 10px; }
+.pv-big__n { font-size: 52px; font-weight: 600; letter-spacing: -2px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--c-text); }
+.pv-big__t { font-size: 15px; color: var(--c-sub); line-height: 1.4; }
+.pv-go { display: inline-flex; margin-top: 18px; padding: 12px 22px; border: 0; border-radius: var(--r-pill); background: var(--c-accent); color: #fff; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.pv-sub { margin: 26px 0 4px; padding-top: 20px; border-top: 1px solid var(--c-border); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pv-sub.is-first { margin-top: 6px; padding-top: 0; border-top: 0; }
+.pv-sub h3 { margin: 0; font-size: 16.5px; font-weight: 600; letter-spacing: -0.3px; color: var(--c-text); }
+.pv-link { border: 0; background: none; padding: 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--c-accent); cursor: pointer; white-space: nowrap; }
+.pv-weak { list-style: none; margin: 0; padding: 0; }
+.pv-weak li + li { border-top: 1px solid var(--c-border); }
+.pv-weak__row { width: 100%; display: grid; gap: 7px; padding: 11px 0 12px; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; }
+.pv-weak__line { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; }
+.pv-weak__name { min-width: 0; font-size: 15px; font-weight: 500; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color .15s ease; }
+.pv-weak__row:hover .pv-weak__name { color: var(--c-accent); }
+.pv-weak__deck { color: var(--c-muted); font-weight: 400; }
+.pv-weak__pct { flex-shrink: 0; font-size: 14.5px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.pv-weak__pct span { font-weight: 500; color: var(--c-muted); }
+
+.pv-cal-wrap { --cell: clamp(13px, 1.5vw, 17px); margin-top: 18px; overflow-x: auto; }
+.pv-cal-box { width: max-content; }
+.pv-cal { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 4px; }
+.pv-cal i { border-radius: 4px; background: var(--c-surface3); display: block; }
+.pv-cal i.is-future { background: none; }
+.pv-cal i[data-l="1"] { background: color-mix(in srgb, var(--c-accent) 28%, var(--c-surface3)); }
+.pv-cal i[data-l="2"] { background: color-mix(in srgb, var(--c-accent) 55%, var(--c-surface3)); }
+.pv-cal i[data-l="3"] { background: color-mix(in srgb, var(--c-accent) 80%, var(--c-surface3)); }
+.pv-cal i[data-l="4"] { background: var(--c-accent); }
+.pv-cal i.is-today { outline: 2px solid var(--c-text); outline-offset: 1px; }
+.pv-cal-months { display: grid; grid-auto-columns: var(--cell); column-gap: 4px; margin-top: 8px; font-size: 12px; color: var(--c-muted); white-space: nowrap; }
+.pv-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 20px 0 0; padding-top: 18px; border-top: 1px solid var(--c-border); }
+.pv-pair dt { font-size: 13px; color: var(--c-muted); }
+.pv-pair dd { margin: 4px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: var(--c-text); font-variant-numeric: tabular-nums; }
+
+.pv-rank { margin-top: 22px; position: relative; height: 40px; }
+.pv-rank__track { position: absolute; left: 0; right: 0; top: 18px; height: 4px; border-radius: 2px; background: var(--c-surface3); }
+.pv-rank__fill { position: absolute; left: 0; top: 18px; height: 4px; border-radius: 2px; background: var(--c-accent); width: var(--p); transform-origin: left; animation: pvFill .9s .2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pv-rank__you { position: absolute; top: 9px; left: var(--p); translate: -50% 0; width: 22px; height: 22px; border-radius: 50%; background: var(--c-card-solid); border: 4px solid var(--c-accent); box-sizing: border-box; }
+.pv-rank__ends { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--c-muted); }
+@keyframes pvFill { from { transform: scaleX(0); } to { transform: none; } }
+
+.pv-foot { display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: space-between; align-items: center; }
+.pv-reset { margin: 0; padding: 0; border: 0; }
+.prog-subject .prog-subject-row .prog-bar { margin-top: 0; }
+
+@media (max-width: 900px) { .pv-sheet { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) {
+  .pv-big__n { font-size: 44px; }
+  /* The chart scales with the card, so its labels are set bigger to land near 12px. */
+  .pv-chart text { font-size: 21px; }
+  .pv-chart .t-end { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .pv-day__stack, .pv-rank__fill { animation: none; } }
