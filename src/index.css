@@ -12771,3 +12771,21 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .tm-bar { position: relative; display: block; height: 4px; border-radius: 2px; background: var(--c-surface3); overflow: hidden; }
 .tm-bar__seen, .tm-bar__right { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 2px; background: var(--c-accent); }
 .tm-bar__seen { opacity: .3; }
+
+/* By deck on Progress, compact (2026-11-22): the deck list's look with every
+   deck open, so the rows are tightened here — Study keeps its own spacing.
+   Top-level decks stay as the rounded blocks; everything inside is a thin
+   row with a hairline between, and leaves are smaller again. */
+.pv-decks .topic-row-roomy.is-block { padding: 10px 12px; margin-bottom: 2px; }
+.pv-decks .tree-node.is-nested > .topic-row { padding-top: 5px; padding-bottom: 5px; margin-bottom: 0; }
+.pv-decks .tree-kids > .tree-node > .topic-row { margin-bottom: 0; }
+.pv-decks .tree-kids > .tree-node + .tree-node > .topic-row { box-shadow: inset 0 1px 0 var(--c-border); }
+.pv-decks .topic-block > .tree-kids { margin-top: 4px; margin-bottom: 10px; }
+.pv-decks .tree-node.is-nested > .tree-kids { margin-top: 0; }
+.pv-decks .topic-twist, .pv-decks .topic-expand { flex-basis: 26px; width: 26px; height: 26px; }
+.pv-decks .topic-expand { border-radius: 8px; }
+.pv-decks .topic-row-roomy .topic-name { font-size: 15px; }
+.pv-decks .tree-node.is-nested .topic-name { font-size: 14px; }
+.pv-decks .tree-node.is-nested .tree-node.is-nested .tree-node.is-nested .topic-name,
+.pv-decks .topic-name.is-child { font-size: 13.5px; font-weight: 500; }
+.pv-decks .topic-covers { display: none; }
