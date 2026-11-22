@@ -134,18 +134,20 @@ export function calendar(activity = {}, today = key(new Date()), weeks = 16) {
 }
 
 /** The weakest decks with nothing under them, with enough answers to judge:
-    lowest accuracy first. Each carries the name of its top-level deck. */
+    lowest accuracy first. Each carries the name of the deck it sits in
+    ("Renal"), not the top of the tree, which for ready-made decks is just
+    "Year 2". */
 export function weakest(roots, n = 5, min = 10) {
   const out = [];
-  const walk = (node, root) => {
+  const walk = (node, parent) => {
     if (!node.children.length) {
       const pct = pctOf(node);
-      if (pct !== null && node.attempts >= min && pct < 100) out.push({ node, root: root.name, pct });
+      if (pct !== null && node.attempts >= min && pct < 100) out.push({ node, root: (parent ?? node).name, pct });
       return;
     }
-    for (const c of node.children) walk(c, root);
+    for (const c of node.children) walk(c, node);
   };
-  for (const r of roots) walk(r, r);
+  for (const r of roots) walk(r, null);
   return out.sort((a, b) => a.pct - b.pct || b.node.attempts - a.node.attempts).slice(0, n);
 }
 

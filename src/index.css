@@ -12704,3 +12704,14 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .yr__k { display: block; font-size: 13px; color: var(--c-muted); }
 .yr__v { display: block; margin-top: 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: var(--c-text); font-variant-numeric: tabular-nums; }
 .yr__body:hover .pv-rank__you { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c-accent) 18%, transparent); }
+
+/* By deck on Progress: the deck list's rows, with no tick box. The figures
+   sit where Study's question count does; the percentage gets a fixed column
+   so they line up down the list. */
+.pv-decks { margin-top: 6px; }
+.pv-decks .deck-section-h:first-child { margin-top: 4px; }
+.pv-deck__hit { cursor: pointer; }
+.pv-deck__fig { white-space: nowrap; }
+.pv-deck__pct { flex: none; width: 3.2em; text-align: right; font-size: 14px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.pv-deck--untouched .topic-name, .pv-deck--untouched .pv-deck__fig { color: var(--c-muted); }
+.pv-deck__key { margin: 14px 0 0; font-size: 13px; color: var(--c-muted); }

@@ -5,9 +5,10 @@ import Wave from "../ui/Wave";
 import { confirm } from "../ui/Confirm";
 import StreakFlame from "../ui/StreakFlame";
 import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
+import { buildForest } from "../lib/decks";
 import { waitingMistakes } from "../lib/pastSessions";
 import { fetchAnswerDays } from "../lib/remote";
-import { weekDays, weekLine, weeklyAccuracy, calendar, weakest } from "../lib/progressPage";
+import { weekDays, weekLine, calendar, weakest } from "../lib/progressPage";
 
 /**
  * Progress — coverage and accuracy over your decks, as deep as you made them.
@@ -91,92 +92,6 @@ function summarise(roots, pStats) {
   return { lead: `You’ve seen ${seen} of ${total}.`, rest: rest.join(" ") };
 }
 
-/* Coverage as a length, with accuracy inside it: of the part you have seen,
-   the correct share is solid and the rest faded. No label — the two tones are
-   the reading. */
-function Bar({ node, depth }) {
-  const cover = node.total ? Math.max(0, Math.min(1, node.seen / node.total)) : 0;
-  const pct = pctOf(node);
-  const rated = node.attempts >= minFor(depth) && pct !== null;
-  const right = rated ? cover * (pct / 100) : 0;
-  return (
-    <span
-      className="prog-bar"
-      role="progressbar"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(cover * 100)}
-      aria-label={rated ? `${Math.round(cover * 100)}% seen, ${pct}% correct` : `${Math.round(cover * 100)}% seen`}
-    >
-      <span className="prog-bar-seen" style={{ transform: `scaleX(${cover})` }} />
-      <span className="prog-bar-right" style={{ transform: `scaleX(${right})` }} />
-    </span>
-  );
-}
-
-function Figure({ node, depth, withPct = false }) {
-  const pct = pctOf(node);
-  const rated = withPct && node.attempts >= minFor(depth) && pct !== null;
-  return (
-    <span className="prog-fig-seen">
-      {node.seen} of {node.total}
-      {rated && <span className="prog-fig-pct"> · {pct}% correct</span>}
-    </span>
-  );
-}
-
-/**
- * One deck and everything under it, at any depth.
- *
- * A deck with children opens to show them; one without is a way straight into
- * practising it. The old version had a row type per level — subject, then
- * topic — which is why it could only describe three.
- */
-function Node({ node, depth, open, onToggle, onPractice }) {
-  const hasKids = node.children.length > 0;
-  const isOpen = open.has(node.id);
-
-  if (!hasKids) {
-    return (
-      <li className={`prog-topic${node.seen === 0 ? " is-untouched" : ""}`}>
-        <button type="button" className="prog-topic-row" onClick={() => onPractice(node)}>
-          <span className="prog-topic-line">
-            <span className="prog-topic-name">{node.name}</span>
-            <Figure node={node} depth={depth} withPct />
-            <span className="prog-topic-go" aria-hidden="true">→</span>
-          </span>
-          <Bar node={node} depth={depth} />
-        </button>
-      </li>
-    );
-  }
-
-  return (
-    <li className={`prog-subject${isOpen ? " is-open" : ""}${node.seen === 0 ? " is-untouched" : ""}`}>
-      <button type="button" className="prog-subject-row" onClick={() => onToggle(node.id)} aria-expanded={isOpen}>
-        <span className="prog-subject-line">
-          <span className="prog-subject-name">{node.name}</span>
-          <Figure node={node} depth={depth} withPct={isOpen} />
-        </span>
-        <Bar node={node} depth={depth} />
-      </button>
-
-      {isOpen && (
-        <>
-          <ul className="prog-topics">
-            {node.children.map(c => (
-              <Node key={c.id} node={c} depth={depth + 1} open={open} onToggle={onToggle} onPractice={onPractice} />
-            ))}
-          </ul>
-          <button type="button" className="prog-practice-all" onClick={() => onPractice(node)}>
-            Practice all of {node.name} <span aria-hidden="true">→</span>
-          </button>
-        </>
-      )}
-    </li>
-  );
-}
-
 /**
  * What the page says when there is nothing to measure.
  *
@@ -203,7 +118,6 @@ export default function StatsView({
   pStats, decks = [], setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
   activity = {}, streak = null, sessions = [], srCards = {}, onPractise,
 }) {
-  const [open, setOpen] = useState(() => new Set());
   const [answerDays, setAnswerDays] = useState(null);
 
   useEffect(() => {
@@ -227,14 +141,6 @@ export default function StatsView({
      ambiguous: two decks may share a name. */
   const practice = node => practiceLeaves(leavesUnder(node));
 
-  function toggle(id) {
-    setOpen(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
   const summary = useMemo(() => summarise(roots, pStats), [roots, pStats]);
   const attempted = useMemo(() => seenCount(QUESTIONS, pStats) > 0, [pStats]);
   /* Just the two figures (Rafil, 2026-11-22): no "X is going best" or "Y is
@@ -251,13 +157,18 @@ export default function StatsView({
   const weekTotal = week.reduce((a, d) => a + d.answered, 0);
   const weekRight = answerDays ? week.reduce((a, d) => a + (d.correct ?? 0), 0) : null;
   const weekNote = weekTotal ? weekLine(week, answerDays, activity) : "Nothing answered yet this week.";
-  const weeks = useMemo(() => (answerDays ? weeklyAccuracy(answerDays) : []), [answerDays]);
-  const drawn = weeks.filter(w => w.pct !== null);
   const cal = useMemo(() => calendar(activity), [activity]);
   const weak = useMemo(() => weakest(roots), [roots]);
   const mistakes = useMemo(() => waitingMistakes(sessions, srCards, new Set(QUESTIONS.map(q => q.id))), [sessions, srCards]);
-  const seenAll = roots.reduce((a, r) => a + r.seen, 0);
-  const totalAll = roots.reduce((a, r) => a + r.total, 0);
+  /* By deck is the deck list as Study draws it (Rafil, 2026-11-22: "the
+     same deck ui as the decks"): buildForest, which knows ready-made decks
+     and the ones of yours served back as them, so no duplicate "Year 3, 0
+     of 0"; yours first, the ready-made ones under their heading. */
+  const forest = useMemo(() => withAccuracy(prune(buildForest({ questions: QUESTIONS, decks, pStats, eligible: new Set(QUESTIONS.map(q => q.id)) })), pStats), [decks, pStats]);
+  const ownRoots = forest.filter(n => !n.featured);
+  const featRoots = forest.filter(n => n.featured);
+  const seenAll = forest.reduce((a, r) => a + r.seen, 0);
+  const totalAll = forest.reduce((a, r) => a + r.total, 0);
   const days = Number(streak?.streak) || 0;
 
   return (
@@ -291,6 +202,14 @@ export default function StatsView({
             <div className="pv-col">
               <section className="prog-card anim-scale-in" style={{ "--i": 0 }}>
                 <div className="prog-card-head">
+                  <h2 className="prog-card-title">By deck</h2>
+                  <span className="pv-fig"><b>{seenAll.toLocaleString("en-GB")}</b> of {totalAll.toLocaleString("en-GB")} seen</span>
+                </div>
+                <DeckProgress own={ownRoots} featured={featRoots} onPractice={practice} />
+              </section>
+
+              <section className="prog-card anim-scale-in" style={{ "--i": 1 }}>
+                <div className="prog-card-head">
                   <h2 className="prog-card-title">This week</h2>
                   {weekTotal > 0 && (
                     <span className="pv-fig"><b>{weekTotal}</b> question{weekTotal === 1 ? "" : "s"}{weekRight !== null && weekTotal ? <> · <b>{Math.round((weekRight / weekTotal) * 100)}%</b> right</> : null}</span>
@@ -303,28 +222,6 @@ export default function StatsView({
                 )}
               </section>
 
-              {drawn.length >= 2 && (
-                <section className="prog-card anim-scale-in" style={{ "--i": 1 }}>
-                  <div className="prog-card-head">
-                    <h2 className="prog-card-title">Accuracy over time</h2>
-                    <span className="pv-fig">Last {weeks.length} weeks</span>
-                  </div>
-                  <p className="pv-line">From <b>{drawn[0].pct}%</b> to <b>{drawn[drawn.length - 1].pct}%</b>. Every week with 20 or more answers counts.</p>
-                  <AccuracyChart weeks={weeks} />
-                </section>
-              )}
-
-              <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
-                <div className="prog-card-head">
-                  <h2 className="prog-card-title">By deck</h2>
-                  <span className="pv-fig"><b>{seenAll.toLocaleString("en-GB")}</b> of {totalAll.toLocaleString("en-GB")} seen</span>
-                </div>
-                <ul className="prog-subjects">
-                  {roots.map(r => (
-                    <Node key={r.id} node={r} depth={0} open={open} onToggle={toggle} onPractice={practice} />
-                  ))}
-                </ul>
-              </section>
             </div>
 
             <div className="pv-col">
@@ -436,40 +333,6 @@ function WeekBars({ week, split }) {
   );
 }
 
-/* Weekly accuracy on one fixed scale, 50 to 100% (below 50 sits on the floor),
-   so a rise looks like a rise. Weeks with too few answers are gaps. */
-function AccuracyChart({ weeks }) {
-  const W = 560, H = 210, L = 38, R = 50, T = 14, B = 30;
-  const lo = Math.min(50, ...weeks.filter(w => w.pct !== null).map(w => Math.floor(w.pct / 10) * 10));
-  const hi = 100;
-  const x = i => L + (i * (W - L - R)) / Math.max(1, weeks.length - 1);
-  const y = v => T + ((hi - v) / (hi - lo)) * (H - T - B);
-  const ticks = [];
-  for (let v = lo; v <= hi; v += lo <= 30 ? 20 : 10) ticks.push(v);
-  const pts = weeks.map((w, i) => (w.pct === null ? null : [x(i), y(w.pct), w.pct])).filter(Boolean);
-  const line = pts.map(([px, py], i) => `${i ? "L" : "M"}${px.toFixed(1)},${py.toFixed(1)}`).join(" ");
-  const area = pts.length ? `${line} L${pts[pts.length - 1][0]},${y(lo)} L${pts[0][0]},${y(lo)} Z` : "";
-  const end = pts[pts.length - 1];
-  const last = weeks.length - 1;
-  return (
-    <svg className="pv-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Weekly accuracy from ${pts[0][2]}% to ${end[2]}%`}>
-      {ticks.map(v => (
-        <g key={v}>
-          <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} className="pv-chart__grid" />
-          <text x={L - 8} y={y(v) + 4} textAnchor="end">{v}%</text>
-        </g>
-      ))}
-      <path d={area} className="pv-chart__area" />
-      <path d={line} className="pv-chart__line" />
-      {pts.map(([px, py], i) => i < pts.length - 1 && <circle key={i} cx={px} cy={py} r="3" className="pv-chart__dot" />)}
-      <circle cx={end[0]} cy={end[1]} r="6" className="pv-chart__end" />
-      <text className="t-end" x={end[0] + 12} y={end[1] + 4}>{end[2]}%</text>
-      <text x={x(0)} y={H - 8} textAnchor="start">{weeks.length} weeks ago</text>
-      <text x={x(last)} y={H - 8} textAnchor="end">This week</text>
-    </svg>
-  );
-}
-
 function Calendar({ cal }) {
   return (
     <div className="pv-cal-wrap">
@@ -483,6 +346,106 @@ function Calendar({ cal }) {
           {cal.months.map(m => <span key={`${m.name}${m.week}`} style={{ gridColumn: m.week + 1 }}>{m.name}</span>)}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── By deck ──────────────────────────────────────────────────────────── */
+
+/* Decks with no questions in them go: an empty deck has no progress. */
+function prune(nodes) {
+  return nodes.filter(n => n.total > 0).map(n => ({ ...n, children: prune(n.children) }));
+}
+/* buildForest counts questions seen; this adds answers and right answers
+   to every deck, from each question's path. */
+function withAccuracy(forest, pStats) {
+  const acc = new Map();
+  for (const q of QUESTIONS) {
+    const st = pStats[q.id];
+    if (!st) continue;
+    for (const step of q.path ?? []) {
+      const a = acc.get(step.id) ?? { attempts: 0, correct: 0 };
+      a.attempts += Number(st.total) || 0;
+      a.correct += Number(st.correct) || 0;
+      acc.set(step.id, a);
+    }
+  }
+  const walk = n => ({ ...n, ...(acc.get(n.id) ?? { attempts: 0, correct: 0 }), children: n.children.map(walk) });
+  return forest.map(walk);
+}
+
+function Chevron({ open }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"
+      style={{ display: "block", transform: open ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s ease" }}>
+      <path d="M6.5 3.5L12 9l-5.5 5.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/*
+ * The deck list's own rows (DeckTree's classes): a chevron where there is
+ * more underneath, the name with its byline and covers line, the seen bar,
+ * and on the right how many you've seen and how many you get right. No tick
+ * box: tapping a deck practises it. A percentage appears once there are
+ * enough answers behind it to mean something.
+ */
+function DeckProgress({ own, featured, onPractice }) {
+  const [open, setOpen] = useState(() => new Set([...own, ...featured].filter(r => r.seen > 0).map(r => r.id)));
+  const toggle = id => setOpen(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const STEP = 26, PAD = 14;
+
+  function row(n, isLast) {
+    const depth = n.depth;
+    const kids = n.children;
+    const isOpen = open.has(n.id);
+    const pct = n.attempts >= minFor(depth) ? Math.round((n.correct / n.attempts) * 100) : null;
+    const share = n.total ? Math.min(100, Math.round((n.seen / n.total) * 100)) : 0;
+    const cls = ["topic-row", depth <= 1 ? "topic-row-roomy" : "is-child", depth === 0 ? "is-block" : "", n.seen === 0 ? "pv-deck--untouched" : ""].filter(Boolean).join(" ");
+    return (
+      <div key={n.id} className={`tree-node${depth === 0 ? " topic-block" : ""}${depth > 0 ? " is-nested" : ""}${isLast ? " is-last" : ""}`}>
+        <div className={cls} style={{ paddingLeft: PAD + depth * STEP, "--depth": depth }}>
+          <span className="topic-twist">
+            {kids.length > 0 && (
+              <button type="button" onClick={() => toggle(n.id)} aria-expanded={isOpen}
+                aria-label={`${isOpen ? "Hide" : "Show"} ${n.name}`} className={`topic-expand${isOpen ? " is-open" : ""}`}>
+                <Chevron open={isOpen} />
+              </button>
+            )}
+          </span>
+          <button type="button" className="topic-hit pv-deck__hit" onClick={() => onPractice(n)} aria-label={`Practise ${n.name}`}>
+            <span className={`topic-name${depth === 0 ? " is-block" : depth >= 2 ? " is-child" : ""}`}>
+              {n.name}
+              {n.byline && <span className="topic-by">by {n.byline}</span>}
+              {n.covers && <span className="topic-covers">{n.covers}</span>}
+            </span>
+            <span className="topic-meta">
+              <span className="topic-bar" role="img" aria-label={`${n.seen} of ${n.total} seen`}>
+                <span className="topic-bar-fill" style={{ width: `${share}%` }} />
+              </span>
+              <span className="topic-avail pv-deck__fig">
+                <span className="topic-count__n">{n.seen.toLocaleString("en-GB")}</span>
+                <span className="topic-count__unit">of {n.total.toLocaleString("en-GB")}</span>
+              </span>
+              <span className="pv-deck__pct">{pct === null ? "" : `${pct}%`}</span>
+            </span>
+          </button>
+          <span className="topic-menu-slot" aria-hidden="true" />
+        </div>
+        {isOpen && kids.length > 0 && (
+          <div className="tree-kids">{kids.map((k, i) => row(k, i === kids.length - 1))}</div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="topic-tree-drop pv-decks" role="group" aria-label="Decks">
+      {own.length > 0 && featured.length > 0 && <h3 className="deck-section-h">Your decks</h3>}
+      {own.map((r, i) => row(r, i === own.length - 1))}
+      {featured.length > 0 && <h3 className="deck-section-h">Ready-made decks</h3>}
+      {featured.map((r, i) => row(r, i === featured.length - 1))}
+      <p className="pv-deck__key">Seen of total, and how many you get right. Tap a deck to practise it.</p>
     </div>
   );
 }
