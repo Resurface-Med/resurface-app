@@ -901,15 +901,15 @@ function Popups({ me = null }) {
 }
 
 const TABS = [
-  { k: "overview", label: "Overview" },
   { k: "activity", label: "Activity" },
+  { k: "overview", label: "Overview" },
   { k: "people", label: "People" },
   { k: "flags", label: "Reported" },
   { k: "popups", label: "Popups" },
 ];
 
 export default function AdminView({ me = null, userId = null }) {
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("activity");
   const [flagCount, setFlagCount] = useState(null);
   /* The fetch first, then the device's copy to show while it runs; the
      tabs render once the copy is read (a few milliseconds), or at once
