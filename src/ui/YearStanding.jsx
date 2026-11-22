@@ -32,15 +32,13 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
       <button type="button" className="yr__body" onClick={onOpen} aria-label="Open the leaderboard">
         {year.onBoard ? (
           <>
-            <p className="pv-line">You’re <b>{ordinal(year.rank)} of {year.people}</b> in Year {studyYear}{year.people >= 5 ? <>, in the top {year.topPct}%</> : null}.</p>
+            {/* One sentence and the track (Rafil, 2026-11-22: "too crowded");
+                the two figures that had a row of their own are in the line. */}
+            <p className="pv-line">You’re <b>{ordinal(year.rank)} of {year.people}</b> in Year {studyYear}. You’ve answered <b>{year.mine.toLocaleString("en-GB")}</b> this week; the average is {year.avg.toLocaleString("en-GB")}.</p>
             <span className="pv-rank" style={{ "--p": `${Math.round(year.position * 100)}%` }}>
               <span className="pv-rank__track" /><span className="pv-rank__fill" /><span className="pv-rank__you" aria-hidden="true" />
             </span>
             <span className="pv-rank__ends"><span>{ordinal(year.people)}</span><span>1st</span></span>
-            <span className="pv-pair">
-              <span><span className="yr__k">Your questions answered</span><span className="yr__v">{year.mine.toLocaleString("en-GB")}</span></span>
-              <span><span className="yr__k">Year {studyYear} average</span><span className="yr__v">{year.avg.toLocaleString("en-GB")}</span></span>
-            </span>
           </>
         ) : (
           <p className="pv-line">Answer a question this week to join Year {studyYear}’s board{year.people ? <>, with {year.people} {year.people === 1 ? "other" : "others"}</> : null}.</p>

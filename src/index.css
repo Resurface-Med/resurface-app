@@ -12698,6 +12698,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .yr__body { display: block; width: 100%; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .yr__body:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 6px; border-radius: 8px; }
 .yr__body .pv-line { margin-top: 0; }
+.yr .pv-rank { margin-top: 10px; }
 .yr .pv-rank, .yr .pv-rank > span { display: block; }
 .yr .pv-pair > span { display: block; }
 .yr__k { display: block; font-size: 13px; color: var(--c-muted); }
