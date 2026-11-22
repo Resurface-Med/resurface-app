@@ -122,6 +122,9 @@ function fetchSection(key, load) {
  * Started while Admin first renders, not in an effect: the tabs' own
  * effects run before their parent's, and would each have sent their own.
  */
+/* The calendar's span in days (Activity, below); Admin fetches its days
+   up front with the rest. */
+const CAL_SPAN = 180;
 const SECTIONS = [
   ["overview", "overview", fetchOverview],
   ["overviewDaily:30", "overviewDaily:30", () => fetchOverviewDaily(30)],
@@ -346,7 +349,6 @@ function Limits() {
    first, back through six months, with the day's people beside it. The
    day is the student's own local day. */
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const CAL_SPAN = 180;
 const parseDay = key => { const [y, m, d] = key.split("-").map(Number); return new Date(y, m - 1, d); };
 function monthCells(year, month) {
   const lead = (new Date(year, month, 1).getDay() + 6) % 7;
