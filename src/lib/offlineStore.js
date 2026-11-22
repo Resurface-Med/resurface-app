@@ -88,6 +88,21 @@ export async function saveSnapshot(userId, data) {
   } catch { return false; }
 }
 
+/* Admin's last data (2026-11-22), so the tab opens on it at once while it
+   refreshes. In the snapshots store, which sign-out wipes: it holds every
+   account's email address. */
+export async function readAdminCopy(userId) {
+  if (!userId) return null;
+  try { return (await run("snapshots", "readonly", s => req2p(s.get(`admin:${userId}`))))?.data ?? null; }
+  catch { return null; }
+}
+
+export async function saveAdminCopy(userId, data) {
+  if (!userId || !data) return false;
+  try { await run("snapshots", "readwrite", s => { s.put({ data, at: Date.now() }, `admin:${userId}`); }); return true; }
+  catch { return false; }
+}
+
 /* ── Featured decks ───────────────────────────────────────────────── */
 
 export async function readBundle() {

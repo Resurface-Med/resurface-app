@@ -1046,6 +1046,15 @@ export async function decideSuggestion(dbId, accept, why) {
   if (error) throw error;
 }
 
+/* Everything Admin opens on, in one request (migration 0100): the nine it
+   used to send at once, which on the free plan's CPU each took over a
+   second. Keyed as AdminView keeps them; `cal` is the calendar's span. */
+export async function fetchAdminDashboard(cal) {
+  const { data, error } = await supabase.rpc("admin_dashboard", { cal });
+  if (error) throw new Error(error.message);
+  return data ?? {};
+}
+
 export async function fetchFlags() {
   const { data, error } = await supabase.rpc("admin_flags");
   if (error) throw new Error(error.message);

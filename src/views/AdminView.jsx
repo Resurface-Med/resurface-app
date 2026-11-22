@@ -6,7 +6,9 @@ import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGeneratedDaily,
   setAdmin, fetchIsOwner, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured, fetchLeaderboardWeek,
+  fetchAdminDashboard,
 } from "../lib/remote";
+import { readAdminCopy, saveAdminCopy } from "../lib/offlineStore";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import NavChevron from "../ui/NavChevron";
 import { persistFor } from "../lib/adminFeatured";
@@ -110,19 +112,48 @@ function fetchSection(key, load) {
   return p;
 }
 
-/* Every tab's data at once, so switching never waits. Errors stay for the
-   tab itself to show. */
-function prefetchAdmin() {
-  const all = [
-    ["overview", fetchOverview], ["overviewDaily:30", () => fetchOverviewDaily(30)],
-    ["aiQuota", fetchAiQuota], ["storage", fetchStorage], ["people", fetchPeople],
-    ["peopleDaily:30", () => fetchPeopleDaily(30)],
-    [`peopleDaily:${CAL_SPAN + 2}`, () => fetchPeopleDaily(CAL_SPAN + 2)],
-    [`generatedDaily:${CAL_SPAN + 2}`, () => fetchGeneratedDaily(CAL_SPAN + 2)],
-  ];
-  for (const [key, load] of all) {
+/*
+ * Every tab's data at once, so switching never waits (2026-11-22: in one
+ * request, admin_dashboard, migration 0100). The nine requests this used to
+ * send at once each took over a second on the free plan's CPU; together
+ * they take a tenth of one. Each key still has its own fetch, used if the
+ * one request fails. Errors stay for the tab itself to show.
+ *
+ * Started while Admin first renders, not in an effect: the tabs' own
+ * effects run before their parent's, and would each have sent their own.
+ */
+const SECTIONS = [
+  ["overview", "overview", fetchOverview],
+  ["overviewDaily:30", "overviewDaily:30", () => fetchOverviewDaily(30)],
+  ["aiQuota", "aiQuota", fetchAiQuota, v => v ?? null],
+  ["storage", "storage", fetchStorage, v => Number(v) || 0],
+  ["people", "people", fetchPeople],
+  ["peopleDaily:30", "peopleDaily:30", () => fetchPeopleDaily(30)],
+  [`peopleDaily:${CAL_SPAN + 2}`, "peopleDaily:cal", () => fetchPeopleDaily(CAL_SPAN + 2)],
+  [`generatedDaily:${CAL_SPAN + 2}`, "generatedDaily:cal", () => fetchGeneratedDaily(CAL_SPAN + 2)],
+  ["flags", "flags", fetchFlags],
+];
+const asRows = v => v ?? [];
+
+function prefetchAdmin(userId) {
+  const stale = SECTIONS.filter(([key]) => { const h = store.get(key); return !h?.p && !(h?.at && Date.now() - h.at < FRESH_MS); });
+  if (!stale.length) return;
+  const dash = fetchAdminDashboard(CAL_SPAN + 2);
+  dash.then(d => saveAdminCopy(userId, d), () => {});
+  for (const [key, field, own, shape = asRows] of stale) {
+    fetchSection(key, () => dash.then(d => (field in d ? shape(d[field]) : own()), () => own())).catch(() => {});
+  }
+}
+
+/* The last data, from the device, under what is being fetched: shown at
+   once, and replaced when the fetch lands. Never over anything newer. */
+function restoreAdminCopy(copy) {
+  if (!copy) return;
+  for (const [key, field, , shape = asRows] of SECTIONS) {
+    if (!(field in copy)) continue;
     const h = store.get(key);
-    if (!(h?.at && Date.now() - h.at < FRESH_MS)) fetchSection(key, load).catch(() => {});
+    if (h && "rows" in h) continue;
+    store.set(key, { ...h, rows: shape(copy[field]), at: 0 });
   }
 }
 
@@ -875,16 +906,30 @@ const TABS = [
   { k: "popups", label: "Popups" },
 ];
 
-export default function AdminView({ me = null }) {
+export default function AdminView({ me = null, userId = null }) {
   const [tab, setTab] = useState("overview");
   const [flagCount, setFlagCount] = useState(null);
+  /* The fetch first, then the device's copy to show while it runs; the
+     tabs render once the copy is read (a few milliseconds), or at once
+     when this session already has data. */
+  useState(() => prefetchAdmin(userId));
+  const [warm, setWarm] = useState(() => store.size > 0 && SECTIONS.every(([k]) => "rows" in (store.get(k) ?? {})));
+  useEffect(() => {
+    if (warm) return;
+    let live = true;
+    const done = () => { if (live) setWarm(true); };
+    readAdminCopy(userId).then(restoreAdminCopy, () => {}).then(done);
+    const t = setTimeout(done, 400);
+    return () => { live = false; clearTimeout(t); };
+  }, [warm, userId]);
   const band = { maxWidth: 1180, margin: "0 auto", padding: "0 clamp(20px, 3vw, 40px)", width: "100%" };
 
   /* The Reported count on its tab, whichever tab is open. */
   useEffect(() => {
+    const kept = store.get("flags");
+    if (kept && "rows" in kept) setFlagCount(kept.rows.length);
     fetchSection("flags", fetchFlags).then(r => setFlagCount(r.length), () => {});
-    prefetchAdmin();
-  }, []);
+  }, [warm]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "var(--app-vh)" }}>
@@ -906,13 +951,13 @@ export default function AdminView({ me = null }) {
               </button>
             ))}
           </nav>
-          <div key={tab} className="ax-body">
+          {warm && <div key={tab} className="ax-body">
             {tab === "overview" && <Overview />}
             {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
             {tab === "popups" && <Popups me={me} />}
-          </div>
+          </div>}
         </div>
       </div>
     </div>

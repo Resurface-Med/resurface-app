@@ -1764,7 +1764,7 @@ export default function App() {
 
           {v === V.NOTES && <NotesView onStudy={() => go(V.STUDY)} />}
 
-          {v === V.ADMIN && (online ? <AdminView me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
+          {v === V.ADMIN && (online ? <AdminView userId={user?.id ?? null} me={{ name: displayName, src: user ? avatarSrc(user.id, ownAvatar(avatarV)) : null }} /> : <NeedsConnection title="Admin">Admin reads everything live from the server, so it opens when you’re back online.</NeedsConnection>)}
 
           {v === V.NEWS && <AnnouncementsView
             /* Everyone reads the welcome post filled in; an edit opens it as
