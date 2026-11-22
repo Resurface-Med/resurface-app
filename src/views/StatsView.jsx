@@ -42,6 +42,12 @@ import { weekDays, weekLine, calendar, weakest } from "../lib/progressPage";
  * not a failing subject, it is Tuesday.
  */
 
+const TABS = [
+  { k: "decks", label: "Decks" },
+  { k: "activity", label: "Activity" },
+  { k: "over", label: "Go over" },
+];
+
 const band = {
   maxWidth: 1180,
   margin: "0 auto",
@@ -119,6 +125,10 @@ export default function StatsView({
   activity = {}, streak = null, sessions = [], srCards = {}, onPractise,
 }) {
   const [answerDays, setAnswerDays] = useState(null);
+  /* The tab, kept for the visit so coming back to Progress lands where you
+     were. */
+  const [tab, setTab] = useState(() => { try { return sessionStorage.getItem("pv-tab") || "decks"; } catch { return "decks"; } });
+  const pickTab = k => { setTab(k); try { sessionStorage.setItem("pv-tab", k); } catch { /* private mode */ } };
 
   useEffect(() => {
     let live = true;
@@ -198,8 +208,19 @@ export default function StatsView({
 
       <div style={{ background: "var(--c-surface2)", flex: 1, display: "flex", flexDirection: "column" }}>
         {roots.length === 0 ? <Blank onGenerate={() => setView(V.GENERATE)} /> : (
-          <div className="pv-sheet" style={{ ...band }}>
-            <div className="pv-col">
+          <div className="pv-sheet is-tabs" style={{ ...band }}>
+            {/* Tabs (Rafil, 2026-11-22: "extremely heavy"), Study's deck-tab
+                pills: one part of the page at a time. */}
+            <div className="tg-tabs pv-tabs" role="tablist" aria-label="Progress">
+              {TABS.map(t => (
+                <button key={t.k} type="button" role="tab" aria-selected={tab === t.k}
+                  className={`tg-tab${tab === t.k ? " is-active" : ""}`} onClick={() => pickTab(t.k)}>
+                  {t.label}{t.k === "over" && mistakes.length > 0 ? <span className="pv-tab-n">{mistakes.length}</span> : null}
+                </button>
+              ))}
+            </div>
+
+            {tab === "decks" && (
               <section className="prog-card anim-scale-in" style={{ "--i": 0 }}>
                 <div className="prog-card-head">
                   <h2 className="prog-card-title">By deck</h2>
@@ -207,7 +228,10 @@ export default function StatsView({
                 </div>
                 <DeckProgress own={ownRoots} featured={featRoots} onPractice={practice} />
               </section>
+            )}
 
+            {tab === "activity" && (
+              <>
               <section className="prog-card anim-scale-in" style={{ "--i": 1 }}>
                 <div className="prog-card-head">
                   <h2 className="prog-card-title">This week</h2>
@@ -221,11 +245,21 @@ export default function StatsView({
                   <div className="pv-key"><span><i className="is-right" />Right</span><span><i className="is-wrong" />Wrong</span></div>
                 )}
               </section>
+              <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
+                <div className="prog-card-head">
+                  <h2 className="prog-card-title">Days studied</h2>
+                  <span className="pv-fig">Last 16 weeks</span>
+                </div>
+                <Calendar cal={cal} />
+                <dl className="pv-pair">
+                  <div><dt>Days studied</dt><dd>{cal.studied} of {cal.total}</dd></div>
+                  {cal.mostActive && <div><dt>Most active</dt><dd>{cal.mostActive}</dd></div>}
+                </dl>
+              </section>
+              </>
+            )}
 
-            </div>
-
-            <div className="pv-col">
-              {(mistakes.length > 0 || weak.length > 0) && (
+            {tab === "over" && (mistakes.length > 0 || weak.length > 0 ? (
                 <section className="prog-card anim-scale-in" style={{ "--i": 1 }}>
                   <div className="prog-card-head"><h2 className="prog-card-title">Go over these</h2></div>
                   {mistakes.length > 0 && (
@@ -263,21 +297,12 @@ export default function StatsView({
                     </>
                   )}
                 </section>
-              )}
-
-              <section className="prog-card anim-scale-in" style={{ "--i": 2 }}>
-                <div className="prog-card-head">
-                  <h2 className="prog-card-title">Days studied</h2>
-                  <span className="pv-fig">Last 16 weeks</span>
-                </div>
-                <Calendar cal={cal} />
-                <dl className="pv-pair">
-                  <div><dt>Days studied</dt><dd>{cal.studied} of {cal.total}</dd></div>
-                  {cal.mostActive && <div><dt>Most active</dt><dd>{cal.mostActive}</dd></div>}
-                </dl>
+            ) : (
+              <section className="prog-card anim-scale-in">
+                <div className="prog-card-head"><h2 className="prog-card-title">Nothing to go over</h2></div>
+                <p className="pv-line">Questions you get wrong, and the topics you find hardest, show up here.</p>
               </section>
-
-            </div>
+            ))}
 
             <div className="pv-full pv-foot">
               <button type="button" className="pv-link" onClick={() => setView(V.STUDY)}>Past sessions <span aria-hidden="true">→</span></button>

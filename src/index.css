@@ -12639,7 +12639,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .pv-weak__pct { flex-shrink: 0; font-size: 14.5px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
 .pv-weak__pct span { font-weight: 500; color: var(--c-muted); }
 
-.pv-cal-wrap { --cell: clamp(13px, 1.5vw, 17px); margin-top: 18px; overflow-x: auto; }
+.pv-cal-wrap { --cell: clamp(13px, 2.1vw, 24px); margin-top: 18px; overflow-x: auto; }
 .pv-cal-box { width: max-content; }
 .pv-cal { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); grid-auto-columns: var(--cell); gap: 4px; }
 .pv-cal i { border-radius: 4px; background: var(--c-surface3); display: block; }
@@ -12715,3 +12715,10 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 .pv-deck__pct { flex: none; width: 3.2em; text-align: right; font-size: 14px; font-weight: 600; color: var(--c-text); font-variant-numeric: tabular-nums; }
 .pv-deck--untouched .topic-name, .pv-deck--untouched .pv-deck__fig { color: var(--c-muted); }
 .pv-deck__key { margin: 14px 0 0; font-size: 13px; color: var(--c-muted); }
+
+/* Progress in tabs (2026-11-22): one column, one part at a time. */
+.pv-sheet.is-tabs { display: flex; flex-direction: column; align-items: stretch; gap: clamp(16px, 2.4vh, 22px); max-width: 860px !important; }
+.pv-tabs { margin: 0; }
+.pv-tab-n { display: inline-block; margin-left: 7px; padding: 1px 7px; border-radius: 999px; background: var(--c-accent); color: #fff; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pv-sheet.is-tabs .pv-foot { margin-top: 4px; }
+.tg-tab.is-active .pv-tab-n { background: #fff; color: var(--c-accent); }
