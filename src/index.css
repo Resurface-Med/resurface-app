@@ -12676,7 +12676,23 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 
 /* ── Your year on Home (YearStanding, 2026-11-22) ─────────────────────────
    Moved from Progress; the track and figures reuse its pv-* pieces. */
-.yr { margin-top: clamp(28px, 4vh, 40px); }
+/* A hairline above it (Rafil, 2026-11-22: tiny lines between the three
+   sections), the same one the figures above use. */
+.yr { margin-top: clamp(20px, 3vh, 28px); padding-top: clamp(20px, 3vh, 28px); border-top: 1px solid var(--c-border); }
+
+/* …and between Home's two halves: a vertical hairline in the middle of the
+   gap, which lies flat between them once they stack. Drawn in the gap, so
+   the layout does not move. */
+.dash-split { --dash-gap: clamp(32px, 4vw, 64px); }
+.dash-split > section { position: relative; }
+.dash-split > section + section::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--dash-gap) / -2);
+  width: 1px; background: var(--c-border); pointer-events: none;
+}
+@media (max-width: 1100px) {
+  .dash-split > section + section::before { top: calc(var(--dash-gap) / -2); bottom: auto; left: 0; right: 0; width: auto; height: 1px; }
+}
+@media (max-width: 900px) { .dash-split { --dash-gap: 26px; } }
 .yr__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .yr__when { font-size: 15px; font-weight: 500; color: var(--c-sub); }
 .yr__body { display: block; width: 100%; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
