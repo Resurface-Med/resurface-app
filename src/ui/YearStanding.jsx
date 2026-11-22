@@ -38,7 +38,7 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
             </span>
             <span className="pv-rank__ends"><span>{ordinal(year.people)}</span><span>1st</span></span>
             <span className="pv-pair">
-              <span><span className="yr__k">Your questions</span><span className="yr__v">{year.mine.toLocaleString("en-GB")}</span></span>
+              <span><span className="yr__k">Your questions answered</span><span className="yr__v">{year.mine.toLocaleString("en-GB")}</span></span>
               <span><span className="yr__k">Year {studyYear} average</span><span className="yr__v">{year.avg.toLocaleString("en-GB")}</span></span>
             </span>
           </>
