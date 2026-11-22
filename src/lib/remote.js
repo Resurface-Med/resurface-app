@@ -4,6 +4,7 @@ import { GEN_ID_BASE } from "../data";
 import { append, dropOnce } from "./queue";
 import { readBundle, saveBundle } from "./offlineStore";
 import { mark } from "./loadTiming";
+import { batchable, addToBatch, batchBody, allLazy } from "./writeBatch";
 
 // Server-first data access.
 //
@@ -33,7 +34,11 @@ function writeQueue(q) {
  * account that made it and only that account's are flushed.
  */
 let owner = null;
-export function setQueueOwner(userId) { owner = userId ?? null; }
+export function setQueueOwner(userId) {
+  /* Held writes go under the account that made them, before it changes. */
+  if ((userId ?? null) !== owner) flushBatch();
+  owner = userId ?? null;
+}
 
 /* A duplicate of a once-only row means it is already there: done. */
 function alreadyThere(res) {
@@ -92,6 +97,11 @@ export function pendingOps(since = Infinity) {
 async function send(op) {
   op = { ...op, at: Date.now() };
   remember(op);
+  if (batchable(op, owner)) { hold(op); return true; }
+  return sendOne(op);
+}
+
+async function sendOne(op) {
   try {
     const { error } = await apply(op);
     if (error) throw error;
@@ -100,6 +110,61 @@ async function send(op) {
     if (!isPermanent(e)) enqueue(op);
     return false;
   }
+}
+
+/*
+ * An answer's writes, sent as one (lib/writeBatch, migration 0098).
+ *
+ * Held for a quarter of a second, so the answer log, the pick, the stats,
+ * the card, the day's count, the streak and the session made by one answer
+ * go together; study time on its own waits up to half a minute for
+ * company. Batches go one after another, so a newer value is never
+ * overtaken by an older one in flight. Held writes are sent at once when
+ * the page is hidden or closed.
+ *
+ * If the server refuses the batch, each write is sent on its own the old
+ * way (sendOne), which retries what can be retried and drops what never
+ * will. Not reached at all: each is parked in the queue, as a failed write
+ * always was.
+ */
+const BATCH_MS = 250;
+const LAZY_MS = 30000;
+let held = [];
+let holdTimer = null;
+let batchChain = Promise.resolve();
+
+function hold(op) {
+  held = addToBatch(held, op);
+  const wait = allLazy(held) ? LAZY_MS : BATCH_MS;
+  if (holdTimer && wait === BATCH_MS && holdTimer.wait === LAZY_MS) { clearTimeout(holdTimer.id); holdTimer = null; }
+  if (!holdTimer) holdTimer = { id: setTimeout(flushBatch, wait), wait };
+}
+
+export function flushBatch() {
+  if (holdTimer) { clearTimeout(holdTimer.id); holdTimer = null; }
+  const ops = held;
+  held = [];
+  if (!ops.length) return batchChain;
+  batchChain = batchChain.then(() => sendBatch(ops));
+  return batchChain;
+}
+
+async function sendBatch(ops) {
+  let error;
+  try {
+    ({ error } = await supabase.rpc("write_batch", { ops: batchBody(ops) }));
+  } catch (e) {
+    error = e;
+  }
+  if (!error) return;
+  /* No code: the server was not reached. Parked, to go with the next flush. */
+  if (!error.code) { ops.forEach(enqueue); return; }
+  for (const op of ops) await sendOne(op);
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("pagehide", () => { flushBatch(); });
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushBatch(); });
 }
 
 /*
