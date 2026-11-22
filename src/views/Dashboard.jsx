@@ -3,6 +3,7 @@ import StreakFlame from "../ui/StreakFlame";
 import { C, V, h1, sectionH, eyebrowField, OF } from "../ui/theme";
 import Wave from "../ui/Wave";
 import ActivityHeatmap from "../ui/ActivityHeatmap";
+import YearStanding from "../ui/YearStanding";
 import { QUESTIONS } from "../data";
 import { Rich } from "../ui/Announcements";
 import { seenCount, share } from "../lib/progress";
@@ -26,6 +27,7 @@ export default function Dashboard({ displayName = "",
   pStats, streak, dueCount, setView,
   activity = {}, srCards: _srCards = {}, dailyGoal: _dailyGoal = 20, studySeconds = null, onGoalChange: _onGoalChange, onStudy,
   welcome = null,
+  studyYear = null, userId = null,
   /* The note's ways in, from App: [{ label, primary, run }]. */
   welcomeActions = null,
   onReplayWelcome = null,
@@ -248,6 +250,9 @@ export default function Dashboard({ displayName = "",
               </div>
               </div>
 
+              {/* Where you are in your year this week (Rafil, 2026-11-22:
+                  moved here from Progress). */}
+              <YearStanding studyYear={studyYear} userId={userId} onOpen={() => setView(V.LEADERBOARD)} />
             </section>
 
             <section data-in="rise" style={{ "--i": 7 }}>

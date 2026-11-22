@@ -1637,6 +1637,7 @@ export default function App() {
               "Loading…" appearing and vanishing in a frame. */}
           <Suspense fallback={null}>
           {v === V.DASH && <Dashboard inBank={inBank} pStats={pStats} streak={streak} dueCount={dueCount} setView={go} displayName={displayName}
+            studyYear={studyYear} userId={user.id}
             welcome={welcomeNote}
             welcomeActions={[welcomeStart, { label: "Make my own questions", primary: false, run: () => go(V.GENERATE) }]}
             onReplayWelcome={() => setReveal(true)}
@@ -1679,7 +1680,7 @@ export default function App() {
             onRequestExit={() => setPendingView(V.DASH)} />}
 
           {v === V.PROGRESS && <ProgressView pStats={pStats} decks={progressDecks} setView={go}
-            activity={activity} streak={streak} sessions={sessions} srCards={srCards} studyYear={studyYear} userId={user.id}
+            activity={activity} streak={streak} sessions={sessions} srCards={srCards}
             onPractise={ids => practise(ids)}
             setLaunchFilter={setLaunchFilter} setStudyScope={setStudyScope}
             onClearP={() => { remote.clearPractice(user.id); setPStats({}); }}

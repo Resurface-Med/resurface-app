@@ -6,8 +6,8 @@ import { confirm } from "../ui/Confirm";
 import StreakFlame from "../ui/StreakFlame";
 import { seenCount, buildTree, leavesUnder, pctOf } from "../lib/progress";
 import { waitingMistakes } from "../lib/pastSessions";
-import { fetchAnswerDays, fetchLeaderboardWeek } from "../lib/remote";
-import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal } from "../lib/progressPage";
+import { fetchAnswerDays } from "../lib/remote";
+import { weekDays, weekLine, weeklyAccuracy, calendar, weakest } from "../lib/progressPage";
 
 /**
  * Progress — coverage and accuracy over your decks, as deep as you made them.
@@ -31,7 +31,7 @@ import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearSt
  *
  * 2026-11-22: the page Rafil approved in the mockup. Around the deck tree:
  * this week by day, accuracy by week, what to go over (mistakes waiting and
- * the weakest topics), the days studied, and where you stand in your year.
+ * the weakest topics) and the days studied. Your year moved to Home.
  * Right and wrong by day come from my_answer_days (0093); offline, the week
  * falls back to the device's own counts and the accuracy line waits.
  *
@@ -201,18 +201,16 @@ function Blank({ onGenerate }) {
 
 export default function StatsView({
   pStats, decks = [], setView, setLaunchFilter, setStudyScope, onClearP, onClearSR,
-  activity = {}, streak = null, sessions = [], srCards = {}, studyYear = null, userId = null, onPractise,
+  activity = {}, streak = null, sessions = [], srCards = {}, onPractise,
 }) {
   const [open, setOpen] = useState(() => new Set());
   const [answerDays, setAnswerDays] = useState(null);
-  const [board, setBoard] = useState(null);
 
   useEffect(() => {
     let live = true;
     fetchAnswerDays().then(d => { if (live) setAnswerDays(d); }, () => {});
-    if (studyYear) fetchLeaderboardWeek(studyYear).then(r => { if (live) setBoard(r); }, () => {});
     return () => { live = false; };
-  }, [studyYear]);
+  }, []);
 
   const roots = useMemo(
     () => buildTree(QUESTIONS, decks, pStats),
@@ -239,12 +237,15 @@ export default function StatsView({
 
   const summary = useMemo(() => summarise(roots, pStats), [roots, pStats]);
   const attempted = useMemo(() => seenCount(QUESTIONS, pStats) > 0, [pStats]);
-  const answeredAll = useMemo(() => Object.values(activity).reduce((a, n) => a + (Number(n) || 0), 0), [activity]);
-  const lead = (answerDays && headline(answerDays)) || summary?.lead;
-  const rest = [
-    answeredAll > 0 ? `You’ve answered ${answeredAll.toLocaleString("en-GB")} question${answeredAll === 1 ? "" : "s"}.` : "",
-    summary?.rest ?? "",
-  ].filter(Boolean).join(" ");
+  /* Just the two figures (Rafil, 2026-11-22): no "X is going best" or "Y is
+     untouched", which read badly with ready-made decks ("Year 3 and Year 3
+     are untouched"). Counted as Home counts them, so the two pages agree. */
+  const answeredAll = Object.values(pStats).reduce((a, v) => a + (Number(v?.total) || 0), 0);
+  const rightAll = Object.values(pStats).reduce((a, v) => a + (Number(v?.correct) || 0), 0);
+  const lead = answeredAll > 0
+    ? `You’ve answered ${answeredAll.toLocaleString("en-GB")} question${answeredAll === 1 ? "" : "s"}, ${Math.round((rightAll / answeredAll) * 100)}% right.`
+    : summary?.lead;
+  const rest = answeredAll > 0 ? "" : summary?.rest ?? "";
 
   const week = useMemo(() => weekDays(answerDays, activity), [answerDays, activity]);
   const weekTotal = week.reduce((a, d) => a + d.answered, 0);
@@ -255,7 +256,6 @@ export default function StatsView({
   const cal = useMemo(() => calendar(activity), [activity]);
   const weak = useMemo(() => weakest(roots), [roots]);
   const mistakes = useMemo(() => waitingMistakes(sessions, srCards, new Set(QUESTIONS.map(q => q.id))), [sessions, srCards]);
-  const year = useMemo(() => (board ? yearStanding(board, userId) : null), [board, userId]);
   const seenAll = roots.reduce((a, r) => a + r.seen, 0);
   const totalAll = roots.reduce((a, r) => a + r.total, 0);
   const days = Number(streak?.streak) || 0;
@@ -380,29 +380,6 @@ export default function StatsView({
                 </dl>
               </section>
 
-              {studyYear && year && (
-                <section className="prog-card anim-scale-in" style={{ "--i": 3 }}>
-                  <div className="prog-card-head">
-                    <h2 className="prog-card-title">Your year</h2>
-                    <span className="pv-fig">This week</span>
-                  </div>
-                  {year.onBoard ? (
-                    <>
-                      <p className="pv-line">You’re <b>{ordinal(year.rank)} of {year.people}</b> in Year {studyYear}{year.people >= 5 ? <>, in the top {year.topPct}%</> : null}.</p>
-                      <div className="pv-rank" style={{ "--p": `${Math.round(year.position * 100)}%` }}>
-                        <div className="pv-rank__track" /><div className="pv-rank__fill" /><div className="pv-rank__you" aria-hidden="true" />
-                      </div>
-                      <div className="pv-rank__ends"><span>{ordinal(year.people)}</span><span>1st</span></div>
-                      <dl className="pv-pair">
-                        <div><dt>Your questions</dt><dd>{year.mine.toLocaleString("en-GB")}</dd></div>
-                        <div><dt>Year {studyYear} average</dt><dd>{year.avg.toLocaleString("en-GB")}</dd></div>
-                      </dl>
-                    </>
-                  ) : (
-                    <p className="pv-line">Answer a question this week to join Year {studyYear}’s board{year.people ? <>, with {year.people} {year.people === 1 ? "other" : "others"}</> : null}.</p>
-                  )}
-                </section>
-              )}
             </div>
 
             <div className="pv-full pv-foot">

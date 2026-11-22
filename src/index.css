@@ -12673,3 +12673,17 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   .pv-chart .t-end { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .pv-day__stack, .pv-rank__fill { animation: none; } }
+
+/* ── Your year on Home (YearStanding, 2026-11-22) ─────────────────────────
+   Moved from Progress; the track and figures reuse its pv-* pieces. */
+.yr { margin-top: clamp(28px, 4vh, 40px); }
+.yr__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.yr__when { font-size: 15px; font-weight: 500; color: var(--c-sub); }
+.yr__body { display: block; width: 100%; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.yr__body:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 6px; border-radius: 8px; }
+.yr__body .pv-line { margin-top: 0; }
+.yr .pv-rank, .yr .pv-rank > span { display: block; }
+.yr .pv-pair > span { display: block; }
+.yr__k { display: block; font-size: 13px; color: var(--c-muted); }
+.yr__v { display: block; margin-top: 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.yr__body:hover .pv-rank__you { box-shadow: 0 0 0 5px color-mix(in srgb, var(--c-accent) 18%, transparent); }
