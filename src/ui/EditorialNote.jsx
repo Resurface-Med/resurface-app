@@ -21,10 +21,10 @@ export function NoteImage({ src, alt, n }) {
   useEffect(() => {
     if (!zoomed) return;
     const onKey = e => { if (e.key === "Escape") setZoomed(false); };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+    return () => { document.documentElement.style.overflow = prev; window.removeEventListener("keydown", onKey); };
   }, [zoomed]);
   if (failed) return null;
   return (

@@ -508,11 +508,11 @@ function GeneratingWindow({ count, onCancel }) {
   // Escape cancels, and the form behind must not scroll under the window.
   useEffect(() => {
     const onKey = e => { if (e.key === "Escape") onCancel(); };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
   }, [onCancel]);
@@ -572,11 +572,11 @@ function BatchWindow({ jobs, onCancel, onRetry, onContinue }) {
 
   useEffect(() => {
     const onKey = e => { if (e.key === "Escape" && running) onCancel(); };
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const prev = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
     };
   }, [onCancel, running]);

@@ -492,6 +492,18 @@ html {
   min-height: 100dvh;
 }
 
+/* On a computer the scrollbar's lane is always there, so a tall page
+   (Admin's People) does not shift everything left the moment the bar
+   appears. Its track is transparent (::-webkit-scrollbar below), so on a
+   short page the lane is invisible. scrollbar-gutter: stable alone did not
+   hold the space beside those custom scrollbars in Chrome. Phones draw the
+   bar over the page, so they are left alone. With the root's overflow set,
+   body { overflow: hidden } no longer stops the page, so popups lock the
+   root (document.documentElement) instead. */
+@media (min-width: 901px) {
+  html { overflow-y: scroll; }
+}
+
 [data-theme="dark"] .nav-logo-day { display: none !important; }
 [data-theme="dark"] .nav-logo-night { display: block !important; }
 [data-theme="dark"] .app-nav__brand .nav-logo-day { display: none !important; }

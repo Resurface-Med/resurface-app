@@ -37,11 +37,11 @@ export default function QuestionImage({ path }) {
   useEffect(() => {
     if (!zoomed) return;
     const onKey = e => { if (e.key === "Escape") setZoomed(false); };
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const prevOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.documentElement.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
     };
   }, [zoomed]);
