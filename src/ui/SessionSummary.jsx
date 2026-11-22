@@ -148,7 +148,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
                 aria-expanded={showWrong}
               >
                 <span>
-                  <span style={{ ...sectionH, display: "block" }}>{clean ? "Your questions" : "Missed questions"}</span>
+                  <span style={{ ...sectionH, display: "block" }}>{clean ? "Your questions" : "Questions you got wrong"}</span>
                   <span className="prog-section-note">
                     {clean ? `All ${total} right` : `${wrongOnes.length} to review`}
                   </span>
