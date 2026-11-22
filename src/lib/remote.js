@@ -432,7 +432,11 @@ export async function loadAll(userId) {
       timed("t_activity", selectAll(() => supabase.from("activity").select("day, count").eq("user_id", userId), "day")),
       timed("t_streak", supabase.from("streaks").select("*").eq("user_id", userId).maybeSingle()),
       timed("t_profile", supabase.from("profiles").select("*").eq("id", userId).maybeSingle()),
-      timed("t_generated", selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id")),
+      /* my_generated (0104) leaves out your questions that the bundle
+         brings anyway — all 11,283 of the ready-made decks' owner's, sent
+         and thrown away on every load. The table itself if that fails. */
+      timed("t_generated", selectAll(() => supabase.rpc("my_generated").select("id, payload, deck_id, created_at"), "id")
+        .then(r => (r.error ? selectAll(() => supabase.from("generated_questions").select("id, payload, deck_id, created_at").eq("user_id", userId), "id") : r))),
       timed("t_edits", selectAll(() => supabase.from("question_edits").select("question_id, payload").eq("user_id", userId), "question_id")),
       timed("t_decks", loadUserDecks().then(data => ({ data, error: null }), error => ({ data: null, error }))),
       featuredSoon,
