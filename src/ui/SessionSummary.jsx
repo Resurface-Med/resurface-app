@@ -64,6 +64,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
   const correct = answered.filter(r => r.correct).length;
   const pct = total ? Math.round((correct / total) * 100) : null;
   const wrongOnes = results.filter(r => !r.correct);
+  const canRedo = Boolean(onDrillWrong) && wrongOnes.length > 0;
 
   const byCat = {};
   for (const r of answered) {
@@ -81,6 +82,10 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
     .filter(row => row.correct < row.total)
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 5);
+  /* Only worth showing when the session mixed lectures: with one, its single
+     row repeated the score at the top ("7/10" under "7 of 10 correct") and
+     read as nonsense (Rafil, 2026-11-23). */
+  const showShaky = shaky.length > 0 && Object.keys(byCat).length > 1;
 
   /* A clean run has no misses to list, so it lists what you answered
      instead: the screen keeps the same shape either way, rather than two
@@ -119,18 +124,18 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
           style={{ ...band, maxWidth: 720, paddingTop: "clamp(18px, 2.8vh, 32px)" }}
         >
           {reward}
-          {shaky.length > 0 && (
+          {showShaky && (
             <section className="sum-section" data-in="rise" style={{ "--i": 3 }}>
               <div className="prog-section-head">
-                <h2 style={{ ...sectionH, margin: 0 }}>Worth another look</h2>
-                <span className="prog-section-note">Fewest right first</span>
+                <h2 style={{ ...sectionH, margin: 0 }}>Where you dropped marks</h2>
+                <span className="prog-section-note">By lecture, weakest first</span>
               </div>
               <div className="sum-topics">
                 {shaky.map(({ cat, correct: c, total: t, pct: p }) => (
                   <div key={cat} className="sum-topic">
                     <div className="sum-topic-line">
                       <span className="sum-topic-name">{cat}</span>
-                      <span className="sum-topic-count">{c}/{t}</span>
+                      <span className="sum-topic-count">{c} of {t} right</span>
                     </div>
                     <ProgressBar value={p} colour={p < 50 ? C.danger : p < 80 ? C.warning : C.accent} />
                   </div>
@@ -187,20 +192,29 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
               from anything meaningful and handed the longest label the
               smallest one — so "Change settings" wrapped onto two lines while
               the others did not, and the row came out ragged. */}
+          {/* Redo wrong leads, in blue, when there is anything to redo, and
+              Practice again takes the soft button (Rafil, 2026-11-23). With
+              nothing wrong, Practice again is the blue one. */}
           <div className="sum-actions" data-in="rise" style={{ "--i": 5 }}>
-            <button type="button" className="btn-press" style={primaryBtn} onClick={onRestart}>
-              Practice again
-            </button>
-
-            {onDrillWrong && wrongOnes.length > 0 && (
+            {canRedo && (
               <button
                 type="button"
-                className="btn-press sum-btn-soft"
+                className="btn-press"
+                style={primaryBtn}
                 onClick={() => onDrillWrong(wrongOnes.map(r => r.id))}
               >
                 Redo wrong
               </button>
             )}
+
+            <button
+              type="button"
+              className={`btn-press${canRedo ? " sum-btn-soft" : ""}`}
+              style={canRedo ? undefined : primaryBtn}
+              onClick={onRestart}
+            >
+              Practice again
+            </button>
 
             {/* Where this goes: the deck list, to pick what is next. It was
                 "Change settings", which said nothing about leaving. */}
