@@ -207,6 +207,8 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   const [error, setError] = useState("");
   const [used, setUsed] = useState(() => loadUsed(usedKey(sitting, q.id)));
   const threadRef = useRef(null);
+  /* How many of your questions the thread had when it last scrolled. */
+  const asked = useRef(0);
   const inputRef = useRef(null);
   /* The question on screen. A reply that comes back after a move belongs
      to the question that was asked, not the one now showing.
@@ -230,17 +232,27 @@ export default function ExplainChat({ q, picked, onClose, answered = true, closi
   useEffect(() => {
     setUsed(loadUsed(usedKey(sitting, q.id)));
     shownId.current = q.id;
+    asked.current = 0;
     setMessagesState(threadOf(q.id));
     setDraft("");
     setError("");
     setSending(false);
   }, [q.id]);
 
+  /* When you ask something, your question is brought to the top of the
+     thread, once; the answer then grows below it and is not followed, so
+     it is read from its start. It used to jump to the bottom on every
+     streamed piece of the reply (Rafil, 2026-11-23). */
   useEffect(() => {
     const el = threadRef.current;
     if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [messages, sending]);
+    const asks = el.querySelectorAll(".ai-dock__msg.is-user");
+    if (asks.length > asked.current) {
+      const last = asks[asks.length - 1];
+      el.scrollTop += last.getBoundingClientRect().top - el.getBoundingClientRect().top - 12;
+    }
+    asked.current = asks.length;
+  }, [messages]);
 
   useEffect(() => {
     if (isPhone() || atLimit) return;
