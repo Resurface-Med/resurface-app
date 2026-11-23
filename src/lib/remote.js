@@ -912,9 +912,9 @@ export async function adminDeleteAnnouncement(id) {
 
 /* Admin control of the Resurface (featured) decks — migration 0021. Ids
    from the pool carry GEN_ID_BASE; the table's do not. Every change is
-   followed by featured_bundle_publish (0076), which rebuilds the shared
-   bundle now rather than at the next minute's cron, so the admin's next
-   load already shows it. A failed publish costs only that minute. */
+   followed by featured_bundle_publish (0076 / 0094), which force-rebuilds
+   the shared bundle (120s timeout) so the admin's next load already shows
+   it. Cron still coalesces non-publish bumps about once a minute. */
 async function featuredWrite(fn, args) {
   const { data, error } = await supabase.rpc(fn, args);
   if (error) throw new Error(error.message);
@@ -1162,6 +1162,45 @@ export async function addFriend(code) {
 export async function removeFriend(friendId) {
   const { error } = await supabase.rpc("remove_friend", { friend: friendId });
   if (error) throw error;
+}
+
+/* Christmas referral raffle (migration 0106). Separate from friends. */
+export async function fetchMyReferralCode() {
+  const { data, error } = await supabase.rpc("my_referral_code");
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchMyReferralStats() {
+  const { data, error } = await supabase.rpc("my_referral_stats");
+  if (error) throw error;
+  return data ?? { code: null, tickets: 0, pending: 0, campaign: null };
+}
+
+export async function claimReferral(code) {
+  const { data, error } = await supabase.rpc("claim_referral", { code });
+  if (error) {
+    const e = new Error(error.message);
+    e.reason = /referral_own/.test(error.message) ? "own"
+      : /referral_unknown/.test(error.message) ? "unknown"
+      : /referral_too_old/.test(error.message) ? "too_old"
+      : /referral_campaign_closed/.test(error.message) ? "closed"
+      : null;
+    throw e;
+  }
+  return data ?? { ok: false };
+}
+
+export async function fetchAdminReferralBoard() {
+  const { data, error } = await supabase.rpc("admin_referral_board");
+  if (error) throw error;
+  return data ?? { campaign: null, rows: [] };
+}
+
+export async function adminReferralDraw() {
+  const { data, error } = await supabase.rpc("admin_referral_draw");
+  if (error) throw error;
+  return data ?? { ok: false };
 }
 
 // ── Writes ────────────────────────────────────────────────────────────────

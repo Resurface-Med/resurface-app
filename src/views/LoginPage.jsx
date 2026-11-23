@@ -57,8 +57,9 @@ const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 /* `sentDeck`: they followed a link to someone's deck (lib/pendingShare).
    Nearly always a new person, so it opens on sign-up, and says the deck is
    waiting — it is added straight after, however they sign in.
-   `sentFriend`: the same for a friend link (lib/friendLink). */
-export default function LoginPage({ sentDeck = false, sentFriend = false }) {
+   `sentFriend`: the same for a friend link (lib/friendLink).
+   `sentReferral`: a Christmas referral link (lib/referralLink, 0096). */
+export default function LoginPage({ sentDeck = false, sentFriend = false, sentReferral = false }) {
   const {
     signIn, signUp, signInWithGoogle, resetPassword,
     resendSignupCode, verifySignupCode, verifyRecoveryCode,
@@ -74,7 +75,7 @@ export default function LoginPage({ sentDeck = false, sentFriend = false }) {
     return () => (ric ? window.cancelIdleCallback(id) : clearTimeout(id));
   }, []);
 
-  const [mode, setMode] = useState(sentDeck || sentFriend ? "signup" : "signin"); // signin | signup | reset
+  const [mode, setMode] = useState(sentDeck || sentFriend || sentReferral ? "signup" : "signin"); // signin | signup | reset
   // After signup / reset request we collect the emailed code. After a recovery
   // code verifies, we collect the new password.
   const [step, setStep] = useState("form");   // form | code
@@ -249,6 +250,8 @@ export default function LoginPage({ sentDeck = false, sentFriend = false }) {
         ? `${mode === "signup" ? "Sign up" : "Sign in"} to add the deck you were sent. It’ll be waiting for you.`
       : sentFriend
         ? `${mode === "signup" ? "Sign up" : "Sign in"} to add your friend. You’ll see each other on the leaderboard.`
+      : sentReferral
+        ? `${mode === "signup" ? "Sign up" : "Sign in"} to join through your friend’s invite.`
       : "Your progress and generated questions follow you everywhere.";
 
   const formCta = mode === "signup" ? "Create account"
