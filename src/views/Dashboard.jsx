@@ -138,6 +138,7 @@ export default function Dashboard({ displayName = "",
             {/* By name (Rafil, 2026-11-02): the first word of their display
                 name, so "Zain Arghandawi" is greeted as Zain. */}
             <h1 style={{ ...h1, marginTop: 10 }}>{greeting}{firstName ? `, ${firstName}` : ""}.</h1>
+            <YearStanding studyYear={studyYear} userId={userId} onOpen={() => setView(V.LEADERBOARD)} />
           </div>
 
           {streak.streak > 0 && (
@@ -249,10 +250,6 @@ export default function Dashboard({ displayName = "",
                 </div>
               </div>
               </div>
-
-              {/* Where you are in your year this week (Rafil, 2026-11-22:
-                  moved here from Progress). */}
-              <YearStanding studyYear={studyYear} userId={userId} onOpen={() => setView(V.LEADERBOARD)} />
             </section>
 
             <section data-in="rise" style={{ "--i": 7 }}>

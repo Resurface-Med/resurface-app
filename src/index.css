@@ -12681,13 +12681,14 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 @media (prefers-reduced-motion: reduce) { .pv-day__stack { animation: none; } }
 
-/* ── Your year on Home (YearStanding, 2026-11-22) ─────────────────────────
-   Moved from Progress; the track and figures reuse its pv-* pieces. */
-/* A hairline above it (Rafil, 2026-11-22: tiny lines between the three
-   sections), the same one the figures above use. */
-.yr { margin-top: clamp(20px, 3vh, 28px); padding-top: clamp(20px, 3vh, 28px); border-top: 1px solid var(--c-border); }
+/* Your place in your year, under Home's greeting (YearStanding, 2026-11-23):
+   the band's subtitle, in its own white, opening the leaderboard. */
+.home-year { display: block; margin: 8px 0 0; padding: 0; border: 0; background: none; font: inherit; font-size: clamp(16px, 1.5vw, 18px); font-weight: 500; letter-spacing: -0.2px; line-height: 1.4; color: var(--c-on-field-soft); text-align: left; cursor: pointer; }
+.home-year b { font-weight: 600; color: var(--c-on-field); }
+.home-year:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.home-year:focus-visible { outline: 2px solid var(--c-on-field); outline-offset: 4px; border-radius: 6px; }
 
-/* …and between Home's two halves: a vertical hairline in the middle of the
+/* Between Home's two halves: a vertical hairline in the middle of the
    gap, which lies flat between them once they stack. Drawn in the gap, so
    the layout does not move. */
 .dash-split { --dash-gap: clamp(32px, 4vw, 64px); }
@@ -12700,14 +12701,6 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   .dash-split > section + section::before { top: calc(var(--dash-gap) / -2); bottom: auto; left: 0; right: 0; width: auto; height: 1px; }
 }
 @media (max-width: 900px) { .dash-split { --dash-gap: 26px; } }
-.yr__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-.yr__when { font-size: 15px; font-weight: 500; color: var(--c-sub); }
-.yr__body { display: block; width: 100%; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
-.yr__body:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 6px; border-radius: 8px; }
-.yr__body .pv-line { margin-top: 0; }
-.yr .pv-pair > span { display: block; }
-.yr__k { display: block; font-size: 13px; color: var(--c-muted); }
-.yr__v { display: block; margin-top: 4px; font-size: 20px; font-weight: 600; letter-spacing: -0.4px; color: var(--c-text); font-variant-numeric: tabular-nums; }
 
 /* By deck on Progress: the deck list's rows, with no tick box. The figures
    sit where Study's question count does; the percentage gets a fixed column

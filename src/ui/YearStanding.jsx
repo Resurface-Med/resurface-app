@@ -1,20 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { sectionH } from "./theme";
 import { fetchLeaderboardWeek } from "../lib/remote";
 import { yearStanding } from "../lib/progressPage";
 
 /**
- * Your year (2026-11-22). Where you are on this week's board for your year,
- * moved from Progress to Home at Rafil's request. The whole block opens the
- * leaderboard.
+ * Where you are in your year this week, as a line under Home's greeting
+ * (Rafil, 2026-11-23: "more like a title" than a section at the bottom).
+ * It opens the leaderboard.
  *
- * One line since 2026-11-23: what you answered this week and whether that
- * puts you in the top or bottom share of your year. A bar went through a
- * rank track, a percentile bar and an average mark the same day, and Rafil
- * took it out: the sentence says it.
- *
- * Nothing at all without a year, or while the board has not answered; a
- * plain line when you have not answered anything this week yet.
+ * It went through a rank track, a percentile bar and an average mark on
+ * 2026-11-22/23 before Rafil settled on the sentence alone: what you
+ * answered this week and whether that is the top or bottom share of your
+ * year. Nothing without a year, or until the board has answered.
  */
 const n = v => v.toLocaleString("en-GB");
 
@@ -30,20 +26,14 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
   if (!studyYear || !year) return null;
 
   return (
-    <section className="yr" data-in="rise" style={{ "--i": 8 }}>
-      <div className="yr__head">
-        <h2 style={sectionH}>Your year</h2>
-        <span className="yr__when">This week</span>
-      </div>
-      <button type="button" className="yr__body" onClick={onOpen} aria-label="Open the leaderboard">
-        {!year.onBoard ? (
-          <p className="pv-line">Answer a question this week to join Year {studyYear}’s board{year.people ? <>, with {year.people} {year.people === 1 ? "other" : "others"}</> : null}.</p>
-        ) : year.people < 2 ? (
-          <p className="pv-line">You’re the only one in Year {studyYear} to answer this week, with <b>{n(year.mine)}</b>.</p>
-        ) : (
-          <p className="pv-line">You’ve answered <b>{n(year.mine)}</b> this week, in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear}.</p>
-        )}
-      </button>
-    </section>
+    <button type="button" className="home-year" onClick={onOpen} aria-label={`Your place in Year ${studyYear} this week. Opens the leaderboard.`}>
+      {!year.onBoard ? (
+        <>Answer a question to join Year {studyYear}’s board this week.</>
+      ) : year.people < 2 ? (
+        <>You’re the only one in Year {studyYear} answering this week, with <b>{n(year.mine)}</b>.</>
+      ) : (
+        <>You’re in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear} this week, with <b>{n(year.mine)}</b> answered.</>
+      )}
+    </button>
   );
 }
