@@ -672,10 +672,26 @@ async function fetchShard(p) {
   return got;
 }
 
+/* At most two shard downloads at once. All eleven in parallel, when the
+   edge misses and PostgREST has to stream each ~0.5–1 MB body, saturates
+   the free-plan DB and Admin times out with it. */
+async function shardsFor(parts, limit = 2) {
+  const out = new Array(parts.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, parts.length) }, async () => {
+    for (;;) {
+      const i = next++;
+      if (i >= parts.length) return;
+      out[i] = await shardFor(parts[i]);
+    }
+  }));
+  return out;
+}
+
 export async function featuredFromParts(version, parts) {
   const key = partsKey(parts);
   if (bundleMem && bundleKey === key) return bundleMem;
-  const shards = await Promise.all(parts.map(shardFor));
+  const shards = await shardsFor(parts);
   const b = composeParts(version, shards.map(x => x.body));
   bundleMem = b;
   bundleKey = key;
