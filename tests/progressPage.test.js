@@ -84,7 +84,15 @@ describe("yearStanding", () => {
     { user_id: "d", week_count: 0, rank: 4 },
   ];
   it("places you among the people who studied this week", () => {
-    expect(yearStanding(rows, "me")).toEqual({ onBoard: true, rank: 2, people: 3, mine: 120, avg: 160 });
+    expect(yearStanding(rows, "me")).toEqual({ onBoard: true, rank: 2, people: 3, mine: 120, avg: 160, share: { side: "top", pct: 67 } });
+  });
+  it("says top or bottom, whichever half you are in, on this week's Year 2", () => {
+    const counts = [638,346,288,262,239,193,185,169,168,111,108,101,94,92,83,53,38,36,35,34,27,26,23,19,16,13,11,3,1];
+    const at = mine => yearStanding(counts.map((c, i) => ({ user_id: c === mine ? "me" : `u${i}`, week_count: c, rank: i + 1 })), "me").share;
+    expect(at(108)).toEqual({ side: "top", pct: 38 });
+    expect(at(638)).toEqual({ side: "top", pct: 4 });
+    expect(at(11)).toEqual({ side: "bottom", pct: 11 });
+    expect(at(1)).toEqual({ side: "bottom", pct: 4 });
   });
   it("says when you are not on the board yet", () => {
     expect(yearStanding(rows, "d")).toEqual({ onBoard: false, people: 3 });

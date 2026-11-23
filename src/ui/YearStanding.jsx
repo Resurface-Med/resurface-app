@@ -31,11 +31,7 @@ function AvgBar({ mine, avg }) {
   );
 }
 
-function vsAverage(mine, avg, studyYear) {
-  const d = mine - avg;
-  if (d === 0) return <>, right on the Year {studyYear} average</>;
-  return <>, {n(Math.abs(d))} {d < 0 ? "under" : "over"} the Year {studyYear} average of {n(avg)}</>;
-}
+
 
 export default function YearStanding({ studyYear, userId, onOpen }) {
   const [rows, setRows] = useState(null);
@@ -61,7 +57,7 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
               <p className="pv-line">You’re the only one in Year {studyYear} to answer this week, with <b>{n(year.mine)}</b>.</p>
             ) : (
               <>
-                <p className="pv-line">You’ve answered <b>{n(year.mine)}</b> this week{vsAverage(year.mine, year.avg, studyYear)}.</p>
+                <p className="pv-line">You’ve answered <b>{n(year.mine)}</b> this week, in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear}.</p>
                 <AvgBar mine={year.mine} avg={year.avg} />
               </>
             )}

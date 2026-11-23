@@ -159,12 +159,20 @@ export function yearStanding(rows, userId) {
   if (i < 0) return { onBoard: false, people: live.length };
   const me = live[i];
   const people = live.length;
+  const mine = Number(me.week_count);
+  const counts = live.map(r => Number(r.week_count));
+  /* Top or bottom share of the year, whichever half you are in (Rafil,
+     2026-11-23). Counted from those who answered more (or fewer) than you,
+     so people level with you share a place. */
+  const top = Math.ceil((100 * (counts.filter(c => c > mine).length + 1)) / people);
+  const bottom = Math.ceil((100 * (counts.filter(c => c < mine).length + 1)) / people);
   return {
     onBoard: true,
     rank: Number(me.rank) || i + 1,
     people,
-    mine: Number(me.week_count),
-    avg: Math.round(live.reduce((a, r) => a + Number(r.week_count), 0) / people),
+    mine,
+    avg: Math.round(counts.reduce((a, c) => a + c, 0) / people),
+    share: top <= bottom ? { side: "top", pct: top } : { side: "bottom", pct: bottom },
   };
 }
 
