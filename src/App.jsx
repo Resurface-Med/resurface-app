@@ -44,7 +44,6 @@ import { SUPABASE_URL } from "./lib/supabase";
 import { keepImagesOffline } from "./lib/questionImage";
 import OfflineBar, { NeedsConnection } from "./ui/OfflineBar";
 import { setFeaturedAdmin } from "./lib/adminFeatured";
-import { seedExhibitDeck } from "./lib/seedExhibitDeck";
 import { deckCodeFromLocation, decorateUserQuestion, indexDecks, questionsInDeck, shelve, servedTree } from "./lib/decks";
 import { moveDeckTo, nextPosition } from "./lib/deckOrder";
 import { loadPrefs, getPrefs } from "./lib/prefs";
@@ -473,7 +472,7 @@ export default function App() {
 
   /* Everything loadAll returns, onto the screen. Shared by sign-in and by
      pull-to-refresh, so a refresh cannot miss something the first load set. */
-  function applySnapshot(d, { seed = false } = {}) {
+  function applySnapshot(d) {
     setPStats(d.pStats);
     setSrCards(d.srCards);
     setBookmarks(d.bookmarks);
@@ -499,21 +498,6 @@ export default function App() {
     setFeatured(featuredRef.current);
     applyDecks(d.decks ?? []);
     applyGenerated(d.generated, d.decks ?? []);
-    /* The exhibit sample belongs to one account, not the ready-made list.
-       Created once that account's server snapshot is in, so a cached copy
-       cannot race it. */
-    if (seed) {
-      seedExhibitDeck({
-        user,
-        displayName: d.displayName,
-        decks: d.decks ?? [],
-        generated: d.generated ?? [],
-      }).then(extra => {
-        if (!extra) return;
-        applyDecks(extra.decks);
-        applyGenerated(extra.generated, extra.decks);
-      }).catch(() => {});
-    }
   }
 
   /* A snapshot that carries study seconds is the base. One that does not
@@ -560,7 +544,7 @@ export default function App() {
     lastLoadAt.current = Date.now();
     try {
       const d = await withTimeout(fetchFresh(user.id), LOAD_TIMEOUT);
-      applySnapshot(d, { seed: true });
+      applySnapshot(d);
       retryIfStale(d.featured);
       applyFeaturedLater(d);
       sourceRef.current = "server";
@@ -700,7 +684,7 @@ export default function App() {
         const d = await withTimeout(fetchFresh(user.id), cached ? LOAD_TIMEOUT : FIRST_LOAD_TIMEOUT);
         if (cancelled) return;
         if (!cached) mark("data");
-        applySnapshot(d, { seed: true });
+        applySnapshot(d);
         retryIfStale(d.featured);
         applyFeaturedLater(d, () => !cancelled);
         sourceRef.current = "server";
