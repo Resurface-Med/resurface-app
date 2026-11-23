@@ -152,25 +152,48 @@ export function weakest(roots, n = 5, min = 10) {
 }
 
 /** Where you are on your year's board this week. Rows from leaderboard_week;
-    only people who answered something count. */
+    only people who answered something count.
+
+    pct: the share of the others you answered more than this week, 0–100
+    (null when you are the only one). avgPct: where someone on the average
+    would sit on the same scale, for the bar's average mark (2026-11-23,
+    Rafil: a percentile bar in place of the rank track). */
 export function yearStanding(rows, userId) {
   const live = (rows ?? []).filter(r => Number(r.week_count) > 0);
   const i = live.findIndex(r => r.user_id === userId);
   if (i < 0) return { onBoard: false, people: live.length };
   const me = live[i];
-  const rank = Number(me.rank) || i + 1;
+  const mine = Number(me.week_count);
   const people = live.length;
-  const avg = people ? live.reduce((a, r) => a + Number(r.week_count), 0) / people : 0;
+  const counts = live.map(r => Number(r.week_count));
+  const avg = counts.reduce((a, c) => a + c, 0) / people;
+  const share = n => Math.round((100 * n) / (people - 1));
   return {
     onBoard: true,
-    rank,
+    rank: Number(me.rank) || i + 1,
     people,
-    /* 1st sits at the right-hand end, last at the left. */
-    position: people > 1 ? (people - rank) / (people - 1) : 1,
-    topPct: Math.max(1, Math.ceil((rank / people) * 100)),
-    mine: Number(me.week_count),
+    mine,
     avg: Math.round(avg),
+    pct: people > 1 ? share(counts.filter(c => c < mine).length) : null,
+    /* Someone on the average, measured against all of the year. */
+    avgPct: people > 1 ? Math.round((100 * counts.filter(c => c < avg).length) / people) : null,
   };
+}
+
+/** Which way the bar's two labels run from their marks, so "You" and
+    "Average" never sit on each other or off the end of the bar. The left
+    one reads leftwards from its mark, the right one rightwards; near an end
+    a label has to read inwards instead, and if that puts the two on top of
+    each other the average's label is left out (its mark stays). */
+export function pctLabels(p, a, room = 18) {
+  let you = p <= a ? "end" : "start";
+  let avg = p <= a ? "start" : "end";
+  if (you === "end" && p < room) you = "start";
+  if (you === "start" && p > 100 - room) you = "end";
+  if (avg === "end" && a < room) avg = "start";
+  if (avg === "start" && a > 100 - room) avg = "end";
+  const clash = you === avg && Math.abs(p - a) < room;
+  return { you, avg: clash ? null : avg };
 }
 
 export const ordinal = n => {

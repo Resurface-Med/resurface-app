@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal } from "../src/lib/progressPage";
+import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal, pctLabels } from "../src/lib/progressPage";
 
 /* Sunday 22 November 2026 */
 const TODAY = "2026-11-22";
@@ -84,10 +84,30 @@ describe("yearStanding", () => {
     { user_id: "d", week_count: 0, rank: 4 },
   ];
   it("places you among the people who studied this week", () => {
-    expect(yearStanding(rows, "me")).toMatchObject({ onBoard: true, rank: 2, people: 3, position: 0.5, mine: 120, avg: 160 });
+    expect(yearStanding(rows, "me")).toMatchObject({ onBoard: true, rank: 2, people: 3, mine: 120, avg: 160, pct: 50, avgPct: 67 });
+  });
+  it("has no percentile when you are the only one", () => {
+    expect(yearStanding([{ user_id: "me", week_count: 5, rank: 1 }], "me")).toMatchObject({ people: 1, pct: null, avgPct: null });
+  });
+  it("matches this week's Year 2: ahead of 64%, the average just past you", () => {
+    const counts = [638,346,288,262,239,193,185,169,168,111,108,101,94,92,83,53,38,36,35,34,27,26,23,19,16,13,11,3,1];
+    const r = counts.map((c, i) => ({ user_id: c === 108 ? "me" : `u${i}`, week_count: c, rank: i + 1 }));
+    expect(yearStanding(r, "me")).toMatchObject({ rank: 11, people: 29, avg: 118, pct: 64, avgPct: 69 });
   });
   it("says when you are not on the board yet", () => {
     expect(yearStanding(rows, "d")).toEqual({ onBoard: false, people: 3 });
+  });
+});
+
+describe("pctLabels", () => {
+  it("runs the left label leftwards and the right one rightwards", () => {
+    expect(pctLabels(64, 68)).toEqual({ you: "end", avg: "start" });
+    expect(pctLabels(70, 40)).toEqual({ you: "start", avg: "end" });
+  });
+  it("turns a label inwards at an end, and drops the average's when they would collide", () => {
+    expect(pctLabels(5, 60)).toEqual({ you: "start", avg: "start" });
+    expect(pctLabels(5, 12)).toEqual({ you: "start", avg: null });
+    expect(pctLabels(97, 90)).toEqual({ you: "end", avg: null });
   });
 });
 
