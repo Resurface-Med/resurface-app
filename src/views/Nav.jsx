@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useDrawerSwipe } from "../ui/useDrawerSwipe";
-import { BookOpen, ChartColumn, Flag, House, LogOut, Megaphone, NotebookPen, Sparkles, Trophy } from "lucide-react";
+import { Bell, BookOpen, ChartBar, House, NotePencil, ShieldCheck, SignOut, StackPlus, Trophy } from "../ui/navIcons";
 import { NAV_GROUPS, V } from "../ui/theme";
 import Avatar from "../ui/Avatar";
 
 const ICONS = {
   [V.DASH]: House,
   [V.STUDY]: BookOpen,
-  [V.GENERATE]: Sparkles,
-  [V.PROGRESS]: ChartColumn,
+  [V.GENERATE]: StackPlus,
+  [V.PROGRESS]: ChartBar,
   [V.LEADERBOARD]: Trophy,
-  [V.ADMIN]: Flag,
-  [V.NEWS]: Megaphone,
-  [V.NOTES]: NotebookPen,
+  [V.ADMIN]: ShieldCheck,
+  [V.NEWS]: Bell,
+  [V.NOTES]: NotePencil,
 };
 
 export function Sidebar({ view, setView, dueCount, showNotes = false, email, displayName, avatar = null, onSignOut, isAdmin = false, unreadAnnouncements = 0, onOpenAnnouncements = null }) {
@@ -158,7 +158,7 @@ export function Sidebar({ view, setView, dueCount, showNotes = false, email, dis
                       aria-current={active ? "page" : undefined}
                       title={item.label}
                     >
-                      {Icon && <Icon className="app-nav__icon" size={18} strokeWidth={1.75} aria-hidden="true" />}
+                      {Icon && <Icon className="app-nav__icon" size={20} active={active} />}
                       <span className="app-nav__label">{item.label}</span>
                       {fresh > 0 && <span className="app-nav__review app-nav__fresh" title={`${fresh} new`} aria-label={`${fresh} new`}>{fresh > 9 ? "9+" : fresh}</span>}
                       {review > 0 && <span className="app-nav__review" title={`${review} to review`} aria-label={`${review} to review`}>{review > 99 ? "99+" : review}</span>}
@@ -187,7 +187,7 @@ export function Sidebar({ view, setView, dueCount, showNotes = false, email, dis
               </span>
             </button>
             <button type="button" onClick={onSignOut} className="btn-press app-nav__signout" aria-label="Sign out" title="Sign out">
-              <LogOut size={16} strokeWidth={1.75} aria-hidden="true" />
+              <SignOut size={18} />
             </button>
           </div>
         </div>
