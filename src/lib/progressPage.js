@@ -167,34 +167,28 @@ export function yearStanding(rows, userId) {
   const top = Math.ceil((100 * (counts.filter(c => c > mine).length + 1)) / people);
   const bottom = Math.ceil((100 * (counts.filter(c => c < mine).length + 1)) / people);
   const share = top <= bottom ? { side: "top", pct: top } : { side: "bottom", pct: bottom };
-  const avg = counts.reduce((a, c) => a + c, 0) / people;
+  const sorted = [...counts].sort((a, b) => a - b);
+  const mid = Math.floor(people / 2);
   return {
     onBoard: true,
     rank: Number(me.rank) || i + 1,
     people,
     mine,
-    avg: Math.round(avg),
+    /* The bar's average is the middle student's count, the median, because
+       it sits at 50% of a bottom-to-top bar (Rafil, 2026-11-23: the
+       average in the middle). The mean would not: a few students on
+       hundreds pull it past most of the year (118 against 83 for Year 2). */
+    avg: people % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2),
     share,
-    /* The bar runs from the bottom of the year to the top: you sit where
-       your share puts you (top 38% is 62%), and the average where the
-       share of the year below it puts it. */
+    /* You sit where your share puts you: top 38% is 62%. */
     at: share.side === "top" ? 100 - share.pct : share.pct,
-    avgAt: Math.round((100 * counts.filter(c => c < avg).length) / people),
   };
 }
 
-/** How the Your year bar's labels sit (Rafil, 2026-11-23: percentiles,
-    with the average shown too). "You" reads away from the middle from the
-    end of your fill, turning inwards near an end; "Average" is centred
-    under its mark unless that would run off an end; and an end label
-    ("Bottom", "Top") gives way to "Average" when they would overlap. */
-export function barLabels(at, avgAt, room = 15) {
-  return {
-    you: at < 50 ? (at < room ? "start" : "end") : (at > 100 - room ? "end" : "start"),
-    avg: avgAt < room ? "start" : avgAt > 100 - room ? "end" : "mid",
-    bottom: avgAt >= room + 8,
-    top: avgAt <= 100 - room - 8,
-  };
+/** Which way the Your year bar's "You" label reads from the end of your
+    fill: away from the average in the middle, turning inwards near an end. */
+export function youLabel(at, room = 15) {
+  return at < 50 ? (at < room ? "start" : "end") : (at > 100 - room ? "end" : "start");
 }
 
 export const ordinal = n => {

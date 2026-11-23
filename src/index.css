@@ -12701,23 +12701,17 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
 }
 @media (max-width: 900px) { .dash-split { --dash-gap: 26px; } }
 /* The Your year bar (2026-11-23): bottom of the year to the top, your fill
-   up to your place, the average marked where it falls among the year
-   (lib/progressPage barLabels places the labels). */
+   up to your place, the average (the middle student's count) in the middle. */
 .yr-bar { display: block; position: relative; margin-top: 12px; padding-top: 22px; }
 .yr-bar__you { position: absolute; top: 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; line-height: 1; color: var(--c-text); }
 .yr-bar__you.is-start { left: calc(var(--p) + 5px); }
 .yr-bar__you.is-end { right: calc(100% - var(--p) + 5px); }
 .yr-bar__track { display: block; position: relative; height: 10px; border-radius: 5px; background: var(--c-surface3); }
 .yr-bar__fill { display: block; position: absolute; inset: 0 auto 0 0; width: var(--p); border-radius: 5px; background: var(--c-accent); transform-origin: left; animation: pvFill .9s .2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.yr-bar__avg { display: block; position: absolute; top: -6px; bottom: -6px; left: var(--a); width: 2.5px; translate: -50% 0; border-radius: 2px; background: var(--c-warning); }
-.yr-bar__scale { display: block; position: relative; height: 18px; margin-top: 10px; font-size: 12.5px; color: var(--c-muted); }
-.yr-bar__scale > span { position: absolute; top: 0; white-space: nowrap; }
-.yr-bar__scale > .is-bottom { left: 0; }
-.yr-bar__scale > .is-top { right: 0; }
-.yr-bar__scale > .is-avg { color: var(--c-warning); font-weight: 600; }
-.yr-bar__scale > .is-avg.is-mid { left: var(--a); translate: -50% 0; }
-.yr-bar__scale > .is-avg.is-start { left: 0; }
-.yr-bar__scale > .is-avg.is-end { right: 0; }
+.yr-bar__avg { display: block; position: absolute; top: -6px; bottom: -6px; left: 50%; width: 2.5px; translate: -50% 0; border-radius: 2px; background: var(--c-warning); }
+.yr-bar__scale { display: grid; grid-template-columns: 1fr auto 1fr; margin-top: 10px; font-size: 12.5px; color: var(--c-muted); }
+.yr-bar__scale > .is-avg { color: var(--c-warning); font-weight: 600; text-align: center; }
+.yr-bar__scale > span:last-child { text-align: right; }
 .yr__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .yr__when { font-size: 15px; font-weight: 500; color: var(--c-sub); }
 .yr__body { display: block; width: 100%; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { sectionH } from "./theme";
 import { fetchLeaderboardWeek } from "../lib/remote";
-import { yearStanding, barLabels } from "../lib/progressPage";
+import { yearStanding, youLabel } from "../lib/progressPage";
 
 /**
  * Your year (2026-11-22). Where you are on this week's board for your year,
@@ -10,26 +10,20 @@ import { yearStanding, barLabels } from "../lib/progressPage";
  *
  * The bar runs from the bottom of your year to the top (Rafil, 2026-11-23):
  * your fill stops at your place, which the line gives as the top or bottom
- * share, and the average is marked where it falls among the year. A few
- * students on hundreds pull the average up past most of the year, so it
- * usually sits right of the middle.
+ * share, and the average sits in the middle: it is the middle student's
+ * count (the median), which is what 50% of the bar means.
  *
  * Nothing at all without a year, or while the board has not answered; a
  * plain line when you have not answered anything this week yet.
  */
 const n = v => v.toLocaleString("en-GB");
 
-function YearBar({ at, avgAt, avg }) {
-  const lab = barLabels(at, avgAt);
+function YearBar({ at, avg }) {
   return (
-    <span className="yr-bar" style={{ "--p": `${at}%`, "--a": `${avgAt}%` }} aria-hidden="true">
-      <span className={`yr-bar__you is-${lab.you}`}>You</span>
+    <span className="yr-bar" style={{ "--p": `${at}%` }} aria-hidden="true">
+      <span className={`yr-bar__you is-${youLabel(at)}`}>You</span>
       <span className="yr-bar__track"><span className="yr-bar__fill" /><span className="yr-bar__avg" /></span>
-      <span className="yr-bar__scale">
-        {lab.bottom && <span className="is-bottom">Bottom</span>}
-        <span className={`is-avg is-${lab.avg}`}>Average {n(avg)}</span>
-        {lab.top && <span className="is-top">Top</span>}
-      </span>
+      <span className="yr-bar__scale"><span>Bottom</span><span className="is-avg">Average {n(avg)}</span><span>Top</span></span>
     </span>
   );
 }
@@ -61,7 +55,7 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
             ) : (
               <>
                 <p className="pv-line">You’ve answered <b>{n(year.mine)}</b> this week, in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear}.</p>
-                <YearBar at={year.at} avgAt={year.avgAt} avg={year.avg} />
+                <YearBar at={year.at} avg={year.avg} />
               </>
             )}
           </>
