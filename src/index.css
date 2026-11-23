@@ -12679,7 +12679,7 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   .pv-chart text { font-size: 21px; }
   .pv-chart .t-end { font-size: 22px; }
 }
-@media (prefers-reduced-motion: reduce) { .pv-day__stack, .yr-pct__fill { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .pv-day__stack, .yr-bar__fill { animation: none; } }
 
 /* ── Your year on Home (YearStanding, 2026-11-22) ─────────────────────────
    Moved from Progress; the track and figures reuse its pv-* pieces. */
@@ -12700,21 +12700,19 @@ ol.ed__list li::before { content: counter(ed) "."; position: absolute; left: -22
   .dash-split > section + section::before { top: calc(var(--dash-gap) / -2); bottom: auto; left: 0; right: 0; width: auto; height: 1px; }
 }
 @media (max-width: 900px) { .dash-split { --dash-gap: 26px; } }
-/* The percentile bar (2026-11-23): filled to the share of your year you
-   answered more than, the average's mark on the same scale, each label
-   reading away from the other (lib/progressPage pctLabels). */
-.yr-pct { display: block; position: relative; margin-top: 12px; padding-top: 22px; }
-.yr-pct__lab { position: absolute; top: 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; line-height: 1; }
-.yr-pct__lab.is-you { --x: var(--p); color: var(--c-text); }
-.yr-pct__lab.is-avg { --x: var(--a); color: var(--c-warning); }
-.yr-pct__lab.is-start { left: calc(var(--x) + 5px); }
-.yr-pct__lab.is-end { right: calc(100% - var(--x) + 5px); }
-.yr-pct__track { display: block; position: relative; height: 10px; border-radius: 5px; background: var(--c-surface3); }
-.yr-pct__fill { display: block; position: absolute; inset: 0 auto 0 0; width: var(--p); border-radius: 5px; background: var(--c-accent); transform-origin: left; animation: pvFill .9s .2s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.yr-pct__avg { display: block; position: absolute; top: -6px; bottom: -6px; left: var(--a); width: 2.5px; translate: -50% 0; border-radius: 2px; background: var(--c-warning); }
-.yr-pct__ends { display: grid; grid-template-columns: 1fr auto 1fr; margin-top: 10px; font-size: 12.5px; color: var(--c-muted); }
-.yr-pct__ends > span:nth-child(2) { text-align: center; }
-.yr-pct__ends > span:last-child { text-align: right; }
+/* The Your year bar (2026-11-23): questions this week, the year's average
+   in the middle and twice it at the end, your fill up to what you answered
+   (lib/progressPage avgBar). */
+.yr-bar { display: block; position: relative; margin-top: 12px; padding-top: 22px; }
+.yr-bar__you { position: absolute; top: 0; font-size: 12.5px; font-weight: 600; white-space: nowrap; line-height: 1; color: var(--c-text); }
+.yr-bar__you.is-start { left: calc(var(--p) + 5px); }
+.yr-bar__you.is-end { right: calc(100% - var(--p) + 5px); }
+.yr-bar__track { display: block; position: relative; height: 10px; border-radius: 5px; background: var(--c-surface3); }
+.yr-bar__fill { display: block; position: absolute; inset: 0 auto 0 0; width: var(--p); border-radius: 5px; background: var(--c-accent); transform-origin: left; animation: pvFill .9s .2s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.yr-bar__avg { display: block; position: absolute; top: -6px; bottom: -6px; left: 50%; width: 2.5px; translate: -50% 0; border-radius: 2px; background: var(--c-warning); }
+.yr-bar__ends { display: grid; grid-template-columns: 1fr auto 1fr; margin-top: 10px; font-size: 12.5px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.yr-bar__ends > .is-avg { color: var(--c-warning); font-weight: 600; text-align: center; }
+.yr-bar__ends > span:last-child { text-align: right; }
 .yr__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 .yr__when { font-size: 15px; font-weight: 500; color: var(--c-sub); }
 .yr__body { display: block; width: 100%; margin-top: 10px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }

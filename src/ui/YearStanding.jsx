@@ -1,32 +1,40 @@
 import { useEffect, useMemo, useState } from "react";
 import { sectionH } from "./theme";
 import { fetchLeaderboardWeek } from "../lib/remote";
-import { yearStanding, pctLabels } from "../lib/progressPage";
+import { yearStanding, avgBar } from "../lib/progressPage";
 
 /**
  * Your year (2026-11-22). Where you are on this week's board for your year,
  * moved from Progress to Home at Rafil's request. The whole block opens the
  * leaderboard.
  *
- * A percentile bar since 2026-11-23 (Rafil picked it from mockups): the
- * share of your year you answered more than, filled from Fewest to Most,
- * with a mark where the average falls. A rank and a raw average misled: one
- * student on 638 pulled Year 2's average to 118, so 108 read as behind when
- * it was ahead of 64% of the year.
+ * Built around the year's average (Rafil, 2026-11-23): the bar measures
+ * questions this week, the average is its middle and twice the average its
+ * end, and your fill stops at what you answered. A percentile bar with the
+ * average marked on it came first, and read as nonsense: ahead of 64% yet
+ * left of the average, because a few students on hundreds pull the
+ * average up past most of the year.
  *
  * Nothing at all without a year, or while the board has not answered; a
  * plain line when you have not answered anything this week yet.
  */
-function PctBar({ pct, avgPct }) {
-  const side = pctLabels(pct, avgPct);
+const n = v => v.toLocaleString("en-GB");
+
+function AvgBar({ mine, avg }) {
+  const bar = avgBar(mine, avg);
   return (
-    <span className="yr-pct" style={{ "--p": `${pct}%`, "--a": `${avgPct}%` }} aria-hidden="true">
-      <span className={`yr-pct__lab is-you is-${side.you}`}>You</span>
-      {side.avg && <span className={`yr-pct__lab is-avg is-${side.avg}`}>Average</span>}
-      <span className="yr-pct__track"><span className="yr-pct__fill" /><span className="yr-pct__avg" /></span>
-      <span className="yr-pct__ends"><span>Fewest</span><span>Middle</span><span>Most</span></span>
+    <span className="yr-bar" style={{ "--p": `${bar.p}%` }} aria-hidden="true">
+      <span className={`yr-bar__you is-${bar.you}`}>You</span>
+      <span className="yr-bar__track"><span className="yr-bar__fill" /><span className="yr-bar__avg" /></span>
+      <span className="yr-bar__ends"><span>0</span><span className="is-avg">Average {n(avg)}</span><span>{n(bar.end)}</span></span>
     </span>
   );
+}
+
+function vsAverage(mine, avg, studyYear) {
+  const d = mine - avg;
+  if (d === 0) return <>, right on the Year {studyYear} average</>;
+  return <>, {n(Math.abs(d))} {d < 0 ? "under" : "over"} the Year {studyYear} average of {n(avg)}</>;
 }
 
 export default function YearStanding({ studyYear, userId, onOpen }) {
@@ -49,12 +57,12 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
       <button type="button" className="yr__body" onClick={onOpen} aria-label="Open the leaderboard">
         {year.onBoard ? (
           <>
-            {year.pct == null ? (
-              <p className="pv-line">You’re the only one in Year {studyYear} to answer this week, with <b>{year.mine.toLocaleString("en-GB")}</b>.</p>
+            {year.people < 2 ? (
+              <p className="pv-line">You’re the only one in Year {studyYear} to answer this week, with <b>{n(year.mine)}</b>.</p>
             ) : (
               <>
-                <p className="pv-line">You’re ahead of <b>{year.pct}%</b> of Year {studyYear} this week, with <b>{year.mine.toLocaleString("en-GB")}</b> answered.</p>
-                <PctBar pct={year.pct} avgPct={year.avgPct} />
+                <p className="pv-line">You’ve answered <b>{n(year.mine)}</b> this week{vsAverage(year.mine, year.avg, studyYear)}.</p>
+                <AvgBar mine={year.mine} avg={year.avg} />
               </>
             )}
           </>
