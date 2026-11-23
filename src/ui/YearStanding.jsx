@@ -1,32 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { sectionH } from "./theme";
 import { fetchLeaderboardWeek } from "../lib/remote";
-import { yearStanding, avgBar } from "../lib/progressPage";
+import { yearStanding, barLabels } from "../lib/progressPage";
 
 /**
  * Your year (2026-11-22). Where you are on this week's board for your year,
  * moved from Progress to Home at Rafil's request. The whole block opens the
  * leaderboard.
  *
- * Built around the year's average (Rafil, 2026-11-23): the bar measures
- * questions this week, the average is its middle and twice the average its
- * end, and your fill stops at what you answered. A percentile bar with the
- * average marked on it came first, and read as nonsense: ahead of 64% yet
- * left of the average, because a few students on hundreds pull the
- * average up past most of the year.
+ * The bar runs from the bottom of your year to the top (Rafil, 2026-11-23):
+ * your fill stops at your place, which the line gives as the top or bottom
+ * share, and the average is marked where it falls among the year. A few
+ * students on hundreds pull the average up past most of the year, so it
+ * usually sits right of the middle.
  *
  * Nothing at all without a year, or while the board has not answered; a
  * plain line when you have not answered anything this week yet.
  */
 const n = v => v.toLocaleString("en-GB");
 
-function AvgBar({ mine, avg }) {
-  const bar = avgBar(mine, avg);
+function YearBar({ at, avgAt, avg }) {
+  const lab = barLabels(at, avgAt);
   return (
-    <span className="yr-bar" style={{ "--p": `${bar.p}%` }} aria-hidden="true">
-      <span className={`yr-bar__you is-${bar.you}`}>You</span>
+    <span className="yr-bar" style={{ "--p": `${at}%`, "--a": `${avgAt}%` }} aria-hidden="true">
+      <span className={`yr-bar__you is-${lab.you}`}>You</span>
       <span className="yr-bar__track"><span className="yr-bar__fill" /><span className="yr-bar__avg" /></span>
-      <span className="yr-bar__ends"><span>0</span><span className="is-avg">Average {n(avg)}</span><span>{n(bar.end)}</span></span>
+      <span className="yr-bar__scale">
+        {lab.bottom && <span className="is-bottom">Bottom</span>}
+        <span className={`is-avg is-${lab.avg}`}>Average {n(avg)}</span>
+        {lab.top && <span className="is-top">Top</span>}
+      </span>
     </span>
   );
 }
@@ -58,7 +61,7 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
             ) : (
               <>
                 <p className="pv-line">You’ve answered <b>{n(year.mine)}</b> this week, in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear}.</p>
-                <AvgBar mine={year.mine} avg={year.avg} />
+                <YearBar at={year.at} avgAt={year.avgAt} avg={year.avg} />
               </>
             )}
           </>

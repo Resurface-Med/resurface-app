@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal, avgBar } from "../src/lib/progressPage";
+import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal, barLabels } from "../src/lib/progressPage";
 
 /* Sunday 22 November 2026 */
 const TODAY = "2026-11-22";
@@ -84,7 +84,7 @@ describe("yearStanding", () => {
     { user_id: "d", week_count: 0, rank: 4 },
   ];
   it("places you among the people who studied this week", () => {
-    expect(yearStanding(rows, "me")).toEqual({ onBoard: true, rank: 2, people: 3, mine: 120, avg: 160, share: { side: "top", pct: 67 } });
+    expect(yearStanding(rows, "me")).toEqual({ onBoard: true, rank: 2, people: 3, mine: 120, avg: 160, share: { side: "top", pct: 67 }, at: 33, avgAt: 67 });
   });
   it("says top or bottom, whichever half you are in, on this week's Year 2", () => {
     const counts = [638,346,288,262,239,193,185,169,168,111,108,101,94,92,83,53,38,36,35,34,27,26,23,19,16,13,11,3,1];
@@ -94,20 +94,24 @@ describe("yearStanding", () => {
     expect(at(11)).toEqual({ side: "bottom", pct: 11 });
     expect(at(1)).toEqual({ side: "bottom", pct: 4 });
   });
+  it("puts you and the average on one bottom-to-top scale", () => {
+    const counts = [638,346,288,262,239,193,185,169,168,111,108,101,94,92,83,53,38,36,35,34,27,26,23,19,16,13,11,3,1];
+    const r = yearStanding(counts.map((c, i) => ({ user_id: c === 108 ? "me" : `u${i}`, week_count: c, rank: i + 1 })), "me");
+    expect(r).toMatchObject({ at: 62, avgAt: 69, avg: 118 });
+  });
   it("says when you are not on the board yet", () => {
     expect(yearStanding(rows, "d")).toEqual({ onBoard: false, people: 3 });
   });
 });
 
-describe("avgBar", () => {
-  it("puts the average in the middle and twice it at the end", () => {
-    expect(avgBar(108, 118)).toEqual({ p: 45.8, end: 236, diff: -10, you: "end" });
-    expect(avgBar(118, 118)).toMatchObject({ p: 50, diff: 0 });
-    expect(avgBar(300, 118)).toMatchObject({ p: 100, diff: 182, you: "end" });
+describe("barLabels", () => {
+  it("runs You away from the middle and centres Average under its mark", () => {
+    expect(barLabels(62, 69)).toEqual({ you: "start", avg: "mid", bottom: true, top: true });
+    expect(barLabels(30, 69).you).toBe("end");
   });
-  it("turns the You label inwards near either end", () => {
-    expect(avgBar(5, 118).you).toBe("start");
-    expect(avgBar(170, 118).you).toBe("start");
+  it("tucks labels in at the ends and drops an end label the average would cover", () => {
+    expect(barLabels(5, 10)).toEqual({ you: "start", avg: "start", bottom: false, top: true });
+    expect(barLabels(97, 92)).toMatchObject({ you: "end", avg: "end", top: false });
   });
 });
 

@@ -166,27 +166,35 @@ export function yearStanding(rows, userId) {
      so people level with you share a place. */
   const top = Math.ceil((100 * (counts.filter(c => c > mine).length + 1)) / people);
   const bottom = Math.ceil((100 * (counts.filter(c => c < mine).length + 1)) / people);
+  const share = top <= bottom ? { side: "top", pct: top } : { side: "bottom", pct: bottom };
+  const avg = counts.reduce((a, c) => a + c, 0) / people;
   return {
     onBoard: true,
     rank: Number(me.rank) || i + 1,
     people,
     mine,
-    avg: Math.round(counts.reduce((a, c) => a + c, 0) / people),
-    share: top <= bottom ? { side: "top", pct: top } : { side: "bottom", pct: bottom },
+    avg: Math.round(avg),
+    share,
+    /* The bar runs from the bottom of the year to the top: you sit where
+       your share puts you (top 38% is 62%), and the average where the
+       share of the year below it puts it. */
+    at: share.side === "top" ? 100 - share.pct : share.pct,
+    avgAt: Math.round((100 * counts.filter(c => c < avg).length) / people),
   };
 }
 
-/** The Your year bar (2026-11-23, Rafil: build it around the average). It
-    measures questions, with the year's average in the middle and twice the
-    average at the far end, so below average is the left half and above it
-    the right. p: where you are, 0–100, full past twice the average. you:
-    which way the "You" label reads from the end of the fill, away from the
-    middle and never off an end. */
-export function avgBar(mine, avg, room = 15) {
-  const end = Math.max(1, avg * 2);
-  const p = Math.min(100, Math.round((1000 * mine) / end) / 10);
-  const you = p < 50 ? (p < room ? "start" : "end") : (p > 100 - room ? "end" : "start");
-  return { p, end, diff: mine - avg, you };
+/** How the Your year bar's labels sit (Rafil, 2026-11-23: percentiles,
+    with the average shown too). "You" reads away from the middle from the
+    end of your fill, turning inwards near an end; "Average" is centred
+    under its mark unless that would run off an end; and an end label
+    ("Bottom", "Top") gives way to "Average" when they would overlap. */
+export function barLabels(at, avgAt, room = 15) {
+  return {
+    you: at < 50 ? (at < room ? "start" : "end") : (at > 100 - room ? "end" : "start"),
+    avg: avgAt < room ? "start" : avgAt > 100 - room ? "end" : "mid",
+    bottom: avgAt >= room + 8,
+    top: avgAt <= 100 - room - 8,
+  };
 }
 
 export const ordinal = n => {
