@@ -6,6 +6,7 @@ import { QUESTIONS } from "../data";
 import {
   fetchOverview, fetchOverviewDaily, fetchStorage, fetchPeople, fetchPeopleDaily, fetchGeneratedDaily,
   setAdmin, fetchIsOwner, fetchFlags, clearFlags, fetchAiQuota, adminDeleteFeatured, fetchLeaderboardWeek,
+  fetchAdminReferralBoard, adminReferralDraw,
 } from "../lib/remote";
 import EditQuestionModal from "../ui/EditQuestionModal";
 import NavChevron from "../ui/NavChevron";
@@ -871,9 +872,103 @@ const TABS = [
   { k: "overview", label: "Overview" },
   { k: "activity", label: "Activity" },
   { k: "people", label: "People" },
+  { k: "referrals", label: "Referrals" },
   { k: "flags", label: "Reported" },
   { k: "popups", label: "Popups" },
 ];
+
+/* Christmas referral raffle board (migration 0096). */
+function Referrals() {
+  const [board, setBoard] = useState(null);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draw, setDraw] = useState(null);
+
+  const load = useCallback(() => {
+    setErr("");
+    fetchAdminReferralBoard()
+      .then(b => { setBoard(b); })
+      .catch(e => setErr(e.message || "Couldn’t load referrals."));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function drawWinner() {
+    const yes = await confirm({
+      title: "Draw a winner?",
+      body: "One ticket is picked at random from everyone with qualified referrals. More tickets = higher chance.",
+      action: "Draw",
+    });
+    if (!yes) return;
+    setBusy(true); setDraw(null);
+    try {
+      const r = await adminReferralDraw();
+      setDraw(r);
+      load();
+    } catch (e) {
+      setErr(e.message || "Draw failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (err && !board) return <Empty>{err}</Empty>;
+  if (!board) return <Empty>&nbsp;</Empty>;
+
+  const camp = board.campaign;
+  const rows = board.rows ?? [];
+  const tickets = rows.reduce((a, r) => a + (Number(r.tickets) || 0), 0);
+
+  return (
+    <div>
+      <section className="ax-chart" style={{ marginBottom: 24 }}>
+        <div className="ax-chart__head">
+          <h3 className="ax-h3">{camp?.name || "Referrals"}</h3>
+          <button type="button" className="btn-press" disabled={busy || tickets < 1} onClick={drawWinner}>
+            {busy ? "Drawing…" : "Draw winner"}
+          </button>
+        </div>
+        <p style={{ margin: "0 0 12px", fontSize: 14, color: OF.soft }}>
+          {camp?.active
+            ? <>Live until {camp.ends_at ? new Date(camp.ends_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"}. Tickets = signups via someone’s link who have answered ≥1 question.</>
+            : <>Campaign not active.</>}
+          {" "}{nf(tickets)} ticket{tickets === 1 ? "" : "s"} in the pool · {nf(rows.length)} referrer{rows.length === 1 ? "" : "s"}.
+        </p>
+        {err && <p className="name-err" role="alert">{err}</p>}
+        {draw?.ok && (
+          <p style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 600 }}>
+            Winner: {draw.display_name} ({nf(draw.tickets_in_pool)} tickets in the draw)
+          </p>
+        )}
+        {draw && draw.ok === false && draw.reason === "no_tickets" && (
+          <p style={{ margin: "0 0 16px", fontSize: 14, color: OF.soft }}>No qualified tickets yet.</p>
+        )}
+      </section>
+      {rows.length === 0 ? <Empty>No referrals in this campaign yet.</Empty> : (
+        <table className="ax-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Tickets</th>
+              <th>Pending</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.user_id}>
+                <td>{r.display_name}</td>
+                <td>{nf(r.tickets)}</td>
+                <td>{nf(r.pending)}</td>
+                <td>{nf(r.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
 
 export default function AdminView({ me = null }) {
   const [tab, setTab] = useState("overview");
@@ -910,6 +1005,7 @@ export default function AdminView({ me = null }) {
             {tab === "overview" && <Overview />}
             {tab === "activity" && <Activity />}
             {tab === "people" && <People />}
+            {tab === "referrals" && <Referrals />}
             {tab === "flags" && <Flags onCount={setFlagCount} />}
             {tab === "popups" && <Popups me={me} />}
           </div>
