@@ -5,8 +5,7 @@ import { h1, primaryBtn, chipBtn, chipBtnActive, btnGhost, sectionH, meta, body 
 import { THEMES } from "../lib/themes";
 import { usePref, setPref } from "../lib/prefs";
 import Wave from "../ui/Wave";
-import { remote, fetchMyReferralStats } from "../lib/remote";
-import { referralUrl } from "../lib/referralLink";
+import { remote } from "../lib/remote";
 import Reminders from "../ui/Reminders";
 import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
@@ -123,22 +122,6 @@ export default function ProfileView({
   }, []);
 
   const [nameErr, setNameErr] = useState("");
-  const [referral, setReferral] = useState(null);
-  const [refCopied, setRefCopied] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchMyReferralStats().then(s => { if (!cancelled) setReferral(s); }, () => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  async function copyReferral() {
-    if (!referral?.code) return;
-    const link = referralUrl(referral.code);
-    try { await navigator.clipboard.writeText(link); } catch { window.prompt("Copy this link", link); }
-    setRefCopied(true);
-    setTimeout(() => setRefCopied(false), 1600);
-  }
 
   function flashPrefs() {
     setPrefSaved(true);
@@ -370,31 +353,6 @@ export default function ProfileView({
                 />
                 <span>Send me news, tips, and study emails</span>
               </label>
-
-              {referral?.campaign?.active && (
-                <div className="profile-field">
-                  <span className="profile-label">{referral.campaign.name || "Referrals"}</span>
-                  <p style={{ ...meta, marginTop: 4, marginBottom: 10 }}>
-                    More referrals = more raffle tickets. A ticket counts when they sign up with your link and answer at least one question.
-                  </p>
-                  <p style={{ ...body, margin: "0 0 10px", fontWeight: 600 }}>
-                    {referral.tickets} ticket{referral.tickets === 1 ? "" : "s"}
-                    {referral.pending > 0 ? ` · ${referral.pending} pending` : ""}
-                  </p>
-                  <div className="profile-name-row">
-                    <input
-                      className="profile-input"
-                      readOnly
-                      value={referral.code ? referralUrl(referral.code) : "…"}
-                      aria-label="Your referral link"
-                      onFocus={e => e.target.select()}
-                    />
-                    <button type="button" className="btn-press profile-inline-save" style={primaryBtn} onClick={copyReferral} disabled={!referral.code}>
-                      {refCopied ? "Copied" : "Copy"}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </section>
           {/* Out of the way (2026-11-05): a category headed in red made
