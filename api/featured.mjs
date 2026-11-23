@@ -26,10 +26,7 @@ async function upstream(fn, args) {
     method: "POST",
     headers: { apikey: ANON_KEY, authorization: `Bearer ${ANON_KEY}`, "content-type": "application/json" },
     body: JSON.stringify(args),
-    /* Match featured_shard's 25s statement_timeout (0099). 15s was
-       cutting off under load, so every phone fell back to PostgREST and
-       the DB filled with parallel 0.5–1 MB shard reads. */
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(15000),
   });
   if (!res.ok) throw Object.assign(new Error("upstream"), { status: 502 });
   return res.text();
