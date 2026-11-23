@@ -197,7 +197,7 @@ export default function UploadQuestions({ deckName, onAdd, onClose }) {
           </div>
         )}
         {named.length > 0 && missing.length === 0 && (
-          <p className="upq-pics-ok">All {named.length} picture{named.length === 1 ? "" : "s"} chosen.</p>
+          <p className="upq-pics-ok">{named.length === 1 ? "Picture chosen." : named.length === 2 ? "Both pictures chosen." : `All ${named.length} pictures chosen.`}</p>
         )}
         <input ref={picInput} type="file" accept="image/*" multiple hidden onChange={e => { read(e.target.files); e.target.value = ""; }} />
         {warnings.length > 0 && (

@@ -218,7 +218,9 @@ export default function ReceiveDeck({ code, onAdded, onSkip }) {
             ? "You added this deck before and already have all of its questions."
             : `You added this deck before. ${fresh} question${plural(fresh)} ${fresh === 1 ? "has" : "have"} been added to it since then.`)
           : nothingNew
-          ? `All ${deck.questions} of these questions are already in your decks.`
+          ? (Number(deck.questions) === 1 ? "This question is already in your decks."
+            : Number(deck.questions) === 2 ? "Both of these questions are already in your decks."
+            : `All ${deck.questions} of these questions are already in your decks.`)
           : skip.length > 0
           ? `${deck.questions} questions. ${skip.length} of them ${skip.length === 1 ? "is" : "are"} already in your decks, so ${skip.length === 1 ? "it won’t" : "they won’t"} be added again.`
           : `${deck.questions} question${plural(Number(deck.questions))}.`}

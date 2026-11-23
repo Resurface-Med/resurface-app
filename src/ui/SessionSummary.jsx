@@ -155,7 +155,7 @@ export default function SessionSummary({ results, title, onRestart, onChangeSett
                 <span>
                   <span style={{ ...sectionH, display: "block" }}>{clean ? "Your questions" : "Questions you got wrong"}</span>
                   <span className="prog-section-note">
-                    {clean ? `All ${total} right` : `${wrongOnes.length} to review`}
+                    {clean ? (total === 1 ? "You got it right" : total === 2 ? "Both right" : `All ${total} right`) : `${wrongOnes.length} to review`}
                   </span>
                 </span>
                 <span className={`prog-chevron${showWrong ? " is-open" : ""}`} aria-hidden="true">
