@@ -167,28 +167,13 @@ export function yearStanding(rows, userId) {
   const top = Math.ceil((100 * (counts.filter(c => c > mine).length + 1)) / people);
   const bottom = Math.ceil((100 * (counts.filter(c => c < mine).length + 1)) / people);
   const share = top <= bottom ? { side: "top", pct: top } : { side: "bottom", pct: bottom };
-  const sorted = [...counts].sort((a, b) => a - b);
-  const mid = Math.floor(people / 2);
   return {
     onBoard: true,
     rank: Number(me.rank) || i + 1,
     people,
     mine,
-    /* The bar's average is the middle student's count, the median, because
-       it sits at 50% of a bottom-to-top bar (Rafil, 2026-11-23: the
-       average in the middle). The mean would not: a few students on
-       hundreds pull it past most of the year (118 against 83 for Year 2). */
-    avg: people % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2),
     share,
-    /* You sit where your share puts you: top 38% is 62%. */
-    at: share.side === "top" ? 100 - share.pct : share.pct,
   };
-}
-
-/** Which way the Your year bar's "You" label reads from the end of your
-    fill: away from the average in the middle, turning inwards near an end. */
-export function youLabel(at, room = 15) {
-  return at < 50 ? (at < room ? "start" : "end") : (at > 100 - room ? "end" : "start");
 }
 
 export const ordinal = n => {

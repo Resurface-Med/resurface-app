@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal, youLabel } from "../src/lib/progressPage";
+import { weekDays, weekLine, weeklyAccuracy, headline, calendar, weakest, yearStanding, ordinal } from "../src/lib/progressPage";
 
 /* Sunday 22 November 2026 */
 const TODAY = "2026-11-22";
@@ -84,7 +84,7 @@ describe("yearStanding", () => {
     { user_id: "d", week_count: 0, rank: 4 },
   ];
   it("places you among the people who studied this week", () => {
-    expect(yearStanding(rows, "me")).toEqual({ onBoard: true, rank: 2, people: 3, mine: 120, avg: 120, share: { side: "top", pct: 67 }, at: 33 });
+    expect(yearStanding(rows, "me")).toEqual({ onBoard: true, rank: 2, people: 3, mine: 120, share: { side: "top", pct: 67 } });
   });
   it("says top or bottom, whichever half you are in, on this week's Year 2", () => {
     const counts = [638,346,288,262,239,193,185,169,168,111,108,101,94,92,83,53,38,36,35,34,27,26,23,19,16,13,11,3,1];
@@ -94,22 +94,8 @@ describe("yearStanding", () => {
     expect(at(11)).toEqual({ side: "bottom", pct: 11 });
     expect(at(1)).toEqual({ side: "bottom", pct: 4 });
   });
-  it("puts you on a bottom-to-top scale with the middle student's count as the average", () => {
-    const counts = [638,346,288,262,239,193,185,169,168,111,108,101,94,92,83,53,38,36,35,34,27,26,23,19,16,13,11,3,1];
-    const r = yearStanding(counts.map((c, i) => ({ user_id: c === 108 ? "me" : `u${i}`, week_count: c, rank: i + 1 })), "me");
-    expect(r).toMatchObject({ at: 62, avg: 83 });
-  });
   it("says when you are not on the board yet", () => {
     expect(yearStanding(rows, "d")).toEqual({ onBoard: false, people: 3 });
-  });
-});
-
-describe("youLabel", () => {
-  it("reads away from the middle, and inwards near an end", () => {
-    expect(youLabel(62)).toBe("start");
-    expect(youLabel(30)).toBe("end");
-    expect(youLabel(5)).toBe("start");
-    expect(youLabel(96)).toBe("end");
   });
 });
 
