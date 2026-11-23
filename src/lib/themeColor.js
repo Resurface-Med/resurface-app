@@ -50,7 +50,7 @@ function rgbToHsl(r, g, b) {
   const d = max - min;
   if (!d) return [0, 0, l];
   const s = d / (1 - Math.abs(2 * l - 1));
-  let h = 0;
+  let h;
   if (max === r) h = ((g - b) / d) % 6;
   else if (max === g) h = (b - r) / d + 2;
   else h = (r - g) / d + 4;

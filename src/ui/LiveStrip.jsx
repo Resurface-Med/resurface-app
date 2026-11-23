@@ -13,7 +13,7 @@ const SHOWN = 4;
  * this session. The list tags each name with their year. Nothing shows when no one else is on. Tapping it lists them;
  * the cross turns it off for good (Settings › Study turns it back on).
  */
-export default function LiveStrip({ answered, onDismiss }) {
+export default function LiveStrip({ onDismiss }) {
   const peers = useLivePeers();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);

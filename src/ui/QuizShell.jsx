@@ -484,7 +484,7 @@ export default function QuizShell({
         </button>
 
         {/* Who else from your year is doing questions (2026-11-14). */}
-        {!showAi && !showNote && showLive && <LiveStrip answered={Object.values(results ?? {}).filter(Boolean).length} onDismiss={() => setPref("showLive", false)} />}
+        {!showAi && !showNote && showLive && <LiveStrip onDismiss={() => setPref("showLive", false)} />}
 
         {railOpen && (
           <button
