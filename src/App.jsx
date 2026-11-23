@@ -35,7 +35,7 @@ import { supabase } from "./lib/supabase";
 import { loadAll, remote, flushQueue, fetchIsAdmin, setQueueOwner, adminDeleteFeatured, adminAddFeatured, adminRenameFeatured,
   fetchAnnouncements, markAnnouncementsSeen, adminPostAnnouncement, adminDeleteAnnouncement,
   adminSetAnnouncementPublished, adminUpdateAnnouncement, adminSetWelcome, pendingOps, onWrite, logStep,
-  liteFeatured, hydrateFeatured, addFriend, claimReferral, fetchResolvedReports, markReportsSeen } from "./lib/remote";
+  liteFeatured, hydrateFeatured, addFriend, fetchResolvedReports, markReportsSeen } from "./lib/remote";
 import { readSnapshot, saveSnapshot } from "./lib/offlineStore";
 import { overlayOps } from "./lib/overlay";
 import { mergeSessions } from "./lib/pastSessions";
@@ -51,9 +51,6 @@ import { chunk, chunkLoadedOk } from "./lib/chunk";
 import ReceiveDeck from "./views/ReceiveDeck";
 import { rememberShare, pendingShare, forgetShare } from "./lib/pendingShare";
 import { friendCodeFromPath, rememberFriend, pendingFriend, forgetFriend } from "./lib/friendLink";
-import {
-  referralCodeFromPath, referralCodeFromSearch, rememberReferral, pendingReferral, forgetReferral,
-} from "./lib/referralLink";
 import LoginPage from "./views/LoginPage";
 import NewPasswordPage from "./views/NewPasswordPage";
 import MarketingPrompt from "./views/MarketingPrompt";
@@ -423,18 +420,6 @@ export default function App() {
       return code;
     }
     return pendingFriend();
-  });
-  /* Christmas referral (/r/<code> or ?r=, migration 0106). */
-  const [referralCode, setReferralCode] = useState(() => {
-    const fromPath = referralCodeFromPath(window.location.pathname);
-    const fromQuery = referralCodeFromSearch(window.location.search);
-    const code = fromPath || fromQuery;
-    if (code) {
-      window.history.replaceState(null, "", "/");
-      rememberReferral(code);
-      return code;
-    }
-    return pendingReferral();
   });
   const [dataLoading, setDataLoading] = useState(true);
   /* Reports of theirs that have been resolved (ui/ReportResolved). Asked
@@ -1049,34 +1034,6 @@ export default function App() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, dataLoading, friendCode, online]);
-  /* Claim a pending referral once signed in (0106). Quiet on success;
-     only surface own-link / dead-link. Too-old and closed campaign just drop. */
-  useEffect(() => {
-    if (!user || dataLoading || !referralCode || !online) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        await claimReferral(referralCode);
-        if (cancelled) return;
-        forgetReferral(); setReferralCode(null);
-      } catch (e) {
-        if (cancelled) return;
-        if (e?.reason === "own" || e?.reason === "unknown") {
-          forgetReferral(); setReferralCode(null);
-          await confirm(e.reason === "own"
-            ? { title: "That’s your own referral link", body: "Send it to friends so they can sign up through you.", action: "OK", cancel: null }
-            : { title: "That referral link doesn’t work", body: "Ask whoever sent it for a fresh one.", action: "OK", cancel: null });
-          return;
-        }
-        if (e?.reason === "too_old" || e?.reason === "closed") {
-          forgetReferral(); setReferralCode(null);
-        }
-        /* offline / other: keep code for a retry */
-      }
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, dataLoading, referralCode, online]);
   /* Woken up (2026-10-29). Most people leave the app open and put the
      phone to sleep, so coming back after a while is the usual way in, not
      a fresh load: queued writes go, the sign-in token is renewed if it ran
@@ -1600,7 +1557,7 @@ export default function App() {
     );
   }
 
-  if (!user) return <LoginPage sentDeck={Boolean(shareCode)} sentFriend={Boolean(friendCode) && !shareCode} sentReferral={Boolean(referralCode) && !shareCode && !friendCode} />;
+  if (!user) return <LoginPage sentDeck={Boolean(shareCode)} sentFriend={Boolean(friendCode) && !shareCode} />;
 
   /* Before the app proper: somebody following a link is here to answer one
      question, and the nav behind it is noise until they have. After the data

@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StreakFlame, { FLAME_LEVELS } from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
-import { fetchLeaderboardWeek, fetchMyRecentAnswers, fetchMyReferralCode, logStep } from "../lib/remote";
-import { referralUrl } from "../lib/referralLink";
+import { fetchLeaderboardWeek, fetchMyRecentAnswers, logStep } from "../lib/remote";
 import { QUESTIONS } from "../data";
 import { todayKey, yesterdayKey } from "../lib/storage";
 
@@ -31,13 +30,7 @@ import { todayKey, yesterdayKey } from "../lib/storage";
  */
 const DAY = 864e5;
 const ordinal = n => `${n}${["th", "st", "nd", "rd"][(n % 100 > 10 && n % 100 < 14) ? 0 : (n % 10 < 4 ? n % 10 : 0)] || "th"}`;
-async function personalInviteLink() {
-  try {
-    const code = await fetchMyReferralCode();
-    if (code) return referralUrl(code);
-  } catch { /* fall through */ }
-  return "https://app.tryresurface.com/";
-}
+const INVITE_LINK = "https://app.tryresurface.com/?ref=invite";
 const first = name => String(name || "").trim().split(/\s+/)[0] || "someone";
 
 /* Remembered per account on this device. */
@@ -649,9 +642,8 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       logStep(userId, "invite_shared");
       const st = store.get(userId, "invite");
       const done = () => { store.set(userId, "invite", { ...st, nextAt: Date.now() + 21 * DAY }); setShown(null); setCopied(false); };
-      const link = await personalInviteLink();
-      if (navigator.share) { try { await navigator.share({ url: link }); done(); } catch { /* backed out */ } return; }
-      try { await navigator.clipboard.writeText(link); } catch { window.prompt("Copy this link", link); }
+      if (navigator.share) { try { await navigator.share({ url: INVITE_LINK }); done(); } catch { /* backed out */ } return; }
+      try { await navigator.clipboard.writeText(INVITE_LINK); } catch { window.prompt("Copy this link", INVITE_LINK); }
       setCopied(true); setTimeout(done, 1800);
     }} />
   );

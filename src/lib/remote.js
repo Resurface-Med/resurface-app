@@ -1164,45 +1164,6 @@ export async function removeFriend(friendId) {
   if (error) throw error;
 }
 
-/* Christmas referral raffle (migration 0106). Separate from friends. */
-export async function fetchMyReferralCode() {
-  const { data, error } = await supabase.rpc("my_referral_code");
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchMyReferralStats() {
-  const { data, error } = await supabase.rpc("my_referral_stats");
-  if (error) throw error;
-  return data ?? { code: null, tickets: 0, pending: 0, campaign: null };
-}
-
-export async function claimReferral(code) {
-  const { data, error } = await supabase.rpc("claim_referral", { code });
-  if (error) {
-    const e = new Error(error.message);
-    e.reason = /referral_own/.test(error.message) ? "own"
-      : /referral_unknown/.test(error.message) ? "unknown"
-      : /referral_too_old/.test(error.message) ? "too_old"
-      : /referral_campaign_closed/.test(error.message) ? "closed"
-      : null;
-    throw e;
-  }
-  return data ?? { ok: false };
-}
-
-export async function fetchAdminReferralBoard() {
-  const { data, error } = await supabase.rpc("admin_referral_board");
-  if (error) throw error;
-  return data ?? { campaign: null, rows: [] };
-}
-
-export async function adminReferralDraw() {
-  const { data, error } = await supabase.rpc("admin_referral_draw");
-  if (error) throw error;
-  return data ?? { ok: false };
-}
-
 // ── Writes ────────────────────────────────────────────────────────────────
 // Each returns a promise the caller is free to ignore.
 
