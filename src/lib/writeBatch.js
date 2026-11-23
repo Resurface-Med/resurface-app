@@ -63,8 +63,17 @@ export const BATCHED = {
     account that is signed in now (a parked write of another account's must
     not land in this one's rows). */
 export function batchable(op, owner) {
+  if (op?.kind === "session-save" && !sessionFits(op.rec)) return false;
   return Boolean(BATCHED[op?.kind]) && Boolean(owner) && op.userId === owner;
 }
+
+/* practice_sessions holds at most 1,000 items (its check constraint). A
+   longer session's save is refused, and inside a batch that refusal took
+   the answer, the stats and the card with it, so every answer of a
+   1,000+ question session went twice (453 refused batches, 2026-11-22).
+   Sent on its own it is refused alone, as before batching. */
+export const SESSION_MAX_ITEMS = 1000;
+const sessionFits = rec => !Array.isArray(rec?.items) || rec.items.length <= SESSION_MAX_ITEMS;
 
 /** The held ops with `op` added: an earlier op it replaces is dropped. */
 export function addToBatch(held, op) {

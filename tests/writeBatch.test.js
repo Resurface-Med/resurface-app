@@ -11,6 +11,11 @@ describe("batchable", () => {
     expect(batchable(practice(1, 1, 1), null)).toBe(false);
     expect(batchable({ kind: "bookmark-add", userId: me, questionId: 1 }, me)).toBe(false);
   });
+  it("leaves out a session too long for the table, so it cannot sink the answer with it", () => {
+    const items = n => Array.from({ length: n }, (_, i) => ({ id: i, pick: null }));
+    expect(batchable({ kind: "session-save", userId: me, rec: { id: "s", items: items(1000) } }, me)).toBe(true);
+    expect(batchable({ kind: "session-save", userId: me, rec: { id: "s", items: items(1001) } }, me)).toBe(false);
+  });
 });
 
 describe("addToBatch", () => {
