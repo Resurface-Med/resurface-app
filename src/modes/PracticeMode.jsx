@@ -273,7 +273,8 @@ export default function PracticeMode({ pStats, bookmarks, onAnswer, onToggleBook
   /* 10, not 20 (2026-11-06). Of 828 sessions, those of 1-10 questions were
      finished 87% of the time and those of 11-20 only 63%; finishing is what
      reaches the results page. Still one slide away for anyone who wants more. */
-  const [countOpt, setCountOpt] = useState(10);
+  /* How many to ask: 20 unless changed (Rafil, 2026-11-23; was 10). */
+  const [countOpt, setCountOpt] = useState(20);
   /* Timed sessions (lib/timed): the clock for the session running now,
      { startedAt, limitMs }, and how the last timed one went, for the
      results page. Only Start makes a timed session; redoing past ones,
