@@ -23,8 +23,8 @@ import ReviewQueue, { QuestionBody } from "./ReviewQueue";
  * Keys: ↑/↓ or J/K move, A approves, F flags, E edits. Nothing fires while
  * typing a comment.
  *
- * Review (2026-11-24): the Review button at the top turns the window into a queue
- * that goes through the deck lecture by lecture, Accept or Report
+ * Review (2026-11-24): the Review button at the top opens a full-screen
+ * session that goes through the deck lecture by lecture, Accept or Report
  * (ReviewQueue). A question reported there is flagged with the note as a
  * comment, and is listed under Reported with the students' reports.
  *
@@ -315,27 +315,18 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
         </button>
 
-        <header className={`qr-head${mode === "review" ? " is-review" : ""}`}>
+        <header className="qr-head">
           <div className="qr-titlerow">
             <h2 className="pss-title" id="qr-title">{deckName}</h2>
             {/* Into the review queue, and back to the list (2026-11-24). */}
-            {mode === "review"
-              ? <button type="button" className="pss-btn btn-press qr-modebtn" onClick={() => setMode("manage")}>← Questions</button>
-              : <button type="button" className="pss-btn btn-press qr-modebtn" onClick={() => setMode("review")}>Review</button>}
+            <button type="button" className="pss-btn btn-press qr-modebtn" onClick={() => setMode("review")}>Review</button>
           </div>
-          {mode === "review" ? (
-            <p className="pss-sub qr-progress-line">
-              <span><strong>{all.filter(x => statusOf(x) != null).length}</strong> of {all.length} reviewed</span>
-              {reportedN > 0 && <span> · {reportedN} reported</span>}
-            </p>
-          ) : (
-            <p className="pss-sub qr-progress-line">
-              <span><strong>{approved}</strong> of {all.length} approved</span>
-              {reportedN > 0 && <span> · {reportedN} reported</span>}
-            </p>
-          )}
+          <p className="pss-sub qr-progress-line">
+            <span><strong>{approved}</strong> of {all.length} approved</span>
+            {reportedN > 0 && <span> · {reportedN} reported</span>}
+          </p>
           <div className="qr-progress" role="img" aria-label={`${pct}% approved`}><span style={{ width: `${pct}%` }} /></div>
-          {mode === "manage" && <div className="qr-toolbar">
+          <div className="qr-toolbar">
             <div className="pss-seg" role="tablist" aria-label="Show">
               {FILTERS.filter(([k]) => k !== "suggested" || suggested.length > 0 || filter === k).map(([k, label]) => (
                 <button key={k} type="button" role="tab" aria-selected={filter === k} className={`pss-seg__b${filter === k ? " is-on" : ""}`}
@@ -355,15 +346,15 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
               {words.length > 0 && <span className="qr-search__n">{shown.length} {shown.length === 1 ? "match" : "matches"}</span>}
             </label>
             <span className="qr-keys" aria-hidden="true">{filter === "suggested" ? "↑↓ move · A add for everyone" : "/ search · ↑↓ move · A approve · F flag · E edit"}</span>
-          </div>}
+          </div>
           {loadError && <p className="qr-error">{loadError} <button type="button" className="gen-link" onClick={load}>Try again</button></p>}
         </header>
 
-        {mode === "review" ? (
+        {mode === "review" && (
           <ReviewQueue all={all} deckId={deckId} deckName={deckName} statusOf={statusOf} reports={reports}
-            where={x => where(x)} onMark={mark} onReport={reportFromQueue}
+            onMark={mark} onReport={reportFromQueue} onExit={() => setMode("manage")}
             onEdit={(x, onSaved) => setEditing({ q: x, onSaved })} />
-        ) : (
+        )}
         <div className={`qr-body${showList ? " is-list" : ""}`}>
           <ol className="qr-list" ref={listRef} aria-label="Questions">
             {shown.slice(0, drawn).map((x, i) => (
@@ -454,7 +445,6 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
             )}
           </section>
         </div>
-        )}
       </div>
       {editing && (
         <EditQuestionModal q={editing.q} persist={editPersist ? updated => editPersist(updated, editing.q) : null}

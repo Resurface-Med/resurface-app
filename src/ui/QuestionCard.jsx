@@ -176,7 +176,7 @@ export function TopicNote({ topic, hl, qid, deckId }) {
   );
 }
 
-export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, onOpenNote = null, coverOptions = false }) {
+export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPrev, onToggleBookmark, isBookmarked, isLast, nextLabel, onSaveEdit, focusMode = false, hideActions = false, aiOpen = false, onAiOpenChange, onControlsChange, peerSplit = null, onOpenNote = null, coverOptions = false, bare = false }) {
   const showSource = usePref("showSource");
   const answered = sel !== null || timedOut;
   /* Covered until you've thought of your answer (2026-11-05); one tap or
@@ -561,15 +561,17 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
               Shown on your own questions too: a featured deck's owner
               studies those as theirs (gen, not featured), and the old
               branch swapped this for Edit, so the owner never saw it. */}
-          <div className="q-review-acts">
+          {/* `bare`: the admin review (ReviewQueue) shows the question and
+              nothing a student does with it. */}
+          {!bare && <div className="q-review-acts">
             <FlagQuestion questionId={q.id} />
             {notes && !myNote && (
               <button type="button" className="q-flag-open btn-press" onClick={openNote}>Add a note</button>
             )}
-          </div>
+          </div>}
           {/* Your note, read as something you wrote, not a field to fill:
               a rule down the side, your words, and Edit (2026-10-30). */}
-          {notes && myNote && (
+          {notes && myNote && !bare && (
             <div className="q-mynote-read">
               <div className="q-mynote-read__head">
                 <span className="q-mynote-read__label">Your note</span>

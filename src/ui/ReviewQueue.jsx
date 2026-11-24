@@ -1,31 +1,29 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import RichText from "./RichText";
 import QuestionExhibit from "./QuestionExhibit";
 import QuestionImage from "./QuestionImage";
-import { TopicNote, stemSize } from "./QuestionCard";
-import { qstem } from "./theme";
+import QuestionCard from "./QuestionCard";
+import NavChevron from "./NavChevron";
+import Wave from "./Wave";
 
 /**
- * Review mode of Manage questions (2026-11-24).
+ * Review (2026-11-24): the admin team going through a deck one lecture at a
+ * time, from the Review button in Manage questions.
  *
- * The reviewer goes through a deck one lecture at a time, so they get into
- * the rhythm of its content: the lectures down the left with how far each
- * is done, the question on the right as Manage shows it (answer marked,
- * every why-wrong, the explanation and the topic note), and Accept or
- * Report in Practice's blue capsule.
+ * Full screen, in Practice's session shell (Rafil: "just like the question
+ * flow"): the blue bar with the lecture's progress, the question as the
+ * answered card (QuestionCard, `bare`), and the bar along the bottom with
+ * back and forward, Report and Accept. The deck's lectures are the slide-out
+ * list on the left, each with how far it is done. Only questions nobody has
+ * reviewed come up; back steps through the ones just done, to change a call.
  *
- * The question is Practice's answered card (2026-11-24, Rafil: "much more
- * focused"): one column, the right answer with the others behind "Show all
- * 5 options", the explanation, and the topic note folded to its first
- * line. Built from the card's own classes, without its tools, notes and
- * report button, which a reviewer does not need. Only questions nobody has reviewed yet
- * come up; Back steps through the ones just done, to change a call.
+ * Report asks what is wrong (the app's popup), then flags the question with
+ * the note as a comment, where Manage's Reported list shows it. Edit is the
+ * pencil in the top bar; saving from here accepts the question.
  *
- * Report asks what is wrong, then marks the question and puts the note in
- * its comments, where Manage's Reported list picks it up. Edit opens the
- * usual editor, and saving accepts the question.
- *
- * Keys: A accept, R report, E edit, ← back, Esc back to the list. Nothing
+ * Keys: A accept, R report, ← back, → skip, Esc back to the list. Nothing
  * fires while typing.
  */
 const LETTERS = "ABCDE";
@@ -81,53 +79,6 @@ function StudentReports({ report }) {
   );
 }
 
-/* Practice's card, answered with the right answer, drawn straight on the
-   window rather than as a card inside it. The other options start folded,
-   whatever Practice is set to; opened, they stay open for the sitting. */
-function ReviewCard({ q, where, showAll, onShowAll }) {
-  return (
-    <div className="q-card rq-card">
-      {where && <p className="q-source">{where}</p>}
-      <p className={`q-stem-review${stemSize(q.q)}`} style={{ ...qstem, marginBottom: 20 }}>{q.q}</p>
-      <div className="q-body">
-        <QuestionImage key={q.img || "none"} path={q.img} />
-        <QuestionExhibit exhibit={q.exhibit} answered />
-        <div className={q.ask ? "q-follow" : undefined} style={q.ask ? undefined : { display: "contents" }}>
-          {q.ask && <p className="q-ask">{q.ask}</p>}
-          <div className={`q-opts is-review${showAll ? "" : " is-collapsed"}`} role="list" aria-label="Answers">
-            {q.opts.map((o, i) => {
-              const ok = i === q.ans;
-              if (!ok && !showAll) return null;
-              return (
-                <div key={i} role="listitem" className={`q-opt rq-opt is-${ok ? "correct" : "faded"}`}>
-                  <div className="q-opt-row">
-                    <span className="q-opt-letter" aria-hidden="true">{LETTERS[i]}</span>
-                    <span className="q-opt-text">{o}</span>
-                    {ok && <span className="q-opt-end"><span className="q-opt-mark ok" aria-label="Correct answer">✓</span></span>}
-                  </div>
-                  {!ok && q.optExp?.[i] && <div className="q-opt-note">{q.optExp[i]}</div>}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      <div className="q-review">
-        {q.exp && <p className="q-exp">{q.exp}</p>}
-        <div className="q-review-meta">
-          <button type="button" className="q-allopts" onClick={() => onShowAll(!showAll)} aria-expanded={showAll}>
-            {showAll ? "Hide other options" : `Show all ${q.opts.length} options`}
-            <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </span>
-          </button>
-        </div>
-        {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} qid={q.id} deckId={q.deckId} />}
-      </div>
-    </div>
-  );
-}
-
 /* The deck's questions grouped by the deck each sits in (its lecture), in
    the deck's own order. */
 function lecturesOf(all, deckId, deckName) {
@@ -141,7 +92,16 @@ function lecturesOf(all, deckId, deckName) {
   return [...by.values()];
 }
 
-export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, where, onMark, onReport, onEdit }) {
+
+const RAIL_KEY = "rs-review-rail";
+/* Open on a laptop unless it was last closed; shut on a phone, where it
+   covers the question. */
+const railKept = () => {
+  if (typeof window !== "undefined" && window.innerWidth <= 900) return false;
+  try { return localStorage.getItem(RAIL_KEY) !== "0"; } catch { return true; }
+};
+
+export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, onMark, onReport, onEdit, onExit }) {
   const lectures = useMemo(() => lecturesOf(all, deckId, deckName), [all, deckId, deckName]);
   const reviewed = x => statusOf(x) != null;
   const firstOpen = lec => lec?.qs.find(x => !reviewed(x)) ?? null;
@@ -149,23 +109,23 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
   const [lecId, setLecId] = useState(() => (lectures.find(firstOpen) ?? lectures[0])?.id ?? null);
   const lec = lectures.find(l => l.id === lecId) ?? lectures[0] ?? null;
   const [curId, setCurId] = useState(() => firstOpen(lec)?.id ?? null);
-  /* The questions done in this sitting, newest last, for Back. */
+  /* The questions done in this sitting, newest last, for back. */
   const [trail, setTrail] = useState([]);
   /* The report being written, for the question it is about. */
   const [noteFor, setNoteFor] = useState(null);                 // { id, text } | null
   const note = noteFor && noteFor.id === curId ? noteFor.text : null;
   const setNote = text => setNoteFor(text == null ? null : { id: curId, text });
   const [busy, setBusy] = useState(false);
-  const [showAll, setShowAll] = useState(false);
-  const detailRef = useRef(null);
-  const railRef = useRef(null);
+  const [railOpen, setRailOpen] = useState(railKept);
+  const toggleRail = () => setRailOpen(o => {
+    try { localStorage.setItem(RAIL_KEY, o ? "0" : "1"); } catch { /* this visit only */ }
+    return !o;
+  });
 
   const q = curId != null ? all.find(x => x.id === curId) ?? null : null;
   const status = q ? statusOf(q) : null;
-  const pos = q && lec ? lec.qs.findIndex(x => x.id === q.id) : -1;
-
-  useEffect(() => { detailRef.current?.scrollTo?.({ top: 0 }); }, [curId]);
-  useEffect(() => { railRef.current?.querySelector(".rq-lec.is-on")?.scrollIntoView({ block: "nearest" }); }, [lecId]);
+  const doneIn = l => l.qs.filter(reviewed).length;
+  const doneAll = all.filter(reviewed).length;
 
   /* The next question nobody has reviewed in this lecture, after `from`
      and then from the top; null when the lecture is done. */
@@ -180,27 +140,32 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
     setCurId(nextOpen(done.id)?.id ?? null);
   }
   function openLecture(l) {
+    if (typeof window !== "undefined" && window.innerWidth <= 900) setRailOpen(false);
     setLecId(l.id);
     setCurId((firstOpen(l) ?? l.qs[0])?.id ?? null);
+  }
+  /* Forward without a decision: the next one still to do. */
+  function skip() {
+    if (!q) return;
+    const n = nextOpen(q.id);
+    if (n) setCurId(n.id);
   }
 
   async function accept() {
     if (!q || busy) return;
     setBusy(true);
-    try { await onMark(q, "approved"); moveOn(q); } finally { setBusy(false); }
+    try { await onMark(q, "approved"); moveOn(q); } catch { /* put back by onMark */ } finally { setBusy(false); }
   }
   async function sendReport() {
     const body = (note ?? "").trim();
     if (!q || !body || busy) return;
     setBusy(true);
-    try { await onReport(q, body); moveOn(q); } finally { setBusy(false); }
+    try { await onReport(q, body); setNoteFor(null); moveOn(q); } catch { /* put back by onMark */ } finally { setBusy(false); }
   }
   function back() {
     const prev = trail[trail.length - 1];
     if (prev == null) return;
     setTrail(t => t.slice(0, -1));
-    const x = all.find(y => y.id === prev);
-    if (!x) return;
     const owner = lectures.find(l => l.qs.some(y => y.id === prev));
     if (owner && owner.id !== lecId) setLecId(owner.id);
     setCurId(prev);
@@ -208,88 +173,148 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
 
   useEffect(() => {
     const onKey = e => {
+      if (e.key === "Escape") {
+        e.preventDefault(); e.stopPropagation();
+        if (note !== null) setNoteFor(null); else onExit();
+        return;
+      }
       const t = e.target;
-      if (e.key === "Escape" && note !== null) { e.preventDefault(); e.stopPropagation(); setNote(null); return; }
       if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.isContentEditable)) return;
-      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || note !== null || !q) return;
       const k = e.key.toLowerCase();
-      if (k === "arrowleft") { e.preventDefault(); back(); }
-      else if (!q) return;
-      else if (k === "a") { e.preventDefault(); accept(); }
+      if (k === "a") { e.preventDefault(); accept(); }
       else if (k === "r") { e.preventDefault(); setNote(""); }
-      else if (k === "e") { e.preventDefault(); onEdit(q, () => moveOn(q)); }
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
   });
 
-  const doneIn = l => l.qs.filter(reviewed).length;
   const nextLecture = lec ? lectures.slice(lectures.indexOf(lec) + 1).concat(lectures.slice(0, lectures.indexOf(lec))).find(l => firstOpen(l)) : null;
+  const lecDone = lec ? doneIn(lec) : 0;
 
-  return (
-    <div className="rq">
-      <nav className="rq-rail" ref={railRef} aria-label="Lectures">
-        {lectures.map(l => {
-          const n = doneIn(l);
-          const complete = n === l.qs.length;
-          return (
-            <button key={l.id} type="button" className={`rq-lec${l.id === lec?.id ? " is-on" : ""}${complete ? " is-done" : ""}`} onClick={() => openLecture(l)}>
-              <span className="rq-lec__name">{l.name}</span>
-              <span className="rq-lec__n">{complete ? `✓ ${l.qs.length}` : `${n} / ${l.qs.length}`}</span>
-            </button>
-          );
-        })}
-      </nav>
-
-      <div className="rq-main">
-        <section className="qr-detail rq-detail" ref={detailRef} aria-live="polite">
-          {q ? (
-            <>
-              <ReviewCard q={q} where={where(q) || lec?.name} showAll={showAll} onShowAll={setShowAll} />
-              {reports.get(q.id) && <StudentReports report={reports.get(q.id)} />}
-              {status && <p className="qr-who">{status === "approved" ? "Accepted" : "Reported"}. Accept or report it again to change that.</p>}
-              {note !== null && (
-                <div className="rq-note">
-                  <label className="qr-label" htmlFor="rq-note">What’s wrong with it?</label>
-                  <textarea id="rq-note" className="np__field qr-input" rows={3} maxLength={2000} autoFocus value={note}
-                    placeholder="For example: D could also be argued, because…"
-                    onChange={e => setNote(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); sendReport(); } }} />
-                  <div className="rq-note__acts">
-                    <button type="button" className="pss-btn btn-press is-primary" disabled={!note.trim() || busy} onClick={sendReport}>Report</button>
-                    <button type="button" className="gen-link" onClick={() => setNote(null)}>Cancel</button>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : lec && (
-            <div className="rq-done">
-              <p className="rq-done__n">{lec.qs.length}<span>reviewed</span></p>
-              <p className="rq-done__line">
-                {lec.name} is done: {lec.qs.filter(x => statusOf(x) === "approved").length} accepted
-                {lec.qs.some(x => statusOf(x) === "flagged") ? `, ${lec.qs.filter(x => statusOf(x) === "flagged").length} reported` : ""}.
-              </p>
-              {nextLecture
-                ? <button type="button" className="pss-btn btn-press is-primary rq-done__next" onClick={() => openLecture(nextLecture)}>Next: {nextLecture.name}</button>
-                : <p className="rq-done__line">Every lecture in {deckName} is reviewed.</p>}
-            </div>
-          )}
-        </section>
-
-        {q && note === null && (
-          <div className="rq-dock">
-            <div className="setup-next-bar rq-bar">
-              <p className="setup-next-sel">{pos + 1} of {lec.qs.length} in this lecture</p>
-              <span className="rq-bar__acts">
-                {trail.length > 0 && <button type="button" className="rq-ghost" onClick={back} aria-label="Back to the last one">←</button>}
-                <button type="button" className="rq-ghost" onClick={() => onEdit(q, () => moveOn(q))}>Edit</button>
-                <button type="button" className="rq-ghost" onClick={() => setNote("")}>Report<kbd>R</kbd></button>
-                <button type="button" className="setup-next-btn" disabled={busy} onClick={accept}>Accept<kbd>A</kbd></button>
-              </span>
-            </div>
+  return createPortal(
+    <div className={`quiz-shell rv${railOpen ? " is-rail" : ""}`} role="dialog" aria-modal="true" aria-label={`Review ${deckName}`}>
+      <header className="quiz-shell__header">
+        <button type="button" className="quiz-shell__close btn-press" onClick={onExit} aria-label="Back to the questions list">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div className="quiz-shell__progress-wrap">
+          <div className="quiz-shell__progress" aria-hidden="true">
+            <div className="quiz-shell__progress-fill" style={{ transform: `scaleX(${lec ? lecDone / lec.qs.length : 0})` }} />
           </div>
+          <span className="quiz-shell__count">{lecDone}/{lec?.qs.length ?? 0}</span>
+          {q && (
+            <button type="button" className="quiz-shell__tool btn-press" onClick={() => onEdit(q, () => moveOn(q))} title="Edit question" aria-label="Edit question">
+              <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <path d="M10.5 1.5L13.5 4.5L5 13H2V10L10.5 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </header>
+      <Wave from="var(--c-bg)" to="var(--c-surface2)" height="clamp(16px, min(3.2vw, 4.2vh), 46px)" />
+
+      <div className="quiz-shell__stage">
+        {railOpen && (
+          <aside className="quiz-rail" aria-label="Lectures">
+            <div className="quiz-rail__inner">
+              <div className="quiz-rail__head">
+                <h2 className="quiz-rail__title">{deckName}</h2>
+                <span className="rv-total">{doneAll}/{all.length}</span>
+              </div>
+              <div className="quiz-rail__bar" aria-hidden="true">
+                <div className="quiz-rail__bar-fill" style={{ transform: `scaleX(${all.length ? doneAll / all.length : 0})` }} />
+              </div>
+              <nav className="rv-lecs">
+                {lectures.map(l => {
+                  const n = doneIn(l);
+                  const complete = n === l.qs.length;
+                  return (
+                    <button key={l.id} type="button" className={`rq-lec${l.id === lec?.id ? " is-on" : ""}${complete ? " is-done" : ""}`} onClick={() => openLecture(l)}>
+                      <span className="rq-lec__name">{l.name}</span>
+                      <span className="rq-lec__n">{complete ? `✓ ${l.qs.length}` : `${n} / ${l.qs.length}`}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </aside>
         )}
+        <button type="button" className={`quiz-rail-toggle btn-press${railOpen ? " is-on" : ""}`} onClick={toggleRail}
+          title={railOpen ? "Hide the lectures" : "Show the lectures"} aria-label={railOpen ? "Hide the lectures" : "Show the lectures"} aria-expanded={railOpen}>
+          {railOpen ? <PanelLeftClose size={20} strokeWidth={2} aria-hidden="true" /> : <PanelLeftOpen size={20} strokeWidth={2} aria-hidden="true" />}
+        </button>
+
+        {railOpen && <button type="button" className="quiz-rail__scrim" aria-label="Close the lectures" onClick={toggleRail} />}
+
+        <div className="quiz-shell__body">
+          <div className="quiz-shell__main">
+            {q ? (
+              <>
+                <p className="rv-lecname">{lec?.name}</p>
+                <QuestionCard key={q.id} q={q} sel={q.ans} onAnswer={() => {}} onNext={skip} onPrev={trail.length ? back : undefined}
+                  focusMode hideActions bare />
+                {reports.get(q.id) && <StudentReports report={reports.get(q.id)} />}
+                {status && <p className="rv-status">{status === "approved" ? "You accepted this." : "You reported this."} Accept or report it again to change that.</p>}
+              </>
+            ) : lec && (
+              <div className="rq-done">
+                <p className="rq-done__n">{lec.qs.length}<span>reviewed</span></p>
+                <p className="rq-done__line">
+                  {lec.name} is done: {lec.qs.filter(x => statusOf(x) === "approved").length} accepted
+                  {lec.qs.some(x => statusOf(x) === "flagged") ? `, ${lec.qs.filter(x => statusOf(x) === "flagged").length} reported` : ""}.
+                </p>
+                {!nextLecture && <p className="rq-done__line">Every lecture in {deckName} is reviewed.</p>}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+
+      <footer className="quiz-shell__footer">
+        <div className="quiz-shell__footer-bar">
+          <div className="quiz-shell__nav quiz-pair" role="group" aria-label="Move between questions">
+            <button type="button" className="quiz-pair__btn btn-press" onClick={back} disabled={!trail.length} aria-label="Back to the last one">
+              <NavChevron back />
+            </button>
+            <span className="quiz-pair__rule" aria-hidden="true" />
+            <button type="button" className="quiz-pair__btn btn-press" onClick={skip} disabled={!q} aria-label="Skip for now">
+              <NavChevron />
+            </button>
+          </div>
+          <div className="quiz-shell__foot-right">
+            {q ? (
+              <>
+                <button type="button" className="quiz-shell__foot-btn btn-press rv-report" onClick={() => setNote("")}>Report</button>
+                <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" disabled={busy} onClick={accept}>Accept</button>
+              </>
+            ) : nextLecture ? (
+              <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" onClick={() => openLecture(nextLecture)}>Next: {nextLecture.name}</button>
+            ) : (
+              <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" onClick={onExit}>Back to the list</button>
+            )}
+          </div>
+        </div>
+      </footer>
+
+      {note !== null && (
+        <div className="np-scrim rv-scrim" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setNoteFor(null); }}>
+          <form className="np" role="dialog" aria-modal="true" aria-label="Report this question" onSubmit={e => { e.preventDefault(); sendReport(); }}>
+            <label className="np__label is-first is-top" htmlFor="rv-note">What’s wrong with it?</label>
+            <textarea id="rv-note" className="np__field is-labelled rv-note" rows={4} maxLength={2000} autoFocus value={note}
+              placeholder="For example: D could also be argued, because…"
+              onChange={e => setNote(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); sendReport(); } }} />
+            <p className="np__hint">It goes to the Reported list in Manage questions, with this note.</p>
+            <div className="np__row">
+              <button type="submit" className="np__save btn-press" disabled={!note.trim() || busy}>{busy ? "Reporting…" : "Report"}</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>,
+    document.body,
   );
 }

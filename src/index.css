@@ -11027,13 +11027,14 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .qr-titlerow { display: flex; align-items: center; justify-content: space-between; gap: 12px 18px; padding-right: 56px; }
 .qr-titlerow .pss-title { padding-right: 0; min-width: 0; }
 .qr-modebtn { flex: none; padding: 8px 18px; }
-.qr-head.is-review { padding-bottom: 18px; border-bottom: 1px solid var(--c-border); }
 .qr-more { height: 1px; }
 
-/* Review mode: the deck's lectures down the left, the question on the
-   right, Accept and Report in Practice's blue capsule. */
-.rq { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr); }
-.rq-rail { overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--c-border); padding: 14px 12px 24px 24px; display: flex; flex-direction: column; gap: 2px; }
+/* Review (ReviewQueue): Practice's session shell over the Manage window,
+   under the question editor (1600). */
+.quiz-shell.rv { z-index: 1580; }
+.rv .quiz-rail__head { align-items: baseline; }
+.rv-total { font-size: 13.5px; font-weight: 600; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.rv-lecs { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; overflow-y: auto; min-height: 0; }
 .rq-lec {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 10px;
   padding: 9px 12px; border: 0; border-radius: 12px; background: none; text-align: left; cursor: pointer;
@@ -11044,32 +11045,17 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .rq-lec.is-done { color: var(--c-muted); }
 .rq-lec__n { font-size: 12.5px; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rq-lec.is-done .rq-lec__n { color: var(--c-success); }
-.rq-main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-/* One column in the middle, as in Practice. */
-.rq-detail { flex: 1; padding-bottom: 140px; display: flex; flex-direction: column; align-items: center; }
-.rq-detail > * { width: 100%; max-width: 720px; }
-.rq-card { margin: 0; }
-.rq-card .q-source { margin-top: 0; }
-.rq-opt { cursor: default; }
+.rv-lecname { margin: 0 0 10px; font-size: 13.5px; font-weight: 600; color: var(--c-muted); }
+.rv-status { margin: 14px 0 0; font-size: 13.5px; color: var(--c-muted); }
 .rq-reports { margin-top: 20px; }
-.rq-dock {
-  position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
-  padding: 44px 16px calc(20px + var(--safe-b, 0px));
-  background: linear-gradient(to bottom, transparent, var(--c-card-solid) 55%); pointer-events: none;
-}
-.rq-bar { pointer-events: auto; }
-.rq-bar__acts { flex: none; display: flex; align-items: center; gap: 2px; }
-.rq-ghost { border: 0; background: none; color: #fff; font: inherit; font-size: 15px; font-weight: 600; padding: 10px 12px; border-radius: 999px; cursor: pointer; }
-.rq-ghost:hover { background: rgba(255, 255, 255, 0.14); }
-.rq-ghost:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-.rq-bar kbd { margin-left: 7px; padding: 0 5px; border: 1px solid currentColor; border-radius: 5px; font: inherit; font-size: 11.5px; font-weight: 600; opacity: 0.6; }
-.rq-note { display: flex; flex-direction: column; gap: 8px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--c-border); max-width: 760px; }
-.rq-note__acts { display: flex; align-items: center; gap: 14px; }
-.rq-done { max-width: 560px; margin-top: 40px; }
-.rq-done__n { margin: 0; font-size: 40px; font-weight: 600; letter-spacing: -1.4px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; }
+.quiz-shell__foot-btn.rv-report { background: transparent; border-color: transparent; color: var(--c-sub); box-shadow: none; }
+.quiz-shell__foot-btn.rv-report:hover { color: var(--c-text); }
+.rv-scrim { z-index: 1590; }
+.rv-note { min-height: 110px; resize: vertical; font: inherit; }
+.rq-done { max-width: 560px; margin: 8vh auto 0; text-align: center; }
+.rq-done__n { margin: 0; font-size: 44px; font-weight: 600; letter-spacing: -1.4px; line-height: 1; color: var(--c-text); font-variant-numeric: tabular-nums; }
 .rq-done__n span { margin-left: 8px; font-size: 16px; font-weight: 500; letter-spacing: 0; color: var(--c-muted); }
-.rq-done__line { margin: 10px 0 0; font-size: 15px; line-height: 1.5; color: var(--c-sub); }
-.rq-done__next { margin-top: 22px; }
+.rq-done__line { margin: 12px 0 0; font-size: 15.5px; line-height: 1.5; color: var(--c-sub); }
 
 /* Phones: one column. The question fills the window; "All questions"
    swaps it for the list. */
@@ -11097,11 +11083,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .qr-confirm { flex-wrap: wrap; }
   .qr-compose { flex-direction: column; align-items: stretch; }
   .qr-titlerow { padding-right: 44px; }
-  .rq { grid-template-columns: minmax(0, 1fr); }
-  .rq-rail { display: none; }
-  .rq-detail { padding-bottom: 130px; }
-  .rq-bar { padding-left: 16px; }
-  .rq-bar .setup-next-sel, .rq-bar kbd { display: none; }
+
   .qr-compose .pss-btn { align-self: flex-start; }
 }
 .qr .pss-seg__b { white-space: nowrap; }
