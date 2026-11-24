@@ -17,7 +17,7 @@ import Wave from "./Wave";
  * answered card (QuestionCard, `bare`), and the bar along the bottom with
  * back and forward, Report and Accept. The deck's lectures are the slide-out
  * list on the left, each with how far it is done. Only questions nobody has
- * reviewed come up; back steps through the ones just done, to change a call.
+ * reviewed come up after a decision; the arrows walk the lecture in order.
  *
  * Report asks what is wrong (the app's popup), then flags the question with
  * the note as a comment, where Manage's Reported list shows it. Edit is the
@@ -109,8 +109,6 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
   const [lecId, setLecId] = useState(() => (lectures.find(firstOpen) ?? lectures[0])?.id ?? null);
   const lec = lectures.find(l => l.id === lecId) ?? lectures[0] ?? null;
   const [curId, setCurId] = useState(() => firstOpen(lec)?.id ?? null);
-  /* The questions done in this sitting, newest last, for back. */
-  const [trail, setTrail] = useState([]);
   /* The report being written, for the question it is about. */
   const [noteFor, setNoteFor] = useState(null);                 // { id, text } | null
   const note = noteFor && noteFor.id === curId ? noteFor.text : null;
@@ -136,7 +134,6 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
     return order.find(x => x.id !== from && !reviewed(x)) ?? null;
   }
   function moveOn(done) {
-    setTrail(t => [...t.filter(id => id !== done.id), done.id]);
     setCurId(nextOpen(done.id)?.id ?? null);
   }
   function openLecture(l) {
@@ -144,11 +141,23 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
     setLecId(l.id);
     setCurId((firstOpen(l) ?? l.qs[0])?.id ?? null);
   }
-  /* Forward without a decision: the next one still to do. */
+  /* The arrows walk the lecture in order, reviewed or not (Rafil,
+     2026-11-24: back has to reach any question). Back from the first
+     question goes to the end of the lecture before; forward from the last
+     goes to the lecture's end. Accept and Report still jump to the next one
+     still to do. */
+  const lecIdx = lec ? lectures.indexOf(lec) : -1;
+  const pos = q && lec ? lec.qs.findIndex(x => x.id === q.id) : (lec ? lec.qs.length : -1);
+  const prevLec = lecIdx > 0 ? lectures[lecIdx - 1] : null;
+  const canBack = pos > 0 || !!prevLec;
+  function back() {
+    if (!lec) return;
+    if (pos > 0) { setCurId(lec.qs[pos - 1].id); return; }
+    if (prevLec) { setLecId(prevLec.id); setCurId(prevLec.qs[prevLec.qs.length - 1]?.id ?? null); }
+  }
   function skip() {
-    if (!q) return;
-    const n = nextOpen(q.id);
-    if (n) setCurId(n.id);
+    if (!q || !lec) return;
+    setCurId(pos < lec.qs.length - 1 ? lec.qs[pos + 1].id : null);
   }
 
   async function accept() {
@@ -161,14 +170,6 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
     if (!q || !body || busy) return;
     setBusy(true);
     try { await onReport(q, body); setNoteFor(null); moveOn(q); } catch { /* put back by onMark */ } finally { setBusy(false); }
-  }
-  function back() {
-    const prev = trail[trail.length - 1];
-    if (prev == null) return;
-    setTrail(t => t.slice(0, -1));
-    const owner = lectures.find(l => l.qs.some(y => y.id === prev));
-    if (owner && owner.id !== lecId) setLecId(owner.id);
-    setCurId(prev);
   }
 
   useEffect(() => {
@@ -256,7 +257,7 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
           <div className="quiz-shell__main">
             {q ? (
               <>
-                <QuestionCard key={q.id} q={q} sel={q.ans} onAnswer={() => {}} onNext={skip} onPrev={trail.length ? back : undefined}
+                <QuestionCard key={q.id} q={q} sel={q.ans} onAnswer={() => {}} onNext={skip} onPrev={canBack ? back : undefined}
                   focusMode hideActions bare />
                 {reports.get(q.id) && <StudentReports report={reports.get(q.id)} />}
                 {status && <p className="rv-status">{status === "approved" ? "You accepted this." : "You reported this."} Accept or report it again to change that.</p>}
@@ -278,11 +279,11 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
       <footer className="quiz-shell__footer">
         <div className="quiz-shell__footer-bar">
           <div className="quiz-shell__nav quiz-pair" role="group" aria-label="Move between questions">
-            <button type="button" className="quiz-pair__btn btn-press" onClick={back} disabled={!trail.length} aria-label="Back to the last one">
+            <button type="button" className="quiz-pair__btn btn-press" onClick={back} disabled={!canBack} aria-label="Previous question">
               <NavChevron back />
             </button>
             <span className="quiz-pair__rule" aria-hidden="true" />
-            <button type="button" className="quiz-pair__btn btn-press" onClick={skip} disabled={!q} aria-label="Skip for now">
+            <button type="button" className="quiz-pair__btn btn-press" onClick={skip} disabled={!q} aria-label="Next question">
               <NavChevron />
             </button>
           </div>
