@@ -1,4 +1,3 @@
-import RichText from "./RichText";
 import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { questionsInDeck } from "../lib/decks";
@@ -7,8 +6,7 @@ import { fetchReviewState, setReviewStatus, addReviewComment, removeReviewCommen
 import { useAuth } from "../lib/auth";
 import { ago } from "../lib/pastSessions";
 import EditQuestionModal from "./EditQuestionModal";
-import QuestionExhibit from "./QuestionExhibit";
-import QuestionImage from "./QuestionImage";
+import ReviewQueue, { QuestionBody } from "./ReviewQueue";
 
 /**
  * Review questions (2026-10-23): the admin team — Rafil, Jacob, Rayan —
@@ -25,12 +23,19 @@ import QuestionImage from "./QuestionImage";
  * Keys: ↑/↓ or J/K move, A approves, F flags, E edits. Nothing fires while
  * typing a comment.
  *
+ * Review (2026-11-24): the switch at the top turns the window into a queue
+ * that goes through the deck lecture by lecture, Accept or Report
+ * (ReviewQueue). A question reported there is flagged with the note as a
+ * comment, and is listed under Reported with the students' reports.
+ *
+ * Big decks: the list draws its rows a page at a time as it is scrolled,
+ * not all of them at once (Year 3 has over 4,000).
+ *
  * Suggested: students' folders put inside this deck and sent for everyone
  * (migration 0048). Each question is added — it moves into the deck, with
  * their name on it, approved — or kept out with a reason they see. Only
  * there while some are waiting.
  */
-const LETTERS = "ABCDE";
 const dbId = q => q.id - GEN_ID_BASE;
 const FILTERS = [
   ["all", "All"],
@@ -83,6 +88,10 @@ const Row = memo(function Row({ x, n, on, words, where, status, reported, onPick
   );
 });
 
+/* Rows drawn at first, and added each time the end of the list comes into
+   view. */
+const PAGE = 120;
+
 export default function QuestionReviewer({ deckId, deckName, actions, editPersist = null, deckIds = null, onClose }) {
   const { user } = useAuth();
   const [version, setVersion] = useState(0);
@@ -101,7 +110,9 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   /* The list follows the box a beat behind, so typing never waits on it. */
   const deferredQuery = useDeferredValue(query);
   const [cur, setCur] = useState(all[0]?.id ?? null);
-  const [editing, setEditing] = useState(null);
+  const [editing, setEditing] = useState(null);                 // { q, onSaved? }
+  const [mode, setMode] = useState("manage");                   // "manage" | "review"
+  const [paging, setPaging] = useState({ key: "", n: PAGE });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -135,7 +146,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const shown = all.filter(q => {
     if (filter === "todo") return statusOf(q) !== "approved";
     if (filter === "flagged") return statusOf(q) === "flagged";
-    if (filter === "reported") return reports.has(q.id);
+    if (filter === "reported") return reports.has(q.id) || statusOf(q) === "flagged";
     return true;
   });
   if (filter === "suggested") shown.splice(0, shown.length, ...suggested);
@@ -153,7 +164,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const idx = q ? shown.findIndex(x => x.id === q.id) : -1;
   const approved = all.filter(x => statusOf(x) === "approved").length;
   const flagged = all.filter(x => statusOf(x) === "flagged").length;
-  const reportedN = all.filter(x => reports.has(x.id)).length;
+  const reportedN = all.filter(x => reports.has(x.id) || statusOf(x) === "flagged").length;
   const counts = { all: all.length, todo: all.length - approved, flagged, reported: reportedN, suggested: suggested.length };
 
   const go = step => {
@@ -163,6 +174,21 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
     setConfirmDelete(false);
   };
 
+  /* A new filter or search starts from the first page again; the selected
+     row is always among the rows drawn. */
+  const pageKey = `${filter}|${deferredQuery}`;
+  const limit = paging.key === pageKey ? paging.n : PAGE;
+  const drawn = Math.max(limit, idx + 40);
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) setPaging(p => ({ key: pageKey, n: (p.key === pageKey ? p.n : PAGE) + PAGE * 2 })); },
+      { root: listRef.current, rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [drawn, shown.length, mode, pageKey]);
+
   /* Keep the selected row in view, and the detail at its top. */
   useEffect(() => {
     listRef.current?.querySelector(".qr-item.is-on")?.scrollIntoView({ block: "nearest" });
@@ -170,11 +196,10 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
     setDraft("");
   }, [q?.id]);
 
-  async function setStatus(status) {
-    if (!q) return;
-    const id = dbId(q);
+  /* Sets a question's status (null clears it); put back if the server says no. */
+  async function mark(x, next) {
+    const id = dbId(x);
     const prev = reviews.get(id);
-    const next = prev?.status === status ? null : status;
     setReviews(m => {
       const n = new Map(m);
       if (next) n.set(id, { qid: id, status: next, name: "You", by: user?.id, at: new Date().toISOString() });
@@ -182,7 +207,20 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
       return n;
     });
     try { await setReviewStatus(id, next); }
-    catch { setReviews(m => { const n = new Map(m); prev ? n.set(id, prev) : n.delete(id); return n; }); return; }
+    catch (e) { setReviews(m => { const n = new Map(m); prev ? n.set(id, prev) : n.delete(id); return n; }); throw e; }
+  }
+
+  /* From the review queue: flagged, with what is wrong as a comment. */
+  async function reportFromQueue(x, body) {
+    await mark(x, "flagged");
+    const c = await addReviewComment(dbId(x), body).catch(() => null);
+    setComments(cs => [...cs, { id: c?.id ?? `local-${Date.now()}`, qid: dbId(x), name: "You", by: user?.id, body, at: new Date().toISOString() }]);
+  }
+
+  async function setStatus(status) {
+    if (!q) return;
+    const next = reviews.get(dbId(q))?.status === status ? null : status;
+    try { await mark(q, next); } catch { return; }
     /* Approving moves on to the next one still to do. */
     if (next === "approved") {
       const after = shown.slice(idx + 1).find(x => statusOf(x) !== "approved" && x.id !== q.id);
@@ -241,6 +279,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   useEffect(() => {
     const onKey = e => {
       if (editing) return;
+      if (mode === "review") { if (e.key === "Escape" && !e.defaultPrevented) setMode("manage"); return; }
       if (e.key === "Escape") { if (confirmDelete) setConfirmDelete(false); else onClose(); return; }
       const t = e.target;
       if (t && (t.tagName === "TEXTAREA" || t.tagName === "INPUT" || t.isContentEditable)) return;
@@ -252,7 +291,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
       else if (q?.sug) { if (k === "a" && !busy) decide(q, true); }
       else if (k === "a") setStatus("approved");
       else if (k === "f") setStatus("flagged");
-      else if (k === "e" && q) setEditing(q);
+      else if (k === "e" && q) setEditing({ q });
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -276,15 +315,28 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
         </button>
 
-        <header className="qr-head">
-          <h2 className="pss-title" id="qr-title">Manage · {deckName}</h2>
-          <p className="pss-sub qr-progress-line">
-            <span><strong>{approved}</strong> of {all.length} approved</span>
-            {flagged > 0 && <span> · {flagged} flagged</span>}
-            {reportedN > 0 && <span> · {reportedN} reported by students</span>}
-          </p>
+        <header className={`qr-head${mode === "review" ? " is-review" : ""}`}>
+          <div className="qr-titlerow">
+            <h2 className="pss-title" id="qr-title">{deckName}</h2>
+            <div className="pss-seg qr-mode" role="tablist" aria-label="Mode">
+              {[["manage", "Questions"], ["review", "Review"]].map(([k, label]) => (
+                <button key={k} type="button" role="tab" aria-selected={mode === k} className={`pss-seg__b${mode === k ? " is-on" : ""}`} onClick={() => setMode(k)}>{label}</button>
+              ))}
+            </div>
+          </div>
+          {mode === "review" ? (
+            <p className="pss-sub qr-progress-line">
+              <span><strong>{all.filter(x => statusOf(x) != null).length}</strong> of {all.length} reviewed</span>
+              {reportedN > 0 && <span> · {reportedN} reported</span>}
+            </p>
+          ) : (
+            <p className="pss-sub qr-progress-line">
+              <span><strong>{approved}</strong> of {all.length} approved</span>
+              {reportedN > 0 && <span> · {reportedN} reported</span>}
+            </p>
+          )}
           <div className="qr-progress" role="img" aria-label={`${pct}% approved`}><span style={{ width: `${pct}%` }} /></div>
-          <div className="qr-toolbar">
+          {mode === "manage" && <div className="qr-toolbar">
             <div className="pss-seg" role="tablist" aria-label="Show">
               {FILTERS.filter(([k]) => k !== "suggested" || suggested.length > 0 || filter === k).map(([k, label]) => (
                 <button key={k} type="button" role="tab" aria-selected={filter === k} className={`pss-seg__b${filter === k ? " is-on" : ""}`}
@@ -304,17 +356,23 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
               {words.length > 0 && <span className="qr-search__n">{shown.length} {shown.length === 1 ? "match" : "matches"}</span>}
             </label>
             <span className="qr-keys" aria-hidden="true">{filter === "suggested" ? "↑↓ move · A add for everyone" : "/ search · ↑↓ move · A approve · F flag · E edit"}</span>
-          </div>
+          </div>}
           {loadError && <p className="qr-error">{loadError} <button type="button" className="gen-link" onClick={load}>Try again</button></p>}
         </header>
 
+        {mode === "review" ? (
+          <ReviewQueue all={all} deckId={deckId} deckName={deckName} statusOf={statusOf} reports={reports}
+            where={x => where(x)} onMark={mark} onReport={reportFromQueue}
+            onEdit={(x, onSaved) => setEditing({ q: x, onSaved })} />
+        ) : (
         <div className={`qr-body${showList ? " is-list" : ""}`}>
           <ol className="qr-list" ref={listRef} aria-label="Questions">
-            {shown.map((x, i) => (
+            {shown.slice(0, drawn).map((x, i) => (
               <Row key={x.id} x={x} n={x.sug ? i + 1 : numberOf.get(x.id)} on={!!q && x.id === q.id} words={words}
                 where={where(x) || deckName} status={x.sug ? "sug" : statusOf(x)} reported={reports.has(x.id)}
                 onPick={pick} />
             ))}
+            {shown.length > drawn && <li ref={sentinelRef} className="qr-more" aria-hidden="true" />}
             {shown.length === 0 && <li className="pss-none">{words.length ? "No question matches that search." : filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
           </ol>
 
@@ -329,39 +387,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                     <button type="button" className="pss-btn btn-press" onClick={() => go(1)} disabled={idx >= shown.length - 1} aria-label="Next question">↓</button>
                   </span>
                 </div>
-                <p className="qr-where">{where(q) || deckName}</p>
-                <h3 className="qr-stem">{q.q}</h3>
-                {q.img && <QuestionImage path={q.img} />}
-                {q.exhibit && <QuestionExhibit exhibit={q.exhibit} answered />}
-                {q.ask && <p className="qr-stem qr-ask">{q.ask}</p>}
-
-                <ol className="qr-opts">
-                  {q.opts.map((o, i) => (
-                    <li key={i} className={`qr-opt${i === q.ans ? " is-ans" : ""}`}>
-                      <span className="qr-opt__l">{LETTERS[i]}</span>
-                      <span className="qr-opt__body">
-                        <span className="qr-opt__text">{o}{i === q.ans && <span className="qr-opt__tick" aria-label="Correct answer"> ✓</span>}</span>
-                        {q.optExp?.[i] && <span className="qr-opt__why">{q.optExp[i]}</span>}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-                {q.exp && <div className="qr-exp"><span className="qr-label">Explanation</span><p>{q.exp}</p></div>}
-                {/* The knowledge library note, so it is checked with the rest. */}
-                {q.topic?.title && (
-                  <div className="qr-exp"><span className="qr-label">Topic note: {q.topic.title}</span><RichText text={q.topic.body || ""} /></div>
-                )}
-
-                {report && (
-                  <div className="qr-report">
-                    <span className="qr-label">Reported by {report.flags} {Number(report.flags) === 1 ? "student" : "students"}</span>
-                    <ul>
-                      {(report.reporters ?? []).map((r, i) => (
-                        <li key={i}>{r.name || "A student"}{r.note ? `: “${r.note}”` : ""}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <QuestionBody q={q} where={where(q) || deckName} report={report} />
 
                 {q.sug ? (
                   <>
@@ -399,7 +425,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                     <button type="button" className={`pss-btn btn-press${review?.status === "flagged" ? " is-flagged" : ""}`} onClick={() => setStatus("flagged")}>
                       {review?.status === "flagged" ? "Flagged" : "Flag"}
                     </button>
-                    <button type="button" className="pss-btn btn-press" onClick={() => setEditing(q)}>Edit</button>
+                    <button type="button" className="pss-btn btn-press" onClick={() => setEditing({ q })}>Edit</button>
                     {confirmDelete
                       ? <span className="qr-confirm">Delete for everyone? <button type="button" className="pss-btn btn-press is-danger" onClick={remove}>Delete</button> <button type="button" className="gen-link" onClick={() => setConfirmDelete(false)}>Cancel</button></span>
                       : <button type="button" className="gen-link qr-delete" onClick={() => setConfirmDelete(true)}>Delete</button>}
@@ -429,11 +455,18 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
             )}
           </section>
         </div>
+        )}
       </div>
       {editing && (
-        <EditQuestionModal q={editing} persist={editPersist ? updated => editPersist(updated, editing) : null}
+        <EditQuestionModal q={editing.q} persist={editPersist ? updated => editPersist(updated, editing.q) : null}
           onClose={() => setEditing(null)}
-          onSave={() => { setEditing(null); setVersion(v => v + 1); }} />
+          onSave={() => {
+            const { q: edited, onSaved } = editing;
+            setEditing(null);
+            setVersion(v => v + 1);
+            /* Saved from the review queue: that is an accept. */
+            if (onSaved) mark(edited, "approved").then(onSaved, () => {});
+          }} />
       )}
     </div>,
     document.body,
