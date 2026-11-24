@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Eye, EyeOff, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import RichText from "./RichText";
 import QuestionExhibit from "./QuestionExhibit";
 import QuestionImage from "./QuestionImage";
@@ -22,6 +22,11 @@ import Wave from "./Wave";
  * Report asks what is wrong (the app's popup), then flags the question with
  * the note as a comment, where Manage's Reported list shows it. Edit is the
  * pencil in the top bar; saving from here accepts the question.
+ *
+ * Answer first (2026-11-24, Rayan: "I wanna see it from the user POV"): on
+ * by default, each question comes as a student meets it: the stem, then
+ * the options on Space, then a pick and Check, and only then the answer and
+ * Accept. The eye in the top bar turns it off, on this device.
  *
  * Keys: A accept, R report, ← back, → skip, Esc back to the list. Nothing
  * fires while typing.
@@ -94,6 +99,8 @@ export function lecturesOf(all, deckId, deckName) {
 
 
 const RAIL_KEY = "rs-review-rail";
+const BLIND_KEY = "rs-review-blind";
+const blindKept = () => { try { return localStorage.getItem(BLIND_KEY) !== "0"; } catch { return true; } };
 /* Open on a laptop unless it was last closed; shut on a phone, where it
    covers the question. */
 const railKept = () => {
@@ -114,6 +121,14 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
   const note = noteFor && noteFor.id === curId ? noteFor.text : null;
   const setNote = text => setNoteFor(text == null ? null : { id: curId, text });
   const [busy, setBusy] = useState(false);
+  const [blind, setBlind] = useState(blindKept);
+  const toggleBlind = () => setBlind(b => {
+    try { localStorage.setItem(BLIND_KEY, b ? "0" : "1"); } catch { /* this visit only */ }
+    return !b;
+  });
+  /* The option picked on each question this sitting, answering first. */
+  const [picks, setPicks] = useState({});
+  const [controls, setControls] = useState({ canSubmit: false, submit: null });
   const [railOpen, setRailOpen] = useState(railKept);
   const toggleRail = () => setRailOpen(o => {
     try { localStorage.setItem(RAIL_KEY, o ? "0" : "1"); } catch { /* this visit only */ }
@@ -122,6 +137,11 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
 
   const q = curId != null ? all.find(x => x.id === curId) ?? null : null;
   const status = q ? statusOf(q) : null;
+  /* What the card treats as picked: the answer straight away, or once the
+     question has been answered here or reviewed before. */
+  const sel = !q ? null : !blind ? q.ans : (picks[q.id] ?? (status ? q.ans : null));
+  const answered = sel !== null;
+  const onAnswer = useCallback(i => setPicks(p => (curId == null ? p : { ...p, [curId]: i })), [curId]);
   const doneIn = l => l.qs.filter(reviewed).length;
   const doneAll = all.filter(reviewed).length;
 
@@ -161,7 +181,7 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
   }
 
   async function accept() {
-    if (!q || busy) return;
+    if (!q || busy || !answered) return;
     setBusy(true);
     try { await onMark(q, "approved"); moveOn(q); } catch { /* put back by onMark */ } finally { setBusy(false); }
   }
@@ -185,6 +205,8 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
       const k = e.key.toLowerCase();
       if (k === "a") { e.preventDefault(); accept(); }
       else if (k === "r") { e.preventDefault(); setNote(""); }
+      else if (k === "arrowleft" && canBack) { e.preventDefault(); back(); }
+      else if (k === "arrowright") { e.preventDefault(); skip(); }
     };
     document.addEventListener("keydown", onKey, true);
     return () => document.removeEventListener("keydown", onKey, true);
@@ -209,6 +231,11 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
             {lec && <span className="rv-count__lec">{lec.name}</span>}
             <span>{lecDone}/{lec?.qs.length ?? 0}</span>
           </span>
+          <button type="button" className={`quiz-shell__tool btn-press${blind ? " is-on" : ""}`} onClick={toggleBlind} aria-pressed={blind}
+            title={blind ? "Show the answer straight away" : "Answer each question first, as a student"}
+            aria-label={blind ? "Show the answer straight away" : "Answer each question first, as a student"}>
+            {blind ? <EyeOff size={18} strokeWidth={2} aria-hidden="true" /> : <Eye size={18} strokeWidth={2} aria-hidden="true" />}
+          </button>
           {q && (
             <button type="button" className="quiz-shell__tool btn-press" onClick={() => onEdit(q, () => moveOn(q))} title="Edit question" aria-label="Edit question">
               <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -257,8 +284,8 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
           <div className="quiz-shell__main">
             {q ? (
               <>
-                <QuestionCard key={q.id} q={q} sel={q.ans} onAnswer={() => {}} onNext={skip} onPrev={canBack ? back : undefined}
-                  focusMode hideActions bare />
+                <QuestionCard key={q.id} q={q} sel={sel} onAnswer={onAnswer} coverOptions={blind && !answered}
+                  onControlsChange={setControls} focusMode hideActions bare />
                 {reports.get(q.id) && <StudentReports report={reports.get(q.id)} />}
                 {status && <p className="rv-status">{status === "approved" ? "You accepted this." : "You reported this."} Accept or report it again to change that.</p>}
               </>
@@ -291,7 +318,9 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
             {q ? (
               <>
                 <button type="button" className="quiz-shell__foot-btn btn-press rv-report" onClick={() => setNote("")}>Report</button>
-                <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" disabled={busy} onClick={accept}>Accept</button>
+                {answered
+                  ? <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" disabled={busy} onClick={accept}>Accept</button>
+                  : <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" disabled={!controls.canSubmit} onClick={() => controls.submit?.()}>Check</button>}
               </>
             ) : nextLecture ? (
               <button type="button" className="quiz-shell__foot-btn quiz-shell__foot-btn--primary btn-press" onClick={() => openLecture(nextLecture)}>Next: {nextLecture.name}</button>

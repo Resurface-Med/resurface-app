@@ -600,7 +600,7 @@ export default function QuestionCard({ q, sel, timedOut, onAnswer, onNext, onPre
           {/* The offer is for the case that needs it — a wrong answer with
               the tutor shut. Right answers are asked about from the header,
               which is always there. */}
-          {sel !== q.ans && !explaining && (
+          {sel !== q.ans && !explaining && !bare && (
             <div className="q-review-ask">
             <button
               type="button"
