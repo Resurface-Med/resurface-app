@@ -23,7 +23,7 @@ import ReviewQueue, { QuestionBody } from "./ReviewQueue";
  * Keys: ↑/↓ or J/K move, A approves, F flags, E edits. Nothing fires while
  * typing a comment.
  *
- * Review (2026-11-24): the switch at the top turns the window into a queue
+ * Review (2026-11-24): the Review button at the top turns the window into a queue
  * that goes through the deck lecture by lecture, Accept or Report
  * (ReviewQueue). A question reported there is flagged with the note as a
  * comment, and is listed under Reported with the students' reports.
@@ -318,11 +318,10 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
         <header className={`qr-head${mode === "review" ? " is-review" : ""}`}>
           <div className="qr-titlerow">
             <h2 className="pss-title" id="qr-title">{deckName}</h2>
-            <div className="pss-seg qr-mode" role="tablist" aria-label="Mode">
-              {[["manage", "Questions"], ["review", "Review"]].map(([k, label]) => (
-                <button key={k} type="button" role="tab" aria-selected={mode === k} className={`pss-seg__b${mode === k ? " is-on" : ""}`} onClick={() => setMode(k)}>{label}</button>
-              ))}
-            </div>
+            {/* Into the review queue, and back to the list (2026-11-24). */}
+            {mode === "review"
+              ? <button type="button" className="pss-btn btn-press qr-modebtn" onClick={() => setMode("manage")}>← Questions</button>
+              : <button type="button" className="pss-btn btn-press qr-modebtn" onClick={() => setMode("review")}>Review</button>}
           </div>
           {mode === "review" ? (
             <p className="pss-sub qr-progress-line">

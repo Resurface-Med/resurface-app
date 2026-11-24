@@ -11024,15 +11024,15 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .qr-input { flex: 1; min-height: 46px; resize: vertical; font: inherit; font-size: 14.5px; }
 
 /* Questions | Review, beside the deck's name (2026-11-24). */
-.qr-titlerow { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; padding-right: 56px; }
-.qr-titlerow .pss-title { padding-right: 0; }
-.qr .qr-mode { margin-top: 0; }
+.qr-titlerow { display: flex; align-items: center; justify-content: space-between; gap: 12px 18px; padding-right: 56px; }
+.qr-titlerow .pss-title { padding-right: 0; min-width: 0; }
+.qr-modebtn { flex: none; padding: 8px 18px; }
 .qr-head.is-review { padding-bottom: 18px; border-bottom: 1px solid var(--c-border); }
 .qr-more { height: 1px; }
 
 /* Review mode: the deck's lectures down the left, the question on the
    right, Accept and Report in Practice's blue capsule. */
-.rq { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(220px, 290px) minmax(0, 1fr); }
+.rq { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(200px, 260px) minmax(0, 1fr); }
 .rq-rail { overflow-y: auto; overscroll-behavior: contain; border-right: 1px solid var(--c-border); padding: 14px 12px 24px 24px; display: flex; flex-direction: column; gap: 2px; }
 .rq-lec {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 10px;
@@ -11045,7 +11045,13 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .rq-lec__n { font-size: 12.5px; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rq-lec.is-done .rq-lec__n { color: var(--c-success); }
 .rq-main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-.rq-detail { flex: 1; padding-bottom: 140px; }
+/* One column in the middle, as in Practice. */
+.rq-detail { flex: 1; padding-bottom: 140px; display: flex; flex-direction: column; align-items: center; }
+.rq-detail > * { width: 100%; max-width: 720px; }
+.rq-card { margin: 0; }
+.rq-card .q-source { margin-top: 0; }
+.rq-opt { cursor: default; }
+.rq-reports { margin-top: 20px; }
 .rq-dock {
   position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center;
   padding: 44px 16px calc(20px + var(--safe-b, 0px));

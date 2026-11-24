@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import RichText from "./RichText";
 import QuestionExhibit from "./QuestionExhibit";
 import QuestionImage from "./QuestionImage";
+import { TopicNote, stemSize } from "./QuestionCard";
+import { qstem } from "./theme";
 
 /**
  * Review mode of Manage questions (2026-11-24).
@@ -10,7 +12,13 @@ import QuestionImage from "./QuestionImage";
  * the rhythm of its content: the lectures down the left with how far each
  * is done, the question on the right as Manage shows it (answer marked,
  * every why-wrong, the explanation and the topic note), and Accept or
- * Report in Practice's blue capsule. Only questions nobody has reviewed yet
+ * Report in Practice's blue capsule.
+ *
+ * The question is Practice's answered card (2026-11-24, Rafil: "much more
+ * focused"): one column, the right answer with the others behind "Show all
+ * 5 options", the explanation, and the topic note folded to its first
+ * line. Built from the card's own classes, without its tools, notes and
+ * report button, which a reviewer does not need. Only questions nobody has reviewed yet
  * come up; Back steps through the ones just done, to change a call.
  *
  * Report asks what is wrong, then marks the question and puts the note in
@@ -59,6 +67,66 @@ export function QuestionBody({ q, where, report }) {
   );
 }
 
+function StudentReports({ report }) {
+  return (
+    <div className="qr-report rq-reports">
+      <span className="qr-label">Reported by {report.flags} {Number(report.flags) === 1 ? "student" : "students"}</span>
+      <ul>
+        {(report.reporters ?? []).map((r, i) => (
+          <li key={i}>{r.name || "A student"}{r.note ? `: “${r.note}”` : ""}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* Practice's card, answered with the right answer, drawn straight on the
+   window rather than as a card inside it. The other options start folded,
+   whatever Practice is set to; opened, they stay open for the sitting. */
+function ReviewCard({ q, where, showAll, onShowAll }) {
+  return (
+    <div className="q-card rq-card">
+      {where && <p className="q-source">{where}</p>}
+      <p className={`q-stem-review${stemSize(q.q)}`} style={{ ...qstem, marginBottom: 20 }}>{q.q}</p>
+      <div className="q-body">
+        <QuestionImage key={q.img || "none"} path={q.img} />
+        <QuestionExhibit exhibit={q.exhibit} answered />
+        <div className={q.ask ? "q-follow" : undefined} style={q.ask ? undefined : { display: "contents" }}>
+          {q.ask && <p className="q-ask">{q.ask}</p>}
+          <div className={`q-opts is-review${showAll ? "" : " is-collapsed"}`} role="list" aria-label="Answers">
+            {q.opts.map((o, i) => {
+              const ok = i === q.ans;
+              if (!ok && !showAll) return null;
+              return (
+                <div key={i} role="listitem" className={`q-opt rq-opt is-${ok ? "correct" : "faded"}`}>
+                  <div className="q-opt-row">
+                    <span className="q-opt-letter" aria-hidden="true">{LETTERS[i]}</span>
+                    <span className="q-opt-text">{o}</span>
+                    {ok && <span className="q-opt-end"><span className="q-opt-mark ok" aria-label="Correct answer">✓</span></span>}
+                  </div>
+                  {!ok && q.optExp?.[i] && <div className="q-opt-note">{q.optExp[i]}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="q-review">
+        {q.exp && <p className="q-exp">{q.exp}</p>}
+        <div className="q-review-meta">
+          <button type="button" className="q-allopts" onClick={() => onShowAll(!showAll)} aria-expanded={showAll}>
+            {showAll ? "Hide other options" : `Show all ${q.opts.length} options`}
+            <span className={`q-allopts-chev${showAll ? " is-open" : ""}`} aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
+          </button>
+        </div>
+        {q.topic?.title && q.topic?.body && <TopicNote key={q.id} topic={q.topic} hl={q.hl} qid={q.id} deckId={q.deckId} />}
+      </div>
+    </div>
+  );
+}
+
 /* The deck's questions grouped by the deck each sits in (its lecture), in
    the deck's own order. */
 function lecturesOf(all, deckId, deckName) {
@@ -87,6 +155,7 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
   const note = noteFor && noteFor.id === curId ? noteFor.text : null;
   const setNote = text => setNoteFor(text == null ? null : { id: curId, text });
   const [busy, setBusy] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const detailRef = useRef(null);
   const railRef = useRef(null);
 
@@ -175,7 +244,8 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
         <section className="qr-detail rq-detail" ref={detailRef} aria-live="polite">
           {q ? (
             <>
-              <QuestionBody q={q} where={where(q) || lec?.name} report={reports.get(q.id)} />
+              <ReviewCard q={q} where={where(q) || lec?.name} showAll={showAll} onShowAll={setShowAll} />
+              {reports.get(q.id) && <StudentReports report={reports.get(q.id)} />}
               {status && <p className="qr-who">{status === "approved" ? "Accepted" : "Reported"}. Accept or report it again to change that.</p>}
               {note !== null && (
                 <div className="rq-note">

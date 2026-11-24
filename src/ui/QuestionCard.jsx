@@ -112,7 +112,7 @@ const markTipSeen = () => { try { localStorage.setItem(TIP_KEY, "1"); } catch { 
 
 /* Long stems step down in size (Rafil, 2026-11-10): a clinical case set at
    the headline size filled the screen and pushed the options below it. */
-const stemSize = text => {
+export const stemSize = text => {
   const n = String(text ?? "").length;
   return n > 320 ? " is-longest" : n > 180 ? " is-long" : "";
 };
