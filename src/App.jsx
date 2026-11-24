@@ -1406,14 +1406,36 @@ export default function App() {
   }
 
   /* Asked once per session. The answer only decides whether a nav item is
-     drawn — every function behind it checks the admins table itself. */
+     drawn — every function behind it checks the admins table itself. The
+     last answer is kept on the device (2026-11-24), so Admin is in the nav
+     from the first paint instead of after a round trip queued behind the
+     load; the server's answer then confirms or takes it away. An admin's
+     Admin is warmed while the app is idle: its code and its data are ready
+     before the first click. */
   const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     if (!user) { setIsAdmin(false); return; }
+    const key = `rs-admin:${user.id}`;
+    const apply = ok => {
+      setIsAdmin(ok);
+      setFeaturedAdmin(ok);
+      try { if (ok) localStorage.setItem(key, "1"); else localStorage.removeItem(key); } catch { /* storage refused */ }
+    };
+    let kept = false;
+    try { kept = localStorage.getItem(key) === "1"; } catch { /* storage refused */ }
+    if (kept) { setIsAdmin(true); setFeaturedAdmin(true); }
     let cancelled = false;
-    fetchIsAdmin().then(ok => { if (!cancelled) { setIsAdmin(ok); setFeaturedAdmin(ok); } });
+    fetchIsAdmin().then(ok => { if (!cancelled) apply(ok); });
     return () => { cancelled = true; };
   }, [user]);
+  useEffect(() => {
+    if (!isAdmin || !user || !online) return;
+    /* A plain import, like the other warm-ups: nobody is waiting on it. */
+    const warm = () => { import("./views/AdminView").then(m => m.warmAdmin(user.id), () => {}); };
+    const ric = window.requestIdleCallback;
+    const id = ric ? ric(warm, { timeout: 2000 }) : setTimeout(warm, 800);
+    return () => (ric ? window.cancelIdleCallback(id) : clearTimeout(id));
+  }, [isAdmin, user, online]);
 
   /*
    * The sidebar is `display: none` through a session and comes back the

@@ -659,7 +659,9 @@ async function fetchShard(p) {
   if (kept?.hash === p.hash && kept.body) { shardMem.set(p.root, kept); return kept; }
   let got = null;
   try {
-    const res = await fetch(`/api/featured?root=${encodeURIComponent(p.root)}&h=${encodeURIComponent(p.hash)}`, { signal: withTimeoutSignal(20000) });
+    /* Longer than the edge's own 25 s wait on the database, so a slow
+       piece is read once there rather than again straight below. */
+    const res = await fetch(`/api/featured?root=${encodeURIComponent(p.root)}&h=${encodeURIComponent(p.hash)}`, { signal: withTimeoutSignal(30000) });
     if (res.ok && (res.headers.get("content-type") || "").includes("json")) got = await res.json();
   } catch { /* edge unreachable: the database below */ }
   if (!got?.body) {
@@ -672,10 +674,27 @@ async function fetchShard(p) {
   return got;
 }
 
+/* Two pieces at a time (2026-11-24). All of them at once, when the edge
+   has not got them yet, meant every phone opening the app read eleven
+   0.5–1 MB rows from the database together, and everything else on it,
+   Admin included, waited behind them. Pieces already on the device cost
+   nothing either way. */
+async function shardsFor(parts, limit = 2) {
+  const out = new Array(parts.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(limit, parts.length) }, async () => {
+    while (next < parts.length) {
+      const i = next++;
+      out[i] = await shardFor(parts[i]);
+    }
+  }));
+  return out;
+}
+
 export async function featuredFromParts(version, parts) {
   const key = partsKey(parts);
   if (bundleMem && bundleKey === key) return bundleMem;
-  const shards = await Promise.all(parts.map(shardFor));
+  const shards = await shardsFor(parts);
   const b = composeParts(version, shards.map(x => x.body));
   bundleMem = b;
   bundleKey = key;

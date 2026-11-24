@@ -26,7 +26,9 @@ async function upstream(fn, args) {
     method: "POST",
     headers: { apikey: ANON_KEY, authorization: `Bearer ${ANON_KEY}`, "content-type": "application/json" },
     body: JSON.stringify(args),
-    signal: AbortSignal.timeout(15000),
+    /* featured_shard's own limit is 25 s (0099). Cut off sooner, the phone
+       falls back to the database and the same piece is read twice. */
+    signal: AbortSignal.timeout(25000),
   });
   if (!res.ok) throw Object.assign(new Error("upstream"), { status: 502 });
   return res.text();

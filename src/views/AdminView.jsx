@@ -148,6 +148,13 @@ function prefetchAdmin(userId) {
   }
 }
 
+/* From the app while it is idle (App.jsx): the device's copy into the
+   store, then a fetch, so the first open of Admin shows data at once. */
+export function warmAdmin(userId) {
+  prefetchAdmin(userId);
+  readAdminCopy(userId).then(restoreAdminCopy, () => {});
+}
+
 /* The last data, from the device, under what is being fetched: shown at
    once, and replaced when the fetch lands. Never over anything newer. */
 function restoreAdminCopy(copy) {
