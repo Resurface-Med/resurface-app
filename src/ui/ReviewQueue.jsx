@@ -25,7 +25,8 @@ import { qstem } from "./theme";
  * its comments, where Manage's Reported list picks it up. Edit opens the
  * usual editor, and saving accepts the question.
  *
- * Keys: A accept, R report, E edit, ← back. Nothing fires while typing.
+ * Keys: A accept, R report, E edit, ← back, Esc back to the list. Nothing
+ * fires while typing.
  */
 const LETTERS = "ABCDE";
 
