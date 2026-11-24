@@ -11042,6 +11042,35 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 }
 /* The question starts below the list's toggle, never under it. */
 .quiz-shell.rv .quiz-shell__body { padding-top: 64px; }
+/* Review reads at a desk size, not Practice's exam size (Rafil, 2026-11-24:
+   "too zoomed in"): a smaller stem and options, and results or a picture
+   above the options in one column rather than widening the card beside
+   them. */
+@media (min-width: 901px) {
+  .quiz-shell.rv .q-card--focus { padding: clamp(20px, 2.2vw, 30px); }
+  .quiz-shell.rv .q-stem--focus { margin-bottom: 18px; font-size: clamp(17px, 1.55vw, 20px); letter-spacing: -0.35px; line-height: 1.38; }
+  .quiz-shell.rv .q-stem--focus.is-long { font-size: clamp(16.5px, 1.45vw, 19px); }
+  .quiz-shell.rv .q-stem--focus.is-longest { font-size: clamp(16px, 1.35vw, 18px); }
+  .quiz-shell.rv .q-card--focus .q-opts { gap: 8px; }
+  .quiz-shell.rv .q-card--focus .q-opt { padding: 11px 15px; font-size: 15px; }
+  .quiz-shell.rv .q-card--focus .q-opt-note { font-size: 13.5px; }
+  .quiz-shell.rv .q-card--focus .q-exp { font-size: 15px; }
+  .quiz-shell.rv .quiz-shell__body .quiz-shell__main:has(.q-card.has-exhibit),
+  .quiz-shell.rv .quiz-shell__body .quiz-shell__main:has(.q-card.has-img),
+  .quiz-shell.rv .quiz-shell__body .q-card--focus.has-exhibit,
+  .quiz-shell.rv .quiz-shell__body .q-card--focus.has-img { max-width: min(720px, 100%); }
+  .quiz-shell.rv .quiz-shell__body .q-card.has-exhibit .q-body,
+  .quiz-shell.rv .quiz-shell__body .q-card.has-img .q-body { display: block; }
+  .quiz-shell.rv .quiz-shell__body .q-card.has-exhibit .q-body .qx,
+  .quiz-shell.rv .quiz-shell__body .q-card.has-exhibit .q-body .qx-set { margin-bottom: 18px; font-size: 14px; }
+  .quiz-shell.rv .quiz-shell__body .q-card.has-img .q-body .q-image { max-height: 360px; margin-bottom: 18px; }
+  .quiz-shell.rv .qx__title, .quiz-shell.rv .qx__table, .quiz-shell.rv .qx__line { font-size: 14.5px; }
+  .quiz-shell.rv .qx__table th, .quiz-shell.rv .qx__table td { padding: 7px 12px; }
+  .quiz-shell.rv .q-ask { font-size: clamp(17px, 1.55vw, 20px); letter-spacing: -0.35px; }
+  .quiz-shell.rv .quiz-shell__body { padding-top: 56px; }
+  .quiz-shell.rv .quiz-shell__body .q-card.has-exhibit .q-follow,
+  .quiz-shell.rv .quiz-shell__body .q-card.has-img .q-follow { display: block; }
+}
 /* On a phone the list slides over the question, under its toggle. */
 @media (max-width: 900px) { .rv .quiz-rail__head { padding-left: 44px; } .rv-lecs { padding-bottom: 96px; } }
 .rv-lecs { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 1px; margin: 10px -6px 0 0; padding: 0 6px 120px 0; overflow-y: auto; overscroll-behavior: contain; }
