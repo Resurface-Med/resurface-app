@@ -6,7 +6,7 @@ import { fetchReviewState, setReviewStatus, addReviewComment, removeReviewCommen
 import { useAuth } from "../lib/auth";
 import { ago } from "../lib/pastSessions";
 import EditQuestionModal from "./EditQuestionModal";
-import ReviewQueue, { QuestionBody } from "./ReviewQueue";
+import ReviewQueue, { QuestionBody, lecturesOf } from "./ReviewQueue";
 
 /**
  * Review questions (2026-10-23): the admin team — Rafil, Jacob, Rayan —
@@ -31,6 +31,12 @@ import ReviewQueue, { QuestionBody } from "./ReviewQueue";
  * Big decks: the list draws its rows a page at a time as it is scrolled,
  * not all of them at once (Year 3 has over 4,000).
  *
+ * Lecture first (2026-11-24, mockup B): the deck's lectures down the left,
+ * that lecture's questions in the middle, the question on the right, so a
+ * list is never the whole deck. Search looks across the whole deck. The
+ * header is gone: the deck's name and count head the lectures, and the
+ * question's tools sit in a bar above it.
+ *
  * Suggested: students' folders put inside this deck and sent for everyone
  * (migration 0048). Each question is added — it moves into the deck, with
  * their name on it, approved — or kept out with a reason they see. Only
@@ -46,11 +52,12 @@ const FILTERS = [
   ["suggested", "Suggested"],
 ];
 
+/* A dot only when there is something to say: green approved, red reported
+   or flagged. Nothing for the ones still to do. */
 function Mark({ status, reported }) {
-  if (status === "approved") return <span className="qr-mark is-ok" aria-label="Approved">✓</span>;
-  if (status === "flagged") return <span className="qr-mark is-flag" aria-label="Flagged">!</span>;
-  if (reported) return <span className="qr-mark is-report" aria-label="Reported by students">•</span>;
-  return <span className="qr-mark" aria-label="Not reviewed">–</span>;
+  if (reported || status === "flagged") return <span className="mg-dot is-bad" aria-label={status === "flagged" ? "Flagged" : "Reported by students"} />;
+  if (status === "approved") return <span className="mg-dot is-ok" aria-label="Approved" />;
+  return <span className="mg-dot" aria-hidden="true" />;
 }
 
 /* The searched words marked in a line. */
@@ -80,9 +87,9 @@ const Row = memo(function Row({ x, n, on, words, where, status, reported, onPick
         <span className="qr-item__text">
           <span className="qr-item__stem"><Hl text={x.q} words={words} /></span>
           {hit && <span className="qr-item__hit"><Hl text={hit} words={words} /></span>}
-          <span className="qr-item__where">{where}</span>
+          {where && <span className="qr-item__where">{where}</span>}
         </span>
-        {status === "sug" ? <span className="qr-mark" aria-hidden="true" /> : <Mark status={status} reported={reported} />}
+        {status === "sug" ? <span className="mg-dot" aria-hidden="true" /> : <Mark status={status} reported={reported} />}
       </button>
     </li>
   );
@@ -143,7 +150,13 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   useEffect(() => { load(); }, [idsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const statusOf = q => reviews.get(dbId(q))?.status ?? null;
-  const shown = all.filter(q => {
+  const lectures = useMemo(() => lecturesOf(all, deckId, deckName), [all, deckId, deckName]);
+  const [lecId, setLecId] = useState(null);
+  const lec = lectures.find(l => l.id === lecId) ?? lectures.find(l => l.qs.some(x => x.id === cur)) ?? lectures[0] ?? null;
+  const searching = deferredQuery.trim().length > 0;
+  /* One lecture's questions, or the whole deck while searching. */
+  const scope = searching ? all : (lec?.qs ?? []);
+  const shown = scope.filter(q => {
     if (filter === "todo") return statusOf(q) !== "approved";
     if (filter === "flagged") return statusOf(q) === "flagged";
     if (filter === "reported") return reports.has(q.id) || statusOf(q) === "flagged";
@@ -158,14 +171,15 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
       .filter(t => typeof t === "string").join(" \n ").toLowerCase()])), [all]);
   if (words.length) shown.splice(0, shown.length, ...shown.filter(x => { const t = textIndex.get(x.id) ?? ""; return words.every(w => t.includes(w)); }));
 
-  const q = (filter === "suggested" ? suggested : all).find(x => x.id === cur) ?? shown[0] ?? null;
+  const q = (filter === "suggested" ? suggested : scope).find(x => x.id === cur) ?? shown[0] ?? null;
   /* Setters only, so the same function every render and the rows stay memoised. */
   const pick = useCallback(id => { setCur(id); setShowList(false); setConfirmDelete(false); }, []);
   const idx = q ? shown.findIndex(x => x.id === q.id) : -1;
   const approved = all.filter(x => statusOf(x) === "approved").length;
-  const flagged = all.filter(x => statusOf(x) === "flagged").length;
   const reportedN = all.filter(x => reports.has(x.id) || statusOf(x) === "flagged").length;
-  const counts = { all: all.length, todo: all.length - approved, flagged, reported: reportedN, suggested: suggested.length };
+  const approvedHere = scope.filter(x => statusOf(x) === "approved").length;
+  const counts = { all: scope.length, todo: scope.length - approvedHere, reported: scope.filter(x => reports.has(x.id) || statusOf(x) === "flagged").length, suggested: suggested.length };
+  const openLecture = l => { setLecId(l.id); setQuery(""); setFilter(f => (f === "suggested" ? "all" : f)); setCur(l.qs[0]?.id ?? null); setConfirmDelete(false); };
 
   const go = step => {
     if (!shown.length) return;
@@ -176,7 +190,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
 
   /* A new filter or search starts from the first page again; the selected
      row is always among the rows drawn. */
-  const pageKey = `${filter}|${deferredQuery}`;
+  const pageKey = `${filter}|${deferredQuery}|${lec?.id}`;
   const limit = paging.key === pageKey ? paging.n : PAGE;
   const drawn = Math.max(limit, idx + 40);
   const sentinelRef = useRef(null);
@@ -306,77 +320,94 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const review = q ? reviews.get(dbId(q)) : null;
   const thread = q ? comments.filter(c => c.qid === dbId(q)) : [];
   const report = q ? reports.get(q.id) : null;
-  const pct = all.length ? Math.round((approved / all.length) * 100) : 0;
 
   return createPortal(
     <div className="np-scrim pss-scrim qr-scrim" role="presentation" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="pss qr" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+      <div className="pss qr mg" role="dialog" aria-modal="true" aria-labelledby="qr-title">
         <button type="button" className="pss-x" onClick={onClose} aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
         </button>
-
-        <header className="qr-head">
-          <div className="qr-titlerow">
-            <h2 className="pss-title" id="qr-title">{deckName}</h2>
-            {/* Into the review queue, and back to the list (2026-11-24). */}
-            <button type="button" className="pss-btn btn-press qr-modebtn" onClick={() => setMode("review")}>Review</button>
-          </div>
-          <p className="pss-sub qr-progress-line">
-            <span><strong>{approved}</strong> of {all.length} approved</span>
-            {reportedN > 0 && <span> · {reportedN} reported</span>}
-          </p>
-          <div className="qr-progress" role="img" aria-label={`${pct}% approved`}><span style={{ width: `${pct}%` }} /></div>
-          <div className="qr-toolbar">
-            <div className="pss-seg" role="tablist" aria-label="Show">
-              {FILTERS.filter(([k]) => k !== "suggested" || suggested.length > 0 || filter === k).map(([k, label]) => (
-                <button key={k} type="button" role="tab" aria-selected={filter === k} className={`pss-seg__b${filter === k ? " is-on" : ""}`}
-                  onClick={() => { setFilter(k); setShowList(true); }}>
-                  {label}<span className="pss-seg__n">{counts[k]}</span>
-                </button>
-              ))}
-            </div>
-            <label className="qr-search">
-              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
-              <input ref={searchRef} type="search" value={query} placeholder="Search questions" aria-label="Search questions"
-                onChange={e => { setQuery(e.target.value); setShowList(true); }}
-                onKeyDown={e => {
-                  if (e.key === "Escape" && query) { e.preventDefault(); e.stopPropagation(); setQuery(""); }
-                  if (e.key === "Enter" && shown[0]) { setCur(shown[0].id); setShowList(false); e.currentTarget.blur(); }
-                }} />
-              {words.length > 0 && <span className="qr-search__n">{shown.length} {shown.length === 1 ? "match" : "matches"}</span>}
-            </label>
-            <span className="qr-keys" aria-hidden="true">{filter === "suggested" ? "↑↓ move · A add for everyone" : "/ search · ↑↓ move · A approve · F flag · E edit"}</span>
-          </div>
-          {loadError && <p className="qr-error">{loadError} <button type="button" className="gen-link" onClick={load}>Try again</button></p>}
-        </header>
-
         {mode === "review" && (
           <ReviewQueue all={all} deckId={deckId} deckName={deckName} statusOf={statusOf} reports={reports}
             onMark={mark} onReport={reportFromQueue} onExit={() => setMode("manage")}
             onEdit={(x, onSaved) => setEditing({ q: x, onSaved })} />
         )}
-        <div className={`qr-body${showList ? " is-list" : ""}`}>
-          <ol className="qr-list" ref={listRef} aria-label="Questions">
-            {shown.slice(0, drawn).map((x, i) => (
-              <Row key={x.id} x={x} n={x.sug ? i + 1 : numberOf.get(x.id)} on={!!q && x.id === q.id} words={words}
-                where={where(x) || deckName} status={x.sug ? "sug" : statusOf(x)} reported={reports.has(x.id)}
-                onPick={pick} />
-            ))}
-            {shown.length > drawn && <li ref={sentinelRef} className="qr-more" aria-hidden="true" />}
-            {shown.length === 0 && <li className="pss-none">{words.length ? "No question matches that search." : filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
-          </ol>
 
-          <section className="qr-detail" ref={detailRef} aria-live="polite">
-            {!q ? <p className="pss-none">No questions to review in this deck.</p> : (
+        <div className={`mg-body${showList ? " is-list" : ""}`}>
+          <nav className="mg-lecs" aria-label="Lectures">
+            <h2 className="mg-title" id="qr-title">{deckName}</h2>
+            <p className="mg-stat"><strong>{approved}</strong> of {all.length} approved{reportedN > 0 && <> · {reportedN} reported</>}</p>
+            {lectures.map(l => {
+              const n = l.qs.filter(x => statusOf(x) === "approved").length;
+              return (
+                <button key={l.id} type="button" className={`rq-lec${l.id === lec?.id && !searching ? " is-on" : ""}${n === l.qs.length ? " is-done" : ""}`} onClick={() => openLecture(l)}>
+                  <span className="rq-lec__name">{l.name}</span>
+                  <span className="rq-lec__n">{n}/{l.qs.length}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="mg-mid">
+            <div className="mg-midtop">
+              {/* Phones: no lecture column, so the lecture is picked here. */}
+              <select className="mg-lecpick" value={lec?.id ?? ""} aria-label="Lecture"
+                onChange={e => { const l = lectures.find(x => x.id === e.target.value); if (l) openLecture(l); }}>
+                {lectures.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+              </select>
+              <label className="qr-search mg-search">
+                <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" strokeWidth="1.7" /><path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+                <input ref={searchRef} type="search" value={query} placeholder={`Search all of ${deckName}`} aria-label={`Search all of ${deckName}`}
+                  onChange={e => { setQuery(e.target.value); setShowList(true); }}
+                  onKeyDown={e => {
+                    if (e.key === "Escape" && query) { e.preventDefault(); e.stopPropagation(); setQuery(""); }
+                    if (e.key === "Enter" && shown[0]) { setCur(shown[0].id); setShowList(false); e.currentTarget.blur(); }
+                  }} />
+                {words.length > 0 ? <span className="qr-search__n">{shown.length}</span> : <kbd className="mg-kbd">/</kbd>}
+              </label>
+              <div className="mg-tabs" role="tablist" aria-label="Show">
+                {FILTERS.filter(([k]) => k !== "suggested" || suggested.length > 0 || filter === k).map(([k, label]) => (
+                  <button key={k} type="button" role="tab" aria-selected={filter === k} className={`mg-tab${filter === k ? " is-on" : ""}`}
+                    onClick={() => { setFilter(k); setShowList(true); }}>
+                    {label}<span>{counts[k]}</span>
+                  </button>
+                ))}
+              </div>
+              {loadError && <p className="qr-error">{loadError} <button type="button" className="gen-link" onClick={load}>Try again</button></p>}
+            </div>
+            <ol className="qr-list mg-list" ref={listRef} aria-label="Questions">
+              {shown.slice(0, drawn).map((x, i) => (
+                <Row key={x.id} x={x} n={x.sug ? i + 1 : (lec && !searching ? lec.qs.indexOf(x) + 1 : numberOf.get(x.id))} on={!!q && x.id === q.id} words={words}
+                  where={searching || x.sug ? where(x) : null} status={x.sug ? "sug" : statusOf(x)} reported={reports.has(x.id)}
+                  onPick={pick} />
+              ))}
+              {shown.length > drawn && <li ref={sentinelRef} className="qr-more" aria-hidden="true" />}
+              {shown.length === 0 && <li className="pss-none">{words.length ? "No question matches that search." : filter === "todo" ? "Everything here is approved." : filter === "suggested" ? "No suggestions waiting." : "Nothing here."}</li>}
+            </ol>
+          </div>
+
+          <section className="mg-detail" ref={detailRef} aria-live="polite">
+            <div className="mg-bar">
+              <button type="button" className="gen-link qr-listbtn" onClick={() => setShowList(true)}>‹ Questions</button>
+              <span className="mg-bar__sp" />
+              {q && !q.sug && (
+                <>
+                  <button type="button" className={`mg-act${review?.status === "approved" ? " is-ok" : ""}`} onClick={() => setStatus("approved")}>
+                    {review?.status === "approved" ? "Approved ✓" : "Approve"}
+                  </button>
+                  <button type="button" className={`mg-act${review?.status === "flagged" ? " is-flag" : ""}`} onClick={() => setStatus("flagged")}>
+                    {review?.status === "flagged" ? "Flagged" : "Flag"}
+                  </button>
+                  <button type="button" className="mg-act" onClick={() => setEditing({ q })}>Edit</button>
+                  {confirmDelete
+                    ? <span className="qr-confirm">Delete for everyone? <button type="button" className="pss-btn btn-press is-danger" onClick={remove}>Delete</button> <button type="button" className="gen-link" onClick={() => setConfirmDelete(false)}>Cancel</button></span>
+                    : <button type="button" className="mg-act" onClick={() => setConfirmDelete(true)}>Delete</button>}
+                </>
+              )}
+              <button type="button" className="pss-btn btn-press is-primary mg-review" onClick={() => setMode("review")}>Review</button>
+            </div>
+            {!q ? <p className="pss-none">No questions here.</p> : (
               <>
-                <div className="qr-nav">
-                  <button type="button" className="gen-link qr-listbtn" onClick={() => setShowList(true)}>All questions</button>
-                  <span className="qr-pos">{idx + 1} of {shown.length}</span>
-                  <span className="qr-navbtns">
-                    <button type="button" className="pss-btn btn-press" onClick={() => go(-1)} disabled={idx <= 0} aria-label="Previous question">↑</button>
-                    <button type="button" className="pss-btn btn-press" onClick={() => go(1)} disabled={idx >= shown.length - 1} aria-label="Next question">↓</button>
-                  </span>
-                </div>
                 <QuestionBody q={q} where={where(q) || deckName} report={report} />
 
                 {q.sug ? (
@@ -407,20 +438,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                       </div>
                     )}
                   </>
-                ) : (
-                  <div className="qr-actions">
-                    <button type="button" className={`pss-btn btn-press${review?.status === "approved" ? " is-primary" : ""}`} onClick={() => setStatus("approved")}>
-                      {review?.status === "approved" ? "Approved ✓" : "Approve"}
-                    </button>
-                    <button type="button" className={`pss-btn btn-press${review?.status === "flagged" ? " is-flagged" : ""}`} onClick={() => setStatus("flagged")}>
-                      {review?.status === "flagged" ? "Flagged" : "Flag"}
-                    </button>
-                    <button type="button" className="pss-btn btn-press" onClick={() => setEditing({ q })}>Edit</button>
-                    {confirmDelete
-                      ? <span className="qr-confirm">Delete for everyone? <button type="button" className="pss-btn btn-press is-danger" onClick={remove}>Delete</button> <button type="button" className="gen-link" onClick={() => setConfirmDelete(false)}>Cancel</button></span>
-                      : <button type="button" className="gen-link qr-delete" onClick={() => setConfirmDelete(true)}>Delete</button>}
-                  </div>
-                )}
+                ) : null}
                 {review && !q.sug && <p className="qr-who">{review.status === "approved" ? "Approved" : "Flagged"} by {review.name} · {ago(review.at)}</p>}
 
                 <div className="qr-thread">

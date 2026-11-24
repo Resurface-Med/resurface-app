@@ -11069,6 +11069,40 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .rq-done__n span { margin-left: 8px; font-size: 16px; font-weight: 500; letter-spacing: 0; color: var(--c-muted); }
 .rq-done__line { margin: 12px 0 0; font-size: 15.5px; line-height: 1.5; color: var(--c-sub); }
 
+/* Manage, lecture first (2026-11-24, mockup B): lectures, that lecture's
+   questions, the question. No header; the deck's name heads the lectures. */
+.mg .mg-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 250px 360px minmax(0, 1fr); }
+.mg-lecs { background: var(--c-surface2); padding: 30px 14px 24px 20px; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 1px; }
+.mg-title { margin: 0 10px; font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -0.6px; color: var(--c-text); text-wrap: balance; }
+.mg-stat { margin: 4px 10px 18px; font-size: 13.5px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.mg-stat strong { color: var(--c-text); font-weight: 600; }
+.mg-lecs .rq-lec.is-on { background: var(--c-card-solid); }
+.mg-mid { min-width: 0; min-height: 0; display: flex; flex-direction: column; border-right: 1px solid var(--c-border); }
+.mg-midtop { display: flex; flex-direction: column; gap: 12px; padding: 22px 18px 0; }
+.mg-lecpick { display: none; }
+.qr-search.mg-search { margin-top: 0; max-width: none; flex: none; border: 0; border-radius: 999px; background: var(--c-surface2); padding: 0 14px; }
+.mg-kbd { flex: none; padding: 0 6px; border: 1px solid var(--c-border); border-radius: 6px; font: inherit; font-size: 12px; color: var(--c-muted); }
+.mg-tabs { display: flex; gap: 18px; border-bottom: 1px solid var(--c-border); }
+.mg-tab { padding: 8px 0 9px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: none; font: inherit; font-size: 13.5px; color: var(--c-muted); cursor: pointer; }
+.mg-tab span { margin-left: 5px; font-variant-numeric: tabular-nums; }
+.mg-tab.is-on { color: var(--c-text); font-weight: 600; border-bottom-color: var(--c-text); }
+.qr-list.mg-list { flex: 1; min-height: 0; border-right: 0; padding-top: 6px; }
+.mg-list .qr-item { grid-template-columns: 24px minmax(0, 1fr) 8px; padding: 10px 18px 10px 14px; align-items: baseline; }
+.mg-dot { width: 7px; height: 7px; border-radius: 50%; align-self: center; }
+.mg-dot.is-ok { background: var(--c-success); }
+.mg-dot.is-bad { background: var(--c-danger); }
+.mg-detail { min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 20px 40px 40px; }
+.mg-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; padding-right: 50px; margin-bottom: 8px; min-height: 40px; }
+.mg-bar__sp { flex: 1; }
+.mg-act { border: 0; background: none; padding: 8px 12px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 600; color: var(--c-sub); cursor: pointer; }
+.mg-act:hover { background: var(--c-surface2); color: var(--c-text); }
+.mg-act.is-ok { color: var(--c-success); }
+.mg-act.is-flag { color: var(--c-warning); }
+.mg-review { margin-left: 8px; padding: 8px 18px; }
+.mg .qr-where { margin-top: 0; }
+.mg-detail .qx { margin-top: 16px; max-width: 760px; }
+.mg .qr-confirm { margin-left: 0; }
+
 /* Phones: one column. The question fills the window; "All questions"
    swaps it for the list. */
 @media (max-width: 820px) {
@@ -11094,6 +11128,18 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .qr-delete, .qr-confirm, .qr-addall { margin-left: 0; }
   .qr-confirm { flex-wrap: wrap; }
   .qr-compose { flex-direction: column; align-items: stretch; }
+  .mg .mg-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .mg-lecs { display: none; }
+  .mg-mid { display: none; border-right: 0; }
+  .mg-body.is-list .mg-mid { display: flex; }
+  .mg-body.is-list .mg-detail { display: none; }
+  .mg-midtop { padding: calc(18px + var(--safe-t, 0px)) 16px 0; padding-right: 60px; }
+  .mg-lecpick { display: block; width: 100%; padding: 10px 12px; border: 1px solid var(--c-border); border-radius: 12px; background: var(--c-card-solid); color: var(--c-text); font: inherit; font-size: 15px; font-weight: 600; }
+  .mg-detail { padding: calc(14px + var(--safe-t, 0px)) 16px calc(28px + var(--safe-b, 0px)); }
+  .mg-bar { padding-right: 46px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .mg-act { padding: 8px 9px; flex: none; }
+  .mg-review { flex: none; }
+  .mg-kbd { display: none; }
   .qr-titlerow { padding-right: 44px; }
 
   .qr-compose .pss-btn { align-self: flex-start; }

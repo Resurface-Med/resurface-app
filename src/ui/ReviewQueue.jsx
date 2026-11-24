@@ -81,7 +81,7 @@ function StudentReports({ report }) {
 
 /* The deck's questions grouped by the deck each sits in (its lecture), in
    the deck's own order. */
-function lecturesOf(all, deckId, deckName) {
+export function lecturesOf(all, deckId, deckName) {
   const by = new Map();
   for (const x of all) {
     const leaf = x.path?.length ? x.path[x.path.length - 1] : null;
