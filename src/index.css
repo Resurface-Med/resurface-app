@@ -11034,18 +11034,30 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .quiz-shell.rv { z-index: 1580; }
 .rv .quiz-rail__head { align-items: baseline; }
 .rv-total { font-size: 13.5px; font-weight: 600; color: var(--c-muted); font-variant-numeric: tabular-nums; }
-.rv-lecs { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; overflow-y: auto; min-height: 0; }
+/* Lecture names are long: a wider list than Practice's, scrolling clear of
+   the bottom bar that floats over it. */
+@media (min-width: 901px) {
+  .quiz-shell.rv.is-rail .quiz-shell__stage { grid-template-columns: 280px 1fr; }
+  .rv .quiz-rail__inner { width: 280px; }
+}
+/* The question starts below the list's toggle, never under it. */
+.quiz-shell.rv .quiz-shell__body { padding-top: 64px; }
+/* On a phone the list slides over the question, under its toggle. */
+@media (max-width: 900px) { .rv .quiz-rail__head { padding-left: 44px; } .rv-lecs { padding-bottom: 96px; } }
+.rv-lecs { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 1px; margin: 10px -6px 0 0; padding: 0 6px 120px 0; overflow-y: auto; overscroll-behavior: contain; }
+.rv-count { display: inline-flex; align-items: baseline; gap: 10px; min-width: 0; }
+@media (max-width: 900px) { .rv-count__lec { display: none; } }
+.rv-count__lec { max-width: 32vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; opacity: 0.85; }
 .rq-lec {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 10px;
-  padding: 9px 12px; border: 0; border-radius: 12px; background: none; text-align: left; cursor: pointer;
-  font: inherit; font-size: 14px; line-height: 1.35; color: var(--c-sub);
+  padding: 8px 10px; border: 0; border-radius: 10px; background: none; text-align: left; cursor: pointer;
+  font: inherit; font-size: 13.5px; line-height: 1.35; color: var(--c-sub);
 }
 .rq-lec:hover { background: var(--c-surface2); }
 .rq-lec.is-on { background: var(--c-surface3); color: var(--c-text); font-weight: 600; }
 .rq-lec.is-done { color: var(--c-muted); }
 .rq-lec__n { font-size: 12.5px; font-weight: 500; color: var(--c-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rq-lec.is-done .rq-lec__n { color: var(--c-success); }
-.rv-lecname { margin: 0 0 10px; font-size: 13.5px; font-weight: 600; color: var(--c-muted); }
 .rv-status { margin: 14px 0 0; font-size: 13.5px; color: var(--c-muted); }
 .rq-reports { margin-top: 20px; }
 .quiz-shell__foot-btn.rv-report { background: transparent; border-color: transparent; color: var(--c-sub); box-shadow: none; }

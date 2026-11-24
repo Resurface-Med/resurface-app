@@ -204,7 +204,10 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
           <div className="quiz-shell__progress" aria-hidden="true">
             <div className="quiz-shell__progress-fill" style={{ transform: `scaleX(${lec ? lecDone / lec.qs.length : 0})` }} />
           </div>
-          <span className="quiz-shell__count">{lecDone}/{lec?.qs.length ?? 0}</span>
+          <span className="quiz-shell__count rv-count">
+            {lec && <span className="rv-count__lec">{lec.name}</span>}
+            <span>{lecDone}/{lec?.qs.length ?? 0}</span>
+          </span>
           {q && (
             <button type="button" className="quiz-shell__tool btn-press" onClick={() => onEdit(q, () => moveOn(q))} title="Edit question" aria-label="Edit question">
               <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
@@ -253,7 +256,6 @@ export default function ReviewQueue({ all, deckId, deckName, statusOf, reports, 
           <div className="quiz-shell__main">
             {q ? (
               <>
-                <p className="rv-lecname">{lec?.name}</p>
                 <QuestionCard key={q.id} q={q} sel={q.ans} onAnswer={() => {}} onNext={skip} onPrev={trail.length ? back : undefined}
                   focusMode hideActions bare />
                 {reports.get(q.id) && <StudentReports report={reports.get(q.id)} />}
