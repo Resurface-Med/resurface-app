@@ -11108,7 +11108,9 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .mg-lecs .rq-lec.is-on { background: var(--c-card-solid); }
 .mg-mid { min-width: 0; min-height: 0; display: flex; flex-direction: column; border-right: 1px solid var(--c-border); }
 .mg-midtop { display: flex; flex-direction: column; gap: 12px; padding: 22px 18px 0; }
-.mg-lecpick { display: none; }
+.mg-lecpick, .mg-midtitle { display: none; }
+.mg-midtitle { margin: 0; padding-right: 48px; font-size: 13.5px; color: var(--c-muted); font-variant-numeric: tabular-nums; }
+.mg-midtitle strong { font-size: 17px; font-weight: 600; color: var(--c-text); }
 .qr-search.mg-search { margin-top: 0; max-width: none; flex: none; border: 0; border-radius: 999px; background: var(--c-surface2); padding: 0 14px; }
 .mg-kbd { flex: none; padding: 0 6px; border: 1px solid var(--c-border); border-radius: 6px; font: inherit; font-size: 12px; color: var(--c-muted); }
 .mg-tabs { display: flex; gap: 18px; border-bottom: 1px solid var(--c-border); }
@@ -11128,6 +11130,32 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .mg-act.is-ok { color: var(--c-success); }
 .mg-act.is-flag { color: var(--c-warning); }
 .mg-review { margin-left: 8px; padding: 8px 18px; }
+.mg-more { position: relative; display: inline-flex; }
+.mg-more__btn { min-width: 40px; letter-spacing: 1px; }
+.mg-menu { position: absolute; top: calc(100% + 4px); right: 0; z-index: 5; min-width: 150px; display: flex; flex-direction: column; padding: 6px; border-radius: 14px; background: var(--c-card-solid); border: 1px solid var(--c-border); box-shadow: 0 12px 32px rgba(12, 22, 56, 0.18); }
+.mg-menu button { border: 0; background: none; text-align: left; padding: 9px 12px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 500; color: var(--c-text); cursor: pointer; }
+.mg-menu button:hover { background: var(--c-surface2); }
+.mg-menu button.is-danger { color: var(--c-danger); }
+
+/* Calmer (2026-11-24, "overwhelming"): one line per question, and the
+   question at a desk size, as in review. */
+.mg-list .qr-item__stem { -webkit-line-clamp: 1; }
+.mg-detail > * { max-width: 760px; }
+.mg-detail .qr-stem { font-size: clamp(17px, 1.4vw, 19px); line-height: 1.4; letter-spacing: -0.25px; }
+.mg-detail .qr-opt { padding: 10px 0; }
+.mg-detail .qr-opt__text { font-size: 14.5px; }
+.mg-detail .qr-opt__why { font-size: 13px; }
+.mg-detail .qx__title, .mg-detail .qx__table, .mg-detail .qx__line { font-size: 14px; }
+.mg-detail .qx__table th, .mg-detail .qx__table td { padding: 6px 10px; }
+.mg-detail .qr-exp p { font-size: 14.5px; }
+/* Narrower windows: no lecture column; the lecture is a picker above the
+   list, as on a phone. */
+@media (max-width: 1280px) and (min-width: 821px) {
+  .mg .mg-body { grid-template-columns: 340px minmax(0, 1fr); }
+  .mg-lecs { display: none; }
+  .mg-lecpick, .mg-midtitle { display: block; }
+}
+.mg-lecpick { width: 100%; padding: 9px 12px; border: 0; border-radius: 12px; background: var(--c-surface2); color: var(--c-text); font: inherit; font-size: 15px; font-weight: 600; }
 .mg .qr-where { margin-top: 0; }
 .mg-detail .qx { margin-top: 16px; max-width: 760px; }
 .mg .qr-confirm { margin-left: 0; }
@@ -11163,7 +11191,7 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   .mg-body.is-list .mg-mid { display: flex; }
   .mg-body.is-list .mg-detail { display: none; }
   .mg-midtop { padding: calc(18px + var(--safe-t, 0px)) 16px 0; padding-right: 60px; }
-  .mg-lecpick { display: block; width: 100%; padding: 10px 12px; border: 1px solid var(--c-border); border-radius: 12px; background: var(--c-card-solid); color: var(--c-text); font: inherit; font-size: 15px; font-weight: 600; }
+  .mg-lecpick, .mg-midtitle { display: block; }
   .mg-detail { padding: calc(14px + var(--safe-t, 0px)) 16px calc(28px + var(--safe-b, 0px)); }
   .mg-bar { padding-right: 46px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .mg-act { padding: 8px 9px; flex: none; }

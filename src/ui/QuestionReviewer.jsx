@@ -121,6 +121,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
   const [mode, setMode] = useState("manage");                   // "manage" | "review"
   const [paging, setPaging] = useState({ key: "", n: PAGE });
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [showList, setShowList] = useState(false);              // phones
@@ -173,7 +174,7 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
 
   const q = (filter === "suggested" ? suggested : scope).find(x => x.id === cur) ?? shown[0] ?? null;
   /* Setters only, so the same function every render and the rows stay memoised. */
-  const pick = useCallback(id => { setCur(id); setShowList(false); setConfirmDelete(false); }, []);
+  const pick = useCallback(id => { setCur(id); setShowList(false); setConfirmDelete(false); setMoreOpen(false); }, []);
   const idx = q ? shown.findIndex(x => x.id === q.id) : -1;
   const approved = all.filter(x => statusOf(x) === "approved").length;
   const reportedN = all.filter(x => reports.has(x.id) || statusOf(x) === "flagged").length;
@@ -350,7 +351,9 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
 
           <div className="mg-mid">
             <div className="mg-midtop">
-              {/* Phones: no lecture column, so the lecture is picked here. */}
+              {/* Narrow windows and phones: no lecture column, so the deck and
+                  the lecture are here. */}
+              <p className="mg-midtitle"><strong>{deckName}</strong> · {approved} of {all.length} approved</p>
               <select className="mg-lecpick" value={lec?.id ?? ""} aria-label="Lecture"
                 onChange={e => { const l = lectures.find(x => x.id === e.target.value); if (l) openLecture(l); }}>
                 {lectures.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
@@ -395,13 +398,22 @@ export default function QuestionReviewer({ deckId, deckName, actions, editPersis
                   <button type="button" className={`mg-act${review?.status === "approved" ? " is-ok" : ""}`} onClick={() => setStatus("approved")}>
                     {review?.status === "approved" ? "Approved ✓" : "Approve"}
                   </button>
-                  <button type="button" className={`mg-act${review?.status === "flagged" ? " is-flag" : ""}`} onClick={() => setStatus("flagged")}>
-                    {review?.status === "flagged" ? "Flagged" : "Flag"}
-                  </button>
                   <button type="button" className="mg-act" onClick={() => setEditing({ q })}>Edit</button>
+                  {/* Flag and Delete, used rarely, behind ⋯ (2026-11-24). */}
                   {confirmDelete
                     ? <span className="qr-confirm">Delete for everyone? <button type="button" className="pss-btn btn-press is-danger" onClick={remove}>Delete</button> <button type="button" className="gen-link" onClick={() => setConfirmDelete(false)}>Cancel</button></span>
-                    : <button type="button" className="mg-act" onClick={() => setConfirmDelete(true)}>Delete</button>}
+                    : (
+                      <span className="mg-more">
+                        <button type="button" className={`mg-act mg-more__btn${review?.status === "flagged" ? " is-flag" : ""}`} aria-haspopup="menu" aria-expanded={moreOpen}
+                          aria-label="More" onClick={() => setMoreOpen(o => !o)}>{review?.status === "flagged" ? "Flagged ⋯" : "⋯"}</button>
+                        {moreOpen && (
+                          <span className="mg-menu" role="menu" onMouseLeave={() => setMoreOpen(false)}>
+                            <button type="button" role="menuitem" onClick={() => { setMoreOpen(false); setStatus("flagged"); }}>{review?.status === "flagged" ? "Unflag" : "Flag"}</button>
+                            <button type="button" role="menuitem" className="is-danger" onClick={() => { setMoreOpen(false); setConfirmDelete(true); }}>Delete</button>
+                          </span>
+                        )}
+                      </span>
+                    )}
                 </>
               )}
               <button type="button" className="pss-btn btn-press is-primary mg-review" onClick={() => setMode("review")}>Review</button>
