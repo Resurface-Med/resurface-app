@@ -20,7 +20,7 @@ export default function Reminders() {
     if (s !== "ok") { setState(s); return; }
     current().then(({ subscription, row }) => {
       if (!live) return;
-      if (subscription && row) {
+      if (subscription && row?.enabled) {
         setSub(subscription);
         setTimeValue(String(row.remind_at).slice(0, 5));
         setState("on");

@@ -7,6 +7,7 @@ import { usePref, setPref } from "../lib/prefs";
 import Wave from "../ui/Wave";
 import { remote } from "../lib/remote";
 import Reminders from "../ui/Reminders";
+import AdminAlerts from "../ui/AdminAlerts";
 import { isInappropriate, NAME_NOT_ALLOWED } from "../lib/nameFilter";
 import { useAuth } from "../lib/auth";
 import Avatar from "../ui/Avatar";
@@ -512,6 +513,7 @@ export default function ProfileView({
           {cat === "notifications" && (
           <>
           <Reminders />
+          <AdminAlerts />
           </>
           )}
           {cat === "signin" && (

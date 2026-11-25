@@ -916,7 +916,15 @@ const TABS = [
 ];
 
 export default function AdminView({ me = null, userId = null }) {
-  const [tab, setTab] = useState("activity");
+  /* An admin alert can open a tab (App, ?view=admin&tab=flags). */
+  const [tab, setTab] = useState(() => {
+    try {
+      const t = sessionStorage.getItem("rs-admin-tab");
+      sessionStorage.removeItem("rs-admin-tab");
+      if (t && TABS.some(x => x.k === t)) return t;
+    } catch { /* the default */ }
+    return "activity";
+  });
   const [flagCount, setFlagCount] = useState(null);
   /* The fetch first, then the device's copy to show while it runs; the
      tabs render once the copy is read (a few milliseconds), or at once

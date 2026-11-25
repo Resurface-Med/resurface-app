@@ -12,6 +12,10 @@ import { apiFetch } from "./api";
  *
  * iPhone and iPad only allow this in the app added to the Home Screen, so
  * `support()` says which case this is.
+ *
+ * Admin alerts (2026-11-25, migration 0107) use the same device row:
+ * admin_alerts for those, enabled for the reminders. Turning one off keeps
+ * the device signed up while the other is still on.
  */
 export const VAPID_PUBLIC_KEY = "BGaUYX0xBuxwGSHw_U5rU5IWGhl4Kx4WOkMDKgHLJM9CvNeCxOnpm1IOSQDipcBhjLGrsImSDy90v3TPgugPVDY";
 
@@ -44,21 +48,26 @@ export async function current() {
   const reg = await registration();
   const subscription = await reg.pushManager.getSubscription();
   if (!subscription) return { subscription: null, row: null };
-  const { data } = await supabase.from("push_subscriptions").select("remind_at, enabled").eq("endpoint", subscription.endpoint).maybeSingle();
+  const { data } = await supabase.from("push_subscriptions").select("remind_at, enabled, admin_alerts").eq("endpoint", subscription.endpoint).maybeSingle();
   return { subscription, row: data ?? null };
 }
 
-/** Ask, subscribe, store. Throws with a sentence fit to show. */
-export async function turnOn(remindAt) {
+/* Permission, then this device's push address. */
+async function subscribeDevice(what) {
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
     throw new Error(permission === "denied"
       ? "Notifications are blocked for this site. Allow them in your browser's settings, then try again."
-      : "Notifications weren't allowed, so reminders are still off.");
+      : `Notifications weren't allowed, so ${what} are still off.`);
   }
   const reg = await registration();
-  const subscription = (await reg.pushManager.getSubscription())
+  return (await reg.pushManager.getSubscription())
     ?? await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(VAPID_PUBLIC_KEY) });
+}
+
+/** Ask, subscribe, store. Throws with a sentence fit to show. */
+export async function turnOn(remindAt) {
+  const subscription = await subscribeDevice("reminders");
   const json = subscription.toJSON();
   const { error } = await supabase.from("push_subscriptions").upsert({
     endpoint: json.endpoint,
@@ -77,9 +86,43 @@ export async function setTime(subscription, remindAt) {
 }
 
 export async function turnOff(subscription) {
+  navigator.clearAppBadge?.().catch(() => {});
+  const { data } = await supabase.from("push_subscriptions").select("admin_alerts").eq("endpoint", subscription.endpoint).maybeSingle();
+  if (data?.admin_alerts) {
+    await supabase.from("push_subscriptions").update({ enabled: false }).eq("endpoint", subscription.endpoint);
+    return;
+  }
   await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
   await subscription.unsubscribe().catch(() => {});
-  navigator.clearAppBadge?.().catch(() => {});
+}
+
+/** Admin alerts on this device, leaving the reminders as they are. */
+export async function turnOnAlerts() {
+  const subscription = await subscribeDevice("alerts");
+  const json = subscription.toJSON();
+  const { data: row } = await supabase.from("push_subscriptions").select("id").eq("endpoint", json.endpoint).maybeSingle();
+  const { error } = row
+    ? await supabase.from("push_subscriptions").update({ admin_alerts: true }).eq("endpoint", json.endpoint)
+    : await supabase.from("push_subscriptions").insert({
+      endpoint: json.endpoint,
+      p256dh: json.keys.p256dh,
+      auth: json.keys.auth,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/London",
+      enabled: false,
+      admin_alerts: true,
+    });
+  if (error) throw new Error("Couldn't turn alerts on. Try again.");
+  return subscription;
+}
+
+export async function turnOffAlerts(subscription) {
+  const { data } = await supabase.from("push_subscriptions").select("enabled").eq("endpoint", subscription.endpoint).maybeSingle();
+  if (data?.enabled) {
+    await supabase.from("push_subscriptions").update({ admin_alerts: false }).eq("endpoint", subscription.endpoint);
+    return;
+  }
+  await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
+  await subscription.unsubscribe().catch(() => {});
 }
 
 export async function sendTest(subscription) {

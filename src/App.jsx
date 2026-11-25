@@ -146,6 +146,15 @@ export default function App() {
         window.history.replaceState(null, "", window.location.pathname);
         return asked === "study" ? V.STUDY : V.PROFILE;
       }
+      /* An admin alert (0107) opens Admin, on its Reported tab for a report.
+         Only an admin sees anything there: every list checks the admins
+         table itself. */
+      if (asked === "admin") {
+        const tab = new URLSearchParams(window.location.search).get("tab");
+        try { if (tab) sessionStorage.setItem("rs-admin-tab", tab); } catch { /* opens on Activity */ }
+        window.history.replaceState(null, "", window.location.pathname);
+        return V.ADMIN;
+      }
     } catch { /* fall through */ }
     try {
       const v = sessionStorage.getItem(RESUME_VIEW);
