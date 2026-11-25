@@ -461,12 +461,18 @@ export function PreviewHost({ render }) {
  *   Invite          ask: from the 4th study day                  back after 10 days, gone after 3
  * The two asks share one slot a week.
  *
- * On opening: a streak of 3+ that today hasn't kept, twice a week at most.
+ * On opening: a new flame not yet shown on this device, then a streak of 3+
+ * that today hasn't kept, twice a week at most.
  *
  * Shown, tapped and closed are logged (onboarding_steps, first time each).
  */
 const WEEK = 7 * DAY;
 const ON_PHONES = new Set(["dayone", "flames", "streak"]);
+/* Which flames this device has shown. A new key with the new flames
+   (2026-11-25), so everyone on a running streak of 3+ sees the new one,
+   even if they'd seen the old popup. */
+const FLAMES_KEY = "flames2";
+const flameReached = days => [...FLAME_LEVELS].reverse().find(L => L.at > 1 && days >= L.at)?.at ?? 0;
 /* Times something was shown in the last week, from a stored list. */
 const recent = (uid, k) => (store.get(uid, k).at ?? []).filter(t => Date.now() - t < WEEK);
 const stamp = (uid, k) => store.set(uid, k, { ...store.get(uid, k), at: [...recent(uid, k), Date.now()] });
@@ -499,12 +505,30 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
   const askFree = () => Date.now() - (Number(store.get(userId, "ask").at) || 0) >= WEEK;
   const asked = () => store.set(userId, "ask", { at: Date.now() });
 
+  /* On opening: a flame not yet shown on this device, for a streak still
+     running (kept today or yesterday). Ahead of the streak reminder. */
+  useEffect(() => {
+    if (!ready || !userId || sessionActive) return;
+    const days = Number(streak?.streak) || 0;
+    const running = streak?.lastDate === today || streak?.lastDate === yesterdayKey();
+    const hit = running ? flameReached(days) : 0;
+    if (hit <= (Number(store.get(userId, FLAMES_KEY).n) || 0)) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      let pct = null;
+      try { pct = await Promise.race([fetchStreakRarity(hit), new Promise(r => setTimeout(() => r(null), 2500))]); } catch { /* offline */ }
+      if (!cancelled && show({ kind: "flames", days, pct })) store.set(userId, FLAMES_KEY, { n: hit });
+    }, 1200);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [ready, userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /* On opening: a streak of 3+ that today hasn't kept, twice a week. */
   useEffect(() => {
     if (!ready || !userId || sessionActive) return;
     const days = Number(streak?.streak) || 0;
     const studiedToday = Number(activity?.[today]) > 0;
     if (days < 3 || studiedToday || streak?.lastDate !== yesterdayKey()) return;
+    if (flameReached(days) > (Number(store.get(userId, FLAMES_KEY).n) || 0)) return; /* the flame goes first */
     if (store.get(userId, "streak").day === today || recent(userId, "streak").length >= 2) return;
     const t = setTimeout(() => {
       if (show({ kind: "streak", days })) { stamp(userId, "streak"); store.set(userId, "streak", { ...store.get(userId, "streak"), day: today }); }
@@ -541,13 +565,13 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       }
       /* A new streak flame. Once per level, ahead of the question milestones. */
       const flameDays = Number(streak?.streak) || 0;
-      const flameSeen = Number(store.get(userId, "flames").n) || 0;
-      const flameHit = [...FLAME_LEVELS].reverse().find(L => L.at > 1 && flameDays >= L.at)?.at ?? 0;
+      const flameSeen = Number(store.get(userId, FLAMES_KEY).n) || 0;
+      const flameHit = flameReached(flameDays);
       if (flameHit > flameSeen) {
         let pct = null;
         try { pct = await Promise.race([fetchStreakRarity(flameHit), new Promise(r => setTimeout(() => r(null), 2500))]); } catch { /* offline */ }
         if (cancelled) return;
-        if (show({ kind: "flames", days: flameDays, pct })) store.set(userId, "flames", { n: flameHit });
+        if (show({ kind: "flames", days: flameDays, pct })) store.set(userId, FLAMES_KEY, { n: flameHit });
         return;
       }
       /* A milestone: a handful of times in anyone's life. */
