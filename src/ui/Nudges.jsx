@@ -472,6 +472,19 @@ const ON_PHONES = new Set(["dayone", "flames", "streak"]);
    (2026-11-25), so everyone on a running streak of 3+ sees the new one,
    even if they'd seen the old popup. */
 const FLAMES_KEY = "flames2";
+/* The flame this device has already shown. The old key counts only where
+   it must have been written today: the 3-day flame only exists since
+   today, and any other level exactly equal to a streak kept today was
+   reached today. And never twice in one day. */
+const flameSeenN = (uid, streak) => {
+  const cur = store.get(uid, FLAMES_KEY);
+  if (cur.day === todayKey()) return Infinity;
+  const old = Number(store.get(uid, "flames").n) || 0;
+  const days = Number(streak?.streak) || 0;
+  const oldToday = old === 3 || (old > 0 && old === days && streak?.lastDate === todayKey());
+  return Math.max(Number(cur.n) || 0, oldToday ? old : 0);
+};
+const markFlame = (uid, n) => store.set(uid, FLAMES_KEY, { n, day: todayKey() });
 const flameReached = days => [...FLAME_LEVELS].reverse().find(L => L.at > 1 && days >= L.at)?.at ?? 0;
 /* Times something was shown in the last week, from a stored list. */
 const recent = (uid, k) => (store.get(uid, k).at ?? []).filter(t => Date.now() - t < WEEK);
@@ -512,12 +525,12 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
     const days = Number(streak?.streak) || 0;
     const running = streak?.lastDate === today || streak?.lastDate === yesterdayKey();
     const hit = running ? flameReached(days) : 0;
-    if (hit <= (Number(store.get(userId, FLAMES_KEY).n) || 0)) return;
+    if (hit <= flameSeenN(userId, streak)) return;
     let cancelled = false;
     const t = setTimeout(async () => {
       let pct = null;
       try { pct = await Promise.race([fetchStreakRarity(hit), new Promise(r => setTimeout(() => r(null), 2500))]); } catch { /* offline */ }
-      if (!cancelled && show({ kind: "flames", days, pct })) store.set(userId, FLAMES_KEY, { n: hit });
+      if (!cancelled && show({ kind: "flames", days, pct })) markFlame(userId, hit);
     }, 1200);
     return () => { cancelled = true; clearTimeout(t); };
   }, [ready, userId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -528,7 +541,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
     const days = Number(streak?.streak) || 0;
     const studiedToday = Number(activity?.[today]) > 0;
     if (days < 3 || studiedToday || streak?.lastDate !== yesterdayKey()) return;
-    if (flameReached(days) > (Number(store.get(userId, FLAMES_KEY).n) || 0)) return; /* the flame goes first */
+    if (flameReached(days) > flameSeenN(userId, streak)) return; /* the flame goes first */
     if (store.get(userId, "streak").day === today || recent(userId, "streak").length >= 2) return;
     const t = setTimeout(() => {
       if (show({ kind: "streak", days })) { stamp(userId, "streak"); store.set(userId, "streak", { ...store.get(userId, "streak"), day: today }); }
@@ -565,13 +578,13 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       }
       /* A new streak flame. Once per level, ahead of the question milestones. */
       const flameDays = Number(streak?.streak) || 0;
-      const flameSeen = Number(store.get(userId, FLAMES_KEY).n) || 0;
+      const flameSeen = flameSeenN(userId, streak);
       const flameHit = flameReached(flameDays);
       if (flameHit > flameSeen) {
         let pct = null;
         try { pct = await Promise.race([fetchStreakRarity(flameHit), new Promise(r => setTimeout(() => r(null), 2500))]); } catch { /* offline */ }
         if (cancelled) return;
-        if (show({ kind: "flames", days: flameDays, pct })) store.set(userId, FLAMES_KEY, { n: flameHit });
+        if (show({ kind: "flames", days: flameDays, pct })) markFlame(userId, flameHit);
         return;
       }
       /* A milestone: a handful of times in anyone's life. */
