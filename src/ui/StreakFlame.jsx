@@ -3,8 +3,10 @@ import { useId } from "react";
 /**
  * The streak: a flame and a number.
  *
- * The colour steps with the length. Everyday is gold, then orange, red,
- * blue, pink, green, and a white flame with an indigo base at a year.
+ * The colour steps with the length (2026-11-25, after 14 read as a muddy
+ * brick red): orange at 1, a hotter red-orange at 3, true red at 7,
+ * violet at 14, cyan at 30, pink at 50, emerald at 100, and a prism at a
+ * year. Each a clean light-to-deep ramp of one hue, so none goes brown.
  * A shadow in that same colour keeps the pale ones visible on white.
  * It flickers from its base. Still under reduced motion.
  *
@@ -16,13 +18,14 @@ const INNER = "M10 11.2c.4 2 1.7 3.1 2.7 4.2.8.9 1.3 1.9 1.3 3.1 0 2.3-1.8 4-4 4
 
 /* h is the laptop home height. It stops at the greeting. */
 export const FLAME_LEVELS = [
-  { at: 1, label: "1", h: 52, core: 0, shade: "#c2410c", outer: ["#ffe56a", "#ff8a00"], inner: ["#fffce4", "#ffd000"] },
-  { at: 7, label: "7", h: 56, core: 0.4, shade: "#c2410c", outer: ["#ffb547", "#ff5a1f"], inner: ["#fff3b0", "#ffc93d"] },
-  { at: 14, label: "14", h: 62, core: 0.6, shade: "#7f1d1d", outer: ["#ffb199", "#9f0d18"], inner: ["#fff6e8", "#ff5a1f"] },
-  { at: 30, label: "30", h: 68, core: 0.78, shade: "#0e7490", outer: ["#ffffff", "#22d3ee"], inner: ["#ffffff", "#e0fbff"] },
-  { at: 50, label: "50", h: 74, core: 0.88, shade: "#86198f", outer: ["#ffd6ff", "#c026d3"], inner: ["#ffffff", "#f0abfc"] },
-  { at: 100, label: "100", h: 80, core: 0.9, shade: "#166534", outer: ["#d9f99d", "#16a34a"], inner: ["#ffffff", "#86efac"] },
-  { at: 365, label: "365", h: 84, core: 1, shade: "#312e81", outer: ["#ffffff", "#4f46e5"], inner: ["#ffffff", "#c7d2fe"] },
+  { at: 1, label: "1", h: 52, core: 0, shade: "#c2410c", outer: ["#ffe066", "#ff8a00"], inner: ["#fffbe0", "#ffcf1a"] },
+  { at: 3, label: "3", h: 54, core: 0.3, shade: "#b42318", outer: ["#ffb648", "#ff3d00"], inner: ["#fff3c4", "#ffb020"] },
+  { at: 7, label: "7", h: 57, core: 0.45, shade: "#991b1b", outer: ["#ff8a7a", "#e0201f"], inner: ["#fff4ef", "#ff9a6b"] },
+  { at: 14, label: "14", h: 62, core: 0.6, shade: "#6b21a8", outer: ["#e4b5ff", "#8b2cf5"], inner: ["#ffffff", "#d9b3ff"] },
+  { at: 30, label: "30", h: 68, core: 0.78, shade: "#0e7490", outer: ["#c9f8ff", "#0bb5d8"], inner: ["#ffffff", "#b8f3ff"] },
+  { at: 50, label: "50", h: 74, core: 0.85, shade: "#9d174d", outer: ["#ffc4e3", "#ec3d8f"], inner: ["#ffffff", "#ffb3d6"] },
+  { at: 100, label: "100", h: 80, core: 0.9, shade: "#065f46", outer: ["#b4f5d6", "#0fb57a"], inner: ["#ffffff", "#8ff0c4"] },
+  { at: 365, label: "365", h: 84, core: 1, shade: "#5b21b6", outer: ["#7fdcff", "#a78bfa", "#f472b6"], inner: ["#ffffff", "#e9e2ff"] },
 ];
 
 export function flameLevel(days) {
@@ -49,8 +52,7 @@ export default function StreakFlame({ days, best = 0, size = 30, small = false, 
       <svg className="streak__flame" width={size * 0.82} height={size} viewBox="0 0 20 24" aria-hidden="true">
         <defs>
           <linearGradient id={`${uid}-o`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor={L.outer[0]} />
-            <stop offset="1" stopColor={L.outer[1]} />
+            {L.outer.map((c, i) => <stop key={i} offset={i / (L.outer.length - 1)} stopColor={c} />)}
           </linearGradient>
           <linearGradient id={`${uid}-i`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor={L.inner[0]} />

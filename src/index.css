@@ -11692,6 +11692,12 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-flames__b.is-locked .streak__flame { opacity: 0.32; }
 .nudge-flames__b.is-locked .streak__outer,
 .nudge-flames__b.is-locked .streak__inner { animation: none; }
+/* The one just earned: lifted, a size up, its number in its own colour,
+   popping in once. */
+.nudge-flames__b.is-new .streak__flame { transform: scale(1.32); transform-origin: 50% 100%; animation: flameNew .7s .25s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
+.nudge-flames__b.is-new > span { color: var(--flame-c); font-weight: 700; margin-top: 6px; }
+@keyframes flameNew { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1.32); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nudge-flames__b.is-new .streak__flame { animation: none; } }
 
 /* Leaderboard: a mini board, three rows sliding up into place one after
    another, counts ticking, your row marked by a blue edge and bold type. */

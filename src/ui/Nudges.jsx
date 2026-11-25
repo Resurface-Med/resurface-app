@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import StreakFlame, { FLAME_LEVELS } from "./StreakFlame";
+import StreakFlame, { FLAME_LEVELS, flameLevel } from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
 import { fetchLeaderboardWeek, fetchMyRecentAnswers, logStep } from "../lib/remote";
@@ -69,17 +69,22 @@ export function StreakNudge({ days, onAction, onClose, inline }) {
   );
 }
 
-/* The flames a streak unlocks. Earned ones are lit, the rest wait.
-   Shown once per level, at the end of the session that reaches it. */
+/* A new flame (2026-11-25): the one just earned lit and lifted, with
+   the number, the ones before it lit, the rest waiting, and the next one
+   named. Shown once per level, at the end of the session that reaches it. */
 export function FlamesNudge({ days = 14, onAction, onClose, inline }) {
+  const n = Number(days) || 0;
+  const now = flameLevel(n);
+  const next = FLAME_LEVELS.find(L => L.at > n);
   return (
     <NudgeCard kind="flames" inline={inline}
       art={
         <span className="nudge-flames" aria-hidden="true">
           {FLAME_LEVELS.map(L => {
-            const locked = Number(days) < L.at;
+            const locked = n < L.at;
+            const fresh = L === now;
             return (
-              <span key={L.at} className={`nudge-flames__b${locked ? " is-locked" : ""}`}>
+              <span key={L.at} className={`nudge-flames__b${locked ? " is-locked" : ""}${fresh ? " is-new" : ""}`} style={fresh ? { "--flame-c": L.outer.at(-1) } : undefined}>
                 <StreakFlame days={L.at} size={40} bare dim={locked} />
                 <span>{L.label}</span>
               </span>
@@ -87,8 +92,9 @@ export function FlamesNudge({ days = 14, onAction, onClose, inline }) {
           })}
         </span>
       }
-      title="Unlock more as your streak grows."
-      action="Keep going" onAction={onAction} onClose={onClose} />
+      title={`${n}-day streak, new flame unlocked!`}
+      body={next ? `Your next one comes at ${next.at} days.` : "That’s every flame. Legend."}
+      action="Keep going" onAction={onAction} onClose={onClose} later={false} />
   );
 }
 
@@ -437,7 +443,7 @@ export function PreviewHost({ render }) {
  *
  * At the end of a session, the first that is due wins:
  *   Day 1           the very first session                       once ever
- *   Streak flames   reaches 7, 14, 30, 50, 100 or 365            each once
+ *   Streak flames   reaches 3, 7, 14, 30, 50, 100 or 365         each once
  *   Milestone       passes 100 … 50,000 answered                 each once
  *   Passed someone  moved up their year's board this session     once a day
  *   Personal best   most in a day, old best 30+                  once a week
@@ -452,6 +458,7 @@ export function PreviewHost({ render }) {
  * Shown, tapped and closed are logged (onboarding_steps, first time each).
  */
 const WEEK = 7 * DAY;
+const ON_PHONES = new Set(["dayone", "flames", "streak"]);
 /* Times something was shown in the last week, from a stored list. */
 const recent = (uid, k) => (store.get(uid, k).at ?? []).filter(t => Date.now() - t < WEEK);
 const stamp = (uid, k) => store.set(uid, k, { ...store.get(uid, k), at: [...recent(uid, k), Date.now()] });
@@ -471,9 +478,10 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
 
   const free = () => !usedVisit.current && !document.querySelector(".update-note") && !document.querySelector(".np-scrim, .wr");
   function show(n) {
-    /* Off on phones for now (Rafil, 2026-10-27), until they're redone for
-       the small screen. The combo, in the session, stays. */
-    if (window.matchMedia?.("(max-width: 720px)").matches) return false;
+    /* Off on phones (Rafil, 2026-10-27), except the streak's own cards
+       (2026-11-25): most streaks are kept on a phone, and the flames
+       had reached 5 people in a month. The combo, in the session, stays. */
+    if (!ON_PHONES.has(n.kind) && window.matchMedia?.("(max-width: 720px)").matches) return false;
     if (!free()) return false;
     usedVisit.current = true;
     setShown(n);
