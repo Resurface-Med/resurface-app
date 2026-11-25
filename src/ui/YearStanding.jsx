@@ -30,9 +30,9 @@ export default function YearStanding({ studyYear, userId, onOpen }) {
       {!year.onBoard ? (
         <>Answer a question to join Year {studyYear}’s board this week.</>
       ) : year.people < 2 ? (
-        <>You’re the only one in Year {studyYear} answering this week, with <b>{n(year.mine)}</b>.</>
+        <>You’re the only one in Year {studyYear} answering this week, with <b>{n(year.mine)}</b> questions answered.</>
       ) : (
-        <>You’re in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear} this week, with <b>{n(year.mine)}</b> answered.</>
+        <>You’re in the <b>{year.share.side} {year.share.pct}%</b> of Year {studyYear} this week, with <b>{n(year.mine)}</b> questions answered.</>
       )}
     </button>
   );

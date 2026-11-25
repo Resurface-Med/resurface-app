@@ -12,11 +12,17 @@ import { useEffect, useState } from "react";
  * for a refresh rather than doing one — a reload mid-question would throw
  * away what they were doing.
  *
+ * Quiet deploys (2026-11-25): index.html carries a release number, and
+ * only a change in it asks. Small fixes ship without bumping it and reach
+ * people on their next load; bump it when a change should reach open tabs.
+ * A page without the number falls back to comparing scripts.
+ *
  * Held back during a practice session (`hold`) and shown once it ends.
  * Dismissed, it stays away until the next deploy.
  */
 const EVERY = 10 * 60 * 1000;
 const scriptIn = html => html.match(/\/assets\/index-[\w-]+\.js/)?.[0] ?? null;
+const releaseIn = html => html.match(/<meta name="rs-release" content="([^"]*)"/)?.[1] ?? null;
 
 export default function UpdateNotice({ hold = false }) {
   const [ready, setReady] = useState(null);       // the new script's name
@@ -27,14 +33,18 @@ export default function UpdateNotice({ hold = false }) {
       [...document.querySelectorAll('script[type="module"][src]')].map(s => new URL(s.src).pathname).join(" "),
     );
     if (!mine) return;                              // dev: no hashed build to compare
+    const myRelease = document.querySelector('meta[name="rs-release"]')?.getAttribute("content") ?? null;
     let stopped = false;
     async function check() {
       if (document.visibilityState !== "visible") return;
       try {
         const res = await fetch("/", { cache: "no-store", headers: { accept: "text/html" } });
         if (!res.ok || !res.headers.get("x-vercel-id")) return;   // a campus filter's page is not news
-        const theirs = scriptIn(await res.text());
-        if (!stopped && theirs && theirs !== mine) setReady(theirs);
+        const html = await res.text();
+        const theirs = scriptIn(html);
+        const rel = releaseIn(html);
+        const newer = rel !== null && myRelease !== null ? rel !== myRelease : theirs !== mine;
+        if (!stopped && theirs && newer) setReady(theirs);
       } catch { /* offline: try again later */ }
     }
     const t = setInterval(check, EVERY);
