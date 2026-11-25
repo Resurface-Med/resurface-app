@@ -9085,6 +9085,11 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .rem-time { max-width: 160px; }
 .rem-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .rem-note { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--c-sub); }
+/* Admin alerts under Reminders: its own block, with the same room above it
+   as between any two settings, and room under its sentence. */
+.profile-section.rem-alerts { margin-top: clamp(32px, 4.6vh, 44px); padding-top: clamp(32px, 4.6vh, 44px); border-top: 1px solid var(--c-border); }
+.rem-alerts__acts { margin-top: 22px; }
+.profile-section:has(+ .rem-alerts) { border-bottom: none; padding-bottom: 0; }
 
 /* A display name the filter refused (lib/nameFilter). */
 .name-err { margin: 8px 2px 0; font-size: 13.5px; line-height: 1.45; color: var(--c-danger); }

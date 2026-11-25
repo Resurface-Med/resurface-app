@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { btnGhost, primaryBtn, sectionH, meta } from "./theme";
 import { current, support, turnOffAlerts, turnOnAlerts } from "../lib/push";
-import { fetchIsAdmin } from "../lib/remote";
+import { supabase } from "../lib/supabase";
 
 /**
  * Admin alerts on this device (2026-11-25, migration 0107): a notification
- * when someone signs up and when a student reports a question. Admins only;
- * separate from the study reminders above it, so either can be on alone.
+ * when someone signs up and when a student reports a question. Rafil only
+ * (is_owner; 0109 holds it in the database too); separate from the study
+ * reminders above it, so either can be on alone.
  */
 export default function AdminAlerts() {
   const [admin, setAdmin] = useState(false);
@@ -17,7 +18,7 @@ export default function AdminAlerts() {
 
   useEffect(() => {
     let live = true;
-    fetchIsAdmin().then(ok => { if (live) setAdmin(ok); }, () => {});
+    supabase.rpc("is_owner").then(({ data }) => { if (live) setAdmin(data === true); }, () => {});
     const s = support();
     if (s !== "ok") { setState(s); return () => { live = false; }; }
     current().then(({ subscription, row }) => {
@@ -48,7 +49,7 @@ export default function AdminAlerts() {
   }
 
   return (
-    <section className="profile-section" data-in="rise" style={{ "--i": 3 }}>
+    <section className="profile-section rem-alerts" data-in="rise" style={{ "--i": 3 }}>
       <h2 style={sectionH}>Admin alerts</h2>
       <p style={{ ...meta, marginTop: 4 }}>
         A notification on this device when someone signs up and when a student reports a question. Tapping it opens Admin.
@@ -62,7 +63,7 @@ export default function AdminAlerts() {
       ) : state === "none" ? (
         <p className="rem-note">This browser can’t show notifications.</p>
       ) : state === "loading" ? null : (
-        <div className="rem-actions">
+        <div className="rem-actions rem-alerts__acts">
           {state === "on"
             ? <button type="button" className="btn-press" style={btnGhost} onClick={disable} disabled={busy}>Turn off alerts</button>
             : <button type="button" className="btn-press" style={primaryBtn} onClick={enable} disabled={busy}>Turn on alerts</button>}
