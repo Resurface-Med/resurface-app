@@ -11677,8 +11677,8 @@ button.dp3-row:hover { background: var(--c-card-solid); }
 .nudge-streak .streak__n { font-size: 22px; font-weight: 700; color: var(--flame-ink, #e8590c); line-height: 1; margin-top: -2px; }
 .nudge.is-streak .nudge__go { background: linear-gradient(135deg, #ff8a2a, #ff5a1f); }
 
-/* Streak flames: the row of badges, earned ones lit, the rest waiting.
-   Full width, like the leaderboard card, so seven of them fit. */
+/* Streak flames: all eight in a row, the earned ones lit and the newest
+   lifted, the rest grey with a lock. Full width, like the leaderboard card. */
 .nudge.is-flames { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .nudge.is-flames .nudge__art { width: 100%; height: auto; border-radius: 0; display: block; justify-self: stretch; }
 .nudge.is-flames .nudge__text { padding-right: 0; }
@@ -11687,15 +11687,21 @@ button.dp3-row:hover { background: var(--c-card-solid); }
   gap: 4px; width: 100%; box-sizing: border-box; padding: 6px 28px 0 0;
 }
 .nudge-flames__b { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
-.nudge-flames__b > span { font-size: 12px; font-weight: 600; letter-spacing: -0.2px; line-height: 1; color: var(--c-text); }
-.nudge-flames__b.is-locked > span { color: var(--c-muted); font-weight: 500; }
-.nudge-flames__b.is-locked .streak__flame { opacity: 0.32; }
+.nudge-flames__b > span:last-child { font-size: 12px; font-weight: 600; letter-spacing: -0.2px; line-height: 1; color: var(--c-text); }
+.nudge-flames__b.is-locked > span:last-child { color: var(--c-muted); font-weight: 500; }
+.nudge-flames__b { position: relative; }
+.nudge-flames__b.is-locked .streak__flame { opacity: 0.45; filter: blur(0.6px); }
+:root[data-theme="dark"] .nudge-flames__b.is-locked .streak__flame { opacity: 0.28; }
+/* The lock sits on the flame's round body, dead centre. */
+.nudge-flames__f { position: relative; display: inline-flex; }
+.nudge-flames__lock { position: absolute; left: 50%; top: 66%; width: 11px; height: 13px; transform: translate(-50%, -50%); fill: var(--c-card-solid); stroke: var(--c-muted); stroke-width: 1.4; }
+.nudge-flames__lock path { fill: none; }
 .nudge-flames__b.is-locked .streak__outer,
 .nudge-flames__b.is-locked .streak__inner { animation: none; }
 /* The one just earned: lifted, a size up, its number in its own colour,
    popping in once. */
 .nudge-flames__b.is-new .streak__flame { transform: scale(1.32); transform-origin: 50% 100%; animation: flameNew .7s .25s cubic-bezier(0.34, 1.6, 0.5, 1) both; }
-.nudge-flames__b.is-new > span { color: var(--flame-c); font-weight: 700; margin-top: 6px; }
+.nudge-flames__b.is-new > span:last-child { color: var(--flame-c); font-weight: 700; margin-top: 6px; }
 @keyframes flameNew { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1.32); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .nudge-flames__b.is-new .streak__flame { animation: none; } }
 

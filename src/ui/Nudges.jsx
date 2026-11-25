@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StreakFlame, { FLAME_LEVELS, flameLevel } from "./StreakFlame";
 import Avatar from "./Avatar";
 import { avatarSrc } from "../lib/avatar";
-import { fetchLeaderboardWeek, fetchMyRecentAnswers, logStep } from "../lib/remote";
+import { fetchLeaderboardWeek, fetchMyRecentAnswers, fetchStreakRarity, logStep } from "../lib/remote";
 import { QUESTIONS } from "../data";
 import { todayKey, yesterdayKey } from "../lib/storage";
 
@@ -69,31 +69,39 @@ export function StreakNudge({ days, onAction, onClose, inline }) {
   );
 }
 
-/* A new flame (2026-11-25): the one just earned lit and lifted, with
-   the number, the ones before it lit, the rest waiting, and the next one
-   named. Shown once per level, at the end of the session that reaches it. */
-export function FlamesNudge({ days = 14, onAction, onClose, inline }) {
+/* A new flame (2026-11-25): the flames earned so far, the newest lifted,
+   then the ones still to come as faint grey shapes with a lock and a "?",
+   their colours and days kept a surprise. The line says how few people have got this far (live, from
+   everyone's best streak). Shown once per level, at the end of the
+   session that reaches it. */
+const rarity = pct => pct == null || !Number.isFinite(pct) ? "A new flame. Keep it going."
+  : pct < 1 ? "Fewer than 1 in 100 people on Resurface have got this far."
+  : pct > 50 ? "You’re ahead of most people on Resurface."
+  : `Only ${Math.round(pct)}% of people on Resurface have got this far.`;
+export function FlamesNudge({ days = 14, pct = null, onAction, onClose, inline }) {
   const n = Number(days) || 0;
   const now = flameLevel(n);
-  const next = FLAME_LEVELS.find(L => L.at > n);
   return (
     <NudgeCard kind="flames" inline={inline}
       art={
         <span className="nudge-flames" aria-hidden="true">
           {FLAME_LEVELS.map(L => {
-            const locked = n < L.at;
             const fresh = L === now;
+            const locked = n < L.at;
             return (
-              <span key={L.at} className={`nudge-flames__b${locked ? " is-locked" : ""}${fresh ? " is-new" : ""}`} style={fresh ? { "--flame-c": L.outer.at(-1) } : undefined}>
-                <StreakFlame days={L.at} size={40} bare dim={locked} />
-                <span>{L.label}</span>
+              <span key={L.at} className={`nudge-flames__b${fresh ? " is-new" : ""}${locked ? " is-locked" : ""}`} style={fresh ? { "--flame-c": L.outer.at(-1) } : undefined}>
+                <span className="nudge-flames__f">
+                  <StreakFlame days={L.at} size={40} bare locked={locked} />
+                  {locked && <svg className="nudge-flames__lock" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7.5" rx="2" /><path d="M3.4 6V4.2a2.6 2.6 0 0 1 5.2 0V6" /></svg>}
+                </span>
+                <span>{locked ? "?" : L.label}</span>
               </span>
             );
           })}
         </span>
       }
-      title={`${n}-day streak, new flame unlocked!`}
-      body={next ? `Your next one comes at ${next.at} days.` : "That’s every flame. Legend."}
+      title={`${n}-day streak!`}
+      body={rarity(pct)}
       action="Keep going" onAction={onAction} onClose={onClose} later={false} />
   );
 }
@@ -536,7 +544,10 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
       const flameSeen = Number(store.get(userId, "flames").n) || 0;
       const flameHit = [...FLAME_LEVELS].reverse().find(L => L.at > 1 && flameDays >= L.at)?.at ?? 0;
       if (flameHit > flameSeen) {
-        if (show({ kind: "flames", days: flameDays })) store.set(userId, "flames", { n: flameHit });
+        let pct = null;
+        try { pct = await Promise.race([fetchStreakRarity(flameHit), new Promise(r => setTimeout(() => r(null), 2500))]); } catch { /* offline */ }
+        if (cancelled) return;
+        if (show({ kind: "flames", days: flameDays, pct })) store.set(userId, "flames", { n: flameHit });
         return;
       }
       /* A milestone: a handful of times in anyone's life. */
@@ -635,7 +646,7 @@ export default function NudgeCenter({ userId, me = null, ready, sessionActive, s
 
   if (shown.kind === "dayone") return <DayOneNudge inline={inline} onAction={ok} onClose={close} />;
   if (shown.kind === "streak") return <StreakNudge inline={inline} days={shown.days} onAction={study} onClose={close} />;
-  if (shown.kind === "flames") return <FlamesNudge inline={inline} days={shown.days} onAction={ok} onClose={close} />;
+  if (shown.kind === "flames") return <FlamesNudge inline={inline} days={shown.days} pct={shown.pct} onAction={ok} onClose={close} />;
   if (shown.kind === "leader") return <LeaderNudge inline={inline} {...shown} onAction={study} onClose={close} />;
   if (shown.kind === "passed") return <PassedNudge inline={inline} me={shown.me} them={shown.them} rank={shown.rank} onAction={study} onClose={close} />;
   if (shown.kind === "best") return <BestNudge inline={inline} today={shown.today} best={shown.best} onAction={study} onClose={close} />;

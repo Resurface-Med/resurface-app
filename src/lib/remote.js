@@ -1137,6 +1137,13 @@ export async function fetchAnswerDays(days = 112) {
   return data ?? [];
 }
 
+/** The share (0–100) of everyone who has kept a streak whose best reached n days. */
+export async function fetchStreakRarity(n) {
+  const { data, error } = await supabase.rpc("streak_rarity", { n });
+  if (error) throw error;
+  return data == null ? null : Number(data);
+}
+
 export async function fetchLeaderboardWeek(year = null, day = null) {
   const args = {};
   if (year) args.yr = year;

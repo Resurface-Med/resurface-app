@@ -28,6 +28,9 @@ export const FLAME_LEVELS = [
   { at: 365, label: "365", h: 84, core: 1, shade: "#5b21b6", outer: ["#7fdcff", "#a78bfa", "#f472b6"], inner: ["#ffffff", "#e9e2ff"] },
 ];
 
+/* A flame not yet earned: grey, so its colour is a surprise. */
+const LOCKED = { core: 0, shade: "#7b8494", outer: ["#dfe3ea", "#a9b1bf"], inner: ["#f3f5f8", "#c6ccd6"] };
+
 export function flameLevel(days) {
   const n = Number(days) || 0;
   let level = FLAME_LEVELS[0];
@@ -35,9 +38,9 @@ export function flameLevel(days) {
   return level;
 }
 
-export default function StreakFlame({ days, best = 0, size = 30, small = false, bare = false, dim = false, className = "" }) {
+export default function StreakFlame({ days, best = 0, size = 30, small = false, bare = false, dim = false, locked = false, className = "" }) {
   const uid = useId().replace(/:/g, "");
-  const L = flameLevel(days);
+  const L = locked ? { ...flameLevel(days), ...LOCKED } : flameLevel(days);
   const home = className.includes("streak--home");
   const label = `${days}-day streak${best > days ? ` · best ${best}` : ""}`;
   const dev = (small ? 1.4 : 2.2) / (size / 24);
